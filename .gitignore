@@ -58,3 +58,8 @@ ehthumbs.db
 *.rar
 dist/
 build/
+
+# 备份目录
+database.bak.*
+uploads.bak.*
+sales-service-system.bak.*

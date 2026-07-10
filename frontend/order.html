@@ -216,11 +216,13 @@ function exportOrders(){
     if(list.length===0){alert('暂无数据可导出');return}
     const headers=['订单号','行号','客户','产品代码','产品名称','数量','完成数','金额','状态','风险','承诺交期','计划交期','上线时间','备注'];
     let csv='\uFEFF'+headers.join(',')+'\n';
+    // [H8] CSV 公式注入防护
+    const cs = window.csvSafe || (s => /^[=+\-@\t\r]/.test(String(s)) ? "'"+s : s);
     list.forEach(o=>{
       const row=[o.order_no||'',o.line_no||'',o.customer_name||'',o.product_code||'',o.product_name||'',
         o.quantity||'',o.completed_qty||'',o.order_amount||'',statusMap[o.status]||o.status||'',
         o.risk_level||'',o.promised_date||'',o.plan_date||'',o.online_date||'',
-        (o.remarks||'').replace(/,/g,'，')].map(v=>String(v).replace(/,/g,'，'));
+        (o.remarks||'').replace(/,/g,'，')].map(v=>cs(String(v).replace(/,/g,'，')));
       csv+=row.join(',')+'\n';
     });
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});

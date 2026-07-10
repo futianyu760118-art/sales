@@ -79,7 +79,11 @@ const certKeyPath = path.join(__dirname, 'cert', 'server.key');
 if (fs.existsSync(certPfxPath)) {
   try {
     const pfxData = fs.readFileSync(certPfxPath);
-    httpsServer = https.createServer({ pfx: pfxData, passphrase: 'sales123' }, app);
+    const pfxPassphrase = process.env.HTTPS_PFX_PASSPHRASE || '';
+    if (!pfxPassphrase) {
+      console.warn('⚠️ HTTPS_PFX_PASSPHRASE 环境变量未设置, HTTPS 将无法启动');
+    }
+    httpsServer = https.createServer({ pfx: pfxData, passphrase: pfxPassphrase }, app);
   } catch(e) {
     console.log('HTTPS证书加载失败，仅使用HTTP:', e.message);
   }

@@ -937,12 +937,14 @@ function exportProjects() {
     const headers=['项目编号','客户','项目名称','类型','等级','负责人','目前阶段','投入金额','订单金额','状态','立项时间','目标时间','年订单','备注'];
     let csv='\uFEFF'+headers.join(',')+'\n';
     list.forEach(p=>{
+      // [H8] CSV 公式注入防护：首字符 = + - @ 时加单引号前缀
+      const cs = window.csvSafe || (s => /^[=+\-@\t\r]/.test(String(s)) ? "'"+s : s);
       const row=[
-        S(p.project_no),S(p.customer_name),S(p.project_name),S(p.project_type),
-        S(p.project_level),S(p.owner),S(p.current_stage),
+        cs(S(p.project_no)),cs(S(p.customer_name)),cs(S(p.project_name)),cs(S(p.project_type)),
+        cs(S(p.project_level)),cs(S(p.owner)),cs(S(p.current_stage)),
         p.invest_amount||'',p.order_amount||'',
-        statusMap[p.status]||S(p.status),S(p.start_date),S(p.target_date),
-        S(p.annual_order),S(p.remarks).replace(/,/g,'，')
+        cs(statusMap[p.status]||S(p.status)),cs(S(p.start_date)),cs(S(p.target_date)),
+        cs(S(p.annual_order)),cs(S(p.remarks)).replace(/,/g,'，')
       ];
       csv+=row.join(',')+'\n';
     });

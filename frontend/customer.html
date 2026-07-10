@@ -157,6 +157,7 @@
     .cust-card .cc-acts button { flex:1; font-size:11px; padding:4px 0; border:none; border-radius:5px; cursor:pointer; }
     .cust-card .cc-att-tag { position:absolute; top:10px; right:12px; font-size:10px; color:#fff; background:#f39c12; border-radius:10px; padding:1px 7px; }
   </style>
+  <script src="common.js"></script>
   <script src="import-dropzone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
@@ -2276,11 +2277,17 @@
         document.getElementById('attPreviewTitle').textContent = a.file_name || '预览';
         const body = document.getElementById('attPreviewBody');
         if (a.is_link) {
-          // 链接预览：图片直接显示，其他用 iframe（部分站点禁止嵌入则提示打开）
+          // 链接预览：图片直接显示，其他用 iframe（白名单仅 http/https，防 javascript:/data: 注入）
           if (a.is_image) {
-            body.innerHTML = `<img src="${this.esc(a.url)}" alt="" onerror="this.parentNode.innerHTML='<div style=&quot;padding:40px;color:#888;&quot;>图片加载失败，可点击打开原链接</div>'">`;
+            const safeImg = window.safeUrl ? window.safeUrl(a.url) : this.esc(a.url);
+            body.innerHTML = `<img src="${this.esc(safeImg)}" alt="" onerror="this.parentNode.innerHTML='<div style=&quot;padding:40px;color:#888;&quot;>图片加载失败，可点击打开原链接</div>'">`;
           } else {
-            body.innerHTML = `<iframe src="${this.esc(a.url)}"></iframe>`;
+            const safeIframeUrl = window.safeUrl ? window.safeUrl(a.url) : '';
+            if (!safeIframeUrl) {
+              body.innerHTML = '<div style="padding:40px;color:#e74c3c">⚠️ 不允许的链接协议，请通过原始链接打开</div>';
+            } else {
+              body.innerHTML = `<iframe src="${this.esc(safeIframeUrl)}" sandbox="allow-same-origin allow-scripts"></iframe>`;
+            }
           }
           document.getElementById('attPreviewModal').style.display = 'flex';
           return;
@@ -2292,7 +2299,7 @@
           body.innerHTML = `<img src="${url}" alt="${this.esc(a.file_name)}">`;
           document.getElementById('attPreviewModal').style.display = 'flex';
         } else if (mime === 'application/pdf') {
-          body.innerHTML = `<iframe src="${url}"></iframe>`;
+          body.innerHTML = `<iframe src="${url}" sandbox="allow-same-origin allow-scripts"></iframe>`;
           document.getElementById('attPreviewModal').style.display = 'flex';
         } else {
           // Office 等无法在线预览的格式：直接下载打开（文件名已修复，可正常识别）

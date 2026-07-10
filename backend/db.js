@@ -6,6 +6,16 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
+// [H1] 单进程内每表一把 FIFO 写互斥锁：解决 _cache 内存状态被并发写覆盖的问题。
+// 同一张表的 insert/update/delete 串行执行；不是分布式锁，多实例部署需更上层方案。
+const _tableTail = new Map();
+function withTableLock(name, fn) {
+  const prev = _tableTail.get(name) || Promise.resolve();
+  const next = prev.then(fn, fn);
+  // 链尾用 finally 链式 resolve，避免异常中断后续任务
+  _tableTail.set(name, next.catch(() => undefined));
+  return next;
+}
 class JsonTable {
   constructor(name) {
     this.name = name;
@@ -49,51 +59,63 @@ class JsonTable {
   }
 
   insert(record) {
-    const data = this._load();
-    record.id = data.nextId++;
-    data.records.push(record);
-    this._save();
-    return { lastID: record.id, changes: 1 };
+    return withTableLock(this.name, () => {
+      const data = this._load();
+      record.id = data.nextId++;
+      data.records.push(record);
+      this._save();
+      return { lastID: record.id, changes: 1 };
+    });
   }
 
   // 批量写入：内存中插入不落盘，返回新id（配合 saveNow 使用，避免逐条写整表）
   insertNoSave(record) {
-    const data = this._load();
-    record.id = data.nextId++;
-    data.records.push(record);
-    return record.id;
+    return withTableLock(this.name, () => {
+      const data = this._load();
+      record.id = data.nextId++;
+      data.records.push(record);
+      return record.id;
+    });
   }
 
   // 提交内存变更到磁盘（一次性写入）
   saveNow() {
-    this._save();
+    return withTableLock(this.name, () => {
+      this._save();
+    });
   }
 
   update(id, fields) {
-    const data = this._load();
-    const idx = data.records.findIndex(r => r.id === Number(id));
-    if (idx === -1) return { changes: 0 };
-    Object.assign(data.records[idx], fields);
-    this._save();
-    return { changes: 1 };
+    return withTableLock(this.name, () => {
+      const data = this._load();
+      const idx = data.records.findIndex(r => r.id === Number(id));
+      if (idx === -1) return { changes: 0 };
+      Object.assign(data.records[idx], fields);
+      this._save();
+      return { changes: 1 };
+    });
   }
 
   // 批量更新：仅改内存不落盘（配合 saveNow）
   updateNoSave(id, fields) {
-    const data = this._load();
-    const idx = data.records.findIndex(r => r.id === Number(id));
-    if (idx === -1) return { changes: 0 };
-    Object.assign(data.records[idx], fields);
-    return { changes: 1 };
+    return withTableLock(this.name, () => {
+      const data = this._load();
+      const idx = data.records.findIndex(r => r.id === Number(id));
+      if (idx === -1) return { changes: 0 };
+      Object.assign(data.records[idx], fields);
+      return { changes: 1 };
+    });
   }
 
   delete(id) {
-    const data = this._load();
-    const idx = data.records.findIndex(r => r.id === Number(id));
-    if (idx === -1) return { changes: 0 };
-    data.records.splice(idx, 1);
-    this._save();
-    return { changes: 1 };
+    return withTableLock(this.name, () => {
+      const data = this._load();
+      const idx = data.records.findIndex(r => r.id === Number(id));
+      if (idx === -1) return { changes: 0 };
+      data.records.splice(idx, 1);
+      this._save();
+      return { changes: 1 };
+    });
   }
 
   findById(id) {

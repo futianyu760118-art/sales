@@ -11,6 +11,7 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ error: '用户名和密码为必填项' });
   }
   const table = getTable('users');
+  // [SECURITY] 当前为明文密码比对（c8 待办）。下一期：bcrypt(cost=12) + 迁移期兼容明文
   const user = table.all().find(u => u.username === username && u.password === password);
   if (!user) {
     return res.status(401).json({ error: '用户名或密码错误' });
