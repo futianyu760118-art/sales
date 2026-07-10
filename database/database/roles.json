@@ -1,0 +1,85 @@
+{
+  "records": [
+    {
+      "name": "系统管理员",
+      "code": "admin",
+      "description": "拥有系统所有权限",
+      "created_at": "2026-05-22 03:51:52",
+      "updated_at": "2026-05-22 03:51:52",
+      "id": 1
+    },
+    {
+      "name": "销售经理",
+      "code": "sales_manager",
+      "description": "管理销售团队和询价审批",
+      "created_at": "2026-05-22 03:51:52",
+      "updated_at": "2026-05-22 03:55:04",
+      "id": 2
+    },
+    {
+      "name": "销售人员",
+      "code": "sales",
+      "description": "处理询价和客户跟进",
+      "created_at": "2026-05-22 03:51:52",
+      "updated_at": "2026-05-22 03:51:52",
+      "id": 3
+    },
+    {
+      "name": "工程师",
+      "code": "engineer",
+      "description": "产品核价和技术支持",
+      "created_at": "2026-05-22 03:51:52",
+      "updated_at": "2026-05-22 03:51:52",
+      "id": 4
+    },
+    {
+      "name": "采购人员",
+      "code": "purchase",
+      "description": "物料采购和供应链管理",
+      "created_at": "2026-05-22 03:51:52",
+      "updated_at": "2026-05-22 03:51:52",
+      "id": 5
+    },
+    {
+      "name": "只读用户",
+      "code": "viewer",
+      "description": "仅查看数据，无编辑权限",
+      "created_at": "2026-05-22 03:51:52",
+      "updated_at": "2026-05-22 03:51:52",
+      "id": 6
+    },
+    {
+      "name": "财务经理",
+      "code": "cw1",
+      "description": "负责价格体系管理、成本策略制定、财务审批、权限配置、报表汇总；拥有最高财务审批权、价格体系管理权、权限分配权。",
+      "created_at": "2026-05-25 05:24:41",
+      "updated_at": "2026-06-24 10:01:09",
+      "id": 7
+    },
+    {
+      "name": "财务人员",
+      "code": "finance",
+      "description": "财务核算和成本管理",
+      "created_at": "2026-06-22 00:00:00",
+      "updated_at": "2026-06-29 16:47:35",
+      "id": 8
+    },
+    {
+      "name": "项目经理",
+      "code": "project_manager",
+      "description": "项目全流程管理：立项、进度、样品、订单与交付跟踪",
+      "created_at": "2026-07-03 01:38:36",
+      "updated_at": "2026-07-03 01:38:36",
+      "id": 9
+    },
+    {
+      "name": "研发经理",
+      "code": "rd_manager",
+      "description": "研发管理：产品/物料/BOM/核价/图纸/合规/测试全权管理",
+      "created_at": "2026-07-03 01:38:36",
+      "updated_at": "2026-07-03 01:38:36",
+      "id": 10
+    }
+  ],
+  "nextId": 11
+}

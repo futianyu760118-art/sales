@@ -1,0 +1,38 @@
+const express = require('express');
+const router = express.Router();
+
+router.use('/inquiries', require('./inquiry'));
+router.use('/products', require('./product'));
+router.use('/customers', require('./customer'));
+router.use('/materials', require('./material'));
+router.use('/materials-ext', require('./material-ext'));
+router.use('/procurement', require('./procurement'));
+router.use('/suppliers', require('./supplier'));
+router.use('/external-api', require('./external-api'));
+router.use('/orders', require('./order'));
+router.use('/samples', require('./sample'));
+router.use('/projects', require('./project'));
+router.use('/products/bom-types', require('./bom-type'));
+router.use('/products/bom-issues', require('./bom-issue'));
+router.use('/pricing', require('./pricing'));
+router.use('/quote', require('./quote').router);
+router.use('/users', require('./user'));
+router.use('/reports', require('./report'));
+router.use('/import', require('./import'));
+router.use('/permissions', require('./permission'));
+router.use('/feedback', require('./feedback'));
+router.use('/settings', require('./settings'));
+router.use('/test', require('./test'));
+router.use('/compliance', require('./compliance'));
+router.use('/configs', require('./config'));
+router.use('/chat', require('./chat'));
+router.use('/rules', require('./rules'));
+router.use('/spec-library', require('./spec-library'));
+router.use('/data-clean', require('./data-clean'));
+router.use('/ai-assistant', require('./ai-assistant'));
+router.use('/bom', require('./bom'));
+router.use('/external-sync', require('./external-sync'));
+router.use('/tech', require('./tech-transfer'));
+router.use('/organization', require('./organization'));
+
+module.exports = router;

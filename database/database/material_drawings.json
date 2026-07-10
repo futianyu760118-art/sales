@@ -1,0 +1,59 @@
+{
+  "records": [
+    {
+      "material_id": 292,
+      "file_name": "企业微信截图_17821852611966.png",
+      "file_path": "C:\\Users\\colorful\\Downloads\\sales-service-system\\uploads\\drawings\\1782206411735____________________17821852611966.png",
+      "file_size": 33335,
+      "file_type": ".png",
+      "version": 1,
+      "drawing_no": "",
+      "description": "111",
+      "uploaded_by": "",
+      "status": "active",
+      "approval_status": "approved",
+      "approved_by": "admin",
+      "approved_at": "2026-06-23 17:35:39",
+      "created_at": "2026-06-23 17:20:11",
+      "updated_at": "2026-06-23 17:35:39",
+      "id": 1
+    },
+    {
+      "material_id": 812,
+      "file_name": "ä¼ä¸å¾®ä¿¡æªå¾_17821852611966.png",
+      "file_path": "C:\\Users\\colorful\\Downloads\\sales-service-system\\uploads\\drawings\\1782445828054____________________17821852611966.png",
+      "file_size": 33335,
+      "file_type": ".png",
+      "version": 1,
+      "drawing_no": "",
+      "description": "1",
+      "uploaded_by": "1",
+      "status": "draft",
+      "approval_status": "pending",
+      "approved_by": "",
+      "approved_at": "",
+      "created_at": "2026-06-26 11:50:28",
+      "updated_at": "2026-06-26 11:50:28",
+      "id": 9
+    },
+    {
+      "material_id": 1,
+      "file_name": "1782206411735____________________17821852611966.png",
+      "file_path": "C:\\Users\\colorful\\Downloads\\sales-service-system\\uploads\\drawings\\1782518653545_1782206411735____________________17821852611966.png",
+      "file_size": 33335,
+      "file_type": ".png",
+      "version": 1,
+      "drawing_no": "",
+      "description": "",
+      "uploaded_by": "",
+      "status": "draft",
+      "approval_status": "pending",
+      "approved_by": "",
+      "approved_at": "",
+      "created_at": "2026-06-27 08:04:13",
+      "updated_at": "2026-06-27 08:04:13",
+      "id": 10
+    }
+  ],
+  "nextId": 11
+}

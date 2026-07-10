@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>项目技转管理</title><link rel="stylesheet" href="common.css">
+<style>
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}.b5{background:#3498db;color:#fff}.bd{background:#fff;border:1px solid #ddd;color:#555}
+.btn:hover{opacity:.85}
+.bs{padding:3px 8px;font-size:11px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.em{text-align:center;color:#999;padding:30px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb2{background:#fff;border-radius:12px;padding:20px;width:560px;max-width:95%;max-height:90vh;overflow:auto}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:54px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.tbl-wrap{overflow-x:auto;max-height:62vh;overflow-y:auto}
+.lv1{background:#d1ecf1;color:#0c5460}.lv2{background:#ffe8cc;color:#b35400}.lv3{background:#fadbd8;color:#a93226}
+.st0{background:#eee;color:#666}.st1{background:#fff3cd;color:#856404}.st2{background:#d4edda;color:#155724}.st3{background:#d5d8dc;color:#566573}.st4{background:#cce5ff;color:#004085}
+.st-audit0{background:#eee;color:#666}.st-audit1{background:#fff3cd;color:#856404}.st-audit2{background:#d1ecf1;color:#0c5460}.st-audit3{background:#fadbd8;color:#a93226}.st-audit4{background:#cce5ff;color:#004085}.st-audit5{background:#d4edda;color:#155724}
+.tip{font-size:12px;color:#999;margin-top:4px}
+.warn-box{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#8a6d3b}
+.flow-mini{display:inline-flex;gap:4px;align-items:center;font-size:11px}
+.flow-mini .fs{padding:2px 7px;border-radius:4px;background:#eee;color:#888}
+.flow-mini .fs.done{background:#d4edda;color:#155724}
+.flow-mini .fs.cur{background:#667eea;color:#fff}
+.flow-mini .fa{color:#ccc}
+.detail-section{margin-bottom:18px}
+.detail-section h4{font-size:13px;color:#333;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee}
+.doc-link{color:#667eea;cursor:pointer;text-decoration:underline}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>项目技转管理</h2>
+<span style="font-size:12px;color:#999">全技术资料受控流转闭环</span>
+</div>
+
+<div class="tab-nav" id="mainTabs">
+  <button class="active" onclick="switchTab('docs',this)">技术资料库</button>
+  <button onclick="switchTab('flow',this)">技转流转</button>
+  <button onclick="switchTab('change',this)">技术变更</button>
+  <button onclick="switchTab('review',this)">复盘与案例</button>
+  <button data-perm="tech:admin" onclick="switchTab('audit',this)">审计合规</button>
+</div>
+
+<!-- ===== Tab1 技术资料库 ===== -->
+<div class="tab-pane" id="pane-docs">
+  <div class="sg" id="docStats"></div>
+  <div class="sb">
+    <input type="text" id="dKw" placeholder="搜索编号/标题/项目/客户" style="width:230px" onkeydown="if(event.key==='Enter')loadDocs(1)">
+    <select id="dCat">
+      <option value="">全部分类</option>
+      <option value="presale">售前技术对接</option><option value="sample">样品技术验证</option>
+      <option value="initiate">项目立项技转</option><option value="production">核心生产工艺</option>
+      <option value="delivery">履约交付</option><option value="review">技术复盘迭代</option>
+    </select>
+    <select id="dLevel">
+      <option value="">全部分级</option><option value="1">通用</option><option value="2">核心</option><option value="3">涉密</option>
+    </select>
+    <select id="dStatus">
+      <option value="">全部状态</option><option>新增</option><option>待审核</option><option>已归档</option><option>已作废</option><option>已迭代</option>
+    </select>
+    <input type="text" id="dProj" placeholder="项目编号" style="width:130px">
+    <button class="btn b1" onclick="loadDocs(1)">搜索</button>
+    <button class="btn b2" data-perm="tech:create" onclick="openUpload()" style="margin-left:auto">上传资料</button>
+    <span>共 <b id="dTc">0</b> 条</span>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr>
+    <th>资料编号</th><th>标题</th><th>分类</th><th>分级</th><th>状态</th><th>项目/客户</th><th>版本</th><th>上传人</th><th>操作</th>
+    </tr></thead><tbody id="dTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+  </div>
+  <div id="dPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- ===== Tab2 技转流转 ===== -->
+<div class="tab-pane" id="pane-flow" style="display:none">
+  <div class="sb">
+    <input type="text" id="fKw" placeholder="搜索项目编号/客户" style="width:230px" onkeydown="if(event.key==='Enter')loadFlows(1)">
+    <select id="fStage">
+      <option value="">全部阶段</option><option value="presale">售前对接</option><option value="rd">研发定型</option><option value="production">生产落地</option><option value="delivery">交付复盘</option>
+    </select>
+    <button class="btn b1" onclick="loadFlows(1)">搜索</button>
+    <span>共 <b id="fTc">0</b> 条</span>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr>
+    <th>项目编号</th><th>项目名称</th><th>客户</th><th>技转进度</th><th>当前阶段</th><th>交底</th><th>变更</th><th>研发负责人</th><th>操作</th>
+    </tr></thead><tbody id="fTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+  </div>
+  <div id="fPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- ===== Tab3 技术变更 ===== -->
+<div class="tab-pane" id="pane-change" style="display:none">
+  <div class="sb">
+    <input type="text" id="cKw" placeholder="搜索变更编号/范围/原因" style="width:230px" onkeydown="if(event.key==='Enter')loadChanges(1)">
+    <select id="cType"><option value="">全部类型</option><option>参数</option><option>工艺</option><option>合规</option></select>
+    <select id="cStatus"><option value="">全部状态</option><option>发起</option><option>审核中</option><option>已通过</option><option>已驳回</option><option>已执行</option><option>已校验</option></select>
+    <button class="btn b1" onclick="loadChanges(1)">搜索</button>
+    <button class="btn b2" data-perm="tech:change" onclick="openChange()" style="margin-left:auto">发起变更</button>
+    <span>共 <b id="cTc">0</b> 条</span>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr>
+    <th>变更编号</th><th>研发项目</th><th>类型</th><th>范围</th><th>变更前→后</th><th>原因</th><th>状态</th><th>发起人</th><th>操作</th>
+    </tr></thead><tbody id="cTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+  </div>
+  <div id="cPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- ===== Tab4 复盘与案例 ===== -->
+<div class="tab-pane" id="pane-review" style="display:none">
+  <div class="tab-nav" style="margin-bottom:14px">
+    <button class="active" onclick="switchSub('rvw',this)">技术复盘</button>
+    <button onclick="switchSub('case',this)">技术案例库</button>
+  </div>
+  <div id="sub-rvw">
+    <div class="sb">
+      <select id="rDim"><option value="">全部维度</option><option value="parameter">参数复盘</option><option value="process">工艺复盘</option><option value="flow">流程复盘</option><option value="risk">风险复盘</option></select>
+      <select id="rStatus"><option value="">全部状态</option><option>草稿</option><option>已完成</option></select>
+      <button class="btn b1" onclick="loadReviews(1)">搜索</button>
+      <button class="btn b2" data-perm="tech:review" onclick="openReview()" style="margin-left:auto">新建复盘</button>
+      <span>共 <b id="rTc">0</b> 条</span>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>编号</th><th>项目</th><th>维度</th><th>发现/问题</th><th>改进方案</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody id="rTb"><tr><td colspan="7" class="em">暂无数据</td></tr></tbody></table>
+    </div>
+    <div id="rPg" style="margin-top:12px;text-align:center"></div>
+  </div>
+  <div id="sub-case" style="display:none">
+    <div class="sb">
+      <input type="text" id="caKw" placeholder="搜索案例标题/问题/方案" style="width:240px" onkeydown="if(event.key==='Enter')loadCases(1)">
+      <select id="caType"><option value="">全部问题类型</option><option value="parameter">参数</option><option value="process">工艺</option><option value="flow">流程</option><option value="risk">风险</option></select>
+      <button class="btn b1" onclick="loadCases(1)">搜索</button>
+      <button class="btn b2" data-perm="tech:case:manage" onclick="openCase()" style="margin-left:auto">录入案例</button>
+      <span>共 <b id="caTc">0</b> 条</span>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>案例编号</th><th>标题</th><th>问题类型</th><th>问题描述</th><th>解决方案</th><th>来源项目</th><th>阅读</th><th>操作</th></tr></thead>
+      <tbody id="caTb"><tr><td colspan="8" class="em">暂无数据</td></tr></tbody></table>
+    </div>
+    <div id="caPg" style="margin-top:12px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- ===== Tab5 审计合规 ===== -->
+<div class="tab-pane" id="pane-audit" style="display:none">
+  <div class="sg" id="alertBox"></div>
+  <div class="sb">
+    <select id="aAction"><option value="">全部动作</option><option>upload</option><option>edit</option><option>preview</option><option>download</option><option>forward</option><option>delete</option><option>reuse</option><option>audit</option></select>
+    <select id="aResult"><option value="">全部结果</option><option>success</option><option>denied</option></select>
+    <input type="text" id="aUser" placeholder="用户ID" style="width:90px">
+    <button class="btn b1" onclick="loadLogs(1)">筛选</button>
+    <button class="btn bd" onclick="loadLevelCfg()" data-perm="tech:admin">分级配置</button>
+    <span>共 <b id="aTc">0</b> 条</span>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>时间</th><th>用户</th><th>动作</th><th>结果</th><th>资料</th><th>原因/IP</th></tr></thead>
+    <tbody id="aTb"><tr><td colspan="6" class="em">暂无数据</td></tr></tbody></table>
+  </div>
+  <div id="aPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+</div>
+
+<div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
+
+<script>
+const API='/api/tech';
+const catMap={presale:'售前对接',sample:'样品验证',initiate:'项目立项',production:'生产工艺',delivery:'履约交付',review:'复盘迭代'};
+const stageMap={presale:'售前对接',rd:'研发定型',production:'生产落地',delivery:'交付复盘'};
+const dimMap={parameter:'参数复盘',process:'工艺复盘',flow:'流程复盘',risk:'风险复盘'};
+const levelMap={1:'通用',2:'核心',3:'涉密'};
+const docStatusMap={'新增':'st0','待审核':'st1','已归档':'st2','已作废':'st3','已迭代':'st4'};
+const changeStatusMap={'发起':'st-audit0','审核中':'st-audit1','已通过':'st-audit2','已驳回':'st-audit3','已执行':'st-audit4','已校验':'st-audit5'};
+
+function switchTab(id,btn){
+  const tabs=document.querySelectorAll('#mainTabs button');
+  const idxMap={docs:0,flow:1,change:2,review:3,audit:4};
+  const idx=idxMap[id];
+  if(tabs[idx])tabs.forEach((b,i)=>b.classList.toggle('active',i===idx));
+  ['docs','flow','change','review','audit'].forEach(t=>{const el=document.getElementById('pane-'+t);if(el)el.style.display=(t===id?'block':'none')});
+  if(id==='docs')loadDocs(1);
+  if(id==='flow')loadFlows(1);
+  if(id==='change')loadChanges(1);
+  if(id==='review'){loadReviews(1);loadCases(1);}
+  if(id==='audit'){loadAlerts();loadLogs(1);}
+}
+function switchSub(id,btn){
+  const subTabs=document.querySelectorAll('#pane-review .tab-nav button');
+  const idxMap={rvw:0,case:1};
+  const idx=idxMap[id];
+  if(subTabs[idx])subTabs.forEach((b,i)=>b.classList.toggle('active',i===idx));
+  const r=document.getElementById('sub-rvw'),c=document.getElementById('sub-case');
+  if(r)r.style.display=(id==='rvw'?'block':'none');
+  if(c)c.style.display=(id==='case'?'block':'none');
+}
+
+function renderPg(elId,total,page,fn){
+  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  if(pages<=1){el.innerHTML='';return}
+  let h='';
+  if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
+  for(let i=Math.max(1,page-2);i<=Math.min(pages,page+2);i++)h+=`<button class="btn bs ${i===page?'b1':''}" onclick="${fn.name}(${i})">${i}</button> `;
+  if(page<pages)h+=`<button class="btn bs" onclick="${fn.name}(${page+1})">下一页</button>`;
+  el.innerHTML=h;
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function openMo(html){document.getElementById('gMoBox').innerHTML=html;document.getElementById('gMo').classList.add('ac')}
+function closeMo(){document.getElementById('gMo').classList.remove('ac')}
+
+// ============ Tab1 技术资料库 ============
+async function loadDocStats(){
+  try{
+    const r=await fetch(API+'/documents/stats');const d=await r.json();
+    document.getElementById('docStats').innerHTML=`
+      <div class="sc"><div class="n">${d.total||0}</div><div class="l">资料总数</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${(d.by_level||{})['1']||0}</div><div class="l">通用</div></div>
+      <div class="sc"><div class="n" style="color:#f39c12">${(d.by_level||{})['2']||0}</div><div class="l">核心</div></div>
+      <div class="sc"><div class="n" style="color:#e74c3c">${(d.by_level||{})['3']||0}</div><div class="l">涉密</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${d.archived||0}</div><div class="l">已归档</div></div>
+      <div class="sc"><div class="n" style="color:#764ba2">${d.projects_covered||0}</div><div class="l">覆盖项目</div></div>`;
+  }catch(e){console.error(e)}
+}
+async function loadDocs(page){
+  page=page||1;
+  const p=new URLSearchParams({page,limit:50});
+  const kw=VAL('dKw'),cat=VAL('dCat'),lv=VAL('dLevel'),st=VAL('dStatus'),pj=VAL('dProj');
+  if(kw)p.set('keyword',kw);if(cat)p.set('category',cat);if(lv)p.set('level',lv);if(st)p.set('status',st);if(pj)p.set('project_no',pj);
+  try{
+    const r=await fetch(API+'/documents?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('dTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('dTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无数据</td></tr>';renderPg('dPg',total,page,loadDocs);return}
+    tb.innerHTML=recs.map(s=>{
+      const stage=s.approval_stage||'dept_review';
+      const stageLabel={dept_review:'待部门经理审核',gm_approve:'待总经理批准',approved:'已批准署名',rejected:'已驳回'}[stage]||stage;
+      const stageCls={dept_review:'st1',gm_approve:'st4',approved:'st2',rejected:'st3'}[stage]||'st0';
+      let approveBtn='';
+      if(stage==='dept_review')approveBtn=`<button class="btn bs b2" data-perm="tech:approve:dept" onclick="approveDoc(${s.id},'dept')">部门审核</button>`;
+      else if(stage==='gm_approve')approveBtn=`<button class="btn bs b2" data-perm="tech:approve:gm" onclick="approveDoc(${s.id},'gm')">总经理批准</button>`;
+      return `<tr>
+      <td><b>${esc(s.doc_no)}</b></td>
+      <td><span class="doc-link" onclick="viewDoc(${s.id})">${esc(s.title)}</span></td>
+      <td>${catMap[s.category]||s.category||'-'}</td>
+      <td><span class="badge lv${s.level}">${levelMap[s.level]||s.level}</span></td>
+      <td><span class="badge ${stageCls}">${stageLabel}</span>${stage==='approved'?'<div class="tip" style="margin-top:2px;color:#27ae60">☑ 已署名</div>':''}</td>
+      <td>${esc(s.project_no||s.customer_name||'-')}</td>
+      <td>${esc(s.version||'')}</td>
+      <td>${esc(s.uploaded_by||'-')}</td>
+      <td style="white-space:nowrap">
+        ${approveBtn}
+        <button class="btn bs b5" onclick="previewDoc(${s.id})">预览</button>
+        <button class="btn bs b2" onclick="downloadDoc(${s.id})">下载</button>
+        <button class="btn bs bd" onclick="docVersions(${s.id})">版本</button>
+        <button class="btn bs b4" data-perm="tech:edit" onclick="newVersion(${s.id})">迭代</button>
+      </td></tr>`}).join('');
+    renderPg('dPg',total,page,loadDocs);
+    if(window.PermissionCheck)PermissionCheck.applyToPage();
+  }catch(e){console.error(e)}
+}
+function VAL(id){const el=document.getElementById(id);return el?el.value:''}
+
+function openUpload(){
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>上传技术资料</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <form id="upForm" enctype="multipart/form-data">
+    <div id="dropZone" style="margin-bottom:10px;padding:28px 16px;border:2px dashed #b8c2d6;border-radius:10px;text-align:center;cursor:pointer;background:#fafbff;transition:all .25s">
+      <div style="font-size:30px;color:#667eea;line-height:1">⬆</div>
+      <div style="font-size:13px;color:#344054;margin-top:8px">将文件拖拽到此处，或 <span style="color:#667eea;font-weight:600;text-decoration:underline">点击选择文件</span></div>
+      <div class="tip" id="fileHint" style="margin-top:4px">支持 PDF / 图纸 / 图片 / 文档等，单文件最大 100MB</div>
+      <input type="file" name="file" id="fileInput" required style="display:none" onchange="onFilePick(this)">
+    </div>
+    <div class="gr"><div class="fg"><label>标题</label><input name="title" placeholder="留空取文件名"></div>
+    <div class="fg"><label>资料编号</label><input name="doc_no" placeholder="留空自动生成"></div></div>
+    <div class="gr">
+      <div class="fg"><label>六大分类 *</label><select name="category">
+        ${Object.entries(catMap).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+      </select></div>
+      <div class="fg"><label>分级 *</label><select name="level" id="upLevel" onchange="toggleLevelWarn()">
+        <option value="1">通用（全员可查）</option><option value="2">核心（研发/项目/管理层）</option><option value="3">涉密（仅超管）</option>
+      </select></div>
+    </div>
+    <div id="lvlWarn"></div>
+    <div class="gr">
+      <div class="fg"><label>关联项目ID</label><input name="project_id" placeholder="可选"></div>
+      <div class="fg"><label>项目编号</label><input name="project_no"></div>
+    </div>
+    <div class="gr">
+      <div class="fg"><label>询价单号</label><input name="inquiry_no"></div>
+      <div class="fg"><label>客户名称</label><input name="customer_name"></div>
+    </div>
+    <div class="gr">
+      <div class="fg"><label>归口部门</label><input name="owner_dept" placeholder="研发/生产/质量"></div>
+      <div class="fg"><label>细分类型</label><input name="sub_category" placeholder="图纸/BOM/工艺文件"></div>
+    </div>
+    <div class="fg"><label>资料说明</label><textarea name="description"></textarea></div>
+    <div class="tip">上传后进入「部门经理审核 → 总经理批准」两级审批，批准后自动在文件上署名归档。</div>
+    <div style="text-align:right;margin-top:12px"><button type="submit" class="btn b2">上传</button></div>
+  </form>`;
+  openMo(html);
+  const dz=document.getElementById('dropZone'),fi=document.getElementById('fileInput');
+  dz.addEventListener('click',()=>fi.click());
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='#667eea';dz.style.background='#f0f0ff';dz.style.transform='scale(1.01)'});
+  dz.addEventListener('dragleave',e=>{e.preventDefault();dz.style.borderColor='#b8c2d6';dz.style.background='#fafbff';dz.style.transform='none'});
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='#b8c2d6';dz.style.background='#fafbff';dz.style.transform='none';if(e.dataTransfer.files.length){fi.files=e.dataTransfer.files;onFilePick(fi)}});
+  document.getElementById('upForm').onsubmit=async(e)=>{
+    e.preventDefault();
+    if(!fi.files.length){alert('请选择或拖入文件');return}
+    const fd=new FormData(e.target);
+    const r=await fetch(API+'/documents',{method:'POST',body:fd});
+    const d=await r.json();
+    if(r.ok){closeMo();loadDocs(1);loadDocStats();}
+    else alert(d.error||'上传失败');
+  };
+}
+function onFilePick(input){
+  const f=input.files[0];if(!f)return;
+  const hint=document.getElementById('fileHint');
+  if(hint)hint.innerHTML=`已选择: <b>${f.name}</b> (${(f.size/1024/1024).toFixed(2)} MB)`;
+}
+function toggleLevelWarn(){
+  const lv=document.getElementById('upLevel').value;
+  document.getElementById('lvlWarn').innerHTML=lv==='3'?'<div class="warn-box">涉密资料：仅超级管理员可下载，禁止转发。</div>':lv==='2'?'<div class="warn-box">核心资料：强制水印，仅授权岗位可下载。</div>':'';
+}
+
+async function viewDoc(id){
+  try{
+    const r=await fetch(API+'/documents/'+id);const d=await r.json();
+    const vers=(d.versions||[]).map(v=>`<tr><td>${esc(v.version)}</td><td>${esc(v.change_summary)}</td><td>${esc(v.change_reason)}</td><td>${esc(v.changed_by)}</td><td>${esc((v.created_at||'').substring(0,16))}</td><td>${v.is_current==1?'<span class="badge st2">当前</span>':''}</td></tr>`).join('');
+    openMo(`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${esc(d.title)}</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+    <div class="detail-section">
+      <div class="gr3">
+        <div><b>编号:</b> ${esc(d.doc_no)}</div>
+        <div><b>分类:</b> ${catMap[d.category]||d.category}</div>
+        <div><b>分级:</b> <span class="badge lv${d.level}">${levelMap[d.level]}</span></div>
+      </div>
+      <div class="gr3" style="margin-top:8px">
+        <div><b>状态:</b> <span class="badge ${docStatusMap[d.status]}">${esc(d.status)}</span></div>
+        <div><b>版本:</b> ${esc(d.version)}</div>
+        <div><b>上传人:</b> ${esc(d.uploaded_by)}</div>
+      </div>
+      <div class="gr3" style="margin-top:8px">
+        <div><b>项目:</b> ${esc(d.project_no||'-')}</div>
+        <div><b>询价单:</b> ${esc(d.inquiry_no||'-')}</div>
+        <div><b>客户:</b> ${esc(d.customer_name||'-')}</div>
+      </div>
+      ${d.description?`<div style="margin-top:8px"><b>说明:</b> ${esc(d.description)}</div>`:''}
+    </div>
+    <div class="detail-section"><h4>审批署名</h4>
+      <div style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:12px">
+        <div style="display:flex;gap:18px;flex-wrap:wrap">
+          <span><b>部门经理：</b>${d.dept_status==='approved'?'<span style="color:#27ae60">☑ '+esc(d.dept_by)+'</span>':d.dept_status==='rejected'?'<span style="color:#e74c3c">✗ 驳回</span>':'<span style="color:#999">待审核</span>'} ${d.dept_at?'('+esc(d.dept_at.substring(0,10))+')':''}</span>
+          <span><b>总经理：</b>${d.gm_status==='approved'?'<span style="color:#27ae60">☑ '+esc(d.gm_by)+'</span>':d.gm_status==='rejected'?'<span style="color:#e74c3c">✗ 驳回</span>':'<span style="color:#999">待批准</span>'} ${d.gm_at?'('+esc(d.gm_at.substring(0,10))+')':''}</span>
+        </div>
+        ${d.approval_stage==='approved'?'<div style="margin-top:8px;color:#155724">☑ 文件已批准署名'+(d.file_signed_path?'（PDF署名版已生成，下载/预览即为署名版）':'（非PDF文件，署名信息已记录）')+'</div>':''}
+        ${d.dept_note?'<div style="margin-top:6px;color:#666">部门经理意见：'+esc(d.dept_note)+'</div>':''}
+        ${d.gm_note?'<div style="margin-top:4px;color:#666">总经理意见：'+esc(d.gm_note)+'</div>':''}
+      </div>
+    </div>
+    <div class="detail-section"><h4>版本历史</h4>
+      <table><thead><tr><th>版本</th><th>变更摘要</th><th>原因</th><th>变更人</th><th>时间</th><th></th></tr></thead><tbody>${vers||'<tr><td colspan="6" class="em">无</td></tr>'}</tbody></table>
+    </div>
+    <div style="text-align:right"><button class="btn b5" onclick="previewDoc(${d.id})">预览</button> <button class="btn b2" onclick="downloadDoc(${d.id})">下载</button></div>`);
+  }catch(e){alert('加载失败')}
+}
+function curUid(){return encodeURIComponent(localStorage.getItem('currentUserId')||'')}
+function previewDoc(id){window.open(API+'/documents/'+id+'/preview?user_id='+curUid(),'_blank')}
+function downloadDoc(id){window.location.href=API+'/documents/'+id+'/download?user_id='+curUid()}
+async function docVersions(id){
+  const r=await fetch(API+'/documents/'+id+'/versions');const d=await r.json();
+  const rows=(d.data||[]).map(v=>`<tr><td>${esc(v.version)}</td><td>${esc(v.change_summary)}</td><td>${esc(v.change_reason)}</td><td>${esc(v.changed_by)}</td><td>${esc((v.created_at||'').substring(0,16))}</td></tr>`).join('');
+  openMo(`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>版本历史</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <table><thead><tr><th>版本</th><th>变更摘要</th><th>原因</th><th>变更人</th><th>时间</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="em">无</td></tr>'}</tbody></table>`);
+}
+function newVersion(id){
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>上传新版本</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <form id="nvForm" enctype="multipart/form-data">
+    <div class="fg"><label>新版本文件 *</label><input type="file" name="file" required></div>
+    <div class="fg"><label>变更摘要</label><input name="change_summary" placeholder="如：修订光电参数"></div>
+    <div class="fg"><label>变更原因</label><textarea name="change_reason"></textarea></div>
+    <div style="text-align:right;margin-top:12px"><button type="submit" class="btn b2">上传新版本</button></div>
+  </form>`;
+  openMo(html);
+  document.getElementById('nvForm').onsubmit=async(e)=>{
+    e.preventDefault();
+    const fd=new FormData(e.target);
+    const r=await fetch(API+'/documents/'+id+'/new-version',{method:'POST',body:fd});
+    const d=await r.json();
+    if(r.ok){closeMo();loadDocs(1);alert('新版本：'+d.version);}
+    else alert(d.error||'失败');
+  };
+}
+function auditDoc(id){
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>资料审核</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <div class="fg"><label>审核为状态 *</label><select id="auStatus"><option>待审核</option><option>已归档</option><option>已作废</option></select></div>
+  <div class="tip">已归档/已作废资料将锁定，永久留存溯源。</div>
+  <div style="text-align:right;margin-top:12px"><button class="btn b4" onclick="doAudit(${id})">确认</button></div>`;
+  openMo(html);
+}
+function approveDoc(id,level){
+  const title=level==='dept'?'部门经理审核':'总经理批准';
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${title}</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <div class="warn-box">${level==='dept'?'审核通过后流转至总经理批准。':'批准后将在文件上署名（部门经理+总经理+日期）并归档，不可撤销。'}</div>
+  <div class="fg"><label>审核意见</label><textarea id="apNote" placeholder="审核意见（可选）"></textarea></div>
+  <div style="text-align:right;margin-top:12px">
+    <button class="btn b2" onclick="doApprove(${id},'${level}','approve')">通过</button>
+    <button class="btn b3" onclick="doApprove(${id},'${level}','reject')">驳回</button>
+  </div>`;
+  openMo(html);
+}
+async function doApprove(id,level,action){
+  const note=document.getElementById('apNote').value;
+  const r=await fetch(API+'/documents/'+id+'/approve',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({level,action,note})});
+  const d=await r.json();
+  if(r.ok){closeMo();loadDocs(1);loadDocStats();alert(d.message+(d.signed?'\n☑ PDF已生成署名版':''));}
+  else alert(d.error||'操作失败');
+}
+async function doAudit(id){
+  const status=document.getElementById('auStatus').value;
+  await fetch(API+'/documents/'+id+'/audit',{method:'PUT',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'status='+encodeURIComponent(status)});
+  closeMo();loadDocs(1);loadDocStats();
+}
+
+// ============ Tab2 技转流转 ============
+function flowBar(f){
+  const stages=[['presale',f.presale_status],['rd',f.rd_status],['production',f.production_status],['delivery',f.delivery_status]];
+  return '<span class="flow-mini">'+stages.map((s,i)=>{
+    const cls=s[1]==='完成'?'done':(f.current_stage===s[0]?'cur':'');
+    const arr=i<stages.length-1?'<span class="fa">→</span>':'';
+    return `<span class="fs ${cls}">${stageMap[s[0]]}</span>${arr}`;
+  }).join('')+'</span>';
+}
+async function loadFlows(page){
+  page=page||1;
+  const p=new URLSearchParams({page,limit:50});
+  const kw=VAL('fKw'),st=VAL('fStage');
+  if(kw)p.set('keyword',kw);if(st)p.set('current_stage',st);
+  try{
+    const r=await fetch(API+'/flows?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('fTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('fTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无数据</td></tr>';renderPg('fPg',total,page,loadFlows);return}
+    tb.innerHTML=recs.map(f=>{
+      const started=f.tech_started;
+      const stageBadge=started?`<span class="badge st4">${stageMap[f.current_stage]||f.current_stage}</span>`:'<span class="badge st0">未启动</span>';
+      const btn=started
+        ?`<button class="btn bs b5" onclick="viewFlow(${f.project_id})">详情</button>`
+        :`<button class="btn bs b2" data-perm="tech:transfer" onclick="startTech(${f.project_id})">启动技转</button>`;
+      return `<tr>
+      <td><b>${esc(f.project_no||'-')}</b></td>
+      <td><span class="doc-link" onclick="viewFlow(${f.project_id})">${esc(f.project_name||'-')}</span></td>
+      <td>${esc(f.customer_name||'-')}</td>
+      <td>${started?flowBar(f):'<span style="color:#bbb;font-size:11px">— 未启动 —</span>'}</td>
+      <td>${stageBadge}</td>
+      <td>${f.handover_count||0}</td>
+      <td>${f.change_count||0}</td>
+      <td>${esc(f.owner||f.tech_lead||'-')}</td>
+      <td>${btn}</td>
+    </tr>`}).join('');
+    renderPg('fPg',total,page,loadFlows);
+  }catch(e){console.error(e)}
+}
+async function startTech(projectId){
+  await fetch(API+'/flows/'+projectId).catch(()=>{});
+  viewFlow(projectId);
+}
+let _projCache=null;
+async function loadProjectsForPicker(){
+  if(_projCache)return _projCache;
+  try{
+    const r=await fetch('/api/projects?limit=9999');const d=await r.json();
+    _projCache=(d.data||[]).filter(p=>p.project_name||p.project_no);
+  }catch(e){_projCache=[]}
+  return _projCache;
+}
+async function projectSelectHTML(name,selectedId){
+  const list=await loadProjectsForPicker();
+  const opts=list.map(p=>`<option value="${p.id}" data-no="${esc(p.project_no||'')}" data-customer="${esc(p.customer_name||'')}" ${String(p.id)===String(selectedId)?'selected':''}>${esc(p.project_no||p.id)} | ${esc(p.project_name||'')}</option>`).join('');
+  return `<select name="${name}" id="ps_${name}" onchange="onProjectPick('${name}')"><option value="">-- 选择研发项目 --</option>${opts}</select>`;
+}
+function onProjectPick(name){
+  const sel=document.getElementById('ps_'+name);if(!sel)return;
+  const opt=sel.options[sel.selectedIndex];
+  const noEl=document.getElementById('ps_'+name+'_no'),cuEl=document.getElementById('ps_'+name+'_customer');
+  if(noEl)noEl.value=opt.getAttribute('data-no')||'';
+  if(cuEl)cuEl.value=opt.getAttribute('data-customer')||'';
+}
+async function viewFlow(projectId){
+  try{
+    const [r,ctxR]=await Promise.all([fetch(API+'/flows/'+projectId),fetch(API+'/project/'+projectId+'/context').catch(()=>null)]);
+    const f=await r.json();
+    let ctx=null;if(ctxR&&ctxR.ok)ctx=await ctxR.json();
+    const docs=(f.documents||[]).map(d=>`<tr><td>${esc(d.doc_no)}</td><td>${esc(d.title)}</td><td><span class="badge lv${d.level}">${levelMap[d.level]}</span></td><td>${esc(d.version)}</td></tr>`).join('');
+    const hs=(f.handovers||[]).map(h=>`<tr><td>${esc(h.handover_no)}</td><td>${stageMap[h.stage]||h.stage}</td><td>${esc((h.content||'').substring(0,40))}</td><td><span class="badge ${h.status==='已流转'||h.status==='已通过'?'st2':'st1'}">${esc(h.status)}</span></td><td>${esc(h.from_user)}→${esc(h.to_role||h.to_user)}</td><td>${esc((h.created_at||'').substring(0,16))}</td>
+      <td>${h.status==='待审核'?'<button class="btn bs b2" data-perm="tech:transfer" onclick="auditHandover('+h.id+',\'已通过\')">通过</button> <button class="btn bs b3" data-perm="tech:transfer" onclick="auditHandover('+h.id+',\'已驳回\')">驳回</button>':''}</td></tr>`).join('');
+    const chs=(f.changes||[]).map(c=>`<tr><td>${esc(c.change_no)}</td><td>${esc(c.change_type)}</td><td>${esc(c.scope)}</td><td><span class="badge ${changeStatusMap[c.status]||'st0'}">${esc(c.status)}</span></td></tr>`).join('');
+    let ctxHtml='';
+    if(ctx&&ctx.project){
+      const rp=ctx.rd_progress||{};
+      ctxHtml=`<div class="detail-section" style="background:#f8f9fa;padding:10px;border-radius:8px;font-size:12px;color:#555">
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <span><b>项目阶段：</b>${esc(ctx.project.current_stage||'-')}</span>
+          <span><b>研发节点完成率：</b><span style="color:${(rp.node_rate||0)>=80?'#27ae60':(rp.node_rate||0)>=40?'#f39c12':'#e74c3c'};font-weight:600">${rp.node_done||0}/${rp.node_total||19}（${rp.node_rate||0}%）</span></span>
+          <span><b>技转节点：</b>${rp.tech_transfer?'<span style="color:#27ae60">已完成</span>':'<span style="color:#bbb">未同步</span>'}</span>
+          ${ctx.rd_review?'<span style="color:#27ae60"><b>项目复盘：</b>已记录</span>':'<span style="color:#bbb"><b>项目复盘：</b>未复盘</span>'}
+        </div>
+      </div>`;
+    }
+    openMo(`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${esc(f.project_no||'')} 技转全景</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+    ${ctxHtml}
+    <div class="detail-section">${flowBar(f)}</div>
+    <div class="detail-section"><h4>技转交底流转 <button class="btn bs b2" data-perm="tech:transfer" onclick="openHandover(${f.project_id})" style="float:right">发起交底</button></h4>
+      <table><thead><tr><th>编号</th><th>段次</th><th>交底内容</th><th>状态</th><th>流向</th><th>时间</th><th>操作</th></tr></thead><tbody>${hs||'<tr><td colspan="7" class="em">无交底记录</td></tr>'}</tbody></table></div>
+    <div class="detail-section"><h4>关联技术资料</h4>
+      <table><thead><tr><th>编号</th><th>标题</th><th>分级</th><th>版本</th></tr></thead><tbody>${docs||'<tr><td colspan="4" class="em">无</td></tr>'}</tbody></table></div>
+    <div class="detail-section"><h4>技术变更</h4>
+      <table><thead><tr><th>编号</th><th>类型</th><th>范围</th><th>状态</th></tr></thead><tbody>${chs||'<tr><td colspan="4" class="em">无</td></tr>'}</tbody></table></div>`);
+    if(window.PermissionCheck)PermissionCheck.applyToPage();
+  }catch(e){alert('加载失败')}
+}
+function openHandover(projectId){
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>发起技转交底</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <form id="hdForm">
+    <div class="gr"><div class="fg"><label>项目ID</label><input name="project_id" value="${projectId}" readonly></div>
+    <div class="fg"><label>段次</label><select name="stage"><option value="presale">售前对接</option><option value="rd">研发定型</option><option value="production">生产落地</option><option value="delivery">交付复盘</option></select></div></div>
+    <div class="gr"><div class="fg"><label>接收角色</label><input name="to_role" placeholder="生产/研发/质量" value="生产"></div>
+    <div class="fg"><label>发起角色</label><input name="from_role" placeholder="研发"></div></div>
+    <div class="fg"><label>交底内容（参数/工艺/质检标准）</label><textarea name="content" style="min-height:80px"></textarea></div>
+    <div class="fg"><label>关联资料ID（逗号分隔）</label><input name="doc_ids" placeholder="如 1,2,3"></div>
+    <div style="text-align:right;margin-top:12px"><button type="submit" class="btn b2">发起</button></div>
+  </form>`;
+  openMo(html);
+  document.getElementById('hdForm').onsubmit=async(e)=>{
+    e.preventDefault();
+    const fd=new FormData(e.target);const body={project_id:fd.get('project_id'),stage:fd.get('stage'),to_role:fd.get('to_role'),from_role:fd.get('from_role'),content:fd.get('content')};
+    const ids=fd.get('doc_ids');if(ids)body.doc_ids=ids.split(',').map(x=>Number(x.trim())).filter(Boolean);
+    const r=await fetch(API+'/handovers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){closeMo();loadFlows();}
+    else{const d=await r.json();alert(d.error||'失败')}
+  };
+}
+async function auditHandover(id,status){
+  if(!confirm('确认'+status+'此交底单？'+(status==='已通过'?'通过后将自动流转至下一段。':'')))return;
+  await fetch(API+'/handovers/'+id+'/audit',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status,audit_note:status})});
+  loadFlows();
+}
+
+// ============ Tab3 技术变更 ============
+async function loadChanges(page){
+  page=page||1;
+  const p=new URLSearchParams({page,limit:50});
+  const kw=VAL('cKw'),tp=VAL('cType'),st=VAL('cStatus');
+  if(kw)p.set('keyword',kw);if(tp)p.set('change_type',tp);if(st)p.set('status',st);
+  try{
+    const r=await fetch(API+'/changes?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('cTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('cTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无数据</td></tr>';renderPg('cPg',total,page,loadChanges);return}
+    tb.innerHTML=recs.map(c=>`<tr>
+      <td><b>${esc(c.change_no)}</b></td>
+      <td><span class="doc-link" onclick="viewFlow(${c.project_id})" title="${esc(c.project_no||'')}">${esc(c.project_name||c.project_no||'-')}</span></td>
+      <td>${esc(c.change_type)}</td>
+      <td>${esc(c.scope)}</td>
+      <td>${esc(c.before_value)} → ${esc(c.after_value)}</td>
+      <td>${esc((c.reason||'').substring(0,30))}</td>
+      <td><span class="badge ${changeStatusMap[c.status]||'st0'}">${esc(c.status)}</span></td>
+      <td>${esc(c.initiator||'-')}</td>
+      <td style="white-space:nowrap">${changeActions(c)}</td>
+    </tr>`).join('');
+    renderPg('cPg',total,page,loadChanges);
+    if(window.PermissionCheck)PermissionCheck.applyToPage();
+  }catch(e){console.error(e)}
+}
+function changeActions(c){
+  let b='';
+  const P='data-perm="tech:change"';
+  if(c.status==='发起')b+=`<button class="btn bs b4" ${P} onclick="changeStep(${c.id},'audit','审核中')">审核</button> `;
+  if(c.status==='审核中')b+=`<button class="btn bs b2" ${P} onclick="changeStep(${c.id},'audit','已通过')">通过</button> <button class="btn bs b3" ${P} onclick="changeStep(${c.id},'audit','已驳回')">驳回</button> `;
+  if(c.status==='已通过')b+=`<button class="btn bs b2" ${P} onclick="changeStep(${c.id},'execute','已执行')">执行</button> `;
+  if(c.status==='已执行')b+=`<button class="btn bs b5" ${P} onclick="changeVerify(${c.id})">校验</button> `;
+  return b||'<span style="color:#999">已闭环</span>';
+}
+async function changeStep(id,act,status){
+  await fetch(API+'/changes/'+id+'/'+act,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  loadChanges();
+}
+async function changeVerify(id){
+  const note=prompt('落地校验说明：','校验通过');
+  if(note===null)return;
+  await fetch(API+'/changes/'+id+'/verify',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({verified_note:note})});
+  loadChanges();
+}
+async function openChange(){
+  const projSel=await projectSelectHTML('project_id','');
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>发起技术变更</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <form id="chForm">
+    <div class="fg"><label>关联研发项目 *</label>${projSel}</div>
+    <div class="gr"><div class="fg"><label>项目编号（自动）</label><input name="project_no" id="ps_project_id_no" readonly></div>
+    <div class="fg"><label>客户（自动）</label><input name="customer_name" id="ps_project_id_customer" readonly></div></div>
+    <div class="gr"><div class="fg"><label>变更类型 *</label><select name="change_type"><option>参数</option><option>工艺</option><option>合规</option></select></div>
+    <div class="fg"><label>变更范围 *</label><input name="scope" placeholder="如：焊接工艺/光电参数"></div></div>
+    <div class="gr"><div class="fg"><label>变更前</label><input name="before_value"></div>
+    <div class="fg"><label>变更后</label><input name="after_value"></div></div>
+    <div class="fg"><label>变更原因 *</label><textarea name="reason" required></textarea></div>
+    <div class="fg"><label>影响评估</label><textarea name="impact_analysis"></textarea></div>
+    <div class="fg"><label>知悉岗位（逗号分隔）</label><input name="notify_roles" placeholder="销售,研发,生产,采购"></div>
+    <div class="tip">变更经审核通过→执行时，将自动更新受影响资料版本。</div>
+    <div style="text-align:right;margin-top:12px"><button type="submit" class="btn b2">发起</button></div>
+  </form>`;
+  openMo(html);
+  document.getElementById('chForm').onsubmit=async(e)=>{
+    e.preventDefault();
+    const fd=new FormData(e.target);const body={};fd.forEach((v,k)=>body[k]=v);
+    if(!body.project_id){alert('请选择关联研发项目');return}
+    if(body.notify_roles)body.notify_roles=body.notify_roles.split(',').map(x=>x.trim()).filter(Boolean);
+    const r=await fetch(API+'/changes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){closeMo();loadChanges();}
+    else{const d=await r.json();alert(d.error||'失败')}
+  };
+}
+
+// ============ Tab4 复盘与案例 ============
+async function loadReviews(page){
+  page=page||1;
+  const p=new URLSearchParams({page,limit:50});
+  const dm=VAL('rDim'),st=VAL('rStatus');
+  if(dm)p.set('dimension',dm);if(st)p.set('status',st);
+  try{
+    const r=await fetch(API+'/reviews?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('rTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('rTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="7" class="em">暂无数据</td></tr>';renderPg('rPg',total,page,loadReviews);return}
+    tb.innerHTML=recs.map(r=>`<tr>
+      <td><b>${esc(r.review_no)}</b></td>
+      <td><span class="doc-link" onclick="viewFlow(${r.project_id})" title="${esc(r.project_no||'')}">${esc(r.project_name||r.project_no||'-')}</span></td>
+      <td><span class="badge st4">${dimMap[r.dimension]||r.dimension}</span></td>
+      <td>${esc((r.findings||r.issues||'').substring(0,30))}</td>
+      <td>${esc((r.improvements||'').substring(0,30))}</td>
+      <td><span class="badge ${r.status==='已完成'?'st2':'st0'}">${esc(r.status)}</span></td>
+      <td><button class="btn bs b4" data-perm="tech:review" onclick="editReview(${r.id})">编辑</button>
+      ${r.status==='已完成'?'<button class="btn bs b2" data-perm="tech:case:manage" onclick="promoteCase('+r.id+')">沉淀案例</button>':''}</td>
+    </tr>`).join('');
+    renderPg('rPg',total,page,loadReviews);
+    if(window.PermissionCheck)PermissionCheck.applyToPage();
+  }catch(e){console.error(e)}
+}
+function openReview(){
+  reviewForm('新建复盘',{});
+}
+async function editReview(id){
+  const r=await fetch(API+'/reviews');const list=(await r.json()).data||[];
+  const rv=list.find(x=>x.id===id)||{};
+  reviewForm('编辑复盘',rv);
+}
+async function reviewForm(title,data){
+  const projSel=await projectSelectHTML('project_id',data.project_id||'');
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${title}</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <form id="rvForm">
+    <div class="gr"><div class="fg"><label>关联研发项目</label>${projSel}</div>
+    <div class="fg"><label>项目编号（自动）</label><input name="project_no" id="ps_project_id_no" value="${data.project_no||''}" readonly></div></div>
+    <div class="gr"><div class="fg"><label>复盘维度</label><select name="dimension">
+      ${Object.entries(dimMap).map(([k,v])=>`<option value="${k}" ${data.dimension===k?'selected':''}>${v}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>状态</label><select name="status"><option ${data.status!=='已完成'?'selected':''}>草稿</option><option ${data.status==='已完成'?'selected':''}>已完成</option></select></div></div>
+    <div class="fg"><label>复盘发现</label><textarea name="findings">${data.findings||''}</textarea></div>
+    <div class="fg"><label>偏差/问题</label><textarea name="issues">${data.issues||''}</textarea></div>
+    <div class="fg"><label>优化方案</label><textarea name="improvements">${data.improvements||''}</textarea></div>
+    <div class="fg"><label>行动计划</label><textarea name="action_plan">${data.action_plan||''}</textarea></div>
+    <div class="fg"><label>风险等级</label><input name="risk_level" value="${data.risk_level||''}" placeholder="低/中/高"></div>
+    <div style="text-align:right;margin-top:12px"><button type="submit" class="btn b2">保存</button></div>
+  </form>`;
+  openMo(html);
+  document.getElementById('rvForm').onsubmit=async(e)=>{
+    e.preventDefault();
+    const fd=new FormData(e.target);const body={};fd.forEach((v,k)=>body[k]=v);
+    const url=data.id?API+'/reviews/'+data.id:API+'/reviews';
+    const method=data.id?'PUT':'POST';
+    const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){closeMo();loadReviews();}
+    else{const d=await r.json();alert(d.error||'失败')}
+  };
+}
+async function promoteCase(id){
+  const root=prompt('根因分析：','');if(root===null)return;
+  const cat=prompt('产品品类：','')||'';
+  await fetch(API+'/reviews/'+id+'/promote-case',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root_cause:root,product_category:cat})});
+  alert('已沉淀至案例库');loadReviews();
+}
+
+async function loadCases(page){
+  page=page||1;
+  const p=new URLSearchParams({page,limit:50});
+  const kw=VAL('caKw'),tp=VAL('caType');
+  if(kw)p.set('keyword',kw);if(tp)p.set('problem_type',tp);
+  try{
+    const r=await fetch(API+'/cases?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('caTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('caTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="8" class="em">暂无数据</td></tr>';renderPg('caPg',total,page,loadCases);return}
+    tb.innerHTML=recs.map(c=>`<tr>
+      <td><b>${esc(c.case_no)}</b></td>
+      <td><span class="doc-link" onclick="viewCase(${c.id})">${esc(c.title)}</span></td>
+      <td>${dimMap[c.problem_type]||c.problem_type||'-'}</td>
+      <td>${esc((c.problem_desc||'').substring(0,30))}</td>
+      <td>${esc((c.solution||'').substring(0,30))}</td>
+      <td>${esc(c.source_project_no||'-')}</td>
+      <td>${c.view_count||0}</td>
+      <td><button class="btn bs b3" data-perm="tech:case:manage" onclick="delCase(${c.id})">删除</button></td>
+    </tr>`).join('');
+    renderPg('caPg',total,page,loadCases);
+    if(window.PermissionCheck)PermissionCheck.applyToPage();
+  }catch(e){console.error(e)}
+}
+async function viewCase(id){window.open('', '_self');const r=await fetch(API+'/cases/'+id);const c=await r.json();
+  openMo(`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${esc(c.title)}</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <div class="detail-section">
+    <div class="gr3"><div><b>编号:</b> ${esc(c.case_no)}</div><div><b>类型:</b> ${dimMap[c.problem_type]||c.problem_type}</div><div><b>品类:</b> ${esc(c.product_category||'-')}</div></div>
+    <div class="gr3" style="margin-top:8px"><div><b>来源:</b> ${esc(c.source_project_no||'-')}</div><div><b>阅读:</b> ${c.view_count||0}</div></div>
+  </div>
+  <div class="detail-section"><h4>问题描述</h4><div>${esc(c.problem_desc||'-')}</div></div>
+  <div class="detail-section"><h4>根因分析</h4><div>${esc(c.root_cause||'-')}</div></div>
+  <div class="detail-section"><h4>解决方案</h4><div>${esc(c.solution||'-')}</div></div>`);
+}
+function openCase(){
+  const html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>录入技术案例</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <form id="caseForm">
+    <div class="fg"><label>标题 *</label><input name="title" required></div>
+    <div class="gr"><div class="fg"><label>问题类型</label><select name="problem_type">${Object.entries(dimMap).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div>
+    <div class="fg"><label>产品品类</label><input name="product_category"></div></div>
+    <div class="fg"><label>问题描述</label><textarea name="problem_desc"></textarea></div>
+    <div class="fg"><label>根因分析</label><textarea name="root_cause"></textarea></div>
+    <div class="fg"><label>解决方案</label><textarea name="solution"></textarea></div>
+    <div style="text-align:right;margin-top:12px"><button type="submit" class="btn b2">保存</button></div>
+  </form>`;
+  openMo(html);
+  document.getElementById('caseForm').onsubmit=async(e)=>{
+    e.preventDefault();const fd=new FormData(e.target);const body={};fd.forEach((v,k)=>body[k]=v);
+    const r=await fetch(API+'/cases',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){closeMo();loadCases();}else{const d=await r.json();alert(d.error||'失败')}
+  };
+}
+async function delCase(id){if(!confirm('删除此案例？'))return;await fetch(API+'/cases/'+id,{method:'DELETE'});loadCases();}
+
+// ============ Tab5 审计合规 ============
+async function loadAlerts(){
+  try{
+    const r=await fetch(API+'/leak-alerts');const d=await r.json();
+    document.getElementById('alertBox').innerHTML=`
+      <div class="sc"><div class="n" style="color:#e74c3c">${d.denied_count||0}</div><div class="l">拒绝次数</div></div>
+      <div class="sc"><div class="n" style="color:#f39c12">${d.forward_denied||0}</div><div class="l">转发被拒</div></div>
+      <div class="sc"><div class="n" style="color:#764ba2">${(d.bulk_download_suspect||[]).length}</div><div class="l">批量下载嫌疑</div></div>`;
+  }catch(e){console.error(e)}
+}
+async function loadLogs(page){
+  page=page||1;
+  const p=new URLSearchParams({page,limit:50});
+  const act=VAL('aAction'),rs=VAL('aResult'),uid=VAL('aUser');
+  if(act)p.set('action',act);if(rs)p.set('result',rs);if(uid)p.set('user_id',uid);
+  try{
+    const r=await fetch(API+'/access-logs?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('aTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('aTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="6" class="em">暂无数据</td></tr>';renderPg('aPg',total,page,loadLogs);return}
+    tb.innerHTML=recs.map(l=>`<tr>
+      <td>${esc((l.created_at||'').substring(0,19))}</td>
+      <td>${esc(l.user_name)}</td>
+      <td>${esc(l.action)}</td>
+      <td><span class="badge ${l.result==='denied'?'st3':'st2'}">${esc(l.result)}</span></td>
+      <td>${esc(l.doc_title||'')}</td>
+      <td style="font-size:11px;color:#888">${esc(l.reason||'')} ${esc(l.ip||'')}</td>
+    </tr>`).join('');
+    renderPg('aPg',total,page,loadLogs);
+  }catch(e){console.error(e)}
+}
+async function loadLevelCfg(){
+  const r=await fetch(API+'/level-config');const d=await r.json();const cfg=d.data;
+  const rows=(cfg.levels||[]).map(l=>`<tr><td><span class="badge lv${l.level}">${l.name}</span></td><td>${(l.roles||[]).join('、')}</td></tr>`).join('');
+  openMo(`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>资料分级权限矩阵</h3><span onclick="closeMo()" style="cursor:pointer;font-size:22px;color:#999">×</span></div>
+  <table><thead><tr><th>分级</th><th>可访问角色</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="tip" style="margin-top:10px">水印强制分级 ≥ ${cfg.watermark&&cfg.watermark.level_gte||2}；防截图 ≥ ${cfg.anti_screenshot&&cfg.anti_screenshot.level_gte||2}；批量下载上限 ${cfg.batch_download_limit||1}。</div>`);
+}
+
+loadDocStats();
+loadDocs(1);
+(function(){
+  const pj=new URLSearchParams(location.search).get('project');
+  if(pj){
+    setTimeout(()=>{
+      const btn=[...document.querySelectorAll('#mainTabs button')].find(b=>b.textContent.includes('技转流转'));
+      if(btn)switchTab('flow',btn);
+      viewFlow(Number(pj));
+    },200);
+  }
+})();
+</script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+</body></html>

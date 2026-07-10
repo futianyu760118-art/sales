@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 报价库</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .stat-card .num { font-size: 24px; font-weight: bold; color: #333; }
+    .stat-card .label { font-size: 12px; color: #666; margin-top: 5px; }
+    .stat-card.total { border-left: 4px solid #667eea; }
+    .stat-card.rmb { border-left: 4px solid #27ae60; }
+    .stat-card.usd { border-left: 4px solid #f39c12; }
+    .stat-card.usage { border-left: 4px solid #9b59b6; }
+
+    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: #fff; border-radius: 12px; width: 500px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 16px; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #999; }
+    .modal-body { padding: 20px; }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    .badge-active { background: #d4edda; color: #155724; }
+    .badge-inactive { background: #f8d7da; color: #721c24; }
+    .empty-state { text-align: center; padding: 40px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+  
+  <div class="main-content">
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('library')">报价库</div>
+      <div class="tab" onclick="switchTab('apply')">快速报价</div>
+    </div>
+    
+    <!-- 报价库 -->
+    <div id="tab-library">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="搜索型号、产品名称..." onkeyup="searchLibrary()">
+        <button class="btn btn-primary" onclick="showAddModal()">新增报价</button>
+        <button class="btn btn-info" onclick="showImportModal()">从询价转入</button>
+        <button class="btn btn-warning" onclick="syncFromPricing()" id="syncBtn" style="position:relative;">🔄 同步核价库</button>
+        <span id="syncStatus" style="font-size:12px;color:#888;margin-left:4px;"></span>
+      </div>
+
+      <div id="syncLogPanel" style="display:none;margin-bottom:12px;background:white;border-radius:8px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <h4 style="font-size:13px;color:#333;">📋 同步日志</h4>
+          <button style="background:none;border:none;cursor:pointer;color:#999;font-size:16px;" onclick="document.getElementById('syncLogPanel').style.display='none'">✕</button>
+        </div>
+        <div id="syncLogContent" style="max-height:200px;overflow-y:auto;font-size:12px;"></div>
+      </div>
+      
+      <div class="stats" id="statsPanel">
+        <div class="stat-card total"><div class="num" id="statTotal">-</div><div class="label">报价总数</div></div>
+        <div class="stat-card rmb"><div class="num" id="statRmb">-</div><div class="label">平均单价(RMB)</div></div>
+        <div class="stat-card usd"><div class="num" id="statUsd">-</div><div class="label">平均单价(USD)</div></div>
+        <div class="stat-card usage"><div class="num" id="statUsage">-</div><div class="label">总使用次数</div></div>
+      </div>
+      
+      <div class="table-container">
+        <table id="quoteTableEl">
+          <thead>
+            <tr>
+              <th class="seq-col">#</th>
+              <th data-sort="external_model" data-filter="external_model">型号<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="product_name" data-filter="product_name">产品名称<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="power" data-filter="power">功率<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="certificate_level" data-filter="certificate_level">证书等级<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="price_rmb">单价(RMB)<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="price_usd">单价(USD)<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="min_price">最低限价<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th>有效期</th>
+              <th data-sort="usage_count">使用次数<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-filter="creator">创建人</th>
+              <th data-sort="created_at">创建时间<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="quoteTable"></tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- 快速报价 -->
+    <div id="tab-apply" style="display:none">
+      <div class="search-bar">
+        <input type="text" id="inquirySearch" placeholder="搜索询价单号、客户名称..." onkeyup="searchInquiries()">
+        <button class="btn btn-success" onclick="refreshInquiries()">刷新列表</button>
+      </div>
+      
+      <div class="table-container">
+        <table id="inquiryTableEl">
+          <thead>
+            <tr>
+              <th class="seq-col">#</th>
+              <th data-sort="serial_number">询价单号<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="customer_name">客户<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="external_model">产品型号<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="power">功率<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="quantity">数量<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th>证书等级</th>
+              <th>当前状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="inquiryTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 新增报价弹窗 -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新增报价记录</h3>
+        <button class="modal-close" onclick="closeModal('addModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>外部型号 *</label>
+            <input type="text" id="addModel" placeholder="如: HS001">
+          </div>
+          <div class="form-group">
+            <label>内部型号</label>
+            <input type="text" id="addInternalModel" placeholder="如: HG-2024-001">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>产品名称</label>
+            <input type="text" id="addProductName" placeholder="产品名称">
+          </div>
+          <div class="form-group">
+            <label>产品品类</label>
+            <select id="addCategory">
+              <option value="">请选择</option>
+              <option value="投光灯">投光灯</option>
+              <option value="泛光灯">泛光灯</option>
+              <option value="路灯">路灯</option>
+              <option value="太阳能灯">太阳能灯</option>
+              <option value="庭院灯">庭院灯</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>功率</label>
+            <input type="text" id="addPower" placeholder="如: 10W">
+          </div>
+          <div class="form-group">
+            <label>证书等级 *</label>
+            <select id="addCertificate">
+              <option value="">请选择</option>
+              <option value="CE">CE</option>
+              <option value="ROHS">ROHS</option>
+              <option value="CCC">CCC</option>
+              <option value="UL">UL</option>
+              <option value="ETL">ETL</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>单价(RMB) *</label>
+            <input type="number" id="addPriceRmb" placeholder="人民币单价" oninput="autoConvertPrice('rmb')">
+          </div>
+          <div class="form-group">
+            <label>单价(USD)</label>
+            <input type="number" id="addPriceUsd" placeholder="美元单价" oninput="autoConvertPrice('usd')">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>最低限价</label>
+            <input type="number" id="addMinPrice" placeholder="最低限价">
+          </div>
+          <div class="form-group">
+            <label>有效期(天)</label>
+            <input type="number" id="addValidity" value="30">
+          </div>
+        </div>
+        <div id="exchangeRateHint" style="font-size:12px;color:#888;margin-bottom:8px;"></div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea id="addRemarks" placeholder="备注信息"></textarea>
+        </div>
+        <div style="text-align:right">
+          <button class="btn btn-primary" onclick="saveQuote()">保存</button>
+          <button class="btn" onclick="closeModal('addModal')">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 从询价转入弹窗 -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>从询价单转入报价库</h3>
+        <button class="modal-close" onclick="closeModal('importModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>选择询价单 *</label>
+          <select id="importInquiry" style="height: 200px;">
+            <option value="">请选择已报价的询价单...</option>
+          </select>
+        </div>
+        <div style="text-align:right">
+          <button class="btn btn-success" onclick="importFromInquiry()">转入报价库</button>
+          <button class="btn" onclick="closeModal('importModal')">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 快速申请报价弹窗 -->
+  <div class="modal-overlay" id="applyModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>快速申请报价</h3>
+        <button class="modal-close" onclick="closeModal('applyModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="applyInquiryInfo" style="background:#f8f9fa;padding:10px;border-radius:4px;margin-bottom:15px;"></div>
+        <div class="form-group">
+          <label>选择报价库记录 *</label>
+          <select id="applyQuote" style="height: 150px;">
+            <option value="">请选择报价...</option>
+          </select>
+        </div>
+        <div style="text-align:right">
+          <button class="btn btn-success" onclick="applyQuote()">确认申请</button>
+          <button class="btn" onclick="closeModal('applyModal')">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="table-sort-filter.js"></script>
+  <script>
+const API = '/api/quote';
+let currentInquiryId = null;
+let exchangeRate = 7.25;
+
+async function syncFromPricing() {
+  const btn = document.getElementById('syncBtn');
+  const status = document.getElementById('syncStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ 同步中...';
+  status.textContent = '';
+  try {
+    const res = await fetch(`${API}/sync-from-pricing`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      status.innerHTML = `<span style="color:#27ae60;">✅ ${data.message}</span>`;
+      loadLibrary();
+      loadSyncLogs();
+    } else {
+      status.innerHTML = `<span style="color:#e74c3c;">❌ ${data.error}</span>`;
+    }
+  } catch(e) {
+    status.innerHTML = `<span style="color:#e74c3c;">❌ 网络错误</span>`;
+  }
+  btn.disabled = false;
+  btn.textContent = '🔄 同步核价库';
+}
+
+async function loadSyncLogs() {
+  try {
+    const res = await fetch(`${API}/sync-logs`);
+    const logs = await res.json();
+    const panel = document.getElementById('syncLogPanel');
+    const content = document.getElementById('syncLogContent');
+    if (logs.length === 0) {
+      content.innerHTML = '<div style="color:#999;text-align:center;padding:10px;">暂无同步记录</div>';
+    } else {
+      content.innerHTML = logs.map(log => {
+        const isSuccess = log.status === 'success';
+        const icon = isSuccess ? '✅' : '❌';
+        const color = isSuccess ? '#27ae60' : '#e74c3c';
+        return `<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;">
+          <div style="display:flex;justify-content:space-between;">
+            <span>${icon} <span style="color:${color};font-weight:500;">${log.summary}</span></span>
+            <span style="color:#bbb;">${log.created_at || ''}</span>
+          </div>
+          ${log.details ? `<div style="color:#888;margin-top:2px;padding-left:16px;white-space:pre-wrap;font-size:11px;">${log.details.substring(0, 300)}${log.details.length > 300 ? '...' : ''}</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+    panel.style.display = 'block';
+  } catch(e) {}
+}
+
+// 加载汇率
+async function loadExchangeRate() {
+  try {
+    const res = await fetch('/api/settings/config/exchange_rate');
+    const val = await res.json();
+    if (val) exchangeRate = parseFloat(val) || 7.25;
+  } catch(e) {}
+}
+
+// 自动换算单价
+function autoConvertPrice(changed) {
+  const rmbInput = document.getElementById('addPriceRmb');
+  const usdInput = document.getElementById('addPriceUsd');
+  const hint = document.getElementById('exchangeRateHint');
+  
+  if (changed === 'rmb' && rmbInput.value) {
+    const rmb = parseFloat(rmbInput.value);
+    if (!isNaN(rmb) && !usdInput.value) {
+      usdInput.value = Math.round(rmb / exchangeRate * 100) / 100;
+      hint.textContent = `按汇率 ${exchangeRate} 自动换算: ¥${rmb} = $${usdInput.value}`;
+    }
+  } else if (changed === 'usd' && usdInput.value) {
+    const usd = parseFloat(usdInput.value);
+    if (!isNaN(usd) && !rmbInput.value) {
+      rmbInput.value = Math.round(usd * exchangeRate * 100) / 100;
+      hint.textContent = `按汇率 ${exchangeRate} 自动换算: $${usd} = ¥${rmbInput.value}`;
+    }
+  }
+}
+
+// 页面加载时获取汇率
+loadExchangeRate();
+
+// 切换标签
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.main-content > div').forEach(d => d.style.display = 'none');
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).style.display = 'block';
+  if (name === 'apply') loadInquiries();
+}
+
+// 加载报价库
+async function loadLibrary() {
+  try {
+    const res = await fetch(API);
+    const data = await res.json();
+    renderLibrary(data);
+    updateStats(data);
+  } catch(e) { console.error('加载失败:', e); }
+}
+
+// 渲染报价库
+function renderLibrary(data) {
+  const tbody = document.getElementById('quoteTable');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#999;padding:20px">暂无报价记录</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((r, idx) => {
+    const priceRmb = r.price_rmb != null ? '¥' + parseFloat(r.price_rmb).toFixed(2) : '-';
+    const priceUsd = r.price_usd != null ? '$' + parseFloat(r.price_usd).toFixed(2) : '-';
+    const minPrice = r.min_price != null ? '¥' + parseFloat(r.min_price).toFixed(2) : '-';
+    const createdAt = r.created_at ? r.created_at.substring(0, 16) : '-';
+    const updatedAt = r.updated_at ? r.updated_at.substring(0, 16) : '-';
+    return `
+    <tr>
+      <td class="seq-col">${idx + 1}</td>
+      <td>${r.external_model || '-'}</td>
+      <td>${r.product_name || '-'}</td>
+      <td>${r.power || '-'}</td>
+      <td>${r.certificate_level || '-'}</td>
+      <td data-num="${r.price_rmb || 0}">${priceRmb}</td>
+      <td data-num="${r.price_usd || 0}">${priceUsd}</td>
+      <td data-num="${r.min_price || 0}">${minPrice}</td>
+      <td>${r.validity_days || 30}天</td>
+      <td>${r.usage_count || 0}</td>
+      <td>${r.creator || '-'}</td>
+      <td data-time="${r.created_at || ''}">${createdAt}</td>
+      <td>
+        <button class="btn btn-sm btn-info" onclick="editQuote(${r.id})">编辑</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteQuote(${r.id})" data-perm="quote:delete">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+  if (window.TableSortFilter) {
+    if (TableSortFilter.instances['quoteTableEl']) {
+      TableSortFilter.refresh('quoteTableEl');
+    } else {
+      TableSortFilter.init('quoteTableEl');
+    }
+  }
+}
+
+// 更新统计
+function updateStats(data) {
+  document.getElementById('statTotal').textContent = data.length;
+  const rmbAvg = data.filter(d => d.price_rmb).reduce((s, d) => s + d.price_rmb, 0) / (data.filter(d => d.price_rmb).length || 1);
+  document.getElementById('statRmb').textContent = '¥' + (Math.round(rmbAvg * 100) / 100).toFixed(2);
+  const usdAvg = data.filter(d => d.price_usd).reduce((s, d) => s + d.price_usd, 0) / (data.filter(d => d.price_usd).length || 1);
+  document.getElementById('statUsd').textContent = '$' + (Math.round(usdAvg * 100) / 100).toFixed(2);
+  document.getElementById('statUsage').textContent = data.reduce((s, d) => s + (d.usage_count || 0), 0);
+}
+
+// 搜索报价库
+function searchLibrary() {
+  const keyword = document.getElementById('searchInput').value.toLowerCase();
+  fetch(API + '/search/' + encodeURIComponent(keyword))
+    .then(res => res.json())
+    .then(data => renderLibrary(data))
+    .catch(e => console.error('搜索失败:', e));
+}
+
+// 显示新增弹窗
+function showAddModal() {
+  document.querySelector('#addModal .modal-header h3').textContent = '新增报价记录';
+  document.getElementById('addModal').dataset.editId = '';
+  document.getElementById('addModel').value = '';
+  document.getElementById('addInternalModel').value = '';
+  document.getElementById('addProductName').value = '';
+  document.getElementById('addCategory').value = '';
+  document.getElementById('addPower').value = '';
+  document.getElementById('addCertificate').value = '';
+  document.getElementById('addPriceRmb').value = '';
+  document.getElementById('addPriceUsd').value = '';
+  document.getElementById('addMinPrice').value = '';
+  document.getElementById('addValidity').value = 30;
+  document.getElementById('addRemarks').value = '';
+  document.getElementById('addModal').classList.add('active');
+}
+
+// 关闭弹窗
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// 保存报价
+async function saveQuote() {
+  const editId = document.getElementById('addModal').dataset.editId;
+  const data = {
+    external_model: document.getElementById('addModel').value,
+    internal_model: document.getElementById('addInternalModel').value,
+    product_name: document.getElementById('addProductName').value,
+    category: document.getElementById('addCategory').value,
+    power: document.getElementById('addPower').value,
+    certificate_level: document.getElementById('addCertificate').value,
+    price_rmb: parseFloat(document.getElementById('addPriceRmb').value) || null,
+    price_usd: parseFloat(document.getElementById('addPriceUsd').value) || null,
+    min_price: parseFloat(document.getElementById('addMinPrice').value) || null,
+    validity_days: parseInt(document.getElementById('addValidity').value) || 30,
+    remarks: document.getElementById('addRemarks').value,
+    creator: localStorage.getItem('username') || ''
+  };
+
+  if (!data.external_model) { alert('请输入产品型号'); return; }
+  if (!data.price_rmb && !data.price_usd) { alert('请输入报价金额'); return; }
+
+  try {
+    const url = editId ? API + '/' + editId : API;
+    const method = editId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.error) {
+      alert(result.error);
+    } else {
+      alert(editId ? '更新成功' : '保存成功');
+      closeModal('addModal');
+      loadLibrary();
+    }
+  } catch(e) { alert('保存失败: ' + e.message); }
+}
+
+// 编辑报价
+async function editQuote(id) {
+  try {
+    const res = await fetch(API + '/' + id);
+    const data = await res.json();
+    document.getElementById('addModel').value = data.external_model || '';
+    document.getElementById('addInternalModel').value = data.internal_model || '';
+    document.getElementById('addProductName').value = data.product_name || '';
+    document.getElementById('addCategory').value = data.category || '';
+    document.getElementById('addPower').value = data.power || '';
+    document.getElementById('addCertificate').value = data.certificate_level || '';
+    document.getElementById('addPriceRmb').value = data.price_rmb || '';
+    document.getElementById('addPriceUsd').value = data.price_usd || '';
+    document.getElementById('addMinPrice').value = data.min_price || '';
+    document.getElementById('addValidity').value = data.validity_days || 30;
+    document.getElementById('addRemarks').value = data.remarks || '';
+    document.querySelector('#addModal .modal-header h3').textContent = '编辑报价';
+    document.getElementById('addModal').classList.add('active');
+    document.getElementById('addModal').dataset.editId = id;
+  } catch(e) { alert('加载失败: ' + e.message); }
+}
+
+// 删除报价
+async function deleteQuote(id) {
+  if(!PermissionCheck.has('quote:delete')){alert('无删除权限');return;}
+  if (!confirm('确定删除该报价记录？')) return;
+  try {
+    await fetch(API + '/' + id, { method: 'DELETE' });
+    alert('删除成功');
+    loadLibrary();
+  } catch(e) { alert('删除失败: ' + e.message); }
+}
+
+// 显示转入弹窗
+function showImportModal() {
+  loadQuotedInquiries();
+  document.getElementById('importModal').classList.add('active');
+}
+
+// 加载已报价的询价单
+async function loadQuotedInquiries() {
+  try {
+    const res = await fetch('/api/inquiries');
+    const data = await res.json();
+    const quoted = data.filter(i => (i.final_price || i.quoted_price) && !i.quote_library_id);
+    const select = document.getElementById('importInquiry');
+    select.innerHTML = '<option value="">请选择已报价的询价单...</option>' +
+      quoted.map(i => `<option value="${i.id}">${i.serial_number} - ${i.customer_name} - ${i.external_model}</option>`).join('');
+  } catch(e) { console.error('加载失败:', e); }
+}
+
+// 从询价转入报价库
+async function importFromInquiry() {
+  const inquiryId = document.getElementById('importInquiry').value;
+  if (!inquiryId) { alert('请选择询价单'); return; }
+  
+  try {
+    const res = await fetch(API + '/from-inquiry/' + inquiryId, { method: 'POST' });
+    const result = await res.json();
+    if (result.error) {
+      alert(result.error);
+    } else {
+      alert('转入成功');
+      closeModal('importModal');
+      loadLibrary();
+    }
+  } catch(e) { alert('转入失败: ' + e.message); }
+}
+
+// 加载询价单（快速报价）
+async function loadInquiries() {
+  try {
+    const res = await fetch('/api/inquiries');
+    const data = await res.json();
+    renderInquiries(data);
+  } catch(e) { console.error('加载失败:', e); }
+}
+
+// 渲染询价单
+function renderInquiries(data) {
+  const tbody = document.getElementById('inquiryTable');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#999;padding:20px">暂无询价单</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((i, idx) => {
+    const statusText = {
+      'new': '新建', 'cert_configured': '证书已选型', 'config_generated': '配置表已生成',
+      'pending_pricing': '待核价', 'pending_quote': '待报价', 'quoted': '已报价',
+      'negotiating': '洽谈中', 'sample': '转样品', 'project': '转项目', 'closed': '已成交', 'lost': '已流失'
+    };
+    return `
+      <tr>
+        <td class="seq-col">${idx + 1}</td>
+        <td>${i.serial_number}</td>
+        <td>${i.customer_name}</td>
+        <td>${i.external_model}</td>
+        <td>${i.power || '-'}</td>
+        <td>${i.quantity}</td>
+        <td>${i.certificate_level || '-'}</td>
+        <td>${statusText[i.status] || i.status}</td>
+        <td>
+          <button class="btn btn-sm btn-success" onclick="showApplyModal(${i.id}, '${i.serial_number}', '${i.external_model}')">申请报价</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  if (window.TableSortFilter) {
+    if (TableSortFilter.instances['inquiryTableEl']) {
+      TableSortFilter.refresh('inquiryTableEl');
+    } else {
+      TableSortFilter.init('inquiryTableEl');
+    }
+  }
+}
+
+// 搜索询价单
+function searchInquiries() {
+  const keyword = document.getElementById('inquirySearch').value.toLowerCase();
+  fetch('/api/inquiries')
+    .then(res => res.json())
+    .then(data => {
+      const filtered = data.filter(i => 
+        (i.serial_number && i.serial_number.toLowerCase().includes(keyword)) ||
+        (i.customer_name && i.customer_name.toLowerCase().includes(keyword)) ||
+        (i.external_model && i.external_model.toLowerCase().includes(keyword))
+      );
+      renderInquiries(filtered);
+    })
+    .catch(e => console.error('搜索失败:', e));
+}
+
+// 刷新询价单
+function refreshInquiries() {
+  document.getElementById('inquirySearch').value = '';
+  loadInquiries();
+}
+
+// 显示申请报价弹窗
+async function showApplyModal(inquiryId, inquiryNo, model) {
+  currentInquiryId = inquiryId;
+  document.getElementById('applyInquiryInfo').innerHTML = 
+    `<strong>询价单:</strong> ${inquiryNo}<br>
+     <strong>产品型号:</strong> ${model}`;
+  
+  try {
+    const res = await fetch(API + '/available/' + encodeURIComponent(model));
+    const data = await res.json();
+    const select = document.getElementById('applyQuote');
+    select.innerHTML = '<option value="">请选择报价...</option>' +
+      data.map(q => `<option value="${q.id}">${q.external_model} - ¥${q.price_rmb || 'N/A'}/个 - ${q.certificate_level}</option>`).join('');
+    document.getElementById('applyModal').classList.add('active');
+  } catch(e) { alert('加载报价失败: ' + e.message); }
+}
+
+// 申请报价
+async function applyQuote() {
+  const quoteId = document.getElementById('applyQuote').value;
+  if (!quoteId) { alert('请选择报价'); return; }
+  if (!currentInquiryId) { alert('询价单信息错误'); return; }
+  
+  try {
+    const res = await fetch(API + '/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inquiry_id: currentInquiryId, quote_library_id: quoteId })
+    });
+    const result = await res.json();
+    if (result.error) {
+      alert(result.error);
+    } else {
+      alert('报价申请成功');
+      closeModal('applyModal');
+      loadInquiries();
+      loadLibrary();
+    }
+  } catch(e) { alert('申请失败: ' + e.message); }
+}
+
+// 初始化
+loadLibrary();
+  </script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+</body>
+</html>

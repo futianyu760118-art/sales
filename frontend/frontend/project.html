@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>研发项目管理</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:20;background:#fff;padding-top:8px;padding-bottom:8px;border-bottom:1px solid #eee}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:50px;z-index:10;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+tr:hover td.sticky-col{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.sc-click{cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
+.sc-click:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(102,126,234,.22)}
+.sc-click::after{content:'穿透 ›';position:absolute;top:4px;right:8px;font-size:9px;color:#c0c4cc;opacity:0;transition:opacity .15s}
+.sc-click:hover::after{opacity:1}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:720px;max-width:95%;max-height:90vh;overflow:auto}
+.mb2{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:50px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-done{background:#d4edda;color:#155724}.st-prog{background:#cce5ff;color:#004085}.st-pause{background:#fff3cd;color:#856404}.st-init{background:#e2e3e5;color:#383d41}
+.lvl-a{background:#f8d7da;color:#721c24}.lvl-b{background:#fff3cd;color:#856404}.lvl-c{background:#d1ecf1;color:#0c5460}
+.chk{color:#27ae60;font-weight:700}.unchk{color:#ccc}.pend{color:#f39c12}
+.tbl-wrap{overflow-x:auto;max-height:65vh}
+.sticky-col{position:sticky;left:0;z-index:5;background:#fff;box-shadow:1px 0 0 rgba(0,0,0,.04)}
+th.sticky-col{z-index:20;background:#f5f6fa}
+tr:hover .sticky-col{background:#f8f9ff}
+.pn{display:inline-block;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;cursor:pointer}
+.pn-y{background:#27ae60;color:#fff}.pn-n{background:#e0e0e0;color:#999}.pn-s{background:#f39c12;color:#fff}
+.sort-hdr{cursor:pointer;user-select:none;position:relative}.sort-hdr:hover{background:#eef0ff}
+.sort-icn{font-size:10px;margin-left:2px;color:#bbb}.sort-icn.asc{color:#667eea}.sort-icn.desc{color:#667eea}
+.prog-cell{cursor:pointer;padding:4px 6px;border-radius:4px;min-width:32px;display:inline-block;text-align:center;transition:all 0.15s;font-weight:600;font-size:12px;position:relative}
+.prog-cell:hover{transform:scale(1.1);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.prog-cell.done{background:#d4edda;color:#155724}.prog-cell.fail{background:#f8d7da;color:#721c24}
+.prog-cell.date{background:#cce5ff;color:#004085}.prog-cell.pend{background:#fff3cd;color:#856404}
+.prog-cell.none{color:#ccc}
+.prog-popup{display:none;position:fixed;z-index:9999;background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);padding:4px;min-width:100px}
+.prog-popup.show{display:block}
+.prog-popup button{display:block;width:100%;padding:6px 12px;border:none;background:none;cursor:pointer;text-align:left;font-size:12px;border-radius:4px;white-space:nowrap}
+.prog-popup button:hover{background:#f0f0ff}
+.prog-popup input[type=date]{width:100%;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin:4px 0}
+.col-filter-btn{display:inline-block;margin-left:2px;font-size:9px;color:#bbb;cursor:pointer;vertical-align:middle;padding:1px 3px;border-radius:3px;line-height:1}
+.col-filter-btn:hover{color:#667eea;background:#eef0ff}
+.col-filter-btn.active{color:#fff;background:#667eea}
+.edit-cell{cursor:pointer;padding:2px 6px;border-radius:4px;display:inline-block;transition:background .15s,color .15s}
+.edit-cell:hover{background:#eef0ff;color:#667eea}
+/* 美化的表单弹窗 */
+.mb-wide{width:640px!important}
+.form-head{display:flex;justify-content:space-between;align-items:center;margin:-20px -20px 14px;padding:16px 20px;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:12px 12px 0 0}
+.form-head h3{color:#fff;font-size:16px;margin:0;font-weight:600}
+.form-close{cursor:pointer;font-size:24px;color:rgba(255,255,255,.85);line-height:1}
+.form-close:hover{color:#fff}
+.form-body{max-height:58vh;overflow-y:auto;padding-right:6px}
+.form-section{font-size:12px;font-weight:600;color:#667eea;margin:14px 0 8px;padding:7px 12px;background:linear-gradient(90deg,#eef1ff,rgba(238,241,255,.15));border-left:3px solid #667eea;border-radius:0 6px 6px 0;letter-spacing:.5px}
+.form-body>.form-section:first-child{margin-top:0}
+.form-foot{text-align:right;margin-top:14px;padding-top:12px;border-top:1px solid #eee}
+.form-foot .btn{padding:8px 30px;font-size:14px}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 2px rgba(102,126,234,.15)}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>研发项目管理</h2>
+<span style="font-size:12px;color:#999">基于供22研发项目进度计划表模版设计</span>
+</div>
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('projects',this)">研发项目数据库</button>
+<button onclick="swTab('progress',this)">项目进度跟踪</button>
+<button onclick="swTab('supply',this)">供应链品质异常</button>
+<button onclick="swTab('sales',this)">销售推广进度</button>
+<button onclick="swTab('review',this)">项目复盘</button>
+<button onclick="swTab('initiation',this)">立项申请书</button>
+<button onclick="swTab('analysis',this)">统计分析</button>
+</div>
+
+<!-- Tab1: 研发项目数据库 -->
+<div class="tc ac" id="tab-projects">
+<div class="sg" id="pStats"></div>
+<div class="sb">
+<input type="text" id="pKw" placeholder="搜索编号/名称/客户" style="width:200px" onkeydown="if(event.key==='Enter')loadProjects(1)">
+<select id="pStatus"><option value="">全部状态</option><option value="init">预项目</option><option value="executing">进行中</option><option value="completed">已完成</option><option value="paused">暂停</option><option value="cancelled">取消</option></select>
+<select id="pType"><option value="">全部类型</option><option value="自研">自研</option><option value="客制">客制</option></select>
+<select id="pLevel"><option value="">全部等级</option><option value="A">A级</option><option value="B">B级</option><option value="C">C级</option></select>
+<input type="date" id="pStartFrom" title="立项起始" style="width:130px">
+<input type="date" id="pStartTo" title="立项截止" style="width:130px">
+<button class="btn b1" onclick="loadProjects(1)">搜索</button>
+<button class="btn b2" onclick="openAddProject()">新增项目</button>
+<button class="btn b4" onclick="ImportDropzone.open()">批量导入</button>
+<button class="btn b4" onclick="ImportDropzone.openMultiSheetImport(function(){loadProjects(1);loadPStats();loadProgress();loadSupply(1);loadSales(1);loadReviews(1)})">多Sheet导入</button>
+<button class="btn b2" onclick="exportProjects()">导出数据</button>
+<button class="btn b3" id="batchDelBtn" style="display:none" onclick="batchDeleteProjects()">批量删除(<span id="batchDelCount">0</span>)</button>
+<span style="margin-left:auto">共 <b id="pTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th style="width:30px;z-index:16"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" title="全选/取消"></th>
+<th class="sort-hdr sticky-col" style="left:30px;min-width:120px;z-index:16" onclick="sortProjects('project_no')" data-sort="project_no">项目编号<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('customer_name')" data-sort="customer_name">客户<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('project_name')" data-sort="project_name">项目名称<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('project_type')" data-sort="project_type">类型<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('project_level')" data-sort="project_level">等级<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('owner')" data-sort="owner">负责人<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('current_stage')" data-sort="current_stage">目前阶段<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('invest_amount')" data-sort="invest_amount">投入金额<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('order_amount')" data-sort="order_amount">订单金额<span class="sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProjects('status')" data-sort="status">状态<span class="sort-icn"></span></th>
+<th>操作</th>
+</tr></thead><tbody id="pTb"><tr><td colspan="11" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="pPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- Tab2: 项目进度跟踪 -->
+<div class="tc" id="tab-progress">
+<!-- 分析看板（可收起） -->
+<div id="progDashboard" style="background:linear-gradient(135deg,#f8f9ff,#eef1ff);border-radius:10px;margin-bottom:14px;overflow:hidden;transition:max-height .3s ease">
+<div onclick="toggleProgDashboard()" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;user-select:none">
+<span style="font-size:14px;font-weight:600;color:#2c3e50">📊 进度分析看板<span style="font-size:12px;color:#999;font-weight:400;margin-left:8px">（根据当前筛选即时呈现）</span></span>
+<span id="progDashToggle" style="font-size:18px;color:#667eea">▼</span>
+</div>
+<div id="progDashBody" style="padding:0 14px 14px">
+<div id="progDashCards" class="sg" style="margin-bottom:10px"></div>
+<div class="gr" id="progDashDetails" style="gap:12px"></div>
+</div>
+</div>
+<div class="sb">
+<span style="font-size:13px;color:#666">技转节点跟踪（V=完成 / X=未完成 / 日期=蓝色 / 橙=进行中）</span>
+</div>
+<div class="sb">
+<input type="text" id="progKw" placeholder="搜索编号/名称/客户/负责人" style="width:200px" onkeydown="if(event.key==='Enter')filterProgress()">
+<select id="progStatus" onchange="filterProgress()"><option value="">全部项目状态</option><option value="init">预项目</option><option value="executing">进行中</option><option value="completed">已完成</option><option value="paused">暂停</option><option value="cancelled">取消</option></select>
+<select id="progNodeStatus" onchange="filterProgress()"><option value="">全部节点状态</option><option value="in_progress">有进行中节点</option><option value="has_date">有计划日期</option><option value="incomplete">有未设置节点</option><option value="all_done">关键节点全完成</option></select>
+<button class="btn b1" onclick="filterProgress()">筛选</button>
+<button class="btn b1" onclick="loadProgress()">刷新</button>
+<button class="btn b4" onclick="ImportDropzone.openForTable('project_progress',function(){loadProgress();showImportDateTip()})">导入进度</button>
+<button class="btn b3" id="progBatchDelBtn" style="display:none" onclick="batchDeleteProg()">批量删除(<span id="progBatchDelCount">0</span>)</button>
+<span style="margin-left:auto">共 <b id="progTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th style="width:30px;z-index:16"><input type="checkbox" id="progSelectAll" onchange="toggleSelectAllProg(this)" title="全选/取消"></th>
+<th class="sort-hdr sticky-col" style="left:30px;min-width:110px;z-index:16" onclick="sortProgress('project_no')" data-prog-sort="project_no">项目编号<span class="sort-icn prog-sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProgress('project_name')" data-prog-sort="project_name">项目名称<span class="sort-icn prog-sort-icn"></span></th>
+<th class="sort-hdr" onclick="sortProgress('owner')" data-prog-sort="owner">负责人<span class="sort-icn prog-sort-icn"></span></th>
+<th>状态<span style="font-size:10px;color:#bbb;font-weight:400">（可编辑）</span></th>
+<th>计划表</th><th>BOM</th><th>规格书</th><th>配置表</th><th>模具图纸</th><th>开模评审</th><th>手样</th><th>模具</th><th>模样</th><th>包装设计</th><th>电试</th><th>研试</th><th>工试</th><th>生试</th><th>测试报告</th><th>技转</th><th>出货</th><th>复盘</th><th>其他</th>
+<th>操作</th>
+</tr></thead><tbody id="progTb"><tr><td colspan="25" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="progPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- Tab3: 供应链品质异常 -->
+<div class="tc" id="tab-supply">
+<div class="sb">
+<input type="text" id="sKw" placeholder="搜索产品/单号/问题描述" style="width:220px" onkeydown="if(event.key==='Enter')loadSupply(1)">
+<select id="sClosed"><option value="">全部</option><option value="0">未闭环</option><option value="1">已闭环</option></select>
+<button class="btn b1" onclick="loadSupply(1)">搜索</button>
+<button class="btn b2" onclick="openAddSupply()">新增异常</button>
+<button class="btn b4" onclick="ImportDropzone.openForTable('project_supply_issues',function(){loadSupply(1);loadPStats()})">导入异常</button>
+<span style="margin-left:auto">共 <b id="sTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>序号</th><th>发生日期</th><th>提出人</th><th>产品名称</th><th>单号</th><th>项目号</th><th>问题描述</th><th>临时措施</th><th>原因分析</th><th>长期措施</th><th>责任人</th><th>责任部门</th><th>计划完成</th><th>稽核</th><th>闭环</th><th>操作</th>
+</tr></thead><tbody id="sTb"><tr><td colspan="16" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="sPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- Tab4: 销售推广进度 -->
+<div class="tc" id="tab-sales">
+<div class="sb">
+<input type="text" id="spKw" placeholder="搜索型号/业务员/客户" style="width:220px" onkeydown="if(event.key==='Enter')loadSales(1)">
+<button class="btn b1" onclick="loadSales(1)">搜索</button>
+<button class="btn b2" onclick="openAddSales()">新增记录</button>
+<button class="btn b4" onclick="ImportDropzone.openForTable('project_sales_promotion',function(){loadSales(1)})">导入推广</button>
+<span style="margin-left:auto">共 <b id="spTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>产品型号</th><th>关联项目</th><th>业务员</th><th>客户</th><th>外观</th><th>价格</th><th>性能</th><th>功能</th><th>目前进度</th><th>备注</th><th>操作</th>
+</tr></thead><tbody id="spTb"><tr><td colspan="11" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="spPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- Tab5: 项目复盘 -->
+<div class="tc" id="tab-review">
+<div class="sb">
+<button class="btn b2" onclick="openAddReview()">新增复盘</button>
+<button class="btn bs" style="background:#9b59b6;color:#fff" onclick="autoReviewPick()">⚡ 自动复盘（按项目生成）</button>
+<button class="btn b4" onclick="ImportDropzone.openForTable('project_reviews',function(){loadReviews(1)})">导入复盘</button>
+<span style="margin-left:auto">共 <b id="rTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>项目编号</th><th>项目名称</th><th>回顾目标</th><th>评估结果</th><th>成功因素</th><th>失败原因</th><th>经验规律</th><th>行动计划</th><th>操作</th>
+</tr></thead><tbody id="rTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="rPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- Tab6: 立项申请书 -->
+<div class="tc" id="tab-initiation">
+<!-- 列表视图 -->
+<div id="initListView">
+<div class="sb">
+  <button class="btn b2" onclick="addInitiationRow()">新增申请书</button>
+  <button class="btn b4" onclick="importInitiationStructured()">导入申请书（按详情格式匹配）</button>
+  <a class="btn b4" style="text-decoration:none;display:inline-block" href="/api/import/template/project_initiation" target="_blank">下载模版</a>
+  <span style="margin-left:auto">共 <b id="initTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>项目编号</th><th>项目名称</th><th>类型</th><th>负责人</th><th>申请人</th><th>申请日期</th><th>客户编号</th><th>审批状态</th><th>操作</th>
+</tr></thead>
+<tbody id="initTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+</div>
+</div>
+<!-- 详细编辑视图（含子表） -->
+<div id="initDetailView" style="display:none">
+<div class="sb">
+  <button class="btn b1" onclick="backToInitList()">← 返回列表</button>
+  <button class="btn b2" onclick="saveInitDetail()">保存全部</button>
+  <button class="btn b1" onclick="previewInit()">汇总预览</button>
+  <span id="initDetailTitle" style="margin-left:auto;font-weight:600;color:#667eea"></span>
+</div>
+<div id="initDetailBody" style="max-height:78vh;overflow-y:auto"></div>
+</div>
+<!-- 汇总预览视图 -->
+<div id="initPreviewView" style="display:none">
+<div class="sb">
+  <button class="btn b1" onclick="document.getElementById('initPreviewView').style.display='none';document.getElementById('initDetailView').style.display=''">← 返回编辑</button>
+  <button class="btn b2" onclick="window.print()">打印</button>
+</div>
+<div id="initPreviewBody" style="max-height:78vh;overflow-y:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)"></div>
+</div>
+</div>
+
+<!-- Tab7: 统计分析 -->
+<div class="tc" id="tab-analysis">
+<div class="sb" style="background:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px;align-items:center">
+  <span style="font-size:13px;color:#555;font-weight:600">时间范围：</span>
+  <input type="date" id="aDateFrom" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" title="起始日期">
+  <span style="color:#999">~</span>
+  <input type="date" id="aDateTo" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" title="截止日期">
+  <button class="btn b1 bs" onclick="setAnalysisRange('thisYear')">今年</button>
+  <button class="btn b1 bs" onclick="setAnalysisRange('halfYear')">近半年</button>
+  <button class="btn b1 bs" onclick="setAnalysisRange('lastYear')">去年</button>
+  <button class="btn b1 bs" onclick="setAnalysisRange('all')">全部</button>
+  <button class="btn b2 bs" onclick="loadAnalysis()">应用筛选</button>
+  <span id="aRangeLabel" style="margin-left:auto;font-size:12px;color:#999"></span>
+</div>
+<div class="sg" id="aStats"></div>
+<div class="sg" id="aProgressStats" style="margin-top:14px"></div>
+<h3 style="margin:16px 0 8px;color:#2c3e50">月度项目统计</h3>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>月份</th><th>总项目数</th><th>进行中</th><th>自研</th><th>客制</th><th>客户数</th><th>有订单</th>
+</tr></thead><tbody id="aMonthly"><tr><td colspan="7" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<h3 style="margin:16px 0 8px;color:#2c3e50">对标分类：修改与延误分析</h3>
+<div class="gr" id="aClassify" style="gap:14px"></div>
+<div class="tbl-wrap" style="margin-top:14px">
+<h4 style="margin:0 0 8px;color:#555">延误最多的项目（节点日期超期）</h4>
+<table><thead><tr><th>项目编号</th><th>项目名称</th><th>类型</th><th>负责人</th><th>延误节点数</th><th>变更次数</th></tr></thead>
+<tbody id="aTopDelay"><tr><td colspan="6" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div class="tbl-wrap" style="margin-top:14px">
+<h4 style="margin:0 0 8px;color:#555">变更最多的项目</h4>
+<table><thead><tr><th>项目编号</th><th>项目名称</th><th>类型</th><th>负责人</th><th>变更次数</th><th>延误节点数</th></tr></thead>
+<tbody id="aTopChange"><tr><td colspan="6" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<h3 style="margin:16px 0 8px;color:#2c3e50">延误趋势分析（时间维度）</h3>
+<div class="sg" id="aDelaySummary" style="margin-bottom:12px"></div>
+<div class="sb" style="margin-bottom:8px">
+  <select id="aDelayDim" onchange="renderDelayTrend()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+    <option value="month">按月度</option>
+    <option value="quarter">按季度</option>
+    <option value="year">按年度</option>
+  </select>
+  <span style="font-size:12px;color:#999">展示各时间段的项目数、逾期数、延误节点、变更次数、平均交付周期</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>时间</th><th>项目数</th><th>逾期项目</th><th>逾期率</th><th>延误节点</th><th>变更次数</th><th>已完成</th><th>平均周期(天)</th>
+</tr></thead><tbody id="aDelayTrend"><tr><td colspan="8" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div class="gr" id="aDelayClassify" style="gap:14px;margin-top:14px"></div>
+<div class="tbl-wrap" style="margin-top:14px">
+<h4 style="margin:0 0 8px;color:#555">延误项目明细（逾期天数排序）</h4>
+<table><thead><tr><th>项目编号</th><th>项目名称</th><th>类型</th><th>等级</th><th>负责人</th><th>逾期天数</th><th>延误节点</th><th>节点完成率</th><th>变更</th><th>立项月份</th></tr></thead>
+<tbody id="aDelayDetail"><tr><td colspan="10" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<h3 style="margin:16px 0 8px;color:#2c3e50">分类统计</h3>
+<div class="gr" id="aCategory"></div>
+</div>
+</div>
+
+<!-- 项目详情/编辑弹窗 -->
+<div class="mo" id="pMo"><div class="mb">
+<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+<h3 id="pMoTi">项目详情</h3>
+<span onclick="document.getElementById('pMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">×</span>
+</div>
+<div id="pMoBody"></div>
+</div></div>
+
+<!-- 通用新增/编辑弹窗 -->
+<div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
+
+<!-- 导入容器 -->
+<div id="import-dropzone-container"></div>
+
+<script src="import-dropzone.js"></script>
+<script>
+const API='/api/projects';
+const statusMap={init:'预项目',executing:'进行中',completed:'已完成',paused:'暂停',cancelled:'取消'};
+const statusColor={init:'#999',executing:'#3498db',completed:'#27ae60',paused:'#e67e22',cancelled:'#e74c3c'};
+const stageOptions=['预项目','方案','手样','模具样','功能样','首次封样','最终封样','电试','研试','工试','生试','技转','出货','复盘','暂停','完成'];
+const progFields=[['plan','计划表'],['bom','BOM'],['spec','规格书'],['config','配置表'],['mold_drawing','模具图纸'],['mold_review','开模评审'],['hand_sample','手样'],['mold','模具'],['mold_sample','模样'],['packaging','包装设计'],['elec_trial','电试'],['rd_trial','研试'],['eng_trial','工试'],['prod_trial','生试'],['test_report','测试报告'],['tech_transfer','技转'],['shipment','出货'],['review','复盘'],['other','其他']];
+function S(v){return v!=null?String(v):''}
+function T(v,n){var s=S(v);return s.length>n?s.substring(0,n):s}
+
+// ==================== Tab切换 ====================
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');
+  document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='projects')loadProjects(1);
+  else if(name==='progress')loadProgress();
+  else if(name==='supply')loadSupply(1);
+  else if(name==='sales')loadSales(1);
+  else if(name==='review')loadReviews(1);
+  else if(name==='initiation')loadInitiationList();
+  else if(name==='analysis')loadAnalysis();
+}
+
+// ==================== 研发项目数据库 ====================
+let pPage=1;
+let sortBy='', sortOrder='';
+let _projList=[]; // 当前页项目缓存（供内联编辑取值）
+
+function toggleSelectAll(cb){document.querySelectorAll('.projChk').forEach(c=>c.checked=cb.checked);updateBatchDel()}
+function updateBatchDel(){
+  var n=document.querySelectorAll('.projChk:checked').length;
+  document.getElementById('batchDelCount').textContent=n;
+  document.getElementById('batchDelBtn').style.display=n>0?'':'none';
+}
+async function batchDeleteProjects(){
+  var ids=Array.from(document.querySelectorAll('.projChk:checked')).map(c=>Number(c.value));
+  if(!ids.length){alert('请先选择项目');return}
+  if(!confirm('确定删除选中的 '+ids.length+' 个项目？关联的进度和复盘数据也将删除。'))return;
+  try{
+    var r=await fetch(API+'/batch-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    var d=await r.json();
+    alert(d.message||'删除完成');
+    document.getElementById('selectAll').checked=false;
+    loadProjects(1);loadPStats();
+  }catch(e){alert('批量删除失败')}
+}
+function sortProjects(field) {
+  if (sortBy === field) {
+    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortBy = field;
+    sortOrder = 'asc';
+  }
+  // 更新排序图标
+  document.querySelectorAll('.sort-icn').forEach(s => { s.textContent = ''; s.className = 'sort-icn'; });
+  const hdr = document.querySelector(`[data-sort="${field}"] .sort-icn`);
+  if (hdr) { hdr.textContent = sortOrder === 'asc' ? '▲' : '▼'; hdr.className = 'sort-icn ' + (sortOrder === 'asc' ? 'asc' : 'desc'); }
+  loadProjects(1);
+}
+async function loadPStats(){
+  try{
+    const r=await fetch(API+'/stats');const d=await r.json();
+    const bs=d.by_status||{},bt=d.by_type||{};
+    document.getElementById('pStats').innerHTML=`
+      <div class="sc sc-click" onclick="drillStat('total')" title="点击查看全部项目"><div class="n">${d.total}</div><div class="l">项目总数</div></div>
+      <div class="sc sc-click" onclick="drillStat('executing')" title="点击查看进行中项目"><div class="n" style="color:#3498db">${bs.executing||0}</div><div class="l">进行中</div></div>
+      <div class="sc sc-click" onclick="drillStat('completed')" title="点击查看已完成项目"><div class="n" style="color:#27ae60">${bs.completed||0}</div><div class="l">已完成</div></div>
+      <div class="sc sc-click" onclick="drillStat('paused')" title="点击查看暂停项目"><div class="n" style="color:#e67e22">${bs.paused||0}</div><div class="l">暂停</div></div>
+      <div class="sc sc-click" onclick="drillStat('self')" title="点击查看自研项目"><div class="n" style="color:#9b59b6">${bt['自研']||0}</div><div class="l">自研项目</div></div>
+      <div class="sc sc-click" onclick="drillStat('custom')" title="点击查看客制项目"><div class="n" style="color:#1abc9c">${bt['客制']||0}</div><div class="l">客制项目</div></div>
+      <div class="sc sc-click" onclick="drillStat('invest')" title="点击按投入金额排序"><div class="n">¥${Math.round(d.total_amount||0).toLocaleString()}</div><div class="l">投入总额</div></div>
+      <div class="sc sc-click" onclick="drillStat('order')" title="点击按订单金额排序"><div class="n" style="color:#e74c3c">¥${Math.round(d.order_amount||0).toLocaleString()}</div><div class="l">订单总额</div></div>
+      <div class="sc sc-click" onclick="drillStat('issues')" title="点击查看未闭环异常"><div class="n" style="color:#e74c3c">${d.open_issues||0}</div><div class="l">未闭环异常</div></div>
+    `;
+  }catch(e){}
+}
+async function loadProjects(page){
+  pPage=page||1;
+  const p=new URLSearchParams({page:pPage,limit:50});
+  const kw=document.getElementById('pKw').value,st=document.getElementById('pStatus').value,pt=document.getElementById('pType').value,lv=document.getElementById('pLevel').value;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(pt)p.set('project_type',pt);if(lv)p.set('level',lv);
+  if(sortBy)p.set('sort_by',sortBy);if(sortOrder)p.set('sort_order',sortOrder);
+  const sf=document.getElementById('pStartFrom')?.value,st2=document.getElementById('pStartTo')?.value;
+  if(sf)p.set('start_from',sf);if(st2)p.set('start_to',st2);
+  try{
+    const r=await fetch(API+'?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('pTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('pTb');
+    _projList=recs;
+    if(!recs.length){tb.innerHTML='<tr><td colspan="12" class="em">暂无项目</td></tr>';renderPg('pPg',total,pPage,loadProjects);return}
+    tb.innerHTML=recs.map(p=>{
+      const stageBadge=p.project_type==='自研'?'<span class="badge st-prog">自研</span>':'<span class="badge st-init">客制</span>';
+      const lvlBadge=p.project_level?`<span class="badge lvl-${S(p.project_level).toLowerCase()}">${S(p.project_level)}</span>`:'-';
+      const stBadge=`<span style="color:${statusColor[p.status]||'#999'}">${statusMap[p.status]||S(p.status)||'-'}</span>`;
+      return`<tr>
+      <td style="text-align:center"><input type="checkbox" class="projChk" value="${p.id}" onchange="updateBatchDel()"></td>
+      <td class="sticky-col" style="left:30px;min-width:120px">${editCell(p.id,'project_no',S(p.project_no)||'-')}</td>
+      <td>${editCell(p.id,'customer_name',S(p.customer_name)||'-')}</td>
+      <td>${editCell(p.id,'project_name',T(p.project_name,20))}</td>
+      <td>${editCell(p.id,'project_type',stageBadge)}</td>
+      <td>${editCell(p.id,'project_level',lvlBadge)}</td>
+      <td>${editCell(p.id,'owner',S(p.owner)||'-')}</td>
+      <td>${editCell(p.id,'current_stage',S(p.current_stage)||'-')}</td>
+      <td>${editCell(p.id,'invest_amount',p.invest_amount?('¥'+Number(p.invest_amount).toLocaleString()):'-')}</td>
+      <td>${editCell(p.id,'order_amount',p.order_amount?('¥'+Number(p.order_amount).toLocaleString()):'-')}</td>
+      <td>${editCell(p.id,'status',stBadge)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="openProjectDtl(${p.id})">详情</button>
+        <button class="btn bs ${isProjectDone(p)?'b2':'b4'}" onclick="promoteMenu(event,${p.id})" title="转入后续模块">转入</button>
+        <button class="btn bs b4" onclick="openEditProject(${p.id})">编辑</button>
+        <button class="btn bs b3" onclick="delProject(${p.id})">删除</button>
+      </td>
+    </tr>`}).join('');
+    renderPg('pPg',total,pPage,loadProjects);
+  }catch(e){console.error(e)}
+}
+function renderPg(elId,total,page,fn){
+  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  if(pages<=1){el.innerHTML='';return}
+  let h='';
+  if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
+  for(let i=Math.max(1,page-2);i<=Math.min(pages,page+2);i++)h+=`<button class="btn bs ${i===page?'b1':''}" onclick="${fn.name}(${i})">${i}</button> `;
+  if(page<pages)h+=`<button class="btn bs" onclick="${fn.name}(${page+1})">下一页</button>`;
+  el.innerHTML=h;
+}
+async function openProjectDtl(id){
+  try{
+    const r=await fetch(API+'/'+id);const p=await r.json();
+    document.getElementById('pMoTi').textContent='项目详情 - '+(S(p.project_name)||'');
+    const prog=p.progress||{};
+    const progHtml=progFields.map(([k,l])=>{
+      const v=prog[k];
+      let cls='pn-n',txt='—';
+      if(v==='V'||v==='√'){cls='pn-y';txt='V'}
+      else if(v==='X'||v==='×'){cls='pn-n';txt='X'}
+      else if(v&&v!=='/'&&v!=='-'){cls='pn-s';txt=S(v).length>10?S(v).substring(0,8)+'..':S(v)}
+      return `<span class="pn ${cls}" title="${l}: ${S(v)||'未设置'}">${txt}</span>&nbsp;`;
+    }).join('');
+    document.getElementById('pMoBody').innerHTML=`
+      <table style="width:100%;font-size:13px;margin-bottom:14px">
+        ${df('项目编号',p.project_no)}
+        ${df('项目名称',p.project_name)}
+        ${df('客户',p.customer_name)}
+        ${df('项目类型',p.project_type)}
+        ${df('项目等级',p.project_level?`<span class="badge lvl-${S(p.project_level).toLowerCase()}">${S(p.project_level)}</span>`:'-')}
+        ${df('紧急程度',p.urgency)}
+        ${df('负责人',p.owner)}
+        ${df('责任单位',p.department)}
+        ${df('立项时间',p.start_date)}
+        ${df('目标时间',p.target_date)}
+        ${df('结案时间',p.close_date)}
+        ${df('目前阶段',p.current_stage)}
+        ${df('进度情况',p.progress_note)}
+        ${df('投入金额',p.invest_amount?'¥'+Number(p.invest_amount).toLocaleString():'-')}
+        ${df('订单金额',p.order_amount?'¥'+Number(p.order_amount).toLocaleString():'-')}
+        ${df('年订单',p.annual_order)}
+        ${df('上市时间',p.market_date)}
+        ${df('状态','<span style="color:'+(statusColor[p.status]||'#999')+'">'+(statusMap[p.status]||S(p.status))+'</span>')}
+        ${df('变更次数',(Number(p.change_count)||0)+' 次')}
+        ${df('稽核',p.audit_status)}
+        ${df('甘特图链接',p.gantt_link?`<a href="${p.gantt_link}" target="_blank">查看</a>`:'-')}
+        ${df('资料链接',p.doc_link?`<a href="${p.doc_link}" target="_blank">查看</a>`:'-')}
+        ${df('备注',p.remarks)}
+      </table>
+      <h4 style="margin:12px 0 8px;color:#2c3e50">技转节点进度</h4>
+      <div style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:12px;line-height:2.2">
+        ${progFields.map(([k,l])=>{const v=prog[k];let cls='unchk';if(v==='V'||v==='√')cls='chk';else if(v&&v!=='/'&&v!=='-'&&v!=='X'&&v!=='×')cls='pend';return `<span class="${cls}">${l}:${S(v)||'—'}</span>&nbsp;&nbsp;`}).join('')}
+      </div>
+      <div id="pMoRelated"></div>
+      ${renderGoalCompare(p,prog,p.review)}
+      <div style="margin-top:14px;padding:12px;background:linear-gradient(90deg,#f0fff4,#f8f9fa);border:1px solid #d4edda;border-radius:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div style="font-size:13px;color:#155724;font-weight:600">${isProjectDone(p)?'✅ 项目已完成，可转入后续模块':'转入后续模块'}</div>
+          <div>
+            <button class="btn b2 bs" onclick="promoteToSupply(${p.id})">📋 转入供应链异常</button>
+            <button class="btn b2 bs" onclick="promoteToSales(${p.id})">📈 转入销售推广</button>
+            <button class="btn b2 bs" onclick="promoteToReview(${p.id})">🔄 转入项目复盘</button>
+            <button class="btn bs" style="background:#764ba2;color:#fff" onclick="location.href='tech-transfer.html?project=${p.id}'">🔧 转入技转模块</button>
+            <button class="btn bs" style="background:#2c3e50;color:#fff" onclick="createInitiationFromProject(${p.id})">📝 立项申请书</button>
+            <button class="btn bs" style="background:#9b59b6;color:#fff" onclick="autoReview(${p.id})">⚡ 自动复盘</button>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:14px">
+        <button class="btn b4" onclick="openEditProject(${p.id})">编辑</button>
+        <button class="btn b3" onclick="delProject(${p.id})">删除</button>
+      </div>
+    `;
+    document.getElementById('pMo').classList.add('ac');
+    loadProjectRelated(p);
+  }catch(e){alert('加载失败: '+e.message)}
+}
+// 加载项目关联的供应链异常/销售推广记录
+async function loadProjectRelated(p){
+  var box=document.getElementById('pMoRelated');
+  if(!box)return;
+  try{
+    var pno=S(p.project_no)||'';
+    var [sRes,spRes,techRes]=await Promise.all([
+      fetch(API+'/supply-issues/list?limit=9999'),
+      fetch(API+'/sales-promotion/list?limit=9999'),
+      fetch('/api/tech/project/'+p.id+'/context').catch(()=>null)
+    ]);
+    var sd=await sRes.json(),spd=await spRes.json();
+    var issues=(sd.data||[]).filter(r=>pno&&(r.project_no===pno));
+    var sales=(spd.data||[]).filter(r=>pno&&(r.project_no===pno));
+    var openCnt=issues.filter(r=>r.closed!==1).length;
+    var html='<h4 style="margin:12px 0 8px;color:#2c3e50">关联记录</h4>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px">';
+    html+=`<div style="background:#fff3cd;padding:10px;border-radius:8px;border-left:3px solid #f39c12;cursor:pointer" onclick="document.querySelectorAll('#tabNav button')[2].click();document.getElementById('sKw').value='${pno}';loadSupply(1)" title="点击查看"><b>供应链异常：</b>${issues.length} 条（未闭环 ${openCnt}）</div>`;
+    html+=`<div style="background:#d1ecf1;padding:10px;border-radius:8px;border-left:3px solid #17a2b8;cursor:pointer" onclick="document.querySelectorAll('#tabNav button')[3].click();document.getElementById('spKw').value='${pno}';loadSales(1)" title="点击查看"><b>销售推广：</b>${sales.length} 条</div>`;
+    html+='</div>';
+    if(techRes&&techRes.ok){
+      var tctx=await techRes.json();
+      var f=tctx.tech_flow||{},docs=tctx.tech_docs||{},ch=tctx.tech_changes||{},rp=tctx.rd_progress||{};
+      var stageMap={presale:'售前对接',rd:'研发定型',production:'生产落地',delivery:'交付复盘'};
+      var nodeStatus=rp.tech_transfer?('<span style="color:#27ae60">已完成</span>'):'<span style="color:#bbb">未同步</span>';
+      html+='<h4 style="margin:14px 0 8px;color:#2c3e50">技术资料库 & 技转流转 <a href="tech-transfer.html?project='+p.id+'" style="font-size:12px;color:#667eea;float:right">进入技转模块 »</a></h4>';
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:12px">';
+      html+=`<div style="background:#e8daef;padding:10px;border-radius:8px;border-left:3px solid #764ba2"><b>技术资料：</b>${docs.total||0} 份${docs.total?('（核心'+((docs.by_level||{})['2']||0)+'/涉密'+((docs.by_level||{})['3']||0)+'）'):''}</div>`;
+      html+=`<div style="background:#ebf5fb;padding:10px;border-radius:8px;border-left:3px solid #3498db"><b>技转进度：</b>${stageMap[f.current_stage]||'-'}（交底${(tctx.tech_handovers||{}).total||0}次）</div>`;
+      html+=`<div style="background:#fadbd8;padding:10px;border-radius:8px;border-left:3px solid #e74c3c"><b>技术变更：</b>${ch.total||0} 条${ch.open?('（未闭环'+ch.open+'）'):''}</div>`;
+      html+='</div>';
+      html+=`<div style="margin-top:8px;font-size:12px;color:#666">研发节点完成率：<b style="color:${(rp.node_rate||0)>=80?'#27ae60':(rp.node_rate||0)>=40?'#f39c12':'#e74c3c'}">${rp.node_done||0}/${rp.node_total||19}（${rp.node_rate||0}%）</b> · 技转节点：${nodeStatus}</div>`;
+    }
+    box.innerHTML=html;
+  }catch(e){box.innerHTML=''}
+}
+// 目标 vs 实际对比（含变更次数、按时情况、节点完成率、复盘关联）
+function renderGoalCompare(p,prog,review){
+  var td=S(p.target_date)||'',cd=S(p.close_date)||'';
+  var changes=Number(p.change_count)||0;
+  // 时间对比
+  var timeHtml='<span style="color:#aaa">未设置目标</span>';
+  if(td){
+    if(cd){
+      var d1=new Date(td.substring(0,10)),d2=new Date(cd.substring(0,10));
+      if(!isNaN(d1)&&!isNaN(d2)){
+        var days=Math.round((d2-d1)/86400000);
+        timeHtml=days>0?('<span style="color:#e74c3c;font-weight:600">延期 '+days+' 天</span>'):days<0?('<span style="color:#9b59b6">提前 '+(-days)+' 天</span>'):('<span style="color:#27ae60;font-weight:600">按时完成</span>');
+      }else{timeHtml='<span style="color:#999">'+S(cd)+'</span>';}
+    }else{
+      timeHtml='<span style="color:#f39c12">进行中（目标 '+td+'）</span>';
+    }
+  }else if(cd){
+    timeHtml='<span style="color:#999">已结案 '+cd+'</span>';
+  }
+  // 节点完成率
+  var nodeVals=progFields.map(function(f){return prog?prog[f[0]]:'';});
+  var doneCnt=nodeVals.filter(function(v){return v==='V'||v==='√';}).length;
+  var nodeRate=progFields.length?Math.round(doneCnt/progFields.length*100):0;
+  var changeColor=changes>=3?'#e74c3c':(changes>=1?'#f39c12':'#27ae60');
+  // 复盘关联
+  var reviewHtml='<span style="color:#bbb">未复盘</span>';
+  if(review&&review.id){
+    reviewHtml='<span style="color:#27ae60;cursor:pointer;text-decoration:underline" onclick="document.querySelectorAll(\'#tabNav button\')[4].click()">已复盘（点击查看）</span>';
+  }
+  function cmpRow(label,left,right,status){
+    return '<tr><td style="color:#999;padding:6px 10px;width:90px">'+label+'</td>'+
+      '<td style="padding:6px 10px">'+(left||'-')+'</td>'+
+      '<td style="padding:6px 10px">'+(right||'-')+'</td>'+
+      '<td style="padding:6px 10px;text-align:right">'+status+'</td></tr>';
+  }
+  return '<div style="margin-top:14px;border:1px solid #e0e3eb;border-radius:8px;overflow:hidden">'+
+    '<div style="background:linear-gradient(90deg,#667eea,#764ba2);padding:8px 12px;font-size:13px;font-weight:600;color:#fff">🎯 目标 vs 实际对比</div>'+
+    '<table style="width:100%;font-size:12px;background:#fff">'+
+    '<thead><tr><th style="padding:6px 10px;text-align:left;color:#999;font-weight:400;width:90px">项目</th><th style="padding:6px 10px;text-align:left;color:#999;font-weight:400">目标</th><th style="padding:6px 10px;text-align:left;color:#999;font-weight:400">实际</th><th style="padding:6px 10px;text-align:right;color:#999;font-weight:400">结果</th></tr></thead><tbody>'+
+    cmpRow('时间',td?('目标 '+td):'',cd?('结案 '+cd):'',timeHtml)+
+    cmpRow('变更次数','-','累计 '+changes+' 次','<span style="color:'+changeColor+';font-weight:600">'+(changes>=3?'频繁':changes>=1?'正常':'稳定')+'</span>')+
+    cmpRow('节点完成','-','-','<span style="color:'+(nodeRate>=80?'#27ae60':nodeRate>=40?'#f39c12':'#e74c3c')+';font-weight:600">'+doneCnt+'/'+progFields.length+'（'+nodeRate+'%）</span>')+
+    cmpRow('订单金额','-',(p.order_amount?('¥'+Number(p.order_amount).toLocaleString()):'-'),p.order_amount>0?'<span style="color:#27ae60">已获订单</span>':'<span style="color:#aaa">无订单</span>')+
+    cmpRow('复盘','-','-',reviewHtml)+
+    '</tbody></table></div>';
+}
+function df(l,v){return`<tr><td style="color:#999;width:100px;padding:4px 8px">${l}</td><td style="padding:4px 8px">${v||'-'}</td></tr>`}
+
+function openAddProject(){
+  const fields=[
+    ['__sec__','基本信息','section'],
+    ['project_no','项目编号','text'],['project_name','项目名称*','text'],
+    ['customer_name','客户','text'],['project_type','类型','select:自研,客制'],
+    ['project_level','等级','select:A,B,C'],['urgency','紧急程度','select:重要紧急,重要不紧急,不重要紧急,不重要不紧急'],
+    ['owner','负责人','text'],['department','责任单位','text'],
+    ['__sec__','时间节点','section'],
+    ['start_date','立项时间','date'],['target_date','目标时间','date'],
+    ['market_date','上市时间','date'],
+    ['__sec__','金额信息','section'],
+    ['invest_amount','投入金额','number'],['order_amount','订单金额','number'],['annual_order','年订单','text'],
+    ['__sec__','进度与状态','section'],
+    ['current_stage','目前阶段','select:'+stageOptions.join(',')],['status','状态','select:init,executing,completed,paused,cancelled'],
+    ['__sec__','进度情况','section'],
+    ['progress_note','进度情况','textarea'],
+    ['__sec__','链接与备注','section'],
+    ['gantt_link','甘特图链接','text'],['doc_link','资料链接','text'],
+    ['remarks','备注','textarea']
+  ];
+  openForm('新增项目',fields,{},async(data)=>{
+    if(!data.project_name){alert('项目名称必填');return}
+    await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');
+    loadProjects(1);loadPStats();
+  });
+}
+async function openEditProject(id){
+  try{
+    const r=await fetch(API+'/'+id);const p=await r.json();
+    const fields=[
+      ['__sec__','基本信息','section'],
+      ['project_no','项目编号','text'],['project_name','项目名称*','text'],
+      ['customer_name','客户','text'],['project_type','类型','select:自研,客制'],
+      ['project_level','等级','select:A,B,C,-'],['urgency','紧急程度','select:重要紧急,重要不紧急,不重要紧急,不重要不紧急,-'],
+      ['owner','负责人','text'],['department','责任单位','text'],
+      ['__sec__','时间节点','section'],
+      ['start_date','立项时间','date'],['target_date','目标时间','date'],
+      ['close_date','结案时间','date'],['market_date','上市时间','date'],
+      ['__sec__','金额信息','section'],
+      ['invest_amount','投入金额','number'],['order_amount','订单金额','number'],['annual_order','年订单','text'],
+      ['__sec__','进度与状态','section'],
+      ['current_stage','目前阶段','select:'+stageOptions.join(',')],['status','状态','select:init,executing,completed,paused,cancelled'],
+      ['change_count','变更次数（系统自动统计）','readonly'],
+      ['__sec__','进度情况','section'],
+      ['progress_note','进度情况','textarea'],
+      ['__sec__','链接与备注','section'],
+      ['gantt_link','甘特图链接','text'],['doc_link','资料链接','text'],
+      ['remarks','备注','textarea']
+    ];
+    openForm('编辑项目',fields,p,async(data)=>{
+      if(!data.project_name){alert('项目名称必填');return}
+      await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');
+      loadProjects(pPage);loadPStats();
+    });
+  }catch(e){alert('加载失败')}
+}
+async function delProject(id){
+  if(!confirm('确定删除此项目？关联的进度和复盘数据也将删除。'))return;
+  await fetch(API+'/'+id,{method:'DELETE'});
+  loadProjects(pPage);loadPStats();
+}
+
+// ==================== 统计卡片穿透 ====================
+function drillStat(type){
+  document.getElementById('pKw').value='';
+  document.getElementById('pStatus').value='';
+  document.getElementById('pType').value='';
+  document.getElementById('pLevel').value='';
+  sortBy='';sortOrder='';
+  document.querySelectorAll('#tab-projects .sort-icn').forEach(s=>{s.textContent='';s.className='sort-icn';});
+  if(type==='executing'||type==='completed'||type==='paused'){
+    document.getElementById('pStatus').value=type;
+  }else if(type==='self'){
+    document.getElementById('pType').value='自研';
+  }else if(type==='custom'){
+    document.getElementById('pType').value='客制';
+  }else if(type==='invest'){
+    sortBy='invest_amount';sortOrder='desc';
+  }else if(type==='order'){
+    sortBy='order_amount';sortOrder='desc';
+  }else if(type==='issues'){
+    // 切换到供应链品质异常，仅看未闭环
+    var btn=document.querySelectorAll('#tabNav button')[2];
+    swTab('supply',btn);
+    var sc=document.getElementById('sClosed');if(sc)sc.value='0';
+    loadSupply(1);
+    return;
+  }
+  loadProjects(1);
+  var tbl=document.querySelector('#tab-projects .tbl-wrap');
+  if(tbl)tbl.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ==================== 表格内联编辑 ====================
+const editableFields={
+  project_no:{type:'text'},customer_name:{type:'text'},project_name:{type:'text'},
+  project_type:{type:'select',opts:['自研','客制']},project_level:{type:'select',opts:['A','B','C','']},
+  owner:{type:'text'},current_stage:{type:'select',opts:stageOptions},
+  invest_amount:{type:'number'},order_amount:{type:'number'},
+  status:{type:'select',opts:['init','executing','completed','paused','cancelled']}
+};
+function editCell(pid,field,display){
+  return `<span class="edit-cell" title="点击编辑" onclick="event.stopPropagation();inlineEdit(event,${pid},'${field}')">${display}</span>`;
+}
+function inlineEdit(e,pid,field){
+  var p=_projList.find(x=>x.id===pid);
+  if(!p)return;
+  var cfg=editableFields[field];if(!cfg)return;
+  showInlinePopup(e,pid,field,S(p[field]||''),cfg);
+}
+var _fieldLabels={project_no:'项目编号',customer_name:'客户',project_name:'项目名称',project_type:'类型',project_level:'等级',owner:'负责人',current_stage:'目前阶段',invest_amount:'投入金额',order_amount:'订单金额',status:'状态'};
+function showInlinePopup(e,pid,field,curVal,cfg){
+  closeInlinePopup();
+  var pop=document.createElement('div');
+  pop.className='prog-popup show';
+  pop.id='inlinePopup';
+  pop.style.minWidth='180px';
+  var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:4px">编辑：'+(_fieldLabels[field]||field)+'</div>';
+  html+='<div style="padding:4px 6px">';
+  if(cfg.type==='select'){
+    html+='<select id="inlineInput" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px">';
+    cfg.opts.forEach(function(o){var sv=S(o);html+='<option value="'+sv+'" '+(sv===curVal?'selected':'')+'>'+(o||'--')+'</option>';});
+    html+='</select>';
+  }else{
+    html+='<input type="'+cfg.type+'" id="inlineInput" value="'+curVal.replace(/"/g,'&quot;')+'" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px" onkeydown="if(event.key===\'Enter\'){saveInlineEdit('+pid+',\''+field+'\');closeInlinePopup()}">';
+  }
+  html+='</div>';
+  html+='<div style="padding:4px 6px;text-align:right"><button class="btn bs b2" onclick="saveInlineEdit('+pid+',\''+field+'\');closeInlinePopup()">保存</button></div>';
+  pop.innerHTML=html;
+  document.body.appendChild(pop);
+  var rect=e.target.getBoundingClientRect();
+  pop.style.left=Math.min(rect.left,window.innerWidth-200)+'px';
+  pop.style.top=(rect.bottom+4)+'px';
+  setTimeout(function(){document.addEventListener('click',closeInlinePopupOnOutside);var inp=document.getElementById('inlineInput');if(inp)inp.focus();},100);
+}
+function closeInlinePopupOnOutside(e){if(document.getElementById('inlinePopup')&&!document.getElementById('inlinePopup').contains(e.target))closeInlinePopup()}
+function closeInlinePopup(){var p=document.getElementById('inlinePopup');if(p)p.remove();document.removeEventListener('click',closeInlinePopupOnOutside)}
+async function saveInlineEdit(pid,field){
+  var el=document.getElementById('inlineInput');if(!el)return;
+  var cfg=editableFields[field];
+  var body={};body[field]=(cfg&&cfg.type==='number')?(Number(el.value)||0):el.value;
+  try{
+    await fetch(API+'/'+pid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    loadProjects(pPage);loadPStats();
+  }catch(e){alert('保存失败')}
+}
+
+// ==================== 项目转入后续模块 ====================
+// 判断项目是否已完成（用于提示转入）
+function isProjectDone(p){return p.status==='completed'||['完成','复盘'].includes(String(p.current_stage||'').trim())}
+
+// 转入下拉菜单（表格内）
+function promoteMenu(e,pid){
+  closePromoteMenu();
+  var pop=document.createElement('div');
+  pop.className='prog-popup show';
+  pop.id='promotePopup';
+  pop.style.minWidth='170px';
+  var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:2px">转入后续模块</div>';
+  html+='<button onclick="promoteToSupply('+pid+');closePromoteMenu()">📋 转入供应链异常</button>';
+  html+='<button onclick="promoteToSales('+pid+');closePromoteMenu()">📈 转入销售推广</button>';
+  html+='<button onclick="promoteToReview('+pid+');closePromoteMenu()">🔄 转入项目复盘</button>';
+  html+='<button onclick="autoReview('+pid+');closePromoteMenu()">⚡ 自动复盘（智能生成）</button>';
+  pop.innerHTML=html;
+  document.body.appendChild(pop);
+  var rect=e.target.getBoundingClientRect();
+  pop.style.left=Math.min(rect.left,window.innerWidth-190)+'px';
+  pop.style.top=(rect.bottom+4)+'px';
+  setTimeout(function(){document.addEventListener('click',closePromoteMenuOnOutside)},100);
+}
+function closePromoteMenuOnOutside(e){if(document.getElementById('promotePopup')&&!document.getElementById('promotePopup').contains(e.target))closePromoteMenu()}
+function closePromoteMenu(){var p=document.getElementById('promotePopup');if(p)p.remove();document.removeEventListener('click',closePromoteMenuOnOutside)}
+
+// 转入供应链品质异常（预填项目信息）
+async function promoteToSupply(pid){
+  try{
+    const r=await fetch(API+'/'+pid);const p=await r.json();
+    openAddSupply({
+      occur_date:new Date().toISOString().slice(0,10),
+      project_no:p.project_no||'',
+      product_name:p.project_name||'',
+      proposer:p.owner||''
+    });
+  }catch(e){alert('加载项目失败')}
+}
+// 转入销售推广进度（预填项目信息）
+async function promoteToSales(pid){
+  try{
+    const r=await fetch(API+'/'+pid);const p=await r.json();
+    openAddSales({
+      project_no:p.project_no||'',
+      customer:String(p.customer_name||''),
+      product_model:p.project_no||''
+    });
+  }catch(e){alert('加载项目失败')}
+}
+// 转入项目复盘（预填项目目标/变更次数/实际结果）
+async function promoteToReview(pid){
+  try{
+    const r=await fetch(API+'/'+pid);const p=await r.json();
+    var goalParts=[];
+    if(p.target_date)goalParts.push('目标时间 '+p.target_date);
+    if(p.project_level)goalParts.push('等级 '+p.project_level);
+    if(p.order_amount)goalParts.push('目标订单 ¥'+Number(p.order_amount).toLocaleString());
+    var resultParts=[];
+    resultParts.push('变更次数 '+(Number(p.change_count)||0)+' 次');
+    if(p.close_date)resultParts.push('实际结案 '+p.close_date);
+    if(p.current_stage)resultParts.push('当前阶段 '+p.current_stage);
+    if(p.order_amount)resultParts.push('实际订单 ¥'+Number(p.order_amount).toLocaleString());
+    openAddReview({
+      project_id:p.id,
+      project_no:p.project_no||'',
+      project_name:p.project_name||'',
+      goal_original:goalParts.join('；'),
+      result_actual:resultParts.join('；')
+    });
+  }catch(e){alert('加载项目失败')}
+}
+// 自动复盘：计算结果、分析差距原因、总结归纳、输出行动计划
+async function autoReview(pid){
+  try{
+    const r=await fetch(API+'/'+pid);const p=await r.json();
+    const prog=p.progress||{};
+    const td=S(p.target_date)||'',cd=S(p.close_date)||'';
+    const changes=Number(p.change_count)||0;
+    // —— 节点分析 ——
+    const nodes=progFields.map(f=>({label:f[1],val:prog[f[0]]}));
+    const doneN=nodes.filter(n=>n.val==='V'||n.val==='√');
+    const dateN=nodes.filter(n=>isDateVal(n.val));
+    const emptyN=nodes.filter(n=>{const v=String(n.val||'').trim();return !v||v==='/'||v==='-'||v==='0';});
+    const progN=nodes.filter(n=>n.val==='进行中');
+    const nodeRate=nodes.length?Math.round(doneN.length/nodes.length*100):0;
+    const keyLabels=['模具','研试','工试','生试','技转','测试报告','开模评审'];
+    const incompleteKey=nodes.filter(n=>n.val!=='V'&&n.val!=='√'&&keyLabels.includes(n.label));
+    // —— 时间分析 ——
+    var timeGap=0;
+    if(td&&cd){const d1=new Date(td.substring(0,10)),d2=new Date(cd.substring(0,10));if(!isNaN(d1)&&!isNaN(d2))timeGap=Math.round((d2-d1)/86400000);}
+    const hasOrder=Number(p.order_amount)>0;
+    // —— 目标 ——
+    var goal=['• 目标时间：'+(td||'未设置')];
+    if(p.project_level)goal.push('• 项目等级：'+p.project_level);
+    if(p.order_amount)goal.push('• 目标订单：¥'+Number(p.order_amount).toLocaleString());
+    // —— 实际结果（自动计算）——
+    var actual=['• 节点完成率：'+nodeRate+'%（'+doneN.length+'/'+nodes.length+'）'];
+    actual.push('• 变更次数：'+changes+' 次');
+    if(cd)actual.push('• 实际结案：'+cd);
+    if(hasOrder)actual.push('• 实际订单：¥'+Number(p.order_amount).toLocaleString());
+    if(td&&cd){actual.push('• 交付评估：'+(timeGap>0?('延期 '+timeGap+' 天'):timeGap<0?('提前 '+(-timeGap)+' 天'):'按时完成'));}
+    actual.push('• 设计划日期节点：'+dateN.length+' 个；进行中：'+progN.length+' 个');
+    // —— Highlights ——
+    var hl=[];
+    if(td&&cd&&timeGap<=0)hl.push((timeGap<0?'提前':'按时')+'完成，时间管控良好');
+    if(nodeRate>=80)hl.push('技转节点完成率高（'+nodeRate+'%），流程执行到位');
+    if(hasOrder)hl.push('成功转化为订单（¥'+Number(p.order_amount).toLocaleString()+'）');
+    if(changes===0)hl.push('项目过程稳定，无关键变更');
+    else if(changes<=2)hl.push('变更次数适中（'+changes+'次），可控');
+    // —— Lowlights（差距）——
+    var ll=[];
+    if(timeGap>0)ll.push('项目延期 '+timeGap+' 天，未达目标时间');
+    if(nodeRate<40)ll.push('节点完成率偏低（'+nodeRate+'%），技转跟踪不足');
+    else if(nodeRate<80&&nodeRate>=40)ll.push('节点完成率中等（'+nodeRate+'%），部分节点未闭环');
+    if(changes>=3)ll.push('变更频繁（'+changes+'次），需求稳定性不足');
+    if(!hasOrder)ll.push('尚未获得订单转化');
+    if(emptyN.length>5)ll.push(emptyN.length+'个节点未设置，计划完整性不足');
+    if(incompleteKey.length)ll.push('关键节点未完成：'+incompleteKey.map(n=>n.label).join('、'));
+    // —— 成功因素 ——
+    var sf=[];
+    if(hl.length)sf.push('可复用经验：'+hl.slice(0,2).join('；'));
+    if(nodeRate>=60)sf.push('技转节点跟踪机制有效，建议固化');
+    if(dateN.length>=nodes.length*0.5)sf.push('计划性强，多数节点设定了目标日期');
+    // —— 失败原因（根据差距分析）——
+    var fc=[];
+    if(timeGap>0)fc.push('【延期】关键节点（模具/试产/认证）周期偏长，串行依赖多，前置准备不足');
+    if(changes>=3)fc.push('【变更】立项前需求评审与封样管理不充分，客户需求变更传导至研发返工');
+    if(nodeRate<60&&emptyN.length>0)fc.push('【节点缺失】进度跟踪不规范，部分节点未及时录入或推进');
+    if(!hasOrder)fc.push('【订单缺失】产品竞争力或销售推广力度不足，研发-销售协同待加强');
+    // —— 总结规律 ——
+    var ins=['本项目节点完成率 '+nodeRate+'%、变更 '+changes+'次'+(timeGap>0?('、延期'+timeGap+'天'):'')+'。'];
+    if(nodeRate>=80&&changes<=2)ins.push('规律：节点跟踪到位 + 变更可控的项目交付更准时，建议固化此模式。');
+    else if(changes>=3)ins.push('规律：变更频次高的项目易延期，需求稳定性是按时交付的关键前置条件。');
+    else ins.push('规律：技转节点的完整性与变更管控直接影响交付质量。');
+    ins.push('建议：将立项/结案日期、节点完成率、变更次数作为项目健康度的核心指标持续监控。');
+    // —— 行动计划（自动输出）——
+    var ap=[];
+    var idx=1;
+    if(timeGap>0)ap.push(idx++ +'、前置关键模具/试产/认证准备，识别关键路径瓶颈并并行推进，缩短串行等待');
+    if(changes>=3)ap.push(idx++ +'、建立变更评审流程，区分重大/轻微变更，立项前加强需求评审与封样确认');
+    if(nodeRate<80)ap.push(idx++ +'、规范技转节点跟踪，每周更新进度'+(emptyN.length?('，补录 '+emptyN.length+' 个未设置节点'):'，推动节点闭环'));
+    if(incompleteKey.length)ap.push(idx++ +'、优先闭环关键节点：'+incompleteKey.map(n=>n.label).join('、'));
+    if(!hasOrder)ap.push(idx++ +'、加强销售推广协同，定期同步客户反馈，推动订单转化');
+    if(ap.length===0)ap.push('1、固化当前良好实践，将节点跟踪与变更管控模式推广至同类项目');
+    const join=arr=>arr.length?arr.join('\n'):'';
+    openAddReview({
+      project_id:p.id,
+      project_no:p.project_no||'',
+      project_name:p.project_name||'',
+      goal_original:join(goal),
+      result_actual:join(actual),
+      result_highlights:join(hl)||'暂无明显亮点',
+      result_lowlights:join(ll)||'无明显差距',
+      success_factors:join(sf)||'—',
+      failure_causes:join(fc)||'无明显失败因素',
+      insights:join(ins),
+      experience:join(ins),
+      action_plan:join(ap)
+    });
+  }catch(e){alert('自动复盘失败: '+e.message)}
+}
+// 复盘模块入口：输入项目编号/名称查找后自动复盘
+function autoReviewPick(){
+  var kw=prompt('请输入要复盘的项目编号或名称：');
+  if(!kw)return;
+  fetch(API+'?limit=9999&keyword='+encodeURIComponent(kw)).then(r=>r.json()).then(d=>{
+    var list=d.data||[];
+    if(!list.length){alert('未找到匹配的项目：'+kw);return;}
+    if(list.length===1){autoReview(list[0].id);return;}
+    if(confirm('找到 '+list.length+' 个匹配项目，是否对第一个「'+(list[0].project_name||list[0].project_no||'')+'」进行自动复盘？')){
+      autoReview(list[0].id);
+    }
+  }).catch(()=>alert('查询失败'));
+}
+
+// ==================== 导出项目数据 ====================
+function exportProjects() {
+  fetch(API+'?limit=9999').then(r=>r.json()).then(d=>{
+    const list=d.data||[];
+    if(list.length===0){alert('暂无数据可导出');return}
+    const headers=['项目编号','客户','项目名称','类型','等级','负责人','目前阶段','投入金额','订单金额','状态','立项时间','目标时间','年订单','备注'];
+    let csv='\uFEFF'+headers.join(',')+'\n';
+    list.forEach(p=>{
+      const row=[
+        S(p.project_no),S(p.customer_name),S(p.project_name),S(p.project_type),
+        S(p.project_level),S(p.owner),S(p.current_stage),
+        p.invest_amount||'',p.order_amount||'',
+        statusMap[p.status]||S(p.status),S(p.start_date),S(p.target_date),
+        S(p.annual_order),S(p.remarks).replace(/,/g,'，')
+      ];
+      csv+=row.join(',')+'\n';
+    });
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='研发项目_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+  }).catch(e=>{alert('导出失败: '+e.message)});
+}
+
+// ==================== 项目进度跟踪 ====================
+function showImportDateTip(){
+  // 导入完成后检查日期格式，提示异常数据
+  setTimeout(async()=>{
+    try{
+      const r=await fetch(API+'/progress/list');const d=await r.json();
+      const recs=d.data||[];
+      var badDates=[];
+      recs.forEach(prog=>{
+        progFields.forEach(([k,l])=>{
+          var v=prog[k];
+          if(v&&v!=='V'&&v!=='√'&&v!=='X'&&v!=='×'&&v!=='/'&&v!=='-'&&!isDateVal(v)&&v!=='进行中'&&v!=='待定'){
+            badDates.push('项目ID:'+prog.project_id+' '+l+': "'+v+'"');
+          }
+        });
+      });
+      if(badDates.length>0){
+        alert('导入完成，但发现以下数据格式异常（非日期/非状态标记）：\n\n'+badDates.slice(0,10).join('\n')+(badDates.length>10?'\n...还有'+(badDates.length-10)+'条':''));
+      }
+    }catch(e){}
+  },1500);
+}
+function isDateVal(v){var s=String(v);return s&&/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/.test(s)}
+function normDate(v){var s=String(v);var m=s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})/);return m?m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0'):s}
+function formatDate(v){var m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[2]+'/'+m[3]:T(v,8)}
+function formatDateFull(v){var m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[1]+'-'+m[2]+'-'+m[3]:v}
+function validateDate(v){if(!v)return true;var s=String(v).trim();if(/^(V|√|X|×|\/|-|进行中|待定)?$/.test(s))return true;var m=s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})/);if(!m)return false;var y=parseInt(m[1]),mo=parseInt(m[2]),d=parseInt(m[3]);if(y<2000||y>2099||mo<1||mo>12||d<1||d>31)return false;return true}
+function renderProgCell(v,pid,k){
+  let cls='none',txt='—',title='';
+  if(v==='V'||v==='√'){cls='done';txt='✓'}
+  else if(v==='X'||v==='×'){cls='fail';txt='✗'}
+  else if(isDateVal(v)){cls='date';txt=formatDate(v);title='计划完成日期: '+formatDateFull(v)}
+  else if(v&&v!=='/'&&v!=='-'&&v!=='0'){
+    cls='pend';txt=T(v,6);
+  }
+  return`<td style="text-align:center"><span class="prog-cell ${cls}" title="${title||S(v)}" onclick="event.stopPropagation();showProgPopup(event,${pid},'${k}','${S(v).replace(/'/g,"\\'")}')">${txt}</span></td>`;
+}
+// 项目状态单元格（可点击编辑）
+function renderStatusCell(p){
+  const st=S(p.status)||'';
+  const label=statusMap[st]||st||'-';
+  const color=statusColor[st]||'#999';
+  return `<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;color:#fff;background:${color};cursor:pointer;white-space:nowrap" title="点击修改状态" onclick="event.stopPropagation();showStatusPopup(event,${p.id},'${st.replace(/'/g,"\\'")}')">${label}</span>`;
+}
+// 负责人单元格（可点击编辑）
+function renderOwnerCell(p){
+  const owner=S(p.owner)||'';
+  const display=owner||'<span style="color:#ccc">未分配</span>';
+  return `<span class="edit-cell" title="点击修改负责人" onclick="event.stopPropagation();showOwnerPopup(event,${p.id},'${owner.replace(/'/g,"\\'")}')">${display}</span>`;
+}
+let progSortBy='', progSortOrder='';
+let progPage=1;
+let _progAllRecs=[], _progPMap={};
+let _colFilter={}; // 每列筛选状态: {字段: 'done'|'date'|'inprogress'|'text'|'empty'}
+async function loadProgress(){
+  try{
+    progPage=1;
+    const r=await fetch(API+'/progress/list');const d=await r.json();
+    _progAllRecs=d.data||[];
+    const pr=await fetch(API+'?limit=9999');const pd=await pr.json();
+    _progPMap={};(pd.data||[]).forEach(p=>_progPMap[p.id]=p);
+    renderProgressTable();
+  }catch(e){console.error(e)}
+}
+function getFilteredProg(){
+  const kw=(document.getElementById('progKw')?.value||'').trim().toLowerCase();
+  const st=document.getElementById('progStatus')?.value||'';
+  const ns=document.getElementById('progNodeStatus')?.value||'';
+  let recs=_progAllRecs.map(prog=>({prog,p:_progPMap[prog.project_id]||{}}));
+  if(kw){
+    recs=recs.filter(({p})=>[p.project_no,p.project_name,p.owner,p.customer_name].join(' ').toLowerCase().includes(kw));
+  }
+  if(st)recs=recs.filter(({p})=>p.status===st);
+  if(ns==='in_progress')recs=recs.filter(({prog})=>progFields.some(([k])=>String(prog[k])==='进行中'));
+  else if(ns==='has_date')recs=recs.filter(({prog})=>progFields.some(([k])=>isDateVal(prog[k])));
+  else if(ns==='incomplete')recs=recs.filter(({prog})=>progFields.some(([k])=>{const v=String(prog[k]||'').trim();return v===''||v==='/'||v==='-'||v==='0'}));
+  else if(ns==='all_done')recs=recs.filter(({prog})=>progFields.every(([k])=>prog[k]==='V'||prog[k]==='√'));
+  // 按列筛选（每列独立）
+  Object.entries(_colFilter).forEach(([field,ftype])=>{
+    recs=recs.filter(({prog})=>matchesNodeType(prog[field],ftype));
+  });
+  if(progSortBy){
+    const dir=progSortOrder==='asc'?1:-1;
+    const cmp=(a,b)=>String(a||'').localeCompare(String(b||''),'zh');
+    const isNodeField=progFields.some(([k])=>k===progSortBy);
+    if(progSortBy==='project_no')recs.sort((a,b)=>dir*cmp(a.p.project_no,b.p.project_no));
+    else if(progSortBy==='project_name')recs.sort((a,b)=>dir*cmp(a.p.project_name,b.p.project_name));
+    else if(progSortBy==='owner')recs.sort((a,b)=>dir*cmp(a.p.owner,b.p.owner));
+    else if(progSortBy==='status')recs.sort((a,b)=>dir*cmp(a.p.status,b.p.status));
+    else if(isNodeField){
+      recs.sort((a,b)=>{
+        const ka=nodeSortKey(a.prog[progSortBy]),kb=nodeSortKey(b.prog[progSortBy]);
+        let c=kb.rank-ka.rank;
+        if(c===0&&ka.date&&kb.date)c=ka.date.localeCompare(kb.date);
+        return dir>0?c:-c;
+      });
+    }
+  }else{
+    recs.sort((a,b)=>(b.prog.id||0)-(a.prog.id||0));
+  }
+  return recs;
+}
+// 节点值分类（用于排序与筛选）
+function nodeSortKey(v){
+  if(v==='V'||v==='√')return{rank:5};
+  if(isDateVal(v))return{rank:4,date:normDate(v)};
+  if(v==='进行中')return{rank:3};
+  if(v==='待定')return{rank:2};
+  if(v&&v!=='/'&&v!=='-'&&v!=='0'&&v!=='X'&&v!=='×')return{rank:1};
+  return{rank:0};
+}
+function matchesNodeType(v,ftype){
+  const s=String(v==null?'':v).trim();
+  if(ftype==='done')return v==='V'||v==='√';
+  if(ftype==='date')return isDateVal(v);
+  if(ftype==='inprogress')return s==='进行中'||s==='待定';
+  if(ftype==='text')return s&&s!=='V'&&s!=='√'&&s!=='X'&&s!=='×'&&s!=='/'&&s!=='-'&&!isDateVal(v)&&s!=='进行中'&&s!=='待定';
+  if(ftype==='empty')return !s||s==='/'||s==='-'||s==='0'||s==='X'||s==='×';
+  return true;
+}
+function renderProgressTable(){
+  const recs=getFilteredProg();
+  document.getElementById('progTc').textContent=recs.length;
+  renderProgDashboard(recs);
+  const tb=document.getElementById('progTb');
+  if(!recs.length){tb.innerHTML='<tr><td colspan="25" class="em">暂无数据</td></tr>';var bdBtn=document.getElementById('progBatchDelBtn');if(bdBtn)bdBtn.style.display='none';var sa=document.getElementById('progSelectAll');if(sa)sa.checked=false;document.getElementById('progPg').innerHTML='';return}
+  const ps=50,total=recs.length,pages=Math.ceil(total/ps);
+  if(progPage>pages)progPage=1;
+  const offset=(progPage-1)*ps,pageRecs=recs.slice(offset,offset+ps);
+  tb.innerHTML=pageRecs.map(({prog,p})=>{
+    const cells=progFields.map(([k])=>renderProgCell(prog[k],prog.project_id,k)).join('');
+    return`<tr>
+      <td style="text-align:center"><input type="checkbox" class="progChk" value="${prog.id}" onchange="updateBatchDelProg()"></td>
+      <td class="sticky-col" style="left:30px;min-width:110px"><b>${S(p.project_no)||'-'}</b></td><td>${T(p.project_name,16)}</td><td>${renderOwnerCell(p)}</td>
+      <td style="text-align:center">${renderStatusCell(p)}</td>${cells}
+      <td style="white-space:nowrap"><button class="btn bs b4" onclick="openEditProgress(${prog.project_id},${prog.id})">批量更新</button> <button class="btn bs b3" onclick="delProgress(${prog.id})">删除</button></td>
+    </tr>`;
+  }).join('');
+  updateBatchDelProg();
+  renderPg('progPg',total,progPage,goProgPage);
+  refreshNodeFilterIndicators();
+}
+function goProgPage(page){progPage=page;renderProgressTable()}
+function filterProgress(){progPage=1;renderProgressTable()}
+
+// ===== 进度分析看板 =====
+var _progDashOpen=true;
+function toggleProgDashboard(){
+  _progDashOpen=!_progDashOpen;
+  var body=document.getElementById('progDashBody');
+  var icon=document.getElementById('progDashToggle');
+  if(_progDashOpen){body.style.display='';icon.textContent='▼'}
+  else{body.style.display='none';icon.textContent='▶'}
+}
+function renderProgDashboard(recs){
+  if(!recs||!recs.length){
+    document.getElementById('progDashCards').innerHTML='<div class="sc"><div class="n">0</div><div class="l">无数据</div></div>';
+    document.getElementById('progDashDetails').innerHTML='';
+    return;
+  }
+  var total=recs.length;
+  // 节点统计
+  var nodeStats={},nodeLabels={};
+  progFields.forEach(function(f){nodeStats[f[0]]={done:0,date:0,progress:0,empty:0,fail:0};nodeLabels[f[0]]=f[1]});
+  var statusCount={init:0,executing:0,completed:0,paused:0,cancelled:0};
+  var ownerStats={},typeStats={};
+  var totalDone=0,totalNodes=0;
+
+  recs.forEach(function(r){
+    var p=r.p,prog=r.prog;
+    var st=p.status||'init';statusCount[st]=(statusCount[st]||0)+1;
+    var owner=(p.owner||'').trim()||'未分配';ownerStats[owner]=(ownerStats[owner]||0)+1;
+    var pt=(p.project_type||'').trim()||'未分类';typeStats[pt]=(typeStats[pt]||0)+1;
+    progFields.forEach(function(f){
+      var k=f[0],v=prog[k];totalNodes++;
+      if(v==='V'||v==='√'){nodeStats[k].done++;totalDone++}
+      else if(isDateVal(v))nodeStats[k].date++;
+      else if(v==='进行中'||v==='待定')nodeStats[k].progress++;
+      else if(v==='X'||v==='×')nodeStats[k].fail++;
+      else nodeStats[k].empty++;
+    });
+  });
+
+  // 卡片
+  var completeRate=totalNodes?Math.round(totalDone/totalNodes*100):0;
+  var inProgress=statusCount.executing||0;
+  var done=statusCount.completed||0;
+  var init=statusCount.init||0;
+  document.getElementById('progDashCards').innerHTML=
+    '<div class="sc"><div class="n">'+total+'</div><div class="l">筛选项目数</div></div>'+
+    '<div class="sc"><div class="n" style="color:#27ae60">'+totalDone+'/'+totalNodes+'</div><div class="l">节点完成（'+completeRate+'%）</div></div>'+
+    '<div class="sc"><div class="n" style="color:#3498db">'+inProgress+'</div><div class="l">进行中</div></div>'+
+    '<div class="sc"><div class="n" style="color:#27ae60">'+done+'</div><div class="l">已完成</div></div>'+
+    '<div class="sc"><div class="n" style="color:#999">'+init+'</div><div class="l">预项目</div></div>'+
+    '<div class="sc"><div class="n" style="color:#f39c12">'+statusCount.paused+'</div><div class="l">暂停</div></div>';
+
+  // 节点完成率排行
+  var nodeArr=progFields.map(function(f){
+    var s=nodeStats[f[0]];
+    var rate=s.done||( s.done+ s.date+ s.progress)>0?Math.round(s.done/(s.done+s.date+s.progress+s.empty+s.fail)*100):0;
+    return{label:f[1],key:f[0],done:s.done,total:total,date:s.date,progress:s.progress,empty:s.empty,fail:s.fail,rate:rate};
+  });
+  nodeArr.sort(function(a,b){return a.rate-b.rate}); // 完成率低的排前面
+  var nodeHtml='<div style="background:#fff;border-radius:8px;padding:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">'+
+    '<h4 style="margin:0 0 8px;font-size:13px;color:#555">节点完成率（低→高）</h4>';
+  nodeArr.slice(0,10).forEach(function(n){
+    var barColor=n.rate>=80?'#27ae60':n.rate>=40?'#f39c12':'#e74c3c';
+    nodeHtml+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+
+      '<span style="width:70px;font-size:11px;color:#666;text-align:right">'+n.label+'</span>'+
+      '<div style="flex:1;background:#f0f0f0;border-radius:4px;height:16px;overflow:hidden">'+
+      '<div style="width:'+n.rate+'%;height:100%;background:'+barColor+';border-radius:4px;transition:width .3s"></div></div>'+
+      '<span style="width:60px;font-size:11px;color:#999">'+n.done+'/'+total+'（'+n.rate+'%）</span></div>';
+  });
+  nodeHtml+='</div>';
+
+  // 按负责人
+  var ownerArr=Object.entries(ownerStats).map(function(e){return{name:e[0],count:e[1]}}).sort(function(a,b){return b.count-a.count});
+  var ownerHtml='<div style="background:#fff;border-radius:8px;padding:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">'+
+    '<h4 style="margin:0 0 8px;font-size:13px;color:#555">负责人分布</h4>';
+  ownerArr.forEach(function(o){
+    var pct=Math.round(o.count/total*100);
+    ownerHtml+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+
+      '<span style="width:70px;font-size:11px;color:#666">'+o.name+'</span>'+
+      '<div style="flex:1;background:#f0f0f0;border-radius:4px;height:16px;overflow:hidden">'+
+      '<div style="width:'+pct+'%;height:100%;background:#667eea;border-radius:4px"></div></div>'+
+      '<span style="width:40px;font-size:11px;color:#999">'+o.count+'</span></div>';
+  });
+  ownerHtml+='</div>';
+
+  // 按状态饼图（文字版）
+  var statusLabels={init:'预项目',executing:'进行中',completed:'已完成',paused:'暂停',cancelled:'取消'};
+  var statusColors={init:'#999',executing:'#3498db',completed:'#27ae60',paused:'#f39c12',cancelled:'#e74c3c'};
+  var statusHtml='<div style="background:#fff;border-radius:8px;padding:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">'+
+    '<h4 style="margin:0 0 8px;font-size:13px;color:#555">项目状态分布</h4>';
+  Object.entries(statusCount).forEach(function(e){
+    if(e[1]===0)return;
+    var pct=Math.round(e[1]/total*100);
+    statusHtml+='<div style="display:inline-block;margin:2px 6px 2px 0;padding:3px 10px;border-radius:12px;font-size:11px;color:#fff;background:'+statusColors[e[0]]+'">'+statusLabels[e[0]]+'：'+e[1]+'（'+pct+'%）</div>';
+  });
+  statusHtml+='</div>';
+
+  document.getElementById('progDashDetails').innerHTML=nodeHtml+'<div>'+ownerHtml+statusHtml+'</div>';
+}
+function toggleSelectAllProg(cb){document.querySelectorAll('.progChk').forEach(c=>c.checked=cb.checked);updateBatchDelProg()}
+function updateBatchDelProg(){
+  var n=document.querySelectorAll('.progChk:checked').length;
+  var btn=document.getElementById('progBatchDelBtn');
+  if(!btn)return;
+  document.getElementById('progBatchDelCount').textContent=n;
+  btn.style.display=n>0?'':'none';
+}
+async function batchDeleteProg(){
+  var ids=Array.from(document.querySelectorAll('.progChk:checked')).map(c=>Number(c.value));
+  if(!ids.length){alert('请先选择进度记录');return}
+  if(!confirm('确定删除选中的 '+ids.length+' 条进度跟踪记录？\n（仅清除节点跟踪数据，项目本身不受影响）'))return;
+  try{
+    var r=await fetch(API+'/progress/batch-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    var d=await r.json();
+    alert(d.message||'删除完成');
+    var sa=document.getElementById('progSelectAll');if(sa)sa.checked=false;
+    loadProgress();
+  }catch(e){alert('批量删除失败')}
+}
+async function delProgress(id){
+  if(!confirm('确定删除此进度跟踪记录？\n（仅清除节点跟踪数据，项目本身不受影响）'))return;
+  try{
+    await fetch(API+'/progress/'+id,{method:'DELETE'});
+    loadProgress();
+  }catch(e){alert('删除失败')}
+}
+function sortProgress(field){
+  if(progSortBy===field){progSortOrder=progSortOrder==='asc'?'desc':'asc'}
+  else{progSortBy=field;progSortOrder='asc'}
+  document.querySelectorAll('.prog-sort-icn').forEach(s=>{s.textContent='';s.className='sort-icn prog-sort-icn'});
+  var hdr=document.querySelector('[data-prog-sort="'+field+'"] .sort-icn');
+  if(hdr){hdr.textContent=progSortOrder==='asc'?'▲':'▼';hdr.className='sort-icn prog-sort-icn '+(progSortOrder==='asc'?'asc':'desc')}
+  progPage=1;
+  renderProgressTable();
+}
+
+// 增强进度表头：节点列+状态列可排序、节点列可筛选
+function enhanceProgressHeaders(){
+  var ths=document.querySelectorAll('#tab-progress table thead tr th');
+  if(!ths.length)return;
+  // 状态列（索引4）可排序
+  var sth=ths[4];
+  if(sth&&!sth.dataset.enhanced){
+    sth.classList.add('sort-hdr');
+    sth.dataset.progSort='status';
+    sth.dataset.enhanced='1';
+    sth.onclick=function(){sortProgress('status')};
+    sth.innerHTML='状态<span style="font-size:10px;color:#bbb;font-weight:400">（可编辑）</span><span class="sort-icn prog-sort-icn"></span>';
+  }
+  // 节点列（索引5起）可排序+可筛选
+  progFields.forEach((f,idx)=>{
+    var th=ths[5+idx];
+    if(!th||th.dataset.enhanced)return;
+    var key=f[0],label=f[1];
+    th.classList.add('sort-hdr');
+    th.dataset.progSort=key;
+    th.dataset.enhanced='1';
+    th.onclick=function(){sortProgress(key)};
+    th.innerHTML=label+'<span class="sort-icn prog-sort-icn"></span><span class="col-filter-btn" data-cf="'+key+'" title="筛选此列" onclick="event.stopPropagation();showColFilter(event,\''+key+'\')">▽</span>';
+  });
+  refreshNodeFilterIndicators();
+}
+
+// 列筛选弹窗
+function showColFilter(e,field){
+  closeColFilter();
+  var pop=document.createElement('div');
+  pop.className='prog-popup show';
+  pop.id='colFilterPopup';
+  var opts=[
+    {val:'',label:'全部（清除筛选）'},
+    {val:'done',label:'已完成 (V)'},
+    {val:'date',label:'有计划日期'},
+    {val:'inprogress',label:'进行中 / 待定'},
+    {val:'text',label:'有文字备注'},
+    {val:'empty',label:'未设置 / 空'}
+  ];
+  var cur=_colFilter[field]||'';
+  var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:2px">筛选此列</div>';
+  opts.forEach(o=>{
+    var mark=o.val===cur?'<span style="color:#27ae60;font-weight:700;display:inline-block;width:16px">✓</span>':'<span style="display:inline-block;width:16px"></span>';
+    html+='<button onclick="setColFilter(\''+field+'\',\''+o.val+'\')">'+mark+o.label+'</button>';
+  });
+  pop.innerHTML=html;
+  document.body.appendChild(pop);
+  var rect=e.target.getBoundingClientRect();
+  pop.style.left=Math.min(rect.left,window.innerWidth-170)+'px';
+  pop.style.top=(rect.bottom+4)+'px';
+  setTimeout(function(){document.addEventListener('click',closeColFilterOnOutside)},100);
+}
+function setColFilter(field,val){
+  if(val)_colFilter[field]=val;else delete _colFilter[field];
+  closeColFilter();
+  refreshNodeFilterIndicators();
+  progPage=1;
+  renderProgressTable();
+}
+function closeColFilterOnOutside(e){if(document.getElementById('colFilterPopup')&&!document.getElementById('colFilterPopup').contains(e.target))closeColFilter()}
+function closeColFilter(){var p=document.getElementById('colFilterPopup');if(p)p.remove();document.removeEventListener('click',closeColFilterOnOutside)}
+function refreshNodeFilterIndicators(){
+  document.querySelectorAll('.col-filter-btn').forEach(function(b){
+    if(_colFilter[b.dataset.cf])b.classList.add('active');else b.classList.remove('active');
+  });
+}
+
+// 内联编辑弹窗（支持日期选择器）
+var _popupTimer=null;
+function showProgPopup(e,pid,field,curVal){
+  closeProgPopup();
+  var pop=document.createElement('div');
+  pop.className='prog-popup show';
+  pop.id='progPopup';
+  // 判断当前值是否为日期
+  var isCurDate=isDateVal(curVal);
+  var dateVal=isCurDate?normDate(curVal):'';
+  var fieldLabel=progFields.find(f=>f[0]===field);
+  fieldLabel=fieldLabel?fieldLabel[1]:field;
+  var opts=[
+    {label:'✓ 完成', val:'V', cls:'done'},
+    {label:'✗ 未完成', val:'X', cls:'fail'},
+    {label:'🔄 进行中', val:'进行中', cls:'pend'},
+    {label:'⏳ 待定', val:'待定', cls:'pend'},
+    {label:'🗑 清除', val:'', cls:'none'}
+  ];
+  var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:2px">'+fieldLabel+'</div>';
+  // 日期选择器（始终显示）
+  html+='<div style="padding:4px 6px;border-bottom:1px solid #f0f0f0">';
+  html+='<label style="font-size:11px;color:#004085;display:block;margin-bottom:2px">📅 计划完成日期</label>';
+  html+='<input type="date" id="progDatePick" value="'+dateVal+'" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px;color:#333" onchange="onProgDateChange('+pid+',\''+field+'\',this)" onclick="event.stopPropagation()">';
+  html+='</div>';
+  // 文字备注输入（支持“其他”等自定义文字）
+  html+='<div style="padding:4px 6px;border-bottom:1px solid #f0f0f0">';
+  html+='<label style="font-size:11px;color:#555;display:block;margin-bottom:2px">✎ 文字备注</label>';
+  var safeCur=S(curVal).replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  html+='<input type="text" id="progTextPick" value="'+safeCur+'" placeholder="输入自定义文字（回车保存）" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;color:#333" onclick="event.stopPropagation()" onkeydown="if(event.key===\'Enter\'){saveProgCellText('+pid+',\''+field+'\');closeProgPopup()}">';
+  html+='</div>';
+  opts.forEach(o=>{
+    html+='<button class="'+o.cls+'" onclick="saveProgCell('+pid+',\''+field+'\',\''+o.val+'\');closeProgPopup()">'+o.label+'</button>';
+  });
+  pop.innerHTML=html;
+  document.body.appendChild(pop);
+  var rect=e.target.getBoundingClientRect();
+  pop.style.left=Math.min(rect.left,window.innerWidth-180)+'px';
+  pop.style.top=(rect.bottom+4)+'px';
+  _popupTimer=setTimeout(()=>{document.addEventListener('click',closeProgPopupOnOutside)},100);
+}
+function onProgDateChange(pid,field,input){
+  var val=input.value;
+  if(!val)return;
+  if(!validateDate(val)){alert('日期格式无效，请输入有效日期(YYYY-MM-DD)');input.focus();return}
+  saveProgCell(pid,field,normDate(val));
+  closeProgPopup();
+}
+function closeProgPopupOnOutside(e){if(!document.getElementById('progPopup')?.contains(e.target))closeProgPopup()}
+function closeProgPopup(){clearTimeout(_popupTimer);var p=document.getElementById('progPopup');if(p)p.remove();document.removeEventListener('click',closeProgPopupOnOutside)}
+async function saveProgCell(pid,field,val){
+  closeProgPopup();
+  try{
+    var d={};d[field]=val;
+    await fetch(API+'/'+pid+'/progress',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    loadProgress();
+  }catch(e){alert('保存失败')}
+}
+async function saveProgCellText(pid,field){
+  var val=document.getElementById('progTextPick').value;
+  try{
+    var d={};d[field]=val;
+    await fetch(API+'/'+pid+'/progress',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    loadProgress();
+  }catch(e){alert('保存失败')}
+}
+
+// 项目状态内联编辑弹窗
+var _statusPopupTimer=null;
+function showStatusPopup(e,pid,curStatus){
+  closeStatusPopup();
+  var pop=document.createElement('div');
+  pop.className='prog-popup show';
+  pop.id='statusPopup';
+  var opts=[
+    {val:'init',label:'预项目',color:'#999'},
+    {val:'executing',label:'进行中',color:'#3498db'},
+    {val:'completed',label:'已完成',color:'#27ae60'},
+    {val:'paused',label:'暂停',color:'#e67e22'},
+    {val:'cancelled',label:'取消',color:'#e74c3c'}
+  ];
+  var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:2px">修改项目状态</div>';
+  opts.forEach(o=>{
+    var mark=o.val===curStatus?'<span style="color:#27ae60;font-weight:700">✓ </span>':'<span style="display:inline-block;width:14px"></span>';
+    var dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+o.color+';margin-right:6px;vertical-align:middle"></span>';
+    html+='<button onclick="saveProjectStatus('+pid+',\''+o.val+'\');closeStatusPopup()">'+mark+dot+o.label+'</button>';
+  });
+  pop.innerHTML=html;
+  document.body.appendChild(pop);
+  var rect=e.target.getBoundingClientRect();
+  pop.style.left=Math.min(rect.left,window.innerWidth-150)+'px';
+  pop.style.top=(rect.bottom+4)+'px';
+  _statusPopupTimer=setTimeout(()=>{document.addEventListener('click',closeStatusPopupOnOutside)},100);
+}
+function closeStatusPopupOnOutside(e){if(!document.getElementById('statusPopup')?.contains(e.target))closeStatusPopup()}
+function closeStatusPopup(){clearTimeout(_statusPopupTimer);var p=document.getElementById('statusPopup');if(p)p.remove();document.removeEventListener('click',closeStatusPopupOnOutside)}
+async function saveProjectStatus(pid,status){
+  try{
+    await fetch(API+'/'+pid+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:status})});
+    loadProgress();
+  }catch(e){alert('状态更新失败')}
+}
+
+// 负责人内联编辑弹窗
+function showOwnerPopup(e,pid,curOwner){
+  closeOwnerPopup();
+  // 收集已有负责人供快速选择
+  var ownerSet={};
+  Object.keys(_progPMap).forEach(function(k){var o=_progPMap[k].owner;if(o)ownerSet[o]=1;});
+  var owners=Object.keys(ownerSet).sort();
+  var pop=document.createElement('div');
+  pop.className='prog-popup show';
+  pop.id='ownerPopup';
+  pop.style.minWidth='170px';
+  var safe=S(curOwner).replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:4px">修改负责人</div>';
+  html+='<div style="padding:4px 6px">';
+  html+='<input type="text" id="ownerInput" list="ownerList" value="'+safe+'" placeholder="输入或选择负责人" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px" onclick="event.stopPropagation()" onkeydown="if(event.key===\'Enter\'){saveProjectOwner('+pid+',this.value);closeOwnerPopup()}">';
+  html+='<datalist id="ownerList">'+owners.map(function(o){return '<option value="'+S(o).replace(/"/g,'&quot;')+'">';}).join('')+'</datalist>';
+  html+='</div>';
+  html+='<div style="padding:4px 6px;text-align:right"><button class="btn bs b2" onclick="saveProjectOwner('+pid+',document.getElementById(\'ownerInput\').value);closeOwnerPopup()">保存</button></div>';
+  pop.innerHTML=html;
+  document.body.appendChild(pop);
+  var rect=e.target.getBoundingClientRect();
+  pop.style.left=Math.min(rect.left,window.innerWidth-190)+'px';
+  pop.style.top=(rect.bottom+4)+'px';
+  setTimeout(function(){document.addEventListener('click',closeOwnerPopupOnOutside);var inp=document.getElementById('ownerInput');if(inp)inp.focus();},100);
+}
+function closeOwnerPopupOnOutside(e){if(document.getElementById('ownerPopup')&&!document.getElementById('ownerPopup').contains(e.target))closeOwnerPopup()}
+function closeOwnerPopup(){var p=document.getElementById('ownerPopup');if(p)p.remove();document.removeEventListener('click',closeOwnerPopupOnOutside)}
+async function saveProjectOwner(pid,owner){
+  try{
+    await fetch(API+'/'+pid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({owner:owner})});
+    loadProgress();
+  }catch(e){alert('保存失败')}
+}
+async function openEditProgress(pid,progId){
+  try{
+    let prog={};
+    if(progId){
+      const r=await fetch(API+'/progress/list?project_id='+pid);const d=await r.json();
+      prog=(d.data||[])[0]||{};
+    }
+    const pr=await fetch(API+'/'+pid);const p=await pr.json();
+    const fields=progFields.map(([k,l])=>[k,l,'prog_node']);
+    openForm('批量更新节点 - '+(S(p.project_name)||''),fields,prog,async(data)=>{
+      // 日期格式验证
+      var dateErrors=[];
+      for(var key in data){
+        var v=data[key];
+        if(v&&!validateDate(v)){
+          var lbl=progFields.find(f=>f[0]===key);
+          dateErrors.push((lbl?lbl[1]:key)+': "'+v+'" 不是有效日期');
+        }
+        // 标准化日期格式
+        if(v&&isDateVal(v))data[key]=normDate(v);
+      }
+      if(dateErrors.length>0){
+        if(!confirm('以下日期格式有误，是否继续导入？\n\n'+dateErrors.join('\n')))return;
+      }
+      await fetch(API+'/'+pid+'/progress',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');
+      loadProgress();
+    });
+  }catch(e){alert('加载失败')}
+}
+
+// ==================== 供应链品质异常 ====================
+let sPage=1;
+async function loadSupply(page){
+  sPage=page||1;
+  const p=new URLSearchParams({page:sPage,limit:50});
+  const kw=document.getElementById('sKw').value,cl=document.getElementById('sClosed').value;
+  if(kw)p.set('keyword',kw);if(cl)p.set('closed',cl);
+  try{
+    const r=await fetch(API+'/supply-issues/list?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('sTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('sTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="16" class="em">暂无数据</td></tr>';renderPg('sPg',total,sPage,loadSupply);return}
+    tb.innerHTML=recs.map(s=>`<tr>
+      <td>${s.id}</td><td>${S(s.occur_date)||'-'}</td><td>${S(s.proposer)||'-'}</td>
+      <td>${T(s.product_name,15)}</td><td>${S(s.order_no)||'-'}</td><td>${S(s.project_no)||'-'}</td>
+      <td>${T(s.problem_desc,20)}</td><td>${T(s.temp_measure,15)}</td>
+      <td>${T(s.cause_analysis,15)}</td><td>${T(s.long_term_measure,15)}</td>
+      <td>${S(s.responsible_person)||'-'}</td><td>${S(s.responsible_dept)||'-'}</td>
+      <td>${S(s.plan_complete_date)||'-'}</td><td>${S(s.audit)||'-'}</td>
+      <td>${s.closed===1?'<span class="badge st-done">已闭环</span>':'<span class="badge st-pause">未闭环</span>'}</td>
+      <td style="white-space:nowrap"><button class="btn bs b4" onclick="openEditSupply(${s.id})">编辑</button> <button class="btn bs b3" onclick="delSupply(${s.id})">删除</button></td>
+    </tr>`).join('');
+    renderPg('sPg',total,sPage,loadSupply);
+  }catch(e){console.error(e)}
+}
+function openAddSupply(prefill){
+  const fields=[
+    ['occur_date','发生日期','date'],['proposer','提出人','text'],['product_name','产品名称','text'],
+    ['order_no','单号','text'],['project_no','项目号','text'],['problem_desc','问题描述','textarea'],
+    ['temp_measure','临时措施','textarea'],['cause_analysis','原因分析','textarea'],['long_term_measure','长期措施','textarea'],
+    ['long_term_date','长期措施完成时间','date'],['responsible_person','责任人','text'],['responsible_dept','责任部门','text'],
+    ['plan_complete_date','计划完成时间','date'],['audit','稽核','text'],['remarks','备注','textarea']
+  ];
+  const init=Object.assign({occur_date:new Date().toISOString().slice(0,10)},prefill||{});
+  openForm('新增品质异常',fields,init,async(data)=>{
+    await fetch(API+'/supply-issues',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');loadSupply(1);loadPStats();
+  });
+}
+async function openEditSupply(id){
+  try{
+    const r=await fetch(API+'/supply-issues/list?limit=9999');const d=await r.json();
+    const s=(d.data||[]).find(x=>x.id===id);if(!s)return;
+    const fields=[
+      ['occur_date','发生日期','date'],['proposer','提出人','text'],['product_name','产品名称','text'],
+      ['order_no','单号','text'],['project_no','项目号','text'],['problem_desc','问题描述','textarea'],
+      ['temp_measure','临时措施','textarea'],['cause_analysis','原因分析','textarea'],['long_term_measure','长期措施','textarea'],
+      ['long_term_date','长期措施完成时间','date'],['responsible_person','责任人','text'],['responsible_dept','责任部门','text'],
+      ['plan_complete_date','计划完成时间','date'],['audit','稽核','text'],['closed','闭环','select:0,1'],['remarks','备注','textarea']
+    ];
+    openForm('编辑品质异常',fields,s,async(data)=>{
+      await fetch(API+'/supply-issues/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');loadSupply(sPage);loadPStats();
+    });
+  }catch(e){alert('加载失败')}
+}
+async function delSupply(id){
+  if(!confirm('确定删除？'))return;
+  await fetch(API+'/supply-issues/'+id,{method:'DELETE'});
+  loadSupply(sPage);loadPStats();
+}
+
+// ==================== 销售推广进度 ====================
+let spPage=1;
+async function loadSales(page){
+  spPage=page||1;
+  const p=new URLSearchParams({page:spPage,limit:50});
+  const kw=document.getElementById('spKw').value;if(kw)p.set('keyword',kw);
+  try{
+    const r=await fetch(API+'/sales-promotion/list?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('spTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('spTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="11" class="em">暂无数据</td></tr>';renderPg('spPg',total,spPage,loadSales);return}
+    tb.innerHTML=recs.map(s=>`<tr>
+      <td><b>${S(s.product_model)||'-'}</b></td><td>${S(s.project_no)||'-'}</td><td>${S(s.salesperson)||'-'}</td><td>${S(s.customer)||'-'}</td>
+      <td>${S(s.appearance)||'-'}</td><td>${S(s.price)||'-'}</td><td>${S(s.performance)||'-'}</td>
+      <td>${T(s.function_feedback,15)}</td><td>${T(s.progress,20)}</td>
+      <td>${T(s.remarks,15)}</td>
+      <td style="white-space:nowrap"><button class="btn bs b4" onclick="openEditSales(${s.id})">编辑</button> <button class="btn bs b3" onclick="delSales(${s.id})">删除</button></td>
+    </tr>`).join('');
+    renderPg('spPg',total,spPage,loadSales);
+  }catch(e){console.error(e)}
+}
+function openAddSales(prefill){
+  const fields=[
+    ['__sec__','关联信息','section'],
+    ['project_no','关联项目编号','text'],['product_model','产品型号','text'],
+    ['__sec__','推广信息','section'],
+    ['salesperson','业务员','text'],['customer','客户','text'],
+    ['appearance','外观反馈','text'],['price','价格反馈','text'],['performance','性能反馈','text'],
+    ['function_feedback','功能反馈','text'],['progress','目前进度','textarea'],['remarks','备注','textarea']
+  ];
+  const init=Object.assign({salesperson:'',customer:''},prefill||{});
+  openForm('新增推广记录',fields,init,async(data)=>{
+    await fetch(API+'/sales-promotion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');loadSales(1);
+  });
+}
+async function openEditSales(id){
+  try{
+    const r=await fetch(API+'/sales-promotion/list?limit=9999');const d=await r.json();
+    const s=(d.data||[]).find(x=>x.id===id);if(!s)return;
+    const fields=[
+      ['__sec__','关联信息','section'],
+      ['project_no','关联项目编号','text'],['product_model','产品型号','text'],
+      ['__sec__','推广信息','section'],
+      ['salesperson','业务员','text'],['customer','客户','text'],
+      ['appearance','外观反馈','text'],['price','价格反馈','text'],['performance','性能反馈','text'],
+      ['function_feedback','功能反馈','text'],['progress','目前进度','textarea'],['remarks','备注','textarea']
+    ];
+    openForm('编辑推广记录',fields,s,async(data)=>{
+      await fetch(API+'/sales-promotion/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');loadSales(spPage);
+    });
+  }catch(e){alert('加载失败')}
+}
+async function delSales(id){
+  if(!confirm('确定删除？'))return;
+  await fetch(API+'/sales-promotion/'+id,{method:'DELETE'});
+  loadSales(spPage);
+}
+
+// ==================== 项目复盘 ====================
+let rPage=1;
+async function loadReviews(page){
+  rPage=page||1;
+  const p=new URLSearchParams({page:rPage,limit:50});
+  try{
+    const r=await fetch(API+'/reviews/list?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('rTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('rTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无数据</td></tr>';renderPg('rPg',total,rPage,loadReviews);return}
+    tb.innerHTML=recs.map(r=>`<tr>
+      <td><b>${S(r.project_no)||'-'}</b></td><td>${T(r.project_name,16)}</td>
+      <td>${T(r.goal_original,20)}</td><td>${T(r.result_highlights,20)}</td>
+      <td>${T(r.success_factors,20)}</td><td>${T(r.failure_causes,20)}</td>
+      <td>${T(r.insights,20)}</td><td>${T(r.action_plan,20)}</td>
+      <td style="white-space:nowrap"><button class="btn bs b4" onclick="openEditReview(${r.id})">编辑</button> <button class="btn bs b3" onclick="delReview(${r.id})">删除</button></td>
+    </tr>`).join('');
+    renderPg('rPg',total,rPage,loadReviews);
+  }catch(e){console.error(e)}
+}
+function openAddReview(prefill){
+  const fields=[
+    ['project_no','项目编号','text'],['project_name','项目名称','text'],
+    ['goal_original','回顾目标-当初目的','textarea'],['goal_milestone','回顾目标-里程碑','textarea'],
+    ['result_highlights','评估结果-Highlights','textarea'],['result_lowlights','评估结果-Lowlights','textarea'],['result_actual','评估结果-实际','textarea'],
+    ['success_factors','成功关键因素','textarea'],['failure_causes','失败根本原因','textarea'],
+    ['insights','总结规律','textarea'],['experience','经验&规律','textarea'],
+    ['action_plan','行动计划','textarea'],['remarks','备注','textarea']
+  ];
+  openForm('新增复盘',fields,prefill||{},async(data)=>{
+    if(prefill&&prefill.project_id)data.project_id=prefill.project_id;
+    await fetch(API+'/reviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');loadReviews(1);
+  });
+}
+async function openEditReview(id){
+  try{
+    const r=await fetch(API+'/reviews/list?limit=9999');const d=await r.json();
+    const rv=(d.data||[]).find(x=>x.id===id);if(!rv)return;
+    const fields=[
+      ['project_no','项目编号','text'],['project_name','项目名称','text'],
+      ['goal_original','回顾目标-当初目的','textarea'],['goal_milestone','回顾目标-里程碑','textarea'],
+      ['result_highlights','评估结果-Highlights','textarea'],['result_lowlights','评估结果-Lowlights','textarea'],['result_actual','评估结果-实际','textarea'],
+      ['success_factors','成功关键因素','textarea'],['failure_causes','失败根本原因','textarea'],
+      ['insights','总结规律','textarea'],['experience','经验&规律','textarea'],
+      ['action_plan','行动计划','textarea'],['remarks','备注','textarea']
+    ];
+    openForm('编辑复盘',fields,rv,async(data)=>{
+      await fetch(API+'/reviews/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');loadReviews(rPage);
+    });
+  }catch(e){alert('加载失败')}
+}
+async function delReview(id){
+  if(!confirm('确定删除？'))return;
+  await fetch(API+'/reviews/'+id,{method:'DELETE'});
+  loadReviews(rPage);
+}
+
+﻿// ==================== 立项申请书 ====================
+// 直接在表格上编辑：点击单元格内联修改
+const approvalStatusMap={draft:'草稿',submitted:'已提交',approved:'已批准',rejected:'已驳回'};
+const approvalColorMap={draft:'#999',submitted:'#f39c12',approved:'#27ae60',rejected:'#e74c3c'};
+
+const initEditableFields={
+  // 一、基本信息（项目经理填写）
+  project_no:{type:'text',label:'项目编号'},project_name:{type:'text',label:'项目名称'},
+  project_type:{type:'text',label:'项目类型'},start_date:{type:'date',label:'起始时间'},
+  department:{type:'text',label:'项目部门'},owner:{type:'text',label:'项目主要负责人'},
+  cooperators:{type:'text',label:'配合人员'},other_info:{type:'textarea',label:'其他'},
+  // 二、立项目和类型（销售输出填写）
+  customer_no:{type:'text',label:'客户编号'},customer_type:{type:'text',label:'客户类型'},
+  customer_level:{type:'text',label:'客户等级'},customer_win_rate:{type:'text',label:'客户赢率'},
+  market_status:{type:'text',label:'市场状况'},customer_pain:{type:'textarea',label:'客户痛点识别'},
+  key_success:{type:'textarea',label:'关键成功要素'},has_competitor:{type:'text',label:'竞争对手'},
+  purchase_cycle:{type:'text',label:'采购周期'},dev_type:{type:'text',label:'定制开发类型'},
+  // 三、产品规格与可行性
+  product_specs:{type:'json',label:'产品规格'},feasibility:{type:'json',label:'设计可行性'},
+  // 四、审批与预测
+  approval_signs:{type:'json',label:'审批会签'},sales_forecast:{type:'json',label:'销售预测'},
+  special_reqs:{type:'json',label:'特殊要求'},
+  // 五、研发目标与内容
+  background:{type:'textarea',label:'立项背景'},necessity:{type:'textarea',label:'必要性分析'},
+  market_analysis:{type:'textarea',label:'市场分析'},rd_objectives:{type:'textarea',label:'研发目标'},
+  rd_content:{type:'textarea',label:'研发内容'},key_innovation:{type:'textarea',label:'关键技术与创新点'},
+  tech_solution:{type:'textarea',label:'技术方案'},tech_route:{type:'textarea',label:'技术路线'},
+  plan_summary:{type:'textarea',label:'研发计划概述'},milestones:{type:'textarea',label:'关键里程碑'},
+  expected_outcome:{type:'textarea',label:'预期成果'},economic_benefit:{type:'textarea',label:'经济效益'},
+  target_market:{type:'text',label:'目标市场'},budget_total:{type:'number',label:'预算总额'},
+  budget_detail:{type:'textarea',label:'预算明细'},team_requirement:{type:'text',label:'团队需求'},
+  risk_analysis:{type:'textarea',label:'风险分析'},risk_measures:{type:'textarea',label:'风险对策'},
+  // 六、审批信息
+  applicant:{type:'text',label:'申请人'},apply_date:{type:'date',label:'申请日期'},
+  approval_status:{type:'select',label:'审批状态',opts:['draft','submitted','approved','rejected']},
+  approver:{type:'text',label:'审批人'},approval_date:{type:'date',label:'审批日期'},
+  approval_opinion:{type:'textarea',label:'审批意见'},remarks:{type:'textarea',label:'备注'}
+};
+function loadInitiationList(){
+  fetch(API+'/initiation/list').then(r=>r.json()).then(d=>{
+    var recs=d.data||[],tb=document.getElementById('initTb');
+    document.getElementById('initTc').textContent=recs.length;
+    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无申请书</td></tr>';return}
+    tb.innerHTML=recs.map(function(r){
+      var st=r.approval_status||'draft';
+      return'<tr>'+
+        '<td>'+ic(r,'project_no','text')+'</td>'+
+        '<td>'+ic(r,'project_name','text')+'</td>'+
+        '<td>'+ic(r,'project_type','text')+'</td>'+
+        '<td>'+ic(r,'owner','text')+'</td>'+
+        '<td>'+ic(r,'applicant','text')+'</td>'+
+        '<td>'+ic(r,'apply_date','date')+'</td>'+
+        '<td>'+ic(r,'customer_no','text')+'</td>'+
+        '<td><span class="edit-cell" title="点击修改状态" onclick="event.stopPropagation();editInitCell(event,'+r.id+',\'approval_status\')" style="color:'+(approvalColorMap[st]||'#999')+';font-weight:600">'+(approvalStatusMap[st]||st)+'</span></td>'+
+        '<td style="white-space:nowrap"><button class="btn bs b1" onclick="editInitFull(event,'+r.id+')">详细</button> <button class="btn bs b3" onclick="delInitiation('+r.id+')">删除</button></td>'+
+      '</tr>';
+    }).join('');
+  }).catch(function(e){console.error(e)});
+}
+function ic(r,field,type,maxLen){
+  var cfg=initEditableFields[field]||{};
+  var val=S(r[field]||'');
+  var display;
+  if(cfg.type==='json'&&val){
+    try{JSON.parse(val);display='[JSON:'+val.length+'字]';}catch(e){display='[无效JSON]';}
+  }else if(maxLen&&val&&val.length>maxLen){
+    display=escHtml(val.substring(0,maxLen))+'.<span style="color:#999">.</span>';
+  }else if(!val){
+    display='<span style="color:#ccc">点击填写</span>';
+  }else{
+    display=escHtml(val);
+  }
+  return'<span class="edit-cell" title="点击编辑" onclick="event.stopPropagation();editInitCell(event,'+r.id+',\''+field+'\')">'+display+'</span>';
+}
+function addInitiationRow(){
+  fetch(API+'/initiation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply_date:new Date().toISOString().slice(0,10),approval_status:'draft'})})
+    .then(r=>r.json()).then(function(){loadInitiationList()});
+}
+// 结构化导入：拖拽上传多Sheet Excel，按详情格式字段匹配
+function importInitiationStructured(){
+  // 若已有拖拽层则先移除
+  var old=document.getElementById('initDragOverlay');if(old)old.remove();
+  var overlay=document.createElement('div');
+  overlay.id='initDragOverlay';
+  overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;padding:36px 48px;text-align:center;width:420px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.2)';
+  box.innerHTML=
+    '<div id="initDropZone" style="border:2.5px dashed #667eea;border-radius:12px;padding:40px 20px;cursor:pointer;transition:all .2s;background:#f8f9ff">'+
+      '<div style="font-size:42px;color:#667eea;margin-bottom:8px">📁</div>'+
+      '<div style="font-size:15px;color:#333;font-weight:600;margin-bottom:4px">将立项申请书拖入此处</div>'+
+      '<div style="font-size:12px;color:#999">支持 .xlsx / .xls / .csv 格式，或点击选择文件</div>'+
+      '<div id="initDropHint" style="font-size:12px;color:#667eea;margin-top:6px;display:none">按详情格式字段匹配（主表+5子表）</div>'+
+    '</div>'+
+    '<div style="margin-top:14px;display:flex;gap:8px;justify-content:center">'+
+      '<button class="btn b1" id="initDragCancel" style="padding:8px 24px">取消</button>'+
+    '</div>'+
+    '<div id="initDragProgress" style="margin-top:10px;font-size:13px;display:none"></div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  var dz=document.getElementById('initDropZone');
+  var progress=document.getElementById('initDragProgress');
+  var hint=document.getElementById('initDropHint');
+
+  // 点击也可选文件
+  dz.onclick=function(){
+    var input=document.createElement('input');
+    input.type='file';input.accept='.xlsx,.xls,.csv';
+    input.onchange=function(){if(input.files[0])uploadInitFile(input.files[0])};
+    input.click();
+  };
+  document.getElementById('initDragCancel').onclick=function(){overlay.remove()};
+
+  // 拖拽事件
+  var dragCounter=0;
+  overlay.addEventListener('dragenter',function(e){e.preventDefault();dragCounter++;dz.style.borderColor='#27ae60';dz.style.background='#e8f5e9';hint.style.display='block';});
+  overlay.addEventListener('dragleave',function(e){e.preventDefault();dragCounter--;if(dragCounter<=0){dz.style.borderColor='#667eea';dz.style.background='#f8f9ff';}});
+  overlay.addEventListener('dragover',function(e){e.preventDefault();});
+  overlay.addEventListener('drop',function(e){
+    e.preventDefault();dragCounter=0;
+    dz.style.borderColor='#667eea';dz.style.background='#f8f9ff';
+    var files=e.dataTransfer.files;
+    if(files&&files.length){uploadInitFile(files[0])}
+  });
+  // 点击遮罩外部关闭
+  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove()});
+
+  function uploadInitFile(file){
+    var ext=file.name.split('.').pop().toLowerCase();
+    if(!['xlsx','xls','csv'].includes(ext)){alert('不支持的格式，请上传 .xlsx / .xls / .csv');return;}
+    dz.innerHTML='<div style="font-size:28px;color:#667eea">⏳</div><div style="font-size:14px;color:#333;margin-top:8px">正在导入：'+file.name+'</div><div style="font-size:12px;color:#999;margin-top:4px">按详情格式匹配字段中...</div>';
+    var fd=new FormData();fd.append('file',file);
+    progress.style.display='block';progress.textContent='上传中...';progress.style.color='#667eea';
+    fetch('/api/import/project_initiation_structured',{method:'POST',body:fd})
+      .then(function(r){return r.json()})
+      .then(function(d){
+        if(d.error){
+          progress.textContent='❌ '+d.error;progress.style.color='#e74c3c';
+          dz.innerHTML='<div style="font-size:28px;color:#e74c3c">❌</div><div style="font-size:14px;color:#e74c3c;margin-top:8px">导入失败</div><div style="font-size:12px;color:#999;margin-top:4px">'+d.error+'</div>';
+          setTimeout(function(){overlay.remove()},3000);
+        }else{
+          progress.textContent='✅ '+(d.message||'导入成功');progress.style.color='#27ae60';
+          dz.innerHTML='<div style="font-size:28px;color:#27ae60">✅</div><div style="font-size:14px;color:#27ae60;font-weight:600;margin-top:8px">导入成功</div><div style="font-size:12px;color:#999;margin-top:4px">'+(d.message||'')+'</div>';
+          loadInitiationList();
+          setTimeout(function(){overlay.remove()},2000);
+        }
+      })
+      .catch(function(e){
+        progress.textContent='❌ '+e.message;progress.style.color='#e74c3c';
+        setTimeout(function(){overlay.remove()},3000);
+      });
+  }
+}
+function editInitCell(e,id,field){
+  var cfg=initEditableFields[field];if(!cfg)return;
+  fetch(API+'/initiation/list').then(r=>r.json()).then(d=>{
+    var rec=(d.data||[]).find(function(x){return x.id===id});
+    var cur=rec?S(rec[field]||''):'';
+    showInitPopup(e,id,field,cur,cfg);
+  });
+}
+function showInitPopup(e,id,field,cur,cfg){
+  closeInitPopup();
+  var pop=document.createElement('div');pop.className='prog-popup show';pop.id='initPopup';
+  pop.style.minWidth=cfg.type==='textarea'||cfg.type==='json'?'360px':'180px';
+  var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:2px">编辑：'+(cfg.label||field)+'</div>';
+  html+='<div style="padding:4px 6px">';
+  if(cfg.type==='select'){
+    html+='<select id="initInp" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px">';
+    cfg.opts.forEach(function(o){html+='<option value="'+o+'" '+(S(o)===cur?'selected':'')+'>'+o+'</option>';});
+    html+='</select>';
+  }else if(cfg.type==='textarea'){
+    html+='<textarea id="initInp" style="width:100%;min-height:100px;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px">'+cur.replace(/</g,'&lt;')+'</textarea>';
+  }else if(cfg.type==='json'){
+    html+='<textarea id="initInp" style="width:100%;min-height:140px;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px;font-family:monospace">'+cur.replace(/</g,'&lt;')+'</textarea>';
+  }else if(cfg.type==='date'){
+    html+='<input type="date" id="initInp" value="'+(cur||'')+'" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px">';
+  }else if(cfg.type==='number'){
+    html+='<input type="number" id="initInp" value="'+(cur||'')+'" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px">';
+  }else{
+    html+='<input type="text" id="initInp" value="'+cur.replace(/"/g,'&quot;')+'" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px" onkeydown="if(event.key===\'Enter\'){saveInitCell('+id+',\''+field+'\');closeInitPopup()}">';
+  }
+  html+='</div>';
+  html+='<div style="padding:4px 6px;text-align:right"><button class="btn bs b2" onclick="saveInitCell('+id+',\''+field+'\');closeInitPopup()">保存</button></div>';
+  pop.innerHTML=html;document.body.appendChild(pop);
+  var rect=e.target.getBoundingClientRect();
+  pop.style.left=Math.min(rect.left,window.innerWidth-360)+'px';
+  pop.style.top=(rect.bottom+4)+'px';
+  setTimeout(function(){document.addEventListener('click',function(ev){if(document.getElementById('initPopup')&&!document.getElementById('initPopup').contains(ev.target))closeInitPopup()});var inp=document.getElementById('initInp');if(inp)inp.focus();},100);
+}
+function closeInitPopup(){var p=document.getElementById('initPopup');if(p)p.remove()}
+function saveInitCell(id,field){
+  var el=document.getElementById('initInp');if(!el)return;
+  var cfg=initEditableFields[field];
+  var raw=el.value;
+  if(cfg&&cfg.type==='json'){
+    if(raw.trim()){try{JSON.parse(raw)}catch(e){alert('JSON格式错误: '+e.message);return}}
+  }
+  var val=cfg&&cfg.type==='number'?(Number(raw)||0):raw;
+  var body={};body[field]=val;
+  fetch(API+'/initiation/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(){loadInitiationList()});
+}
+function editInitFull(e,id){
+  fetch(API+'/initiation/list').then(r=>r.json()).then(d=>{
+    var rec=(d.data||[]).find(function(x){return x.id===id});
+    if(!rec){alert('记录不存在');return}
+    _initDetailId=id;
+    _initDetailRec=rec;
+    document.getElementById('initListView').style.display='none';
+    document.getElementById('initPreviewView').style.display='none';
+    document.getElementById('initDetailView').style.display='';
+    document.getElementById('initDetailTitle').textContent='立项申请书 #'+id+' · '+(rec.project_no||rec.project_name||'');
+    renderInitDetail(rec);
+  });
+}
+var _initDetailId=0,_initDetailRec={};
+
+function backToInitList(){
+  document.getElementById('initDetailView').style.display='none';
+  document.getElementById('initListView').style.display='';
+  loadInitiationList();
+}
+
+// 渲染详细编辑视图：6个分区
+function renderInitDetail(rec){
+  var html='';
+  // Section 1: 基本信息
+  html+='<div class="form-section">一、基本信息（项目经理填写）</div>';
+  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
+  [['project_no','项目编号'],['project_name','项目名称'],['project_type','项目类型'],['start_date','起始时间','date'],['department','项目部门'],['owner','主要负责人'],['cooperators','配合人员']].forEach(function(f){
+    var k=f[0],lbl=f[1],tp=f[2]||'text';
+    html+='<div class="fg"><label>'+lbl+'</label><input type="'+(tp==='date'?'date':'text')+'" id="id_'+k+'" value="'+escAttr(rec[k]||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  });
+  html+='</div>';
+  html+='<div class="fg" style="margin-bottom:12px"><label>其他</label><textarea id="id_other_info" style="width:100%;min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+escHtml(rec.other_info||'')+'</textarea></div>';
+
+  // Section 2: 客户信息
+  html+='<div class="form-section">二、客户信息（销售输出填写）</div>';
+  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
+  [['customer_no','客户编号'],['customer_type','客户类型'],['customer_level','客户等级'],['customer_win_rate','客户赢率'],['market_status','市场状况'],['has_competitor','竞争对手'],['purchase_cycle','采购周期'],['dev_type','定制开发类型']].forEach(function(f){
+    html+='<div class="fg"><label>'+f[1]+'</label><input type="text" id="id_'+f[0]+'" value="'+escAttr(rec[f[0]]||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  });
+  html+='</div>';
+  html+='<div class="gr" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+  html+='<div class="fg"><label>客户痛点识别</label><textarea id="id_customer_pain" style="width:100%;min-height:50px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+escHtml(rec.customer_pain||'')+'</textarea></div>';
+  html+='<div class="fg"><label>关键成功要素</label><textarea id="id_key_success" style="width:100%;min-height:50px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+escHtml(rec.key_success||'')+'</textarea></div>';
+  html+='</div>';
+
+  // Section 3: 产品规格对比（子表）
+  html+='<div class="form-section">三、产品规格对比（子表）<button class="btn bs b2" style="float:right" onclick="addSpecRow()">+ 规格项</button></div>';
+  html+='<div id="specTableWrap" style="margin-bottom:12px;overflow-x:auto"></div>';
+
+  // Section 4: 可实现性评估（子表）
+  html+='<div class="form-section">四、可实现性评估（子表）<button class="btn bs b2" style="float:right" onclick="addFeasRow()">+ 评估项</button></div>';
+  html+='<div id="feasTableWrap" style="margin-bottom:12px;overflow-x:auto"></div>';
+
+  // Section 5: 销售预测（子表）
+  html+='<div class="form-section">五、销售预测（子表）<button class="btn bs b2" style="float:right" onclick="addForecastRow()">+ 周期</button></div>';
+  html+='<div id="forecastTableWrap" style="margin-bottom:12px;overflow-x:auto"></div>';
+
+  // Section 6: 特殊要求（子表）
+  html+='<div class="form-section">六、特殊要求（子表）<button class="btn bs b2" style="float:right" onclick="addSpecReq()">+ 产品</button></div>';
+  html+='<div id="specReqWrap" style="margin-bottom:12px"></div>';
+
+  // Section 7: 审批
+  html+='<div class="form-section">七、审批信息</div>';
+  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
+  html+='<div class="fg"><label>申请人</label><input type="text" id="id_applicant" value="'+escAttr(rec.applicant||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>申请日期</label><input type="date" id="id_apply_date" value="'+escAttr(rec.apply_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>审批状态</label><select id="id_approval_status" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"><option value="draft" '+(rec.approval_status==='draft'?'selected':'')+'>草稿</option><option value="submitted" '+(rec.approval_status==='submitted'?'selected':'')+'>已提交</option><option value="approved" '+(rec.approval_status==='approved'?'selected':'')+'>已批准</option><option value="rejected" '+(rec.approval_status==='rejected'?'selected':'')+'>已驳回</option></select></div>';
+  html+='<div class="fg"><label>审批人</label><input type="text" id="id_approver" value="'+escAttr(rec.approver||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>审批日期</label><input type="date" id="id_approval_date" value="'+escAttr(rec.approval_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='</div>';
+  html+='<div class="fg"><label>审批意见</label><textarea id="id_approval_opinion" style="width:100%;min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+escHtml(rec.approval_opinion||'')+'</textarea></div>';
+
+  document.getElementById('initDetailBody').innerHTML=html;
+
+  // Render sub-tables
+  renderSpecTable(rec.product_specs);
+  renderFeasTable(rec.feasibility);
+  renderForecastTable(rec.sales_forecast);
+  renderSpecReqTable(rec.special_reqs);
+}
+
+function escAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+
+// ===== 子表1: 产品规格对比 =====
+var _specData=[],_specCols=[];
+function renderSpecTable(jsonStr){
+  try{_specData=JSON.parse(jsonStr||'[]')}catch(e){_specData=[]}
+  if(!_specData.length)_specData=[{'规格项':'功率'},{'规格项':'输入电压'}];
+  // Collect all column keys except 规格项
+  _specCols=[];
+  _specData.forEach(function(r){Object.keys(r).forEach(function(k){if(k!=='规格项'&&_specCols.indexOf(k)<0)_specCols.push(k)})});
+  if(!_specCols.length)_specCols=['产品1'];
+  renderSpecTableHTML();
+}
+function renderSpecTableHTML(){
+  var html='<table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr>';
+  html+='<th style="padding:6px;border:1px solid #ddd;background:#f5f6fa">规格项</th>';
+  _specCols.forEach(function(c,i){html+='<th style="padding:6px;border:1px solid #ddd;background:#f5f6fa"><input type="text" value="'+escAttr(c)+'" onchange="updateSpecCol('+i+',this.value)" style="width:90%;border:none;background:transparent;font-weight:600;text-align:center;font-size:12px"> <span style="cursor:pointer;color:#e74c3c" onclick="delSpecCol('+i+')" title="删除列">×</span></th>'});
+  html+='<th style="padding:6px;border:1px solid #ddd;background:#f5f6fa"><button class="btn bs b2" onclick="addSpecCol()">+ 列</button></th></tr></thead><tbody>';
+  _specData.forEach(function(row,ri){
+    html+='<tr><td style="padding:4px;border:1px solid #ddd"><input type="text" value="'+escAttr(row['规格项']||'')+'" onchange="updateSpecCell('+ri+',\'规格项\',this.value)" style="width:100%;border:none;font-weight:600;font-size:12px"></td>';
+    _specCols.forEach(function(c){html+='<td style="padding:4px;border:1px solid #ddd"><input type="text" value="'+escAttr(row[c]||'')+'" onchange="updateSpecCell('+ri+',\''+c.replace(/'/g,"\\'")+'\',this.value)" style="width:100%;border:none;font-size:12px"></td>'});
+    html+='<td style="padding:4px;border:1px solid #ddd;text-align:center"><span style="cursor:pointer;color:#e74c3c" onclick="delSpecRow('+ri+')" title="删除行">×</span></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('specTableWrap').innerHTML=html;
+}
+function updateSpecCell(ri,col,val){if(_specData[ri])_specData[ri][col]=val}
+function addSpecRow(){_specData.push({'规格项':'新规格项'});renderSpecTableHTML()}
+function delSpecRow(ri){_specData.splice(ri,1);renderSpecTableHTML()}
+function addSpecCol(){_specCols.push('产品'+(_specCols.length+1));renderSpecTableHTML()}
+function delSpecCol(ci){var col=_specCols[ci];_specCols.splice(ci,1);_specData.forEach(function(r){delete r[col]});renderSpecTableHTML()}
+function updateSpecCol(ci,val){var old=_specCols[ci];_specCols[ci]=val;_specData.forEach(function(r){if(old in r){r[val]=r[old];delete r[old]}})}
+
+// ===== 子表2: 可实现性评估 =====
+var _feasData=[];
+function renderFeasTable(jsonStr){
+  try{_feasData=JSON.parse(jsonStr||'[]')}catch(e){_feasData=[]}
+  if(!_feasData.length)_feasData=[{类别:'设计标准',评估项:'是否有设计标准',结果:'',关联项:'设计标准提供时间',备注:''}];
+  renderFeasTableHTML();
+}
+function renderFeasTableHTML(){
+  var html='<table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="padding:6px;border:1px solid #ddd;background:#f5f6fa">类别</th><th style="padding:6px;border:1px solid #ddd;background:#f5f6fa">评估项</th><th style="padding:6px;border:1px solid #ddd;background:#f5f6fa">评估结果</th><th style="padding:6px;border:1px solid #ddd;background:#f5f6fa">关联项</th><th style="padding:6px;border:1px solid #ddd;background:#f5f6fa">备注</th><th style="width:30px"></th></tr></thead><tbody>';
+  _feasData.forEach(function(r,ri){
+    html+='<tr>';
+    ['类别','评估项','结果','关联项','备注'].forEach(function(c){
+      html+='<td style="padding:4px;border:1px solid #ddd"><input type="text" value="'+escAttr(r[c]||'')+'" onchange="updateFeasCell('+ri+',\''+c+'\',this.value)" style="width:100%;border:none;font-size:12px"></td>';
+    });
+    html+='<td style="text-align:center;cursor:pointer;color:#e74c3c;border:1px solid #ddd" onclick="delFeasRow('+ri+')">×</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('feasTableWrap').innerHTML=html;
+}
+function updateFeasCell(ri,col,val){if(_feasData[ri])_feasData[ri][col]=val}
+function addFeasRow(){_feasData.push({类别:'新类别',评估项:'',结果:'',关联项:'',备注:''});renderFeasTableHTML()}
+function delFeasRow(ri){_feasData.splice(ri,1);renderFeasTableHTML()}
+
+// ===== 子表3: 销售预测 =====
+var _forecastCols=[],_forecastData=[];
+function renderForecastTable(jsonStr){
+  try{var p=JSON.parse(jsonStr||'{}');_forecastCols=p.cols||[];_forecastData=p.rows||[]}catch(e){_forecastCols=[];_forecastData=[]}
+  if(!_forecastCols.length)_forecastCols=['20W','50W','10W','合计'];
+  if(!_forecastData.length)_forecastData=[{周期:'6个月'},{周期:'1年'}];
+  renderForecastTableHTML();
+}
+function renderForecastTableHTML(){
+  var html='<table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="padding:6px;border:1px solid #ddd;background:#f5f6fa">周期</th>';
+  _forecastCols.forEach(function(c,ci){html+='<th style="padding:6px;border:1px solid #ddd;background:#f5f6fa"><input type="text" value="'+escAttr(c)+'" onchange="updateForecastCol('+ci+',this.value)" style="width:80%;border:none;background:transparent;font-weight:600;text-align:center;font-size:12px"> <span style="cursor:pointer;color:#e74c3c" onclick="delForecastCol('+ci+')">×</span></th>'});
+  html+='<th style="padding:6px;border:1px solid #ddd;background:#f5f6fa"><button class="btn bs b2" onclick="addForecastCol()">+ 列</button></th></tr></thead><tbody>';
+  _forecastData.forEach(function(r,ri){
+    html+='<tr><td style="padding:4px;border:1px solid #ddd"><input type="text" value="'+escAttr(r['周期']||'')+'" onchange="updateForecastCell('+ri+',\'周期\',this.value)" style="width:100%;border:none;font-weight:600;font-size:12px"></td>';
+    _forecastCols.forEach(function(c){html+='<td style="padding:4px;border:1px solid #ddd"><input type="number" value="'+escAttr(r[c]||'')+'" onchange="updateForecastCell('+ri+',\''+c.replace(/'/g,"\\'")+'\',this.value)" style="width:100%;border:none;font-size:12px;text-align:center"></td>'});
+    html+='<td style="text-align:center;cursor:pointer;color:#e74c3c;border:1px solid #ddd" onclick="delForecastRow('+ri+')">×</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('forecastTableWrap').innerHTML=html;
+}
+function updateForecastCell(ri,col,val){if(_forecastData[ri])_forecastData[ri][col]=val}
+function updateForecastCol(ci,val){var old=_forecastCols[ci];_forecastCols[ci]=val;_forecastData.forEach(function(r){if(old in r){r[val]=r[old];delete r[old]}})}
+function addForecastRow(){_forecastData.push({周期:'新周期'});renderForecastTableHTML()}
+function delForecastRow(ri){_forecastData.splice(ri,1);renderForecastTableHTML()}
+function addForecastCol(){_forecastCols.push('新产品');renderForecastTableHTML()}
+function delForecastCol(ci){var c=_forecastCols[ci];_forecastCols.splice(ci,1);_forecastData.forEach(function(r){delete r[c]});renderForecastTableHTML()}
+
+// ===== 子表4: 特殊要求 =====
+var _reqsData=[];
+function renderSpecReqTable(jsonStr){
+  try{_reqsData=JSON.parse(jsonStr||'[]')}catch(e){_reqsData=[]}
+  if(!_reqsData.length&&!_isArray(_reqsData))_reqsData=[];
+  renderSpecReqHTML();
+}
+function _isArray(a){return Array.isArray(a)}
+function renderSpecReqHTML(){
+  if(!_reqsData.length){document.getElementById('specReqWrap').innerHTML='<div class="em">暂无特殊要求，点击右上角添加</div>';return}
+  var html='';
+  _reqsData.forEach(function(r,ri){
+    html+='<div style="margin-bottom:8px;padding:8px;border:1px solid #e0e3eb;border-radius:6px;background:#fafbff">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><input type="text" value="'+escAttr(r.产品||'')+'" onchange="updateReqCell('+ri+',\'产品\',this.value)" style="border:none;font-weight:600;font-size:12px;color:#667eea;width:200px" placeholder="产品名称"> <span style="cursor:pointer;color:#e74c3c" onclick="delReqRow('+ri+')">删除</span></div>';
+    html+='<textarea onchange="updateReqCell('+ri+',\'要求\',this.value)" style="width:100%;min-height:50px;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px" placeholder="特殊要求内容">'+escHtml(r.要求||'')+'</textarea>';
+    html+='</div>';
+  });
+  document.getElementById('specReqWrap').innerHTML=html;
+}
+function updateReqCell(ri,col,val){if(_reqsData[ri])_reqsData[ri][col]=val}
+function addSpecReq(){_reqsData.push({产品:'新产品',要求:''});renderSpecReqHTML()}
+function delReqRow(ri){_reqsData.splice(ri,1);renderSpecReqHTML()}
+
+// ===== 保存全部 =====
+async function saveInitDetail(){
+  var d={};
+  // 扁平字段
+  ['project_no','project_name','project_type','start_date','department','owner','cooperators','other_info','customer_no','customer_type','customer_level','customer_win_rate','market_status','has_competitor','purchase_cycle','dev_type','customer_pain','key_success','applicant','apply_date','approval_status','approver','approval_date','approval_opinion'].forEach(function(k){
+    var el=document.getElementById('id_'+k);
+    if(el)d[k]=el.value;
+  });
+  // JSON子表
+  d.product_specs=JSON.stringify(_specData);
+  d.feasibility=JSON.stringify(_feasData);
+  d.sales_forecast=JSON.stringify({cols:_forecastCols,rows:_forecastData});
+  d.special_reqs=JSON.stringify(_reqsData);
+  try{
+    await fetch(API+'/initiation/'+_initDetailId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    // 审批状态变为 approved 时，自动创建研发项目
+    var wasApproved=(_initDetailRec.approval_status==='approved');
+    var nowApproved=(d.approval_status==='approved');
+    if(nowApproved&&!wasApproved){
+      if(confirm('立项已批准！是否自动创建研发项目数据库记录？')){
+        var ar=await fetch(API+'/initiation/'+_initDetailId+'/approve-to-project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approver:d.approver,approval_date:d.approval_date,approval_opinion:d.approval_opinion})});
+        var ad=await ar.json();
+        alert(ad.message||'操作完成');
+      }
+    }else{
+      alert('保存成功');
+    }
+    _initDetailRec=Object.assign(_initDetailRec,d);
+    if(nowApproved)_initDetailRec.project_id=_initDetailRec.project_id;
+  }catch(e){alert('保存失败')}
+}
+
+// ===== 汇总预览 =====
+function previewInit(){
+  var rec=_initDetailRec;
+  // Gather current form values
+  ['project_no','project_name','project_type','start_date','department','owner','applicant','apply_date','approval_status','approver','approval_date','approval_opinion','customer_no','customer_type','customer_level','customer_win_rate','market_status','has_competitor','purchase_cycle','dev_type','customer_pain','key_success'].forEach(function(k){var el=document.getElementById('id_'+k);if(el)rec[k]=el.value});
+  rec.product_specs=JSON.stringify(_specData);rec.feasibility=JSON.stringify(_feasData);rec.sales_forecast=JSON.stringify({cols:_forecastCols,rows:_forecastData});rec.special_reqs=JSON.stringify(_reqsData);
+
+  var stMap={draft:'草稿',submitted:'已提交',approved:'已批准',rejected:'已驳回'};
+  var h='<div style="text-align:center;margin-bottom:20px"><h2 style="color:#2c3e50;margin:0">销售需求立项申请书</h2>';
+  h+='<div style="color:#999;font-size:13px;margin-top:4px">项目编号：'+escHtml(rec.project_no||'-')+' | 申请人：'+escHtml(rec.applicant||'-')+' | 日期：'+escHtml(rec.apply_date||'-')+'</div></div>';
+
+  h+='<h3 style="color:#667eea;border-bottom:2px solid #667eea;padding-bottom:4px">一、基本信息</h3><table style="width:100%;font-size:13px;margin-bottom:16px">';
+  [['项目名称','project_name'],['项目类型','project_type'],['起始时间','start_date'],['项目部门','department'],['主要负责人','owner'],['配合人员','cooperators']].forEach(function(f){
+    h+='<tr><td style="color:#999;width:120px;padding:4px">'+f[1]+'</td><td style="padding:4px">'+escHtml(rec[f[1]]||'-')+'</td></tr>';
+  });
+  h+='</table>';
+
+  h+='<h3 style="color:#667eea;border-bottom:2px solid #667eea;padding-bottom:4px">二、客户信息</h3><table style="width:100%;font-size:13px;margin-bottom:16px">';
+  [['客户编号','customer_no'],['客户类型','customer_type'],['客户等级','customer_level'],['客户赢率','customer_win_rate'],['市场状况','market_status'],['竞争对手','has_competitor'],['采购周期','purchase_cycle'],['定制开发类型','dev_type']].forEach(function(f){
+    h+='<tr><td style="color:#999;width:120px;padding:4px">'+f[1]+'</td><td style="padding:4px">'+escHtml(rec[f[1]]||'-')+'</td></tr>';
+  });
+  h+='<tr><td style="color:#999;padding:4px">客户痛点</td><td style="padding:4px">'+escHtml(rec.customer_pain||'-')+'</td></tr>';
+  h+='<tr><td style="color:#999;padding:4px">关键成功要素</td><td style="padding:4px">'+escHtml(rec.key_success||'-')+'</td></tr>';
+  h+='</table>';
+
+  // Spec table
+  h+='<h3 style="color:#667eea;border-bottom:2px solid #667eea;padding-bottom:4px">三、产品规格对比</h3>';
+  if(_specData.length){
+    h+='<table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:16px"><thead><tr><th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">规格项</th>';
+    _specCols.forEach(function(c){h+='<th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">'+escHtml(c)+'</th>'});
+    h+='</tr></thead><tbody>';
+    _specData.forEach(function(r){h+='<tr><td style="border:1px solid #ddd;padding:4px;font-weight:600">'+escHtml(r['规格项']||'')+'</td>';_specCols.forEach(function(c){h+='<td style="border:1px solid #ddd;padding:4px">'+escHtml(r[c]||'-')+'</td>'});h+='</tr>'});
+    h+='</tbody></table>';
+  }else{h+='<p style="color:#999">暂无</p>'}
+
+  // Feasibility
+  h+='<h3 style="color:#667eea;border-bottom:2px solid #667eea;padding-bottom:4px">四、可实现性评估</h3>';
+  if(_feasData.length){
+    h+='<table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:16px"><thead><tr><th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">类别</th><th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">评估项</th><th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">结果</th><th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">关联项</th><th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">备注</th></tr></thead><tbody>';
+    _feasData.forEach(function(r){h+='<tr><td style="border:1px solid #ddd;padding:4px">'+escHtml(r.类别||'')+'</td><td style="border:1px solid #ddd;padding:4px">'+escHtml(r.评估项||'')+'</td><td style="border:1px solid #ddd;padding:4px">'+escHtml(r.结果||'-')+'</td><td style="border:1px solid #ddd;padding:4px">'+escHtml(r.关联项||'')+'</td><td style="border:1px solid #ddd;padding:4px">'+escHtml(r.备注||'')+'</td></tr>'});
+    h+='</tbody></table>';
+  }else{h+='<p style="color:#999">暂无</p>'}
+
+  // Forecast
+  h+='<h3 style="color:#667eea;border-bottom:2px solid #667eea;padding-bottom:4px">五、销售预测</h3>';
+  if(_forecastData.length){
+    h+='<table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:16px"><thead><tr><th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">周期</th>';
+    _forecastCols.forEach(function(c){h+='<th style="border:1px solid #ddd;padding:4px;background:#f5f6fa">'+escHtml(c)+'</th>'});
+    h+='</tr></thead><tbody>';
+    _forecastData.forEach(function(r){h+='<tr><td style="border:1px solid #ddd;padding:4px;font-weight:600">'+escHtml(r['周期']||'')+'</td>';_forecastCols.forEach(function(c){h+='<td style="border:1px solid #ddd;padding:4px;text-align:center">'+escHtml(r[c]||'-')+'</td>'});h+='</tr>'});
+    h+='</tbody></table>';
+  }else{h+='<p style="color:#999">暂无</p>'}
+
+  // Special requirements
+  h+='<h3 style="color:#667eea;border-bottom:2px solid #667eea;padding-bottom:4px">六、特殊要求</h3>';
+  if(_reqsData.length){
+    _reqsData.forEach(function(r){h+='<div style="margin-bottom:8px;padding:8px;background:#f8f9fa;border-radius:6px"><b style="color:#667eea">'+escHtml(r.产品||'')+'</b><p style="margin:4px 0 0;font-size:13px;white-space:pre-wrap">'+escHtml(r.要求||'-')+'</p></div>'});
+  }else{h+='<p style="color:#999">暂无</p>'}
+
+  // Approval
+  h+='<h3 style="color:#667eea;border-bottom:2px solid #667eea;padding-bottom:4px">七、审批</h3>';
+  h+='<table style="width:100%;font-size:13px;margin-bottom:16px">';
+  h+='<tr><td style="color:#999;width:120px;padding:4px">审批状态</td><td style="padding:4px;font-weight:600;color:'+(rec.approval_status==='approved'?'#27ae60':'#f39c12')+'">'+(stMap[rec.approval_status]||'草稿')+'</td></tr>';
+  h+='<tr><td style="color:#999;padding:4px">审批人</td><td style="padding:4px">'+escHtml(rec.approver||'-')+'</td></tr>';
+  h+='<tr><td style="color:#999;padding:4px">审批日期</td><td style="padding:4px">'+escHtml(rec.approval_date||'-')+'</td></tr>';
+  h+='<tr><td style="color:#999;padding:4px">审批意见</td><td style="padding:4px">'+escHtml(rec.approval_opinion||'-')+'</td></tr>';
+  h+='</table>';
+
+  h+='<div style="margin-top:30px;display:flex;justify-content:space-between"><div style="text-align:center"><div style="border-top:1px solid #333;width:120px;padding-top:4px;font-size:12px">项目经理</div></div><div style="text-align:center"><div style="border-top:1px solid #333;width:120px;padding-top:4px;font-size:12px">销售总监</div></div><div style="text-align:center"><div style="border-top:1px solid #333;width:120px;padding-top:4px;font-size:12px">研发中心</div></div></div>';
+
+  document.getElementById('initPreviewBody').innerHTML=h;
+  document.getElementById('initDetailView').style.display='none';
+  document.getElementById('initPreviewView').style.display='';
+}
+function delInitiation(id){
+  if(!confirm('确定删除？'))return;
+  fetch(API+'/initiation/'+id,{method:'DELETE'}).then(function(){loadInitiationList()});
+}
+function openAddInitiation(opts){
+  var d=Object.assign({apply_date:new Date().toISOString().slice(0,10),approval_status:'draft'},opts||{});
+  fetch(API+'/initiation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+    .then(function(){loadInitiationList()});
+}
+function openEditInitiation(id){editInitFull(null,id);}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function createInitiationFromProject(pid){
+  fetch(API+'/'+pid).then(r=>r.json()).then(p=>{
+    if(!p){alert('项目不存在');return}
+    openAddInitiation({project_id:pid,project_no:p.project_no||'',project_name:p.project_name||'',applicant:S(p.owner).trim()||''});
+  });
+}
+
+// 时间范围快捷设置
+function setAnalysisRange(type){
+  var now=new Date();
+  var from='',to='';
+  if(type==='thisYear'){from=now.getFullYear()+'-01-01';to=now.getFullYear()+'-12-31';}
+  else if(type==='halfYear'){
+    var h=new Date(now);h.setMonth(h.getMonth()-6);
+    from=h.toISOString().substring(0,10);to=now.toISOString().substring(0,10);
+  }
+  else if(type==='lastYear'){from=(now.getFullYear()-1)+'-01-01';to=(now.getFullYear()-1)+'-12-31';}
+  else{from='';to='';}
+  document.getElementById('aDateFrom').value=from;
+  document.getElementById('aDateTo').value=to;
+  loadAnalysis();
+}
+function getAnalysisDateFilter(){
+  var f=document.getElementById('aDateFrom').value||'';
+  var t=document.getElementById('aDateTo').value||'';
+  if(f||t){
+    document.getElementById('aRangeLabel').textContent='筛选：'+(f||'不限')+' ~ '+(t||'不限');
+  }else{
+    document.getElementById('aRangeLabel').textContent='全部时间';
+  }
+  return{from:f,to:t};
+}
+function inDateRange(dateStr,filter){
+  if(!filter.from&&!filter.to)return true;
+  var d=String(dateStr||'').substring(0,10);
+  if(!d)return false;
+  if(filter.from&&d<filter.from)return false;
+  if(filter.to&&d>filter.to)return false;
+  return true;
+}
+
+async function loadAnalysis(){
+  try{
+    const filter=getAnalysisDateFilter();
+    // 先取全部项目做客户端日期过滤（大部分接口不支持日期参数）
+    const projRes=await fetch(API+'?limit=9999');
+    const projData=await projRes.json();
+    const allProjects=projData.data||[];
+    const filteredIds=new Set(allProjects.filter(p=>inDateRange(p.start_date||p.created_at,filter)).map(p=>p.id));
+    const filterCount=filteredIds.size;
+
+    const [sr,cr,pr]=await Promise.all([
+      fetch(API+'/stats'),fetch(API+'/analysis/by-category'),fetch(API+'/analysis/progress')
+    ]);
+    const sd=await sr.json(),cd=await cr.json(),pd=await pr.json();
+    // 卡片用过滤后的项目数
+    document.getElementById('aStats').innerHTML=`
+      <div class="sc"><div class="n">${filterCount}</div><div class="l">项目数（范围内）</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${(sd.by_status||{}).completed||0}</div><div class="l">已完成</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${(sd.by_status||{}).executing||0}</div><div class="l">进行中</div></div>
+      <div class="sc"><div class="n" style="color:#9b59b6">${(sd.by_type||{})['自研']||0}</div><div class="l">自研</div></div>
+      <div class="sc"><div class="n" style="color:#1abc9c">${(sd.by_type||{})['客制']||0}</div><div class="l">客制</div></div>
+      <div class="sc"><div class="n">¥${Math.round(sd.order_amount||0).toLocaleString()}</div><div class="l">订单总额</div></div>
+      <div class="sc"><div class="n" style="color:#e74c3c">${sd.open_issues||0}</div><div class="l">未闭环异常</div></div>
+    `;
+    // 进度对标统计卡片
+    const ps=pd.summary||{};
+    document.getElementById('aProgressStats').innerHTML=`
+      <div class="sc"><div class="n" style="color:#f39c12">${ps.total_changes||0}</div><div class="l">累计修改次数</div></div>
+      <div class="sc"><div class="n" style="color:#e74c3c">${ps.total_delays||0}</div><div class="l">延误节点数</div></div>
+      <div class="sc"><div class="n">${ps.avg_changes||0}</div><div class="l">均修改/项目</div></div>
+      <div class="sc"><div class="n">${ps.avg_delays||0}</div><div class="l">均延误/项目</div></div>
+      <div class="sc"><div class="n" style="color:#e67e22">${ps.overdue_projects||0}</div><div class="l">逾期未交付项目</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${ps.total_projects||0}</div><div class="l">项目总数</div></div>
+    `;
+    // 月度（按筛选范围过滤）
+    const mr=await fetch(API+'/analysis/monthly');const md=await mr.json();
+    const mRecs=(md.data||[]).filter(function(m){
+      if(!filter.from&&!filter.to)return true;
+      var mon=m.month||'';
+      if(filter.from&&mon<filter.from.substring(0,7))return false;
+      if(filter.to&&mon>filter.to.substring(0,7))return false;
+      return true;
+    });
+    document.getElementById('aMonthly').innerHTML=mRecs.length?mRecs.map(m=>`<tr>
+      <td><b>${m.month}</b></td><td>${m.total}</td><td>${m.in_progress}</td>
+      <td>${m.self_dev}</td><td>${m.custom}</td><td>${m.customers}</td><td>${m.has_order}</td>
+    </tr>`).join(''):'<tr><td colspan="7" class="em">暂无数据</td></tr>';
+    // 对标分类
+    const bt=pd.by_type||[],bo=pd.by_owner||[];
+    var classifyHtml='<div><h4 style="margin:0 0 8px;color:#555">按类型对标</h4><table style="font-size:12px;background:#fff;width:100%"><thead><tr><th>类型</th><th>项目数</th><th>修改次数</th><th>延误节点</th><th>平均修改</th><th>平均延误</th><th>逾期项目</th></tr></thead><tbody>';
+    classifyHtml+=bt.length?bt.map(t=>{
+      var avgC=t.count?(t.changes/t.count).toFixed(1):'0',avgD=t.count?(t.delays/t.count).toFixed(1):'0';
+      var nodeRate=t.totalNodes?Math.round(t.doneNodes/t.totalNodes*100):0;
+      return`<tr><td><b>${t.type||'未分类'}</b></td><td>${t.count}</td><td style="color:#f39c12">${t.changes}</td><td style="color:#e74c3c">${t.delays}</td><td>${avgC}</td><td>${avgD}</td><td>${t.overdue||0}</td></tr>`;
+    }).join(''):'<tr><td colspan="7" class="em">暂无数据</td></tr>';
+    classifyHtml+='</tbody></table></div>';
+    classifyHtml+='<div><h4 style="margin:0 0 8px;color:#555">按负责人对标</h4><table style="font-size:12px;background:#fff;width:100%"><thead><tr><th>负责人</th><th>项目数</th><th>修改次数</th><th>延误节点</th><th>平均修改</th><th>平均延误</th><th>逾期项目</th></tr></thead><tbody>';
+    classifyHtml+=bo.length?bo.map(o=>{
+      var avgC=o.count?(o.changes/o.count).toFixed(1):'0',avgD=o.count?(o.delays/o.count).toFixed(1):'0';
+      return`<tr><td><b>${o.owner||'未分配'}</b></td><td>${o.count}</td><td style="color:#f39c12">${o.changes}</td><td style="color:#e74c3c">${o.delays}</td><td>${avgC}</td><td>${avgD}</td><td>${o.overdue||0}</td></tr>`;
+    }).join(''):'<tr><td colspan="7" class="em">暂无数据</td></tr>';
+    classifyHtml+='</tbody></table></div>';
+    document.getElementById('aClassify').innerHTML=classifyHtml;
+    // 延误 Top
+    const tDelay=pd.top_delayed||[];
+    document.getElementById('aTopDelay').innerHTML=tDelay.length?tDelay.map(r=>{
+      var tp=r.type==='自研'?'<span class="badge st-prog">自研</span>':'<span class="badge st-init">'+(r.type||'客制')+'</span>';
+      return`<tr><td><b>${S(r.no)||'-'}</b></td><td>${T(r.name,24)}</td><td>${tp}</td><td>${S(r.owner)||'-'}</td><td style="color:#e74c3c;font-weight:600">${r.delayed_nodes}</td><td>${r.change_count}</td></tr>`;
+    }).join(''):'<tr><td colspan="6" class="em">无延误节点</td></tr>';
+    // 变更 Top
+    const tChange=pd.top_changed||[];
+    document.getElementById('aTopChange').innerHTML=tChange.length?tChange.map(r=>{
+      var tp=r.type==='自研'?'<span class="badge st-prog">自研</span>':'<span class="badge st-init">'+(r.type||'客制')+'</span>';
+      return`<tr><td><b>${S(r.no)||'-'}</b></td><td>${T(r.name,24)}</td><td>${tp}</td><td>${S(r.owner)||'-'}</td><td style="color:#f39c12;font-weight:600">${r.change_count}</td><td>${r.delayed_nodes}</td></tr>`;
+    }).join(''):'<tr><td colspan="6" class="em">无变更记录</td></tr>';
+    // 分类统计（原有）
+    const bc=cd.by_category||{},bs=cd.by_stage||{},bo2=cd.by_owner||{};
+    const catHtml=Object.entries(bc).map(([k,v])=>`<div style="background:#fff;padding:12px;border-radius:8px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.06)"><div style="font-size:20px;font-weight:700;color:#667eea">${v}</div><div style="font-size:12px;color:#999">${k}</div></div>`).join('')||'<div class="em">暂无数据</div>';
+    const stageHtml=Object.entries(bs).map(([k,v])=>`<div style="background:#fff;padding:12px;border-radius:8px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.06)"><div style="font-size:20px;font-weight:700;color:#e67e22">${v}</div><div style="font-size:12px;color:#999">${k}</div></div>`).join('')||'<div class="em">暂无数据</div>';
+    const ownerHtml=Object.entries(bo2).map(([k,v])=>`<div style="background:#fff;padding:12px;border-radius:8px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.06)"><div style="font-size:20px;font-weight:700;color:#27ae60">${v}</div><div style="font-size:12px;color:#999">${k}</div></div>`).join('')||'<div class="em">暂无数据</div>';
+    document.getElementById('aCategory').innerHTML=`
+      <div><h4 style="margin:0 0 8px;color:#555">按类型</h4><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px">${catHtml}</div></div>
+      <div><h4 style="margin:0 0 8px;color:#555">按阶段</h4><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px">${stageHtml}</div></div>
+      <div><h4 style="margin:0 0 8px;color:#555">按负责人</h4><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px">${ownerHtml}</div></div>
+    `;
+    // 延误趋势分析
+    loadDelayAnalysis();
+  }catch(e){console.error(e)}
+}
+
+// ===== 延误趋势分析（时间维度） =====
+var _delayData=null;
+async function loadDelayAnalysis(){
+  try{
+    const filter=getAnalysisDateFilter();
+    const r=await fetch(API+'/analysis/delay');
+    const raw=await r.json();
+    // 客户端按时间范围过滤趋势数据和明细
+    _delayData=raw;
+    if(filter.from||filter.to){
+      var fromMon=filter.from?filter.from.substring(0,7):'';
+      var toMon=filter.to?filter.to.substring(0,7):'';
+      _delayData.by_month=(raw.by_month||[]).filter(function(m){return(!fromMon||m.period>=fromMon)&&(!toMon||m.period<=toMon)});
+      _delayData.by_quarter=(raw.by_quarter||[]).filter(function(q){
+        var y=q.period.substring(0,4);
+        return(!filter.from||y>=filter.from.substring(0,4))&&(!filter.to||y<=filter.to.substring(0,4));
+      });
+      _delayData.by_year=(raw.by_year||[]).filter(function(y){return(!filter.from||y.period>=filter.from.substring(0,4))&&(!filter.to||y.period<=filter.to.substring(0,4))});
+      _delayData.delay_details=(raw.delay_details||[]).filter(function(d){return inDateRange(d.month,filter)});
+      // 重算汇总
+      var s=_delayData.summary;
+      var details=_delayData.delay_details;
+      s.total_projects=_delayData.by_month.reduce(function(a,b){return a+b.total},0);
+      s.overdue_projects=_delayData.by_month.reduce(function(a,b){return a+b.overdue},0);
+      s.total_delayed_nodes=_delayData.by_month.reduce(function(a,b){return a+b.delayed_nodes},0);
+      s.total_changes=_delayData.by_month.reduce(function(a,b){return a+b.changes},0);
+      s.overdue_rate=s.total_projects?Math.round(s.overdue_projects/s.total_projects*100):0;
+      var cycles=_delayData.by_month.filter(function(m){return m.avg_cycle>0});
+      s.avg_cycle_days=cycles.length?Math.round(cycles.reduce(function(a,b){return a+b.avg_cycle},0)/cycles.length):0;
+    }
+    // 汇总卡片
+    var sd2=_delayData.summary||{};
+    document.getElementById('aDelaySummary').innerHTML=`
+      <div class="sc"><div class="n">${sd2.total_projects||0}</div><div class="l">项目总数</div></div>
+      <div class="sc"><div class="n" style="color:#e74c3c">${sd2.overdue_projects||0}</div><div class="l">逾期项目</div></div>
+      <div class="sc"><div class="n" style="color:#f39c12">${sd2.overdue_rate||0}%</div><div class="l">逾期率</div></div>
+      <div class="sc"><div class="n" style="color:#e67e22">${sd2.total_delayed_nodes||0}</div><div class="l">延误节点总数</div></div>
+      <div class="sc"><div class="n" style="color:#9b59b6">${sd2.total_changes||0}</div><div class="l">累计变更</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${sd2.avg_cycle_days||0}</div><div class="l">平均交付周期(天)</div></div>
+    `;
+    renderDelayTrend();
+    renderDelayClassify();
+    renderDelayDetail();
+  }catch(e){console.error('delay analysis',e)}
+}
+function renderDelayTrend(){
+  if(!_delayData)return;
+  const dim=document.getElementById('aDelayDim').value;
+  const data=dim==='quarter'?_delayData.by_quarter:dim==='year'?_delayData.by_year:_delayData.by_month;
+  const tb=document.getElementById('aDelayTrend');
+  if(!data||!data.length){tb.innerHTML='<tr><td colspan="8" class="em">暂无数据</td></tr>';return}
+  tb.innerHTML=data.map(function(r){
+    var rateColor=r.overdue_rate>=50?'#e74c3c':r.overdue_rate>=20?'#f39c12':'#27ae60';
+    return'<tr>'+
+      '<td><b>'+escHtml(r.period)+'</b></td>'+
+      '<td>'+r.total+'</td>'+
+      '<td style="color:#e74c3c;font-weight:600">'+r.overdue+'</td>'+
+      '<td><span style="color:'+rateColor+'">'+r.overdue_rate+'%</span></td>'+
+      '<td style="color:#e67e22">'+r.delayed_nodes+'</td>'+
+      '<td style="color:#9b59b6">'+r.changes+'</td>'+
+      '<td style="color:#27ae60">'+r.completed+'</td>'+
+      '<td>'+(r.avg_cycle||'-')+'</td>'+
+    '</tr>';
+  }).join('');
+}
+function renderDelayClassify(){
+  if(!_delayData)return;
+  function tbl(title,data,sortField){
+    if(!data||!data.length)return'<div><h4 style="margin:0 0 8px;color:#555">'+title+'</h4><div class="em">暂无数据</div></div>';
+    var sorted=data.slice().sort(function(a,b){return (b[sortField]||0)-(a[sortField]||0)});
+    var h='<div><h4 style="margin:0 0 8px;color:#555">'+title+'</h4><table style="width:100%;font-size:12px;background:#fff"><thead><tr><th style="text-align:left;padding:4px">名称</th><th>项目数</th><th>逾期</th><th>延误节点</th><th>变更</th></tr></thead><tbody>';
+    sorted.forEach(function(r){h+='<tr><td style="padding:4px"><b>'+escHtml(r.name)+'</b></td><td style="text-align:center">'+r.total+'</td><td style="text-align:center;color:#e74c3c">'+r.overdue+'</td><td style="text-align:center;color:#e67e22">'+r.delayed_nodes+'</td><td style="text-align:center;color:#9b59b6">'+r.changes+'</td></tr>'});
+    h+='</tbody></table></div>';
+    return h;
+  }
+  document.getElementById('aDelayClassify').innerHTML=
+    tbl('按负责人',_delayData.by_owner,'overdue')+
+    tbl('按类型',_delayData.by_type,'delayed_nodes')+
+    tbl('按等级',_delayData.by_level,'overdue');
+}
+function renderDelayDetail(){
+  if(!_delayData)return;
+  const details=_delayData.delay_details||[];
+  const tb=document.getElementById('aDelayDetail');
+  if(!details.length){tb.innerHTML='<tr><td colspan="10" class="em">无延误项目</td></tr>';return}
+  tb.innerHTML=details.slice(0,50).map(function(r){
+    var rateColor=r.node_complete_rate>=80?'#27ae60':r.node_complete_rate>=40?'#f39c12':'#e74c3c';
+    var tp=r.type==='自研'?'<span class="badge st-prog">自研</span>':r.type?'<span class="badge st-init">'+escHtml(r.type)+'</span>':'-';
+    return'<tr>'+
+      '<td><b>'+escHtml(r.no||'-')+'</b></td>'+
+      '<td>'+escHtml(T(r.name,20))+'</td>'+
+      '<td>'+tp+'</td>'+
+      '<td>'+(r.level?'<span class="badge lvl-'+escHtml(r.level.toLowerCase())+'">'+escHtml(r.level)+'</span>':'-')+'</td>'+
+      '<td>'+escHtml(r.owner||'-')+'</td>'+
+      '<td style="color:#e74c3c;font-weight:600">'+(r.overdue_days>0?r.overdue_days+'天':'-')+'</td>'+
+      '<td style="color:#e67e22">'+r.delayed_nodes+'</td>'+
+      '<td><span style="color:'+rateColor+';font-weight:600">'+r.node_complete_rate+'%</span></td>'+
+      '<td>'+r.changes+'</td>'+
+      '<td style="font-size:11px;color:#999">'+escHtml(r.month||'-')+'</td>'+
+    '</tr>';
+  }).join('');
+  if(details.length>50){
+    var note=document.createElement('div');
+    note.style.cssText='text-align:center;color:#999;padding:8px;font-size:12px';
+    note.textContent='仅显示前50条，共'+details.length+'条延误记录';
+  }
+}
+
+// ==================== 通用表单弹窗 ====================
+function openForm(title,fields,data,onSave){
+  const box=document.getElementById('gMoBox');
+  const hasSection=fields.some(f=>f[2]==='section');
+  box.className='mb2'+(hasSection?' mb-wide':'');
+  let html=`<div class="form-head"><h3>${title}</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" class="form-close">×</span></div>`;
+  html+='<div class="form-body">';
+  let i=0;
+  while(i<fields.length){
+    const [key,label,type]=fields[i];
+    if(type==='section'){
+      html+=`<div class="form-section">${label}</div>`;
+      i++;
+    }else if(type==='textarea'){
+      html+=`<div class="fg"><label>${label}</label><textarea id="ff_${key}">${data[key]||''}</textarea></div>`;
+      i++;
+    }else{
+      const next=fields[i+1];
+      if(next&&next[2]!=='textarea'&&next[2]!=='section'){
+        html+='<div class="gr">';
+        html+=renderField(fields[i],data);
+        html+=renderField(next,data);
+        html+='</div>';
+        i+=2;
+      }else{
+        // 孤儿字段整行显示，避免半行留白
+        html+=renderField(fields[i],data);
+        i++;
+      }
+    }
+  }
+  html+='</div>';
+  html+='<div class="form-foot"><button class="btn b2" id="ffSave">保存</button></div>';
+  box.innerHTML=html;
+  document.getElementById('gMo').classList.add('ac');
+  document.getElementById('ffSave').onclick=()=>{
+    const d={};
+    fields.forEach(([key,,type])=>{
+      if(type==='section'||type==='readonly')return;
+      if(type==='prog_node'){
+        // 组合控件：优先取日期，其次取下拉
+        const dateEl=document.getElementById('ff_'+key+'_date');
+        const selEl=document.getElementById('ff_'+key+'_sel');
+        if(dateEl&&dateEl.value){
+          d[key]=normDate(dateEl.value);
+        }else if(selEl&&selEl.value){
+          d[key]=selEl.value;
+        }else{
+          d[key]='';
+        }
+        return;
+      }
+      const el=document.getElementById('ff_'+key);
+      if(!el)return;
+      d[key]=type==='number'?Number(el.value)||0:el.value;
+    });
+    onSave(d);
+  };
+}
+function renderField([key,label,type],data){
+  const val=data[key]||'';
+  if(type==='prog_node'){
+    // 进度节点组合控件：下拉选择状态 + 日期输入
+    const isDate=isDateVal(val);
+    const dateVal=isDate?normDate(val):'';
+    const statusOpts=['','V','X','/','-','进行中','待定'];
+    const selVal=(!isDate&&val)?val:'';
+    return `<div class="fg"><label>${label}</label>
+    <div style="display:flex;gap:4px">
+    <select id="ff_${key}_sel" style="width:90px" onchange="if(this.value)document.getElementById('ff_${key}_date').value=''">
+    ${statusOpts.map(o=>`<option value="${o}" ${selVal===o?'selected':''}>${o||'--'}</option>`).join('')}
+    </select>
+    <input type="date" id="ff_${key}_date" value="${dateVal}" style="flex:1" onchange="if(this.value)document.getElementById('ff_${key}_sel').value=''">
+    <input type="hidden" id="ff_${key}">
+    </div></div>`;
+  }
+  if(type==='readonly'){
+    // 只读展示字段（系统跟踪，不可编辑）
+    return `<div class="fg"><label>${label}</label><input type="text" id="ff_${key}" value="${val}" readonly style="background:#f5f6fa;color:#888;cursor:not-allowed"></div>`;
+  }
+  if(type.startsWith('select:')){
+    const opts=type.substring(7).split(',');
+    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  }
+  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}"></div>`;
+}
+
+// 表格表头吸顶：JS fixed 方案（最可靠）
+function fixStickyHeaders(){
+  var tabs=['tab-projects','tab-progress','tab-supply','tab-sales','tab-review','tab-initiation','tab-analysis'];
+  tabs.forEach(function(tid){
+    var tab=document.getElementById(tid);if(!tab)return;
+    var sb=tab.querySelector('.sb');if(!sb)return;
+    var tables=tab.querySelectorAll('.tbl-wrap table');
+    if(!tables.length)return;
+    // 复制表头（每个表格一个固定表头）
+    tables.forEach(function(table,idx){
+      var thead=table.querySelector('thead');if(!thead)return;
+      // 移除已有的固定表头
+      var oldFixed=document.getElementById('jsFixH_'+tid+'_'+idx);
+      if(oldFixed)oldFixed.remove();
+      // 创建固定表头容器
+      var fixed=document.createElement('div');
+      fixed.id='jsFixH_'+tid+'_'+idx;
+      fixed.style.cssText='position:fixed;top:0;left:0;right:0;z-index:1000;background:#fff;display:none;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1);pointer-events:none';
+      var fixedTable=document.createElement('table');
+      fixedTable.style.cssText='width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:#fff;table-layout:auto';
+      // 复制 colgroup（保持列宽）
+      var colgroup=table.querySelector('colgroup');
+      if(colgroup)fixedTable.appendChild(colgroup.cloneNode(true));
+      // 复制 thead
+      fixedTable.appendChild(thead.cloneNode(true));
+      fixed.appendChild(fixedTable);
+      document.body.appendChild(fixed);
+
+      (function(tbl,ft,sbEl,fixEl){
+        function update(){
+          if(tbl.offsetParent===null){
+            // 表格不可见，隐藏
+            fixEl.style.display='none';
+            return;
+          }
+          var rect=tbl.getBoundingClientRect();
+          var sbRect=sbEl.getBoundingClientRect();
+          // 搜索栏底部位置（视口坐标）
+          var sbBottom=sbRect.bottom;
+          // 表头原始位置（视口坐标）
+          var theadEl=tbl.querySelector('thead');
+          var theadRect=theadEl?theadEl.getBoundingClientRect():{top:0,bottom:0};
+          // 表格底部
+          var tblBottom=rect.bottom;
+          // 条件：表头在视口上方（被滚出），但表格底部还在视口下方
+          if(theadRect.top<sbBottom && tblBottom>sbBottom){
+            // 固定表头显示在搜索栏底部
+            fixEl.style.display='block';
+            fixEl.style.top=sbBottom+'px';
+            // 同步列宽：取原表 th 的实际宽度
+            var origThs=tbl.querySelectorAll('thead th');
+            var cloneThs=fixEl.querySelectorAll('thead th');
+            for(var i=0;i<origThs.length && i<cloneThs.length;i++){
+              var w=origThs[i].getBoundingClientRect().width;
+              if(w>0){
+                cloneThs[i].style.width=w+'px';
+                cloneThs[i].style.minWidth=w+'px';
+              }
+            }
+            // 同步整个 fixedTable 的宽度 = 原表宽度
+            var tblW=tbl.getBoundingClientRect().width;
+            fixEl.style.width=tblW+'px';
+            // fixedTable 内部宽度 = 原表内部宽度
+            fixedTable.style.width='100%';
+          }else{
+            fixEl.style.display='none';
+          }
+        }
+        window.addEventListener('scroll',update);
+        window.addEventListener('resize',update);
+        // 初始调用
+        setTimeout(update,100);
+        // 定期刷新（防止内容变化导致宽度不同步）
+        setInterval(update,500);
+      })(table,fixedTable,sb,fixed);
+    });
+  });
+}
+
+// ==================== 初始化 ====================
+ImportDropzone.init('import-dropzone-container', 'projects', function(){ loadProjects(1); loadPStats(); });
+enhanceProgressHeaders();
+fixStickyHeaders();
+window.addEventListener('resize', fixStickyHeaders);
+loadPStats();
+loadProjects(1);
+</script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+</body></html>

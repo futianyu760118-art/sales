@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>规格书库</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;border-bottom:2px solid #eee;margin-bottom:16px}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}.b5{background:#3498db;color:#fff}.bs{padding:3px 8px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.bg-r{background:#f8d7da;color:#721c24}.bg-o{background:#fff3cd;color:#856404}.bg-g{background:#d4edda;color:#155724}.bg-b{background:#cce5ff;color:#004085}.bg-n{background:#e2e3e5;color:#383d41}
+.em{text-align:center;color:#999;padding:30px}
+.tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:650px;max-width:95%;max-height:90vh;overflow:auto}
+.pg{text-align:center;margin-top:12px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:50px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>规格书库</h2>
+<div style="display:flex;gap:8px">
+<button class="btn b2" onclick="batchExport('xlsx')">批量导出Excel</button>
+<button class="btn b4" onclick="batchExport('pdf')">批量导出PDF</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('spec',this)">规格书</button>
+<button onclick="swTab('config',this)">配置表</button>
+</div>
+
+<div class="tc ac" id="tab-spec">
+<div class="sb">
+<input type="text" id="sKw" placeholder="搜索型号/关键字" style="width:200px" onkeydown="if(event.key==='Enter')loadSpecSheets(1)">
+<select id="sStatus"><option value="">全部状态</option><option value="有效">有效</option><option value="废弃">废弃</option><option value="草稿">草稿</option></select>
+<button class="btn b1" onclick="loadSpecSheets(1)">搜索</button>
+<span style="margin-left:auto">共 <b id="sTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>型号</th><th>版本</th><th>名称</th><th>产品系列</th><th>规格类型</th><th>状态</th><th>更新日期</th><th>操作</th>
+</tr></thead><tbody id="sTb"><tr><td colspan="8" class="em">暂无规格书</td></tr></tbody></table>
+</div>
+<div class="pg" id="sPg"></div>
+</div>
+
+<div class="tc" id="tab-config">
+<div class="sb">
+<input type="text" id="cKw" placeholder="搜索型号/关键字" style="width:200px" onkeydown="if(event.key==='Enter')loadConfigSheets(1)">
+<select id="cStatus"><option value="">全部状态</option><option value="有效">有效</option><option value="废弃">废弃</option></select>
+<button class="btn b1" onclick="loadConfigSheets(1)">搜索</button>
+<span style="margin-left:auto">共 <b id="cTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>型号</th><th>版本</th><th>名称</th><th>配置类型</th><th>状态</th><th>更新日期</th><th>操作</th>
+</tr></thead><tbody id="cTb"><tr><td colspan="7" class="em">暂无配置表</td></tr></tbody></table>
+</div>
+<div class="pg" id="cPg"></div>
+</div>
+</div>
+
+<div class="mo" id="dMo"><div class="mb">
+<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+<h3 id="dMoTi">规格书详情</h3><span onclick="document.getElementById('dMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span>
+</div>
+<div id="dMoBody"></div>
+</div></div>
+
+<script>
+const API='/api/spec-library';
+let sPage=1,cPage=1;
+
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');
+  document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='spec')loadSpecSheets(1);
+  else if(name==='config')loadConfigSheets(1);
+}
+
+async function loadSpecSheets(page){
+  sPage=page||1;
+  const p=new URLSearchParams({page:sPage,limit:20});
+  const kw=document.getElementById('sKw').value,st=document.getElementById('sStatus').value;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);
+  try{
+    const r=await fetch(API+'/spec-sheets?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('sTc').textContent=total;
+    const recs=d.data||d||[],tb=document.getElementById('sTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="8" class="em">暂无规格书</td></tr>';renderPg('sPg',total,sPage,loadSpecSheets);return}
+    tb.innerHTML=recs.map(s=>`<tr>
+      <td><b>${s.model||s.part_number||'-'}</b></td>
+      <td>${s.version||'-'}</td>
+      <td>${(s.name||s.product_name||'').substring(0,25)}</td>
+      <td>${s.product_family||s.series||'-'}</td>
+      <td>${s.spec_type||'-'}</td>
+      <td><span class="badge ${s.status==='有效'?'bg-g':s.status==='废弃'?'bg-n':'bg-o'}">${s.status||'-'}</span></td>
+      <td>${s.updated_at||s.modified_at||'-'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="openSpecDtl(${s.id})">详情</button>
+        <button class="btn bs b4" onclick="openEditSpec(${s.id})">编辑</button>
+        <button class="btn bs b3" onclick="delSpec(${s.id})" data-perm="spec:delete">删除</button>
+      </td>
+    </tr>`).join('');
+    renderPg('sPg',total,sPage,loadSpecSheets);
+  }catch(e){console.error(e)}
+}
+
+async function loadConfigSheets(page){
+  cPage=page||1;
+  const p=new URLSearchParams({page:cPage,limit:20});
+  const kw=document.getElementById('cKw').value,st=document.getElementById('cStatus').value;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);
+  try{
+    const r=await fetch(API+'/config-sheets?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('cTc').textContent=total;
+    const recs=d.data||d||[],tb=document.getElementById('cTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="7" class="em">暂无配置表</td></tr>';renderPg('cPg',total,cPage,loadConfigSheets);return}
+    tb.innerHTML=recs.map(c=>`<tr>
+      <td><b>${c.model||c.part_number||'-'}</b></td>
+      <td>${c.version||'-'}</td>
+      <td>${(c.name||'').substring(0,25)}</td>
+      <td>${c.config_type||'-'}</td>
+      <td><span class="badge ${c.status==='有效'?'bg-g':c.status==='废弃'?'bg-n':'bg-o'}">${c.status||'-'}</span></td>
+      <td>${c.updated_at||c.modified_at||'-'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="openConfigDtl(${c.id})">详情</button>
+        <button class="btn bs b4" onclick="openEditConfig(${c.id})">编辑</button>
+        <button class="btn bs b3" onclick="delConfig(${c.id})" data-perm="config-lib:delete">删除</button>
+      </td>
+    </tr>`).join('');
+    renderPg('cPg',total,cPage,loadConfigSheets);
+  }catch(e){console.error(e)}
+}
+
+function renderPg(elId,total,page,fn){
+  const ps=20,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  if(pages<=1){el.innerHTML='';return}
+  let h='';
+  if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
+  for(let i=Math.max(1,page-2);i<=Math.min(pages,page+2);i++)h+=`<button class="btn bs ${i===page?'b1':''}" onclick="${fn.name}(${i})">${i}</button> `;
+  if(page<pages)h+=`<button class="btn bs" onclick="${fn.name}(${page+1})">下一页</button>`;
+  el.innerHTML=h;
+}
+
+async function openSpecDtl(id){
+  try{
+    const r=await fetch(API+'/spec-sheets/'+id);const s=await r.json();
+    const d=s||{};
+    document.getElementById('dMoTi').textContent='规格书详情 - '+(d.model||d.part_number||'');
+    document.getElementById('dMoBody').innerHTML=`
+      <table style="width:100%;font-size:13px">
+        <tr><td style="color:#999;width:100px">型号</td><td><b>${d.model||d.part_number||'-'}</b></td></tr>
+        <tr><td style="color:#999">版本</td><td>${d.version||'-'}</td></tr>
+        <tr><td style="color:#999">名称</td><td>${d.name||d.product_name||'-'}</td></tr>
+        <tr><td style="color:#999">产品系列</td><td>${d.product_family||d.series||'-'}</td></tr>
+        <tr><td style="color:#999">规格类型</td><td>${d.spec_type||'-'}</td></tr>
+        <tr><td style="color:#999">状态</td><td><span class="badge ${d.status==='有效'?'bg-g':d.status==='废弃'?'bg-n':'bg-o'}">${d.status||'-'}</span></td></tr>
+        <tr><td style="color:#999">创建日期</td><td>${d.created_at||'-'}</td></tr>
+        <tr><td style="color:#999">更新日期</td><td>${d.updated_at||d.modified_at||'-'}</td></tr>
+        <tr><td style="color:#999">内容</td><td>${(d.content||d.spec_content||'-').substring(0,200)}</td></tr>
+      </table>
+    `;
+    document.getElementById('dMo').classList.add('ac');
+  }catch(e){alert('加载失败: '+e.message)}
+}
+
+async function openConfigDtl(id){
+  try{
+    const r=await fetch(API+'/config-sheets');const d=await r.json();
+    const c=(d.data||d||[]).find(x=>x.id===id);
+    if(!c){alert('未找到该配置表');return}
+    document.getElementById('dMoTi').textContent='配置表详情 - '+(c.model||c.part_number||'');
+    document.getElementById('dMoBody').innerHTML=`
+      <table style="width:100%;font-size:13px">
+        <tr><td style="color:#999;width:100px">型号</td><td><b>${c.model||c.part_number||'-'}</b></td></tr>
+        <tr><td style="color:#999">版本</td><td>${c.version||'-'}</td></tr>
+        <tr><td style="color:#999">名称</td><td>${c.name||'-'}</td></tr>
+        <tr><td style="color:#999">配置类型</td><td>${c.config_type||'-'}</td></tr>
+        <tr><td style="color:#999">状态</td><td><span class="badge ${c.status==='有效'?'bg-g':c.status==='废弃'?'bg-n':'bg-o'}">${c.status||'-'}</span></td></tr>
+        <tr><td style="color:#999">创建日期</td><td>${c.created_at||'-'}</td></tr>
+        <tr><td style="color:#999">更新日期</td><td>${c.updated_at||c.modified_at||'-'}</td></tr>
+      </table>
+    `;
+    document.getElementById('dMo').classList.add('ac');
+  }catch(e){alert('加载失败: '+e.message)}
+}
+
+async function openEditSpec(id){
+  try{
+    const r=await fetch(API+'/spec-sheets/'+id);const s=await r.json();
+    this.editData=s;
+    document.getElementById('dMoTi').textContent='编辑规格书';
+    document.getElementById('dMoBody').innerHTML=buildEditForm(id,s,['model','version','name','product_family','spec_type','status','content']);
+    document.getElementById('dMo').classList.add('ac');
+    document.getElementById('specSave').onclick=async()=>{
+      const data=collectForm(['model','version','name','product_family','spec_type','status','content']);
+      await fetch(API+'/spec-sheets/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('dMo').classList.remove('ac');loadSpecSheets(sPage);
+    };
+  }catch(e){alert('加载失败')}
+}
+
+async function openEditConfig(id){
+  try{
+    const r=await fetch(API+'/config-sheets');const d=await r.json();
+    const c=(d.data||d||[]).find(x=>x.id===id);if(!c)return;
+    document.getElementById('dMoTi').textContent='编辑配置表';
+    document.getElementById('dMoBody').innerHTML=buildEditForm(id,c,['model','version','name','config_type','status']);
+    document.getElementById('dMo').classList.add('ac');
+    document.getElementById('specSave').onclick=async()=>{
+      const data=collectForm(['model','version','name','config_type','status']);
+      await fetch(API+'/config-sheets/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('dMo').classList.remove('ac');loadConfigSheets(cPage);
+    };
+  }catch(e){alert('加载失败')}
+}
+
+function buildEditForm(id,data,fields){
+  let h='<div style="max-height:55vh;overflow-y:auto">';
+  for(let i=0;i<fields.length;i++){
+    const f=fields[i];let val=data[f]||'';
+    if(f==='content'){
+      h+=`<div class="fg"><label>${f}</label><textarea id="fe_${f}">${val}</textarea></div>`;
+    }else{
+      const next=fields[i+1];
+      if(next&&next!=='content'){
+        const nval=data[next]||'';
+        h+=`<div class="gr"><div class="fg"><label>${f}</label><input id="fe_${f}" value="${val}"></div><div class="fg"><label>${next}</label><input id="fe_${next}" value="${nval}"></div></div>`;
+        i++;
+      }else{
+        h+=`<div class="fg"><label>${f}</label><input id="fe_${f}" value="${val}"></div>`;
+      }
+    }
+  }
+  h+='</div><div style="text-align:right;margin-top:12px"><button class="btn b2" id="specSave">保存</button></div>';
+  return h;
+}
+
+function collectForm(fields){
+  const d={};
+  fields.forEach(f=>{const el=document.getElementById('fe_'+f);if(el)d[f]=el.value});
+  return d;
+}
+
+async function delSpec(id){if(!PermissionCheck.has('spec:delete')){alert('无删除权限');return;}
+  if(!confirm('确定删除此规格书？'))return;
+  await fetch(API+'/spec-sheets/'+id,{method:'DELETE'});loadSpecSheets(sPage);
+}
+
+async function delConfig(id){if(!PermissionCheck.has('config-lib:delete')){alert('无删除权限');return;}
+  if(!confirm('确定删除此配置表？'))return;
+  await fetch(API+'/config-sheets/'+id,{method:'DELETE'});loadConfigSheets(cPage);
+}
+
+async function batchExport(format){
+  const url=format==='pdf'?API+'/batch-export-spec?format=pdf':API+'/batch-export-spec?format=xlsx';
+  try{
+    const r=await fetch(url,{method:'POST'});
+    if(r.headers.get('content-type')?.includes('json')){
+      const d=await r.json();
+      alert(d.message||'导出完成');
+    }else{
+      const blob=await r.blob();
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=`spec_library_export.${format}`;
+      a.click();
+    }
+  }catch(e){alert('导出失败: '+e.message)}
+}
+
+loadSpecSheets(1);
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body></html>

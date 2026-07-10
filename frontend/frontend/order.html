@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>订单管理</title><link rel="stylesheet" href="common.css">
+<style>
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:720px;max-width:95%;max-height:90vh;overflow:auto}
+.mb2{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:50px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-open{background:#d4edda;color:#155724}.st-confirmed{background:#cce5ff;color:#004085}
+.st-proc{background:#fff3cd;color:#856404}.st-ready{background:#d1ecf1;color:#0c5460}
+.st-shipped{background:#e2e3e5;color:#383d41}.st-completed{background:#c3e6cb;color:#155724}
+.st-closed{background:#f5f5f5;color:#616161}.st-cancelled{background:#f8d7da;color:#721c24}
+.st-pkg{background:#f3e5f5;color:#7b1fa2}
+.risk-h{background:#f8d7da;color:#721c24;padding:1px 6px;border-radius:8px;font-size:10px}
+.risk-m{background:#fff3cd;color:#856404;padding:1px 6px;border-radius:8px;font-size:10px}
+.risk-l{background:#d4edda;color:#155724;padding:1px 6px;border-radius:8px;font-size:10px}
+.tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>订单管理</h2>
+<button class="btn b1" onclick="openAddOrder()">新增订单</button>
+</div>
+<div class="sg" id="oStats"></div>
+<div class="sb">
+<input type="text" id="oKw" placeholder="搜索订单号/客户/产品" style="width:220px" onkeydown="if(event.key==='Enter')loadOrders(1)">
+<select id="oStatus"><option value="">全部状态</option>
+<option value="open">待确认</option><option value="confirmed">已确认</option>
+<option value="procurement_ready">采购就绪</option><option value="material_ready">物料就绪</option>
+<option value="packaging_done">包装完成</option><option value="shipped">已发货</option>
+<option value="completed">已完成</option><option value="closed">已关闭</option><option value="cancelled">已取消</option>
+</select>
+<select id="oRisk"><option value="">全部风险</option><option value="high">高风险</option><option value="medium">中风险</option><option value="low">低风险</option></select>
+<button class="btn b1" onclick="loadOrders(1)">搜索</button>
+<button class="btn b2" onclick="exportOrders()">导出数据</button>
+<span style="margin-left:auto">共 <b id="oTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>订单号</th><th>行号</th><th>客户</th><th>产品代码</th><th>产品名称</th><th>数量</th><th>完成数</th><th>金额</th><th>状态</th><th>风险</th><th>承诺交期</th><th>计划交期</th><th>上线时间</th><th>备注</th><th>操作</th>
+</tr></thead><tbody id="oTb"><tr><td colspan="15" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="oPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<div class="mo" id="oMo"><div class="mb">
+<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+<h3 id="oMoTi">订单详情</h3>
+<span onclick="document.getElementById('oMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span>
+</div>
+<div id="oMoBody"></div>
+</div></div>
+
+<div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
+
+<script>
+const API='/api/orders';
+const statusMap={open:'待确认',confirmed:'已确认',procurement_ready:'采购就绪',material_ready:'物料就绪',packaging_done:'包装完成',shipped:'已发货',completed:'已完成',closed:'已关闭',cancelled:'已取消'};
+const statusCls={open:'st-open',confirmed:'st-confirmed',procurement_ready:'st-proc',material_ready:'st-ready',packaging_done:'st-pkg',shipped:'st-shipped',completed:'st-completed',closed:'st-closed',cancelled:'st-cancelled'};
+const statusFlow=['open','confirmed','procurement_ready','material_ready','packaging_done','shipped','completed'];
+let oPage=1;
+
+async function loadStats(){
+  try{
+    const r=await fetch(API+'/stats');const d=await r.json();
+    document.getElementById('oStats').innerHTML=`
+      <div class="sc"><div class="n">${d.total||0}</div><div class="l">订单总数</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${d.by_status?.open||0}</div><div class="l">待确认</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${d.by_status?.confirmed||0}</div><div class="l">已确认</div></div>
+      <div class="sc"><div class="n" style="color:#e67e22">${d.by_status?.procurement_ready||0}</div><div class="l">采购就绪</div></div>
+      <div class="sc"><div class="n" style="color:#e74c3c">${d.by_status?.completed||0}</div><div class="l">已完成</div></div>
+      <div class="sc"><div class="n">¥${Math.round(d.total_amount||0).toLocaleString()}</div><div class="l">订单总额</div></div>
+    `;
+  }catch(e){console.error(e)}
+}
+
+function renderStatus(s){
+  const cls=statusCls[s]||'';
+  return `<span class="badge ${cls}">${statusMap[s]||s||'-'}</span>`;
+}
+function renderRisk(r){
+  if(r==='high')return '<span class="risk-h">高风险</span>';
+  if(r==='medium')return '<span class="risk-m">中风险</span>';
+  if(r==='low')return '<span class="risk-l">低风险</span>';
+  return '-';
+}
+
+function getNextStatuses(current){
+  const idx=statusFlow.indexOf(current);
+  if(idx<0||idx>=statusFlow.length-1)return[];
+  const next=[];
+  if(idx<statusFlow.length-1)next.push(statusFlow[idx+1]);
+  return next;
+}
+
+async function loadOrders(page){
+  oPage=page||1;
+  const p=new URLSearchParams({page:oPage,limit:50});
+  const kw=document.getElementById('oKw').value,st=document.getElementById('oStatus').value;
+  const risk=document.getElementById('oRisk').value;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(risk)p.set('risk_level',risk);
+  try{
+    const r=await fetch(API+'?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('oTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('oTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="15" class="em">暂无订单</td></tr>';renderPg('oPg',total,oPage,loadOrders);return}
+    tb.innerHTML=recs.map(o=>{
+      const nextSts=getNextStatuses(o.status);
+      let flowBtns='';
+      nextSts.forEach(ns=>{flowBtns+=`<button class="btn bs b1" onclick="changeStatus(${o.id},'${ns}')">${statusMap[ns]}</button> `;});
+      return`<tr>
+      <td><b>${o.order_no||'-'}</b></td>
+      <td>${o.line_no||'-'}</td>
+      <td>${(o.customer_name||'').substring(0,12)}</td>
+      <td>${o.product_code||'-'}</td>
+      <td>${(o.product_name||'').substring(0,14)}</td>
+      <td>${o.quantity||0}</td>
+      <td>${o.completed_qty||0}</td>
+      <td>${o.order_amount?'¥'+Number(o.order_amount).toLocaleString():'-'}</td>
+      <td>${renderStatus(o.status)}</td>
+      <td>${renderRisk(o.risk_level)}</td>
+      <td>${o.promised_date||'-'}</td>
+      <td>${o.plan_date||'-'}</td>
+      <td>${o.online_date||'-'}</td>
+      <td>${(o.remarks||'').substring(0,12)}</td>
+      <td style="white-space:nowrap">
+        ${flowBtns}
+        <button class="btn bs b4" onclick="openEditOrder(${o.id})">编辑</button>
+        <button class="btn bs b3" onclick="delOrder(${o.id})">删除</button>
+      </td>
+    </tr>`}).join('');
+    renderPg('oPg',total,oPage,loadOrders);
+  }catch(e){console.error(e)}
+}
+
+function renderPg(elId,total,page,fn){
+  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  if(pages<=1){el.innerHTML='';return}
+  let h='';
+  if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
+  for(let i=Math.max(1,page-2);i<=Math.min(pages,page+2);i++)h+=`<button class="btn bs ${i===page?'b1':''}" onclick="${fn.name}(${i})">${i}</button> `;
+  if(page<pages)h+=`<button class="btn bs" onclick="${fn.name}(${page+1})">下一页</button>`;
+  el.innerHTML=h;
+}
+
+async function changeStatus(id,newStatus){
+  if(!confirm('确定将订单状态变更为：'+statusMap[newStatus]+'？'))return;
+  try{
+    await fetch(API+'/'+id+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:newStatus})});
+    loadOrders(oPage);loadStats();
+  }catch(e){alert('操作失败: '+e.message)}
+}
+
+function openAddOrder(){
+  const fields=[
+    ['order_no','订单号','text'],['line_no','行号','number'],['customer_name','客户名称','text'],
+    ['customer_code','客户代码','text'],['product_code','产品代码','text'],['product_name','产品名称','text'],
+    ['quantity','数量','number'],['completed_qty','完成数量','number'],
+    ['order_amount','订单金额','number'],
+    ['status','状态','select:open,confirmed,procurement_ready,material_ready,packaging_done,shipped,completed,closed,cancelled'],
+    ['risk_level','风险等级','select:low,medium,high'],
+    ['promised_date','承诺交期','date'],['plan_date','计划交期','date'],['online_date','上线时间','date'],
+    ['remarks','备注','textarea']
+  ];
+  openForm('新增订单',fields,{quantity:0,completed_qty:0,status:'open',risk_level:'low'},async(data)=>{
+    if(!data.order_no){alert('订单号必填');return}
+    await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');loadOrders(1);loadStats();
+  });
+}
+async function openEditOrder(id){
+  try{
+    const r=await fetch(API+'/'+id);const o=await r.json();
+    const fields=[
+      ['order_no','订单号','text'],['line_no','行号','number'],['customer_name','客户名称','text'],
+      ['customer_code','客户代码','text'],['product_code','产品代码','text'],['product_name','产品名称','text'],
+      ['quantity','数量','number'],['completed_qty','完成数量','number'],
+      ['order_amount','订单金额','number'],
+      ['status','状态','select:open,confirmed,procurement_ready,material_ready,packaging_done,shipped,completed,closed,cancelled'],
+      ['risk_level','风险等级','select:low,medium,high'],
+      ['promised_date','承诺交期','date'],['plan_date','计划交期','date'],['online_date','上线时间','date'],
+      ['remarks','备注','textarea']
+    ];
+    openForm('编辑订单',fields,o,async(data)=>{
+      await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');loadOrders(oPage);loadStats();
+    });
+  }catch(e){alert('加载失败')}
+}
+async function delOrder(id){
+  if(!confirm('确定删除此订单？'))return;
+  await fetch(API+'/'+id,{method:'DELETE'});
+  loadOrders(oPage);loadStats();
+}
+
+function exportOrders(){
+  fetch(API+'?limit=9999').then(r=>r.json()).then(d=>{
+    const list=d.data||[];
+    if(list.length===0){alert('暂无数据可导出');return}
+    const headers=['订单号','行号','客户','产品代码','产品名称','数量','完成数','金额','状态','风险','承诺交期','计划交期','上线时间','备注'];
+    let csv='\uFEFF'+headers.join(',')+'\n';
+    list.forEach(o=>{
+      const row=[o.order_no||'',o.line_no||'',o.customer_name||'',o.product_code||'',o.product_name||'',
+        o.quantity||'',o.completed_qty||'',o.order_amount||'',statusMap[o.status]||o.status||'',
+        o.risk_level||'',o.promised_date||'',o.plan_date||'',o.online_date||'',
+        (o.remarks||'').replace(/,/g,'，')].map(v=>String(v).replace(/,/g,'，'));
+      csv+=row.join(',')+'\n';
+    });
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='订单管理_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+  }).catch(e=>{alert('导出失败: '+e.message)});
+}
+
+function openForm(title,fields,data,onSave){
+  const box=document.getElementById('gMoBox');
+  let html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${title}</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>`;
+  html+='<div style="max-height:60vh;overflow-y:auto;padding-right:6px">';
+  let i=0;
+  while(i<fields.length){
+    const [key,label,type]=fields[i];
+    if(type==='textarea'){
+      html+=`<div class="fg"><label>${label}</label><textarea id="ff_${key}">${data[key]||''}</textarea></div>`;
+      i++;
+    }else{
+      const next=fields[i+1];
+      if(next&&next[2]!=='textarea'){
+        html+='<div class="gr">'+renderField(fields[i],data)+renderField(next,data)+'</div>';
+        i+=2;
+      }else{
+        html+='<div class="gr">'+renderField(fields[i],data)+'</div>';
+        i++;
+      }
+    }
+  }
+  html+='</div><div style="text-align:right;margin-top:12px"><button class="btn b2" id="ffSave">保存</button></div>';
+  box.innerHTML=html;
+  document.getElementById('gMo').classList.add('ac');
+  document.getElementById('ffSave').onclick=()=>{
+    const d={};
+    fields.forEach(([key,,type])=>{
+      const el=document.getElementById('ff_'+key);
+      if(!el)return;
+      d[key]=type==='number'?Number(el.value)||0:el.value;
+    });
+    onSave(d);
+  };
+}
+function renderField([key,label,type],data){
+  const val=data[key]||'';
+  if(type.startsWith('select:')){
+    const opts=type.substring(7).split(',');
+    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val==o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  }
+  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}">`;
+}
+
+loadStats();
+loadOrders(1);
+</script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+</body></html>

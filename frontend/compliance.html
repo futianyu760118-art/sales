@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>合规自检</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;border-bottom:2px solid #eee;margin-bottom:16px}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.sb{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}.b5{background:#3498db;color:#fff}.bs{padding:3px 8px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.bg-r{background:#f8d7da;color:#721c24}.bg-o{background:#fff3cd;color:#856404}.bg-g{background:#d4edda;color:#155724}.bg-b{background:#cce5ff;color:#004085}.bg-n{background:#e2e3e5;color:#383d41}
+.em{text-align:center;color:#999;padding:30px}
+.tbl-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:720px;max-width:95%;max-height:90vh;overflow:auto}
+.pg{text-align:center;margin-top:12px}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>合规自检</h2>
+<div style="display:flex;gap:8px">
+<button class="btn b1" onclick="runCheck()">运行检查</button>
+<button class="btn b2" onclick="autoFixAll()">一键修复</button>
+</div>
+</div>
+
+<div class="sg" id="statsGrid"></div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('reports',this)">检查报告</button>
+<button onclick="swTab('issues',this)">问题列表</button>
+</div>
+
+<div class="tc ac" id="tab-reports">
+<div class="sb">
+<button class="btn b5" onclick="loadReports()">刷新</button>
+<span style="margin-left:auto;font-size:13px;color:#666">最近20条报告</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>报告编号</th><th>检查维度</th><th>执行时间</th><th>发现问题</th><th>已修复</th><th>状态</th><th>操作</th>
+</tr></thead><tbody id="rTb"><tr><td colspan="7" class="em">暂无报告</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="tc" id="tab-issues">
+<div class="sb">
+<select id="iStatus"><option value="">全部状态</option><option value="待整改">待整改</option><option value="整改中">整改中</option><option value="待复核">待复核</option><option value="已闭环">已闭环</option></select>
+<select id="iLevel"><option value="">全部严重程度</option><option value="严重">严重</option><option value="警告">警告</option><option value="普通">普通</option></select>
+<select id="iType"><option value="">全部类型</option></select>
+<button class="btn b1" onclick="loadIssues()">搜索</button>
+<button class="btn b2" onclick="runCheck()">运行检查</button>
+<span style="margin-left:auto">共 <b id="iTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>问题编号</th><th>类型</th><th>严重程度</th><th>模块</th><th>问题描述</th><th>标准</th><th>负责人</th><th>状态</th><th>操作</th>
+</tr></thead><tbody id="iTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div class="pg" id="iPg"></div>
+</div>
+</div>
+
+<div class="mo" id="dMo"><div class="mb">
+<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+<h3 id="dMoTi">报告详情</h3><span onclick="document.getElementById('dMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span>
+</div>
+<div id="dMoBody"></div>
+</div></div>
+
+<script>
+const API='/api/compliance';
+const statusMap={'待整改':'bg-r','整改中':'bg-o','待复核':'bg-b','已闭环':'bg-g'};
+const levelMap={'严重':'bg-r','警告':'bg-o','普通':'bg-n'};
+let iPage=1;
+
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');
+  document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='reports')loadReports();
+  else if(name==='issues')loadIssues();
+}
+
+async function loadStats(){
+  try{
+    const r=await fetch(API+'/stats');const d=await r.json();
+    document.getElementById('statsGrid').innerHTML=`
+      <div class="sc"><div class="n" style="color:#e74c3c">${d.total_issues||0}</div><div class="l">问题总数</div></div>
+      <div class="sc"><div class="n" style="color:#e74c3c">${d.severe_count||0}</div><div class="l">严重问题</div></div>
+      <div class="sc"><div class="n" style="color:#f39c12">${d.warning_count||0}</div><div class="l">警告问题</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${d.fixed_count||0}</div><div class="l">已修复</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${d.pending_count||0}</div><div class="l">待整改</div></div>
+      <div class="sc"><div class="n">${d.total_reports||0}</div><div class="l">检查报告</div></div>
+      <div class="sc"><div class="n">${d.dimensions_count||0}</div><div class="l">检查维度</div></div>
+    `;
+  }catch(e){}
+}
+
+async function loadReports(){
+  try{
+    const r=await fetch(API+'/reports');const d=await r.json();
+    const recs=d.data||d||[],tb=document.getElementById('rTb');
+    if(!recs||!recs.length){tb.innerHTML='<tr><td colspan="7" class="em">暂无报告</td></tr>';return}
+    tb.innerHTML=recs.map(p=>`<tr>
+      <td><b>${p.id||p.report_id||'-'}</b></td>
+      <td>${p.dimension||p.check_type||'-'}</td>
+      <td>${p.run_at||p.created_at||'-'}</td>
+      <td style="color:#e74c3c;font-weight:600">${p.issue_count||p.total_issues||0}</td>
+      <td style="color:#27ae60">${p.fixed_count||0}</td>
+      <td><span class="badge ${p.status==='completed'?'bg-g':p.status==='running'?'bg-o':'bg-n'}">${p.status||'-'}</span></td>
+      <td><button class="btn bs b1" onclick="openReport(${p.id})">详情</button></td>
+    </tr>`).join('');
+  }catch(e){console.error(e)}
+}
+
+async function openReport(id){
+  try{
+    const r=await fetch(API+'/reports/'+id);const p=await r.json();
+    const d=p||{};
+    document.getElementById('dMoTi').textContent='报告详情 - #'+id;
+    const issues=d.issues||[],issHtml=issues.length?issues.map(i=>`
+      <tr><td>${i.issue_no||'-'}</td><td><span class="badge ${levelMap[i.level]||'bg-n'}">${i.level||'-'}</span></td>
+      <td>${i.type||'-'}</td><td>${i.module||'-'}</td><td>${(i.desc||'').substring(0,30)}</td>
+      <td><span class="badge ${statusMap[i.status]||'bg-n'}">${i.status||'-'}</span></td>
+      <td>${i.fixable?'<button class="btn bs b2" onclick="autoFixOne('+i.id+')">自动修复</button>':'-'}</td></tr>`).join(''):'<tr><td colspan="7" class="em">无问题</td></tr>';
+    document.getElementById('dMoBody').innerHTML=`
+      <table style="width:100%;font-size:13px;margin-bottom:14px">
+        <tr><td style="color:#999;width:100px">报告编号</td><td>${d.id||d.report_id||'-'}</td></tr>
+        <tr><td style="color:#999">检查维度</td><td>${d.dimension||'-'}</td></tr>
+        <tr><td style="color:#999">执行时间</td><td>${d.run_at||d.created_at||'-'}</td></tr>
+        <tr><td style="color:#999">状态</td><td>${d.status||'-'}</td></tr>
+        <tr><td style="color:#999">发现问题</td><td style="color:#e74c3c">${d.issue_count||d.total_issues||0}</td></tr>
+        <tr><td style="color:#999">已修复</td><td style="color:#27ae60">${d.fixed_count||0}</td></tr>
+        <tr><td style="color:#999">耗时</td><td>${d.duration||'-'}</td></tr>
+        <tr><td style="color:#999">结果</td><td>${(d.result||d.summary||'').substring(0,200)}</td></tr>
+      </table>
+      <h4 style="margin:12px 0 8px">问题列表</h4>
+      <div class="tbl-wrap"><table><thead><tr><th>编号</th><th>程度</th><th>类型</th><th>模块</th><th>描述</th><th>状态</th><th>修复</th></tr></thead><tbody>${issHtml}</tbody></table></div>
+    `;
+    document.getElementById('dMo').classList.add('ac');
+  }catch(e){alert('加载失败: '+e.message)}
+}
+
+async function loadIssues(page){
+  iPage=page||1;
+  const p=new URLSearchParams({page:iPage,limit:20});
+  const st=document.getElementById('iStatus').value,lv=document.getElementById('iLevel').value,tp=document.getElementById('iType').value;
+  if(st)p.set('status',st);if(lv)p.set('level',lv);if(tp)p.set('type',tp);
+  try{
+    const r=await fetch(API+'/issues?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('iTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('iTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无问题</td></tr>';renderPg(total);return}
+    tb.innerHTML=recs.map(i=>`<tr>
+      <td><b>${i.issue_no||'-'}</b></td>
+      <td>${i.type||'-'}</td>
+      <td><span class="badge ${levelMap[i.level]||'bg-n'}">${i.level||'-'}</span></td>
+      <td>${i.module||'-'}</td>
+      <td title="${i.desc||''}">${(i.desc||'').substring(0,30)}</td>
+      <td>${i.standard||'-'}</td>
+      <td>${i.assignee||'-'}</td>
+      <td><span class="badge ${statusMap[i.status]||'bg-n'}">${i.status||'-'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="openIssueDtl(${i.id})">详情</button>
+        ${autoFixable(i)?`<button class="btn bs b2" onclick="autoFixOne(${i.id})">修复</button>`:''}
+        <button class="btn bs b4" onclick="changeStatus(${i.id},'${i.status}')">流转</button>
+      </td>
+    </tr>`).join('');
+    renderPg(total);
+  }catch(e){console.error(e)}
+}
+
+function autoFixable(i){return i.auto_fixable||i.autoFixable||i.fixable||i.can_auto_fix}
+function renderPg(total){
+  const pages=Math.ceil(total/20),el=document.getElementById('iPg');
+  if(pages<=1){el.innerHTML='';return}
+  let h='';if(iPage>1)h+=`<button class="btn bs" onclick="loadIssues(${iPage-1})">上一页</button> `;
+  for(let i=Math.max(1,iPage-2);i<=Math.min(pages,iPage+2);i++)h+=`<button class="btn bs ${i===iPage?'b1':''}" onclick="loadIssues(${i})">${i}</button> `;
+  if(iPage<pages)h+=`<button class="btn bs" onclick="loadIssues(${iPage+1})">下一页</button>`;
+  el.innerHTML=h;
+}
+
+async function openIssueDtl(id){
+  try{
+    const r=await fetch(API+'/issues/'+id);const i=await r.json();
+    const d=i||{};
+    document.getElementById('dMoTi').textContent='问题详情 - '+ (d.issue_no||'');
+    document.getElementById('dMoBody').innerHTML=`
+      <table style="width:100%;font-size:13px;margin-bottom:14px">
+        <tr><td style="color:#999;width:100px">问题编号</td><td><b>${d.issue_no||'-'}</b></td></tr>
+        <tr><td style="color:#999">类型</td><td>${d.type||'-'}</td></tr>
+        <tr><td style="color:#999">严重程度</td><td><span class="badge ${levelMap[d.level]||'bg-n'}">${d.level||'-'}</span></td></tr>
+        <tr><td style="color:#999">模块</td><td>${d.module||'-'}</td></tr>
+        <tr><td style="color:#999">问题描述</td><td>${d.desc||'-'}</td></tr>
+        <tr><td style="color:#999">合规标准</td><td>${d.standard||'-'}</td></tr>
+        <tr><td style="color:#999">原因</td><td>${d.reason||'-'}</td></tr>
+        <tr><td style="color:#999">关联</td><td>${d.related||'-'}</td></tr>
+        <tr><td style="color:#999">链接</td><td>${d.link?`<a href="${d.link}" target="_blank">查看</a>`:'-'}</td></tr>
+        <tr><td style="color:#999">负责人</td><td>${d.assignee||'-'}</td></tr>
+        <tr><td style="color:#999">状态</td><td><span class="badge ${statusMap[d.status]||'bg-n'}">${d.status||'-'}</span></td></tr>
+        <tr><td style="color:#999">报告</td><td>${d.report_id||'-'}</td></tr>
+      </table>
+      <div style="text-align:right">
+        ${autoFixable(d)?'<button class="btn b2" onclick="autoFixOne('+d.id+')">自动修复</button> ':''}
+        <button class="btn b4" onclick="changeStatus('+d.id+',\''+d.status+'\')">状态流转</button>
+      </div>
+    `;
+    document.getElementById('dMo').classList.add('ac');
+  }catch(e){alert('加载失败: '+e.message)}
+}
+
+async function runCheck(dimension){
+  try{
+    const url=dimension?API+'/run/'+dimension:API+'/run';
+    const r=await fetch(url,{method:'POST'});const d=await r.json();
+    alert(d.message||'检查完成');
+    loadStats();loadReports();loadIssues();
+  }catch(e){alert('运行失败: '+e.message)}
+}
+
+async function autoFixOne(id){
+  if(!confirm('确定自动修复此问题？'))return;
+  try{
+    const r=await fetch(API+'/issues/'+id+'/auto-fix',{method:'POST'});const d=await r.json();
+    alert(d.message||'修复完成');
+    loadStats();loadIssues();
+  }catch(e){alert('修复失败: '+e.message)}
+}
+
+async function autoFixAll(){
+  if(!confirm('确定一键修复所有可自动修复的问题？'))return;
+  try{
+    const r=await fetch(API+'/auto-fix-all',{method:'POST'});const d=await r.json();
+    alert(d.message||'修复完成');
+    loadStats();loadIssues();
+  }catch(e){alert('修复失败: '+e.message)}
+}
+
+async function changeStatus(id,curStatus){
+  const flow=['待整改','整改中','待复核','已闭环'];
+  const idx=flow.indexOf(curStatus);
+  if(idx>=0&&idx<flow.length-1){
+    const next=flow[idx+1];
+    if(!confirm(`将状态从"${curStatus}"流转到"${next}"？`))return;
+    try{
+      await fetch(API+'/issues/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:next})});
+      loadIssues();loadStats();
+    }catch(e){alert('操作失败: '+e.message)}
+  }else{
+    alert('当前状态已是最终状态');
+  }
+}
+
+async function loadDimensions(){
+  try{
+    const r=await fetch(API+'/dimensions');const d=await r.json();
+    const dims=d.data||d||[];
+    const sel=document.getElementById('iType');sel.innerHTML='<option value="">全部类型</option>'+dims.map(x=>`<option value="${x.key||x.name||x}">${x.name||x.label||x.key||x}</option>`).join('');
+  }catch(e){}
+}
+
+loadStats();loadReports();loadDimensions();
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body></html>

@@ -1,0 +1,82 @@
+{
+  "records": [
+    {
+      "inquiry_id": 1,
+      "commenter": "张三",
+      "content": "客户已收到报价，正在内部评估中",
+      "created_at": "2024-01-17 10:00:00",
+      "id": 1
+    },
+    {
+      "inquiry_id": 1,
+      "commenter": "王工",
+      "content": "该型号物料齐套，可正常排产",
+      "created_at": "2024-01-17 14:30:00",
+      "id": 2
+    },
+    {
+      "inquiry_id": 2,
+      "commenter": "李四",
+      "content": "客户反馈价格偏高，要求再降5%",
+      "created_at": "2024-01-23 09:00:00",
+      "id": 3
+    },
+    {
+      "inquiry_id": 2,
+      "commenter": "李四",
+      "content": "已提交降价申请，等待审批",
+      "created_at": "2024-01-24 11:00:00",
+      "id": 4
+    },
+    {
+      "inquiry_id": 3,
+      "commenter": "张三",
+      "content": "老客户，已给予10%优惠",
+      "created_at": "2024-02-06 10:00:00",
+      "id": 5
+    },
+    {
+      "inquiry_id": 3,
+      "commenter": "张三",
+      "content": "客户确认签约，预付款30%已到账",
+      "created_at": "2024-02-10 10:00:00",
+      "id": 6
+    },
+    {
+      "inquiry_id": 4,
+      "commenter": "李四",
+      "content": "客户对比了3家供应商，最终选择竞品",
+      "created_at": "2024-02-20 09:00:00",
+      "id": 7
+    },
+    {
+      "inquiry_id": 6,
+      "commenter": "李四",
+      "content": "展会接触客户，对500W电源有强烈需求",
+      "created_at": "2024-03-10 16:00:00",
+      "id": 8
+    },
+    {
+      "inquiry_id": 6,
+      "commenter": "赵采购",
+      "content": "大功率变压器需定制，交期约2周",
+      "created_at": "2024-03-12 09:00:00",
+      "id": 9
+    },
+    {
+      "inquiry_id": 7,
+      "commenter": "张三",
+      "content": "客户需要定制Modbus TCP协议，已安排工程对接",
+      "created_at": "2024-03-16 14:00:00",
+      "id": 10
+    },
+    {
+      "inquiry_id": 7,
+      "commenter": "王工",
+      "content": "协议开发预计3天完成，已开始编码",
+      "created_at": "2024-03-17 10:00:00",
+      "id": 11
+    }
+  ],
+  "nextId": 12
+}

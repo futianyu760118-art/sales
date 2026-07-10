@@ -1,0 +1,167 @@
+{
+  "records": [
+    {
+      "drawing_id": 1,
+      "action": "approve",
+      "operator": "admin",
+      "detail": "审批通过图纸V1",
+      "ip": "",
+      "created_at": "2026-06-23 17:35:39",
+      "id": 1
+    },
+    {
+      "drawing_id": 2,
+      "action": "upload",
+      "operator": "admin",
+      "detail": "上传图纸V1: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:34:09",
+      "id": 2
+    },
+    {
+      "drawing_id": 3,
+      "action": "upload",
+      "operator": "admin",
+      "detail": "上传图纸V2: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:35:08",
+      "id": 3
+    },
+    {
+      "drawing_id": 3,
+      "action": "delete",
+      "operator": "admin",
+      "detail": "删除图纸: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:35:19",
+      "id": 4
+    },
+    {
+      "drawing_id": 4,
+      "action": "upload",
+      "operator": "4",
+      "detail": "上传图纸V2: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:54:12",
+      "id": 5
+    },
+    {
+      "drawing_id": 5,
+      "action": "upload",
+      "operator": "5",
+      "detail": "上传图纸V3: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:54:12",
+      "id": 6
+    },
+    {
+      "drawing_id": 6,
+      "action": "upload",
+      "operator": "admin",
+      "detail": "上传图纸V4: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:54:12",
+      "id": 7
+    },
+    {
+      "drawing_id": 7,
+      "action": "upload",
+      "operator": "4",
+      "detail": "上传图纸V5: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:22",
+      "id": 8
+    },
+    {
+      "drawing_id": 8,
+      "action": "upload",
+      "operator": "5",
+      "detail": "上传图纸V6: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:22",
+      "id": 9
+    },
+    {
+      "drawing_id": 8,
+      "action": "delete",
+      "operator": "admin",
+      "detail": "删除图纸: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:22",
+      "id": 10
+    },
+    {
+      "drawing_id": 7,
+      "action": "delete",
+      "operator": "admin",
+      "detail": "删除图纸: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:23",
+      "id": 11
+    },
+    {
+      "drawing_id": 6,
+      "action": "delete",
+      "operator": "admin",
+      "detail": "删除图纸: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:23",
+      "id": 12
+    },
+    {
+      "drawing_id": 5,
+      "action": "delete",
+      "operator": "admin",
+      "detail": "删除图纸: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:23",
+      "id": 13
+    },
+    {
+      "drawing_id": 4,
+      "action": "delete",
+      "operator": "admin",
+      "detail": "删除图纸: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:23",
+      "id": 14
+    },
+    {
+      "drawing_id": 2,
+      "action": "delete",
+      "operator": "admin",
+      "detail": "删除图纸: test_draw.png",
+      "ip": "",
+      "created_at": "2026-06-25 18:55:24",
+      "id": 15
+    },
+    {
+      "drawing_id": 9,
+      "action": "upload",
+      "operator": "1",
+      "detail": "上传图纸V1: ä¼ä¸å¾®ä¿¡æªå¾_17821852611966.png",
+      "ip": "",
+      "created_at": "2026-06-26 11:50:28",
+      "id": 16
+    },
+    {
+      "drawing_id": 9,
+      "action": "preview",
+      "operator": "1",
+      "detail": "预览图纸V1: ä¼ä¸å¾®ä¿¡æªå¾_17821852611966.png",
+      "ip": "",
+      "created_at": "2026-06-26 11:50:33",
+      "id": 17
+    },
+    {
+      "drawing_id": 10,
+      "action": "upload",
+      "operator": "system",
+      "detail": "上传图纸V1: 1782206411735____________________17821852611966.png",
+      "ip": "",
+      "created_at": "2026-06-27 08:04:13",
+      "id": 18
+    }
+  ],
+  "nextId": 19
+}

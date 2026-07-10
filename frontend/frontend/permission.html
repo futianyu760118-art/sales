@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 权限管理</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
+    .perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+    .perm-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #f8f9fa; border-radius: 6px; font-size: 13px; }
+    .perm-item label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .perm-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #667eea; }
+    .perm-group-title { font-size: 14px; font-weight: 600; color: #667eea; margin: 12px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+    .role-card { background: white; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+    .role-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .role-card .role-info { flex: 1; }
+    .role-card .role-name { font-size: 15px; font-weight: 600; color: #333; }
+    .role-card .role-desc { font-size: 12px; color: #999; margin-top: 4px; }
+    .role-card .role-perms { font-size: 11px; color: #888; margin-top: 4px; }
+    .user-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #f0f0f0; }
+    .user-row:hover { background: #f8f9ff; }
+    .user-row .user-name { flex: 1; font-size: 13px; color: #333; }
+    .user-row .user-username { font-size: 12px; color: #999; min-width: 120px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-right: 4px; background: #e8eaf6; color: #667eea; }
+    .role-select-wrap { min-width: 180px; }
+    .role-select-wrap select { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+    .perm-count { color: #667eea; font-size: 12px; }
+    #permMatrix { border-collapse: collapse; }
+    #permMatrix th, #permMatrix td { padding: 6px 10px; border: 1px solid #e8e8e8; text-align: center; white-space: nowrap; }
+    #permMatrix th { background: #f5f6fa; font-weight: 600; color: #555; position: sticky; top: 0; z-index: 2; }
+    #permMatrix th:first-child { text-align: left; min-width: 140px; position: sticky; left: 0; z-index: 3; }
+    #permMatrix td:first-child { background: #fafafa; font-weight: 600; font-size: 13px; text-align: left; position: sticky; left: 0; }
+    .perm-cell { cursor: pointer; width: 48px; height: 28px; display: inline-block; border-radius: 4px; line-height: 28px; transition: all 0.15s; user-select: none; }
+    .perm-full { background: #d4edda; color: #155724; }
+    .perm-view { background: #cce5ff; color: #004085; }
+    .perm-none { background: #f5f5f5; color: #bbb; }
+    .perm-cell:hover { transform: scale(1.1); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .perm-module-row td { border-top: 2px solid #ddd !important; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content">
+    <div class="tab-nav" id="mainTabs">
+      <button class="active" onclick="switchTab('roles')">角色管理</button>
+      <button onclick="switchTab('users')">用户管理</button>
+      <button onclick="switchTab('perms')">权限分配</button>
+    </div>
+
+    <!-- Tab: 角色管理 -->
+    <div class="tab-content active" id="tab-roles">
+      <div class="header">
+        <h2>权限管理</h2>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="showAddRoleModal()">新增角色</button>
+        </div>
+      </div>
+      <div id="roleList"></div>
+    </div>
+
+    <!-- Tab: 用户管理 -->
+    <div class="tab-content" id="tab-users">
+      <div class="header">
+        <h2>权限管理</h2>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="showAddUserModal()">新增用户</button>
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="userSearchInput" placeholder="搜索用户姓名/用户名..." style="width:220px;">
+        <button class="btn btn-primary" onclick="loadUsers()">查询</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th class="seq-col">#</th><th>姓名</th><th>用户名</th><th>所属角色</th><th>操作</th></tr>
+          </thead>
+          <tbody id="userTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: 权限分配矩阵 -->
+    <div class="tab-content" id="tab-perms">
+      <div class="header">
+        <h2>权限矩阵（按文档八.3设计）</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="saveMatrix()">保存全部</button>
+          <button class="btn" style="background:#eee;" onclick="loadMatrix()">刷新</button>
+        </div>
+      </div>
+      <div class="tbl-wrap" style="max-height:68vh;">
+        <table id="permMatrix" style="min-width:1000px;font-size:12px;">
+          <thead id="permMatrixHead"></thead>
+          <tbody id="permMatrixBody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#888;display:flex;gap:16px;">
+        <span>🟢 完全权限</span><span>🔵 只读查看</span><span>⚪ 无权限</span><span style="margin-left:8px;">（点击单元格循环切换）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增/编辑角色弹窗 -->
+  <div class="modal" id="roleModal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close-btn" onclick="closeModal('roleModal')">&times;</span>
+      <h3 id="roleModalTitle">新增角色</h3>
+      <form id="roleForm">
+        <input type="hidden" id="roleEditId">
+        <div class="form-group"><label>角色名称 *</label><input type="text" id="rName" required></div>
+        <div class="form-group"><label>角色描述</label><textarea id="rDescription" rows="2" placeholder="角色描述..."></textarea></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+          <button type="button" class="btn" style="background:#eee;" onclick="closeModal('roleModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 新增/编辑用户弹窗 -->
+  <div class="modal" id="userModal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close-btn" onclick="closeModal('userModal')">&times;</span>
+      <h3 id="userModalTitle">新增用户</h3>
+      <form id="userForm">
+        <input type="hidden" id="userEditId">
+        <div class="form-row">
+          <div class="form-group"><label>姓名 *</label><input type="text" id="uName" required></div>
+          <div class="form-group"><label>用户名 *</label><input type="text" id="uUsername" required></div>
+        </div>
+        <div class="form-group"><label>密码</label><input type="password" id="uPassword" placeholder="留空则不修改"></div>
+        <div class="form-group"><label>邮箱</label><input type="text" id="uEmail"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+          <button type="button" class="btn" style="background:#eee;" onclick="closeModal('userModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin + '/api';
+    let allRoles = [];
+    let hasPending=false, pendingChanges=[];
+
+    // ===== Tab切换（关联刷新） =====
+    function switchTab(tab) {
+      document.querySelectorAll('#mainTabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`#mainTabs button[onclick*="${tab}"]`).classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+      if (tab === 'roles') loadRoles();
+      else if (tab === 'users') { loadRoles(); loadUsers(); }
+      else if (tab === 'perms') { loadRoles(); loadMatrix(); }
+    }
+
+    // ===== 角色管理 =====
+    async function loadRoles() {
+      try {
+        const res = await fetch(`${API}/permissions/roles`);
+        const data = await res.json();
+        allRoles = data.data || data || [];
+        renderRoles();
+      } catch(e) { console.error('加载角色失败', e); }
+    }
+
+    async function renderRoles() {
+      const container = document.getElementById('roleList');
+      if (allRoles.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">暂无角色</div>';
+        return;
+      }
+      let html = '';
+      for (const role of allRoles) {
+        let permNames = '';
+        try {
+          const pres = await fetch(`${API}/permissions/roles/${role.id}/permissions`);
+          const pdata = await pres.json();
+          const perms = pdata.data || pdata || [];
+          permNames = perms.map(p => p.code || p.name || p).join(', ');
+        } catch(e) { permNames = ''; }
+        html += `<div class="role-card">
+          <div class="role-info">
+            <div class="role-name">${role.name}</div>
+            <div class="role-desc">${role.description || ''}</div>
+            <div class="role-perms">${permNames || '未分配'}</div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-info btn-sm" onclick="goToMatrix(${role.id})">矩阵</button>
+            <button class="btn btn-primary btn-sm" onclick="editRole(${role.id})">编辑</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteRole(${role.id})">删除</button>
+          </div>
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function showAddRoleModal() {
+      document.getElementById('roleModalTitle').textContent = '新增角色';
+      document.getElementById('roleEditId').value = '';
+      document.getElementById('roleForm').reset();
+      document.getElementById('roleModal').style.display = 'flex';
+    }
+
+    async function editRole(id) {
+      const role = allRoles.find(r => r.id === id);
+      if (!role) return;
+      document.getElementById('roleModalTitle').textContent = '编辑角色';
+      document.getElementById('roleEditId').value = role.id;
+      document.getElementById('rName').value = role.name || '';
+      document.getElementById('rDescription').value = role.description || '';
+      document.getElementById('roleModal').style.display = 'flex';
+    }
+
+    document.getElementById('roleForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('roleEditId').value;
+      const data = {
+        name: document.getElementById('rName').value.trim(),
+        description: document.getElementById('rDescription').value.trim()
+      };
+      if (!data.name) { alert('请输入角色名称'); return; }
+
+      const url = id ? `${API}/permissions/roles/${id}` : `${API}/permissions/roles`;
+      const method = id ? 'PUT' : 'POST';
+      try {
+        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        if (res.ok) { closeModal('roleModal'); loadRoles(); }
+        else { const err = await res.json(); alert(err.error || '操作失败'); }
+      } catch(e) { alert('操作失败: ' + e.message); }
+    });
+
+    async function deleteRole(id) {
+      if (!confirm('确定要删除该角色吗？')) return;
+      try {
+        const res = await fetch(`${API}/permissions/roles/${id}`, { method: 'DELETE' });
+        if (res.ok) loadRoles();
+        else { const err = await res.json(); alert(err.error || '删除失败'); }
+      } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
+    // ===== 用户管理 =====
+    async function loadUsers() {
+      try {
+        const keyword = document.getElementById('userSearchInput').value.trim();
+        let url = `${API}/users`;
+        if (keyword) url += `?keyword=${encodeURIComponent(keyword)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const users = data.data || data || [];
+        const tbody = document.getElementById('userTable');
+        tbody.innerHTML = '';
+        if (users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#999;">暂无用户</td></tr>';
+          return;
+        }
+        for (let idx = 0; idx < users.length; idx++) {
+          const u = users[idx];
+          let rolesHtml = '';
+          try {
+            const rres = await fetch(`${API}/permissions/users/${u.id}/roles`);
+            const rdata = await rres.json();
+            const roles = rdata.data || rdata || [];
+            rolesHtml = roles.map(r => `<span class="tag">${r.name || r}</span>`).join('');
+          } catch(e) { rolesHtml = '-'; }
+
+          const tr = document.createElement('tr');
+          tr.id = 'user-row-' + u.id;
+          tr.innerHTML = `
+            <td class="seq-col">${idx + 1}</td>
+            <td>${u.name || '-'}</td>
+            <td>${u.username || '-'}</td>
+            <td class="user-roles-cell">${rolesHtml || '-'}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="editUser(${u.id})">编辑</button>
+              <button class="btn btn-info btn-sm" onclick="showAssignRoleModal(${u.id})">分配角色</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">删除</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+      } catch(e) { console.error('加载用户失败', e); }
+    }
+
+    function showAddUserModal() {
+      document.getElementById('userModalTitle').textContent = '新增用户';
+      document.getElementById('userEditId').value = '';
+      document.getElementById('userForm').reset();
+      document.getElementById('uPassword').placeholder = '设置密码';
+      document.getElementById('userModal').style.display = 'flex';
+    }
+
+    async function editUser(id) {
+      try {
+        const res = await fetch(`${API}/permissions/users/${id}`);
+        const u = await res.json();
+        document.getElementById('userModalTitle').textContent = '编辑用户';
+        document.getElementById('userEditId').value = u.id;
+        document.getElementById('uName').value = u.name || '';
+        document.getElementById('uUsername').value = u.username || '';
+        document.getElementById('uEmail').value = u.email || '';
+        document.getElementById('uPassword').value = '';
+        document.getElementById('uPassword').placeholder = '留空则不修改';
+        document.getElementById('userModal').style.display = 'flex';
+      } catch(e) { alert('加载失败: ' + e.message); }
+    }
+
+    document.getElementById('userForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('userEditId').value;
+      const data = {
+        name: document.getElementById('uName').value.trim(),
+        username: document.getElementById('uUsername').value.trim(),
+        email: document.getElementById('uEmail').value.trim()
+      };
+      const password = document.getElementById('uPassword').value.trim();
+      if (password) data.password = password;
+      if (!data.name || !data.username) { alert('姓名和用户名为必填'); return; }
+
+      const url = id ? `${API}/permissions/users/${id}` : `${API}/permissions/users`;
+      const method = id ? 'PUT' : 'POST';
+      try {
+        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        if (res.ok) { closeModal('userModal'); loadUsers(); }
+        else { const err = await res.json(); alert(err.error || '操作失败'); }
+      } catch(e) { alert('操作失败: ' + e.message); }
+    });
+
+    async function deleteUser(id) {
+      if (!confirm('确定要删除该用户吗？')) return;
+      try {
+        const res = await fetch(`${API}/permissions/users/${id}`, { method: 'DELETE' });
+        if (res.ok) loadUsers();
+        else { const err = await res.json(); alert(err.error || '删除失败'); }
+      } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
+    // ===== 分配角色 =====
+    async function showAssignRoleModal(userId) {
+      try {
+        const [rolesRes, userRolesRes] = await Promise.all([
+          fetch(`${API}/permissions/roles`),
+          fetch(`${API}/permissions/users/${userId}/roles`)
+        ]);
+        const roles = (await rolesRes.json()).data || (await rolesRes.json()) || [];
+        const userRoles = (await userRolesRes.json()).data || (await userRolesRes.json()) || [];
+        const userRoleIds = userRoles.map(r => r.id || r);
+
+        let modal = document.getElementById('assignRoleModal');
+        if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'assignRoleModal';
+          modal.className = 'modal';
+          document.body.appendChild(modal);
+        }
+        modal.innerHTML = `<div class="modal-content" style="max-width:500px;">
+          <span class="close-btn" onclick="closeModal('assignRoleModal')">&times;</span>
+          <h3>分配角色</h3>
+          <div style="max-height:300px;overflow-y:auto;">
+            ${roles.map(r => `<div style="padding:8px 0;border-bottom:1px solid #f0f0f0;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" class="assign-role-check" value="${r.id}" ${userRoleIds.includes(r.id) ? 'checked' : ''}>
+                <span>${r.name}</span>
+                <span style="color:#999;font-size:11px;">${r.description || ''}</span>
+              </label>
+            </div>`).join('')}
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+            <button type="button" class="btn" style="background:#eee;" onclick="closeModal('assignRoleModal')">取消</button>
+            <button type="button" class="btn btn-primary" onclick="saveUserRoles(${userId})">保存</button>
+          </div>
+        </div>`;
+        modal.style.display = 'flex';
+      } catch(e) { alert('加载失败: ' + e.message); }
+    }
+
+    async function saveUserRoles(userId) {
+      const roleIds = [...document.querySelectorAll('.assign-role-check:checked')].map(cb => parseInt(cb.value));
+      try {
+        const res = await fetch(`${API}/permissions/users/${userId}/roles`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role_ids: roleIds })
+        });
+        if (res.ok) { closeModal('assignRoleModal'); loadRoles(); loadUsers(); }
+        else { const err = await res.json(); alert(err.error || '保存失败'); }
+      } catch(e) { alert('保存失败: ' + e.message); }
+    }
+
+    function goToMatrix(roleId){
+      switchTab('perms');
+      setTimeout(()=>{ document.getElementById('permRoleSelect')?.value===roleId?loadRolePermissions():null; },300);
+    }
+
+    // ===== 权限分配（矩阵视图，批量保存） =====
+    let matrixRoles=[], matrixPerms=[], matrixData={};
+
+    const MODULE_GROUPS = [
+      { name:'仪表盘', perms:['dashboard'] },
+      { name:'询价管理', perms:['inquiry:view','inquiry:create','inquiry:edit','inquiry:delete','inquiry:price','inquiry:status','inquiry:import','inquiry:export'] },
+      { name:'客户管理', perms:['customer:view','customer:create','customer:edit','customer:delete'] },
+      { name:'产品管理', perms:['product:view','product:create','product:edit','product:delete'] },
+      { name:'物料库', perms:['material:view','material:create','material:edit','material:delete','drawing:preview','drawing:approve','drawing:upload','drawing:delete'] },
+      { name:'供应商管理', perms:['supplier:view','supplier:create','supplier:edit','supplier:delete'] },
+      { name:'BOM管理', perms:['bom:view','bom:create','bom:edit','bom:delete','bom-compare:view'] },
+      { name:'核价表', perms:['pricing:view','pricing:create','pricing:edit','pricing:delete'] },
+      { name:'报价库', perms:['quote:view','quote:manage','quote:delete'] },
+      { name:'订单管理', perms:['order:view','order:create','order:edit','order:delete'] },
+      { name:'样品管理', perms:['sample:view','sample:create','sample:edit','sample:delete'] },
+      { name:'项目管理', perms:['project:view','project:create','project:edit','project:delete'] },
+      { name:'项目技转', perms:['tech:view','tech:create','tech:edit','tech:delete','tech:audit','tech:approve:dept','tech:approve:gm','tech:download','tech:download:secret','tech:preview:core','tech:forward','tech:reuse','tech:transfer','tech:change','tech:review','tech:case:manage','tech:admin'] },
+      { name:'产品配置表', perms:['config:view','config:create','config:edit','config:delete'] },
+      { name:'规格书库', perms:['spec:view','spec:manage','spec:delete'] },
+      { name:'配置表库', perms:['config-lib:view','config-lib:manage','config-lib:delete'] },
+      { name:'数据报表', perms:['report:view'] },
+      { name:'权限管理', perms:['system:permission'] },
+      { name:'用户管理', perms:['system:user'] },
+      { name:'系统设置', perms:['system:config'] },
+      { name:'问题反馈', perms:['feedback:create','feedback:handle','feedback:delete'] },
+      { name:'流程规则', perms:['rules:view','rules:manage','rules:delete'] },
+      { name:'合规自检', perms:['compliance:view','compliance:run'] },
+      { name:'数据清洗', perms:['data-clean:view','data-clean:execute','data-clean:delete'] },
+      { name:'自动测试', perms:['test:view','test:run'] },
+      { name:'AI助手', perms:['ai:view','ai:delete'] }
+    ];
+
+    async function loadMatrix(){
+      try{
+        const[rolesRes,permsRes]=await Promise.all([fetch(API+'/permissions/roles'),fetch(API+'/permissions/permissions')]);
+        const rolesData=await rolesRes.json();
+        const permsData=await permsRes.json();
+        matrixRoles=rolesData.data||rolesData||[];
+        matrixPerms=permsData.data||permsData||[];
+        matrixData={};
+        for(const r of matrixRoles){
+          try{
+            const pres=await fetch(API+'/permissions/roles/'+r.id+'/permissions');
+            const pdata=await pres.json();
+            matrixData[r.code]=new Set((pdata.data||pdata||[]).map(p=>p.code||p));
+          }catch(e){matrixData[r.code]=new Set()}
+        }
+        renderMatrix();
+      }catch(e){console.error('loadMatrix error:',e)}
+    }
+
+    function getModuleState(roleCode, permCodes){
+      if(!matrixData[roleCode]) return 'none';
+      const hasView=permCodes.some(c=>c.endsWith(':view')&&matrixData[roleCode].has(c));
+      const hasWrite=permCodes.some(c=>!c.endsWith(':view')&&matrixData[roleCode].has(c));
+      if(hasWrite) return 'full';
+      if(hasView) return 'view';
+      const hasAny=permCodes.some(c=>matrixData[roleCode].has(c));
+      return hasAny?'view':'none';
+    }
+
+    function cycleState(current){
+      if(current==='none') return 'view';
+      if(current==='view') return 'full';
+      return 'none';
+    }
+
+    function stateLabel(s){ return s==='full'?'✅':s==='view'?'👁️':'❌'; }
+    function stateClass(s){ return 'perm-cell perm-'+s; }
+
+    async function toggleModule(roleCode, permCodes){
+      const state=getModuleState(roleCode,permCodes);
+      const next=cycleState(state);
+      const viewCode=permCodes.find(c=>c.endsWith(':view'));
+      const willHave=next==='full'?permCodes:(next==='view'&&viewCode?[viewCode]:[]);
+      const existing=permCodes.filter(c=>matrixData[roleCode].has(c));
+      const toAdd=willHave.filter(c=>!matrixData[roleCode].has(c));
+      const toRemove=existing.filter(c=>!willHave.includes(c));
+
+      toAdd.forEach(c=>matrixData[roleCode].add(c));
+      toRemove.forEach(c=>matrixData[roleCode].delete(c));
+
+      pendingChanges=pendingChanges.filter(pc=>pc.roleCode!==roleCode);
+      const combined={roleCode,toAdd,toRemove};
+      for(const pc of pendingChanges){
+        if(pc.roleCode===roleCode){
+          combined.toAdd=[...new Set([...combined.toAdd,...pc.toAdd])];
+          combined.toRemove=[...new Set([...combined.toRemove,...pc.toRemove])];
+        }
+      }
+      pendingChanges.push({roleCode,toAdd,toRemove});
+      hasPending=true;
+      document.querySelector('.header button.btn-primary').textContent='保存全部 ●';
+      renderMatrix();
+    }
+
+    function renderMatrix(){
+      const head=document.getElementById('permMatrixHead');
+      const body=document.getElementById('permMatrixBody');
+      head.innerHTML='<tr><th>模块</th>'+matrixRoles.map(r=>`<th style="font-size:11px">${r.name}</th>`).join('')+'</tr>';
+      let html='';
+      MODULE_GROUPS.forEach((g,gi)=>{
+        const stateRow=[];
+        matrixRoles.forEach(r=>stateRow.push(getModuleState(r.code,g.perms)));
+        html+=`<tr class="${gi>0?'perm-module-row':''}">
+          <td>${g.name}</td>
+          ${matrixRoles.map((r,i)=>`<td><span class="perm-cell ${gi>0?'':'perm-highlight'} perm-${stateRow[i]}" onclick='toggleModule("${r.code}",${JSON.stringify(g.perms)})'>${stateLabel(stateRow[i])}</span></td>`).join('')}
+        </tr>`;
+      });
+      body.innerHTML=html;
+    }
+
+    async function saveMatrix(){
+      if(!hasPending){ alert('没有待保存的更改'); return; }
+      const btn=document.querySelector('#tab-perms .header button.btn-primary');
+      btn.textContent='保存中...'; btn.disabled=true;
+      const roleIds=new Set(pendingChanges.map(pc=>pc.roleCode));
+      let saved=0, failed=0, skipped=[];
+      for(const rCode of roleIds){
+        const role=matrixRoles.find(r=>r.code===rCode);
+        if(!role){ skipped.push(rCode); continue; }
+        const allPermIds=[];
+        const missingCodes=[];
+        for(const code of matrixData[rCode]||[]){
+          const p=matrixPerms.find(pm=>pm.code===code);
+          if(p) allPermIds.push(p.id);
+          else { missingCodes.push(code); }
+        }
+        if(missingCodes.length>0){
+          console.warn('角色'+role.name+'以下权限未在后端找到，已跳过:',missingCodes.join(', '));
+        }
+        try{
+          const res=await fetch(API+'/permissions/roles/'+role.id+'/permissions',{
+            method:'PUT',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({permission_ids:allPermIds})
+          });
+          if(res.ok){ saved++; }
+          else{ failed++; }
+        }catch(e){ failed++; }
+      }
+      pendingChanges=[]; hasPending=false;
+      btn.textContent='保存全部'; btn.disabled=false;
+      let msg=`保存完成：${saved}个角色已提交`;
+      if(failed>0) msg+=`，${failed}个失败`;
+      alert(msg);
+      // 保存后重新加载矩阵，确保显示与后端一致
+      loadMatrix();
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.addEventListener('click', function(e) {
+      if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+    });
+
+    loadRoles();
+  </script>
+  <script src="permission-check.js"></script>
+  <script>PermissionCheck.init();</script>
+  <script src="chat-widget.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "records": [
+    {
+      "product_model": "HJ.23015.R1.000",
+      "salesperson": "朱梦倩",
+      "customer": "自研",
+      "appearance": "可以",
+      "price": "适中",
+      "performance": "没问题",
+      "function_feedback": "需要有爆闪",
+      "progress": "推广200家",
+      "remarks": "",
+      "created_at": "2026-07-03 12:49:09",
+      "updated_at": "2026-07-03 12:49:09",
+      "id": 1
+    }
+  ],
+  "nextId": 2
+}

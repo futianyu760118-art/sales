@@ -1,0 +1,44 @@
+{
+  "records": [
+    {
+      "inquiry_id": 479,
+      "inquiry_no": "JFX20260530004",
+      "to": "test@example.com",
+      "cc": "",
+      "subject": "Test",
+      "body": "Hello",
+      "attachments": "[\"quotation\",\"config\",\"spec\"]",
+      "status": "sent",
+      "sent_at": "2026-05-30 09:35:19",
+      "created_at": "2026-05-30 09:35:19",
+      "id": 1
+    },
+    {
+      "inquiry_id": 480,
+      "inquiry_no": "JFX20260530003",
+      "to": "cxsjwj@126.com",
+      "cc": "",
+      "subject": "报价通知 - JFS02-B1WB20 - 宁波恒剑光电",
+      "body": "尊敬的客户：\n\n感谢您的询价。附件为我司关于 JFS02-B1WB20 的报价资料，请查收。\n\n如有任何问题，请随时联系我们。\n\n此致\n宁波恒剑光电科技有限公司",
+      "attachments": "[\"quotation\",\"config\",\"spec\"]",
+      "status": "sent",
+      "sent_at": "2026-05-30 09:38:46",
+      "created_at": "2026-05-30 09:38:46",
+      "id": 2
+    },
+    {
+      "inquiry_id": 482,
+      "inquiry_no": "JFX20260530004",
+      "to": "cxsjwj@126.com",
+      "cc": "",
+      "subject": "报价通知 - JFS04-B1WB50 - 宁波恒剑光电",
+      "body": "尊敬的客户：\n\n感谢您的询价。附件为我司关于 JFS04-B1WB50 的报价资料，请查收。\n\n如有任何问题，请随时联系我们。\n\n此致\n宁波恒剑光电科技有限公司",
+      "attachments": "[\"quotation\",\"config\",\"spec\"]",
+      "status": "sent",
+      "sent_at": "2026-05-30 09:53:28",
+      "created_at": "2026-05-30 09:53:28",
+      "id": 3
+    }
+  ],
+  "nextId": 4
+}

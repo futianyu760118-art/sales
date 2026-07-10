@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 仪表盘</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; position: relative; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .card h3 { color: #888; font-size: 13px; margin-bottom: 8px; }
+    .card p { font-size: 26px; font-weight: 700; }
+    .card .sub { font-size: 11px; color: #999; margin-top: 4px; }
+    .card .drill-hint { position: absolute; top: 10px; right: 10px; font-size: 10px; color: #bbb; }
+    .card:hover .drill-hint { color: #667eea; }
+    .card.new p { color: #3498db; }
+    .card.pending p { color: #f39c12; }
+    .card.quoted p { color: #27ae60; }
+    .card.lost p { color: #e74c3c; }
+    .card.closed p { color: #9b59b6; }
+    .card.amount p { color: #27ae60; }
+    .card.rate p { color: #667eea; }
+
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .chart-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .chart-box h3 { margin-bottom: 15px; color: #333; font-size: 15px; }
+
+    .mini-chart { height: 200px; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px 0 0; }
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .bar-wrap:hover .bar { opacity: 0.8; }
+    .bar { width: 36px; background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); border-radius: 6px 6px 0 0; transition: all 0.3s; }
+    .bar-label { font-size: 11px; color: #999; margin-top: 6px; }
+    .bar-value { font-size: 11px; color: #666; margin-bottom: 4px; font-weight: 600; }
+
+    .pie-chart { width: 180px; height: 180px; border-radius: 50%; margin: 0 auto; position: relative; cursor: pointer; }
+    .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .pie-center span { font-size: 13px; color: #666; }
+    .legend { margin-top: 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; }
+    .legend-item:hover { color: #667eea; }
+    .legend-color { width: 10px; height: 10px; border-radius: 3px; }
+
+    .drill-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: flex-start; z-index: 1000; padding-top: 40px; }
+    .drill-modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 800px; max-height: 70vh; overflow-y: auto; }
+    .drill-modal-content h3 { margin-bottom: 15px; color: #333; }
+    .drill-close { float: right; cursor: pointer; font-size: 22px; color: #999; }
+    .drill-close:hover { color: #333; }
+    .drill-table { width: 100%; border-collapse: collapse; }
+    .drill-table th, .drill-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+    .drill-table th { background: #f8f9fa; font-weight: 600; color: #666; }
+    .drill-table tr:hover { background: #f8f9ff; }
+    .drill-link { color: #667eea; text-decoration: none; cursor: pointer; }
+    .drill-link:hover { text-decoration: underline; }
+    .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .status-new { background: #e3f2fd; color: #1976d2; }
+    .status-pending { background: #fff3e0; color: #f57c00; }
+    .status-quoted { background: #e8f5e9; color: #388e3c; }
+    .status-negotiating { background: #e0f2f1; color: #00897b; }
+    .status-sample { background: #f3e5f5; color: #7b1fa2; }
+    .status-project { background: #e8eaf6; color: #3949ab; }
+    .status-lost { background: #ffebee; color: #c62828; }
+    .status-closed { background: #e8f5e9; color: #2e7d32; }
+
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .action-btn { padding: 15px; background: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.3s; text-align: center; }
+    .action-btn:hover { transform: translateY(-3px); }
+    .action-btn .icon { font-size: 22px; margin-bottom: 6px; display: block; }
+    .action-btn span { display: block; color: #333; font-weight: 500; font-size: 13px; }
+
+    .activity-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .activity-section h3 { margin-bottom: 15px; color: #333; font-size: 15px; }
+    .activity-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item .info { font-size: 13px; color: #333; }
+    .activity-item .time { font-size: 11px; color: #999; white-space: nowrap; }
+    .activity-item a { color: #667eea; text-decoration: none; }
+
+    .kanban-section { margin-bottom: 20px; }
+    .kanban-section h3 { margin-bottom: 12px; color: #333; font-size: 15px; }
+    .kanban-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .kanban-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid; }
+    .kanban-card h4 { font-size: 12px; color: #888; margin-bottom: 6px; }
+    .kanban-card .num { font-size: 22px; font-weight: 700; }
+    .kanban-card .detail { font-size: 11px; color: #999; margin-top: 4px; }
+    .kanban-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); cursor: pointer; }
+
+    /* 研发项目合作分析 */
+    .rd-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .rd-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .rd-header h3 { color: #333; font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .rd-header h3::before { content: ''; width: 4px; height: 18px; background: linear-gradient(180deg,#667eea,#764ba2); border-radius: 2px; display: inline-block; }
+    .rd-more { color: #667eea; text-decoration: none; font-size: 12px; }
+    .rd-more:hover { text-decoration: underline; }
+    .rd-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .rd-stat { background: linear-gradient(135deg, #f8f9ff, #eef1ff); padding: 14px; border-radius: 10px; text-align: center; transition: transform 0.2s; }
+    .rd-stat:hover { transform: translateY(-2px); }
+    .rd-stat .num { font-size: 24px; font-weight: 700; color: #667eea; }
+    .rd-stat .lbl { font-size: 11px; color: #888; margin-top: 3px; }
+    .rd-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .rd-panel { background: #fafbff; border: 1px solid #eef0f7; border-radius: 10px; padding: 14px; }
+    .rd-panel > h4 { font-size: 13px; color: #555; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .rd-panel > h4::before { content: ''; width: 4px; height: 14px; border-radius: 2px; display: inline-block; }
+    .rd-panel.issues > h4::before { background: #e74c3c; }
+    .rd-panel.actions > h4::before { background: #27ae60; }
+    .rd-item { background: white; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border-left: 3px solid #f39c12; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .rd-panel.actions .rd-item { border-left-color: #27ae60; }
+    .rd-item:last-child { margin-bottom: 0; }
+    .rd-item .it-title { font-weight: 600; color: #333; margin-bottom: 4px; }
+    .rd-item .it-problem { color: #c0392b; line-height: 1.5; }
+    .rd-item .it-measure { color: #27ae60; line-height: 1.5; margin-top: 3px; }
+    .rd-item .it-problem b, .rd-item .it-measure b { font-weight: 600; }
+    .rd-empty { color: #bbb; font-size: 12px; text-align: center; padding: 18px 0; }
+
+    /* 研发交付与变更分析 */
+    .rd-delivery { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .rd-delivery .rd-sub { font-size: 11px; color: #aaa; }
+    .rd-insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .rd-insight-panel { background: #fafbff; border: 1px solid #eef0f7; border-radius: 10px; padding: 14px; }
+    .rd-insight-panel > h4 { font-size: 13px; color: #555; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .rd-insight-panel.analysis > h4::before { content: ''; width: 4px; height: 14px; background: #f39c12; border-radius: 2px; display: inline-block; }
+    .rd-insight-panel.solution > h4::before { content: ''; width: 4px; height: 14px; background: #27ae60; border-radius: 2px; display: inline-block; }
+    .insight-item { background: white; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; color: #7f6a3a; border-left: 3px solid #f39c12; line-height: 1.6; }
+    .solution-item { background: white; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; color: #2c7a4b; border-left: 3px solid #27ae60; line-height: 1.6; }
+    .insight-item:last-child, .solution-item:last-child { margin-bottom: 0; }
+
+    @media (max-width: 768px) {
+      .charts { grid-template-columns: 1fr; }
+      .kanban-row { grid-template-columns: 1fr 1fr; }
+      .rd-panels { grid-template-columns: 1fr; }
+      .rd-insight-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content" data-module="dashboard">
+    <div class="header">
+      <h2>欢迎回来</h2>
+      <div class="user-info">
+        <span id="userName">当前用户</span>
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+      </div>
+    </div>
+
+    <!-- KPI卡片 - 点击穿透 -->
+    <div class="cards" id="kpiCards" data-feature="kpi_cards">
+      <div class="card new" onclick="drillDown('new')">
+        <span class="drill-hint">点击查看</span>
+        <h3>新增询价</h3>
+        <p id="newCount">0</p>
+        <div class="sub" id="newSub"></div>
+      </div>
+      <div class="card pending" onclick="drillDown('pending')">
+        <span class="drill-hint">点击查看</span>
+        <h3>待处理</h3>
+        <p id="pendingCount">0</p>
+        <div class="sub" id="pendingSub"></div>
+      </div>
+      <div class="card quoted" onclick="drillDown('quoted')">
+        <span class="drill-hint">点击查看</span>
+        <h3>已报价</h3>
+        <p id="quotedCount">0</p>
+        <div class="sub" id="quotedSub"></div>
+      </div>
+      <div class="card lost" onclick="drillDown('lost')">
+        <span class="drill-hint">点击查看</span>
+        <h3>已流失</h3>
+        <p id="lostCount">0</p>
+        <div class="sub" id="lostSub"></div>
+      </div>
+      <div class="card closed" onclick="drillDown('closed')">
+        <span class="drill-hint">点击查看</span>
+        <h3>已成交</h3>
+        <p id="closedCount">0</p>
+        <div class="sub" id="closedSub"></div>
+      </div>
+      <div class="card amount" onclick="drillDown('closed')">
+        <span class="drill-hint">点击查看</span>
+        <h3>成交金额</h3>
+        <p id="closedAmount">¥0</p>
+        <div class="sub" id="amountSub"></div>
+      </div>
+      <div class="card rate" onclick="drillDown('conversion')">
+        <span class="drill-hint">点击查看</span>
+        <h3>转化率</h3>
+        <p id="conversionRate">0%</p>
+        <div class="sub" id="rateSub"></div>
+      </div>
+      <div class="card" style="cursor:pointer;" onclick="window.location.href='pricing.html'">
+        <span class="drill-hint">查看核价</span>
+        <h3>核价记录</h3>
+        <p id="pricingCount" style="color:#667eea;">0</p>
+        <div class="sub" id="pricingSub"></div>
+      </div>
+      <div class="card" style="cursor:pointer;" onclick="window.location.href='pricing.html'">
+        <span class="drill-hint">查看核价</span>
+        <h3>平均报价</h3>
+        <p id="avgPriceRmb" style="color:#27ae60;">¥0</p>
+        <div class="sub" id="avgPriceSub"></div>
+      </div>
+    </div>
+
+    <!-- 业务看板 - 点击跳转 -->
+    <div class="kanban-section">
+      <h3>业务看板</h3>
+      <div class="kanban-row">
+        <div class="kanban-card" style="border-left-color:#3498db;" onclick="jumpToInquiry('new')">
+          <h4>新建询价</h4>
+          <div class="num" id="kbNew" style="color:#3498db;">0</div>
+          <div class="detail" id="kbNewDetail"></div>
+        </div>
+        <div class="kanban-card" style="border-left-color:#f39c12;" onclick="jumpToInquiry('pending_pricing')">
+          <h4>待核价</h4>
+          <div class="num" id="kbPricing" style="color:#f39c12;">0</div>
+          <div class="detail" id="kbPricingDetail"></div>
+        </div>
+        <div class="kanban-card" style="border-left-color:#27ae60;" onclick="jumpToInquiry('quoted')">
+          <h4>已报价</h4>
+          <div class="num" id="kbQuoted" style="color:#27ae60;">0</div>
+          <div class="detail" id="kbQuotedDetail"></div>
+        </div>
+        <div class="kanban-card" style="border-left-color:#9b59b6;" onclick="jumpToInquiry('negotiating')">
+          <h4>洽谈中</h4>
+          <div class="num" id="kbNegotiating" style="color:#9b59b6;">0</div>
+          <div class="detail" id="kbNegotiatingDetail"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 订单/样品/项目/供应商 统计 -->
+    <div class="cards" style="margin-top:15px;" id="moduleCards">
+      <div class="card" style="cursor:pointer;border-top:3px solid #667eea;" onclick="location.href='order.html'">
+        <h3>\u8ba2\u5355\u7ba1\u7406</h3>
+        <p id="orderTotal" style="color:#667eea;">-</p>
+        <div class="sub" id="orderSub"></div>
+      </div>
+      <div class="card" style="cursor:pointer;border-top:3px solid #27ae60;" onclick="location.href='sample.html'">
+        <h3>\u6837\u54c1\u7ba1\u7406</h3>
+        <p id="sampleTotal" style="color:#27ae60;">-</p>
+        <div class="sub" id="sampleSub"></div>
+      </div>
+      <div class="card" style="cursor:pointer;border-top:3px solid #9b59b6;" onclick="location.href='project.html'">
+        <h3>\u9879\u76ee\u7ba1\u7406</h3>
+        <p id="projectTotal" style="color:#9b59b6;">-</p>
+        <div class="sub" id="projectSub"></div>
+      </div>
+      <div class="card" style="cursor:pointer;border-top:3px solid #e67e22;" onclick="location.href='supplier.html'">
+        <h3>\u4f9b\u5e94\u5546\u7ba1\u7406</h3>
+        <p id="supplierTotal" style="color:#e67e22;">-</p>
+        <div class="sub" id="supplierSub"></div>
+      </div>
+    </div>
+
+    <!-- 研发项目合作分析 -->
+    <div class="rd-section" data-feature="rd_analysis">
+      <div class="rd-header">
+        <h3>研发项目合作分析</h3>
+        <a href="project.html" class="rd-more">进入项目台 »</a>
+      </div>
+      <div class="rd-cards" id="rdCards"></div>
+      <div class="rd-panels">
+        <div class="rd-panel issues">
+          <h4>问题（供应链品质异常）</h4>
+          <div id="rdIssues"></div>
+        </div>
+        <div class="rd-panel actions">
+          <h4>对策（复盘行动计划）</h4>
+          <div id="rdActions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 研发交付与变更分析 -->
+    <div class="rd-delivery" data-feature="rd_delivery">
+      <div class="rd-header">
+        <h3>研发交付与变更分析</h3>
+        <span class="rd-sub">交付周期 · 变更次数 · 智能诊断</span>
+      </div>
+      <div class="rd-cards" id="rdMetrics"></div>
+      <div class="rd-insight-grid">
+        <div class="rd-insight-panel analysis">
+          <h4>分析</h4>
+          <div id="rdInsights"></div>
+        </div>
+        <div class="rd-insight-panel solution">
+          <h4>解决方案</h4>
+          <div id="rdSolutions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图表 -->
+    <div class="charts" data-feature="charts">
+      <div class="chart-box">
+        <h3>月度询价趋势 <span style="font-size:11px;color:#999;">(点击柱子查看明细)</span></h3>
+        <div class="mini-chart" id="monthlyChart"></div>
+      </div>
+      <div class="chart-box">
+        <h3>状态分布 <span style="font-size:11px;color:#999;">(点击查看明细)</span></h3>
+        <div class="pie-chart" id="pieChart" onclick="drillDown('all')">
+          <div class="pie-center"><span id="pieCenter">总询价</span></div>
+        </div>
+        <div class="legend" id="pieLegend"></div>
+      </div>
+    </div>
+
+    <!-- 快捷操作 -->
+    <div class="quick-actions" data-feature="quick_actions">
+      <button class="action-btn" onclick="window.location.href='inquiry.html'">
+        <span class="icon">+</span>
+        <span>新建询价</span>
+      </button>
+      <button class="action-btn" onclick="window.location.href='inquiry.html'">
+        <span class="icon">&#128196;</span>
+        <span>询价台账</span>
+      </button>
+      <button class="action-btn" onclick="window.location.href='report.html'">
+        <span class="icon">&#128202;</span>
+        <span>数据分析</span>
+      </button>
+      <button class="action-btn" onclick="window.location.href='customer.html'">
+        <span class="icon">&#128100;</span>
+        <span>客户管理</span>
+      </button>
+      <button class="action-btn" onclick="window.location.href='product.html'">
+        <span class="icon">&#128230;</span>
+        <span>产品管理</span>
+      </button>
+      <button class="action-btn" onclick="backupData()">
+        <span class="icon">&#128190;</span>
+        <span>数据备份</span>
+      </button>
+      <button class="action-btn" onclick="document.getElementById('restoreFile').click()">
+        <span class="icon">&#128194;</span>
+        <span>数据恢复</span>
+      </button>
+      <input type="file" id="restoreFile" accept=".json" style="display:none;" onchange="restoreData(event)">
+    </div>
+
+    <!-- 最新动态 -->
+    <div class="activity-section" data-feature="activity">
+      <h3>最新动态</h3>
+      <div id="activityList"></div>
+    </div>
+  </div>
+
+  <!-- 穿透下钻弹窗 -->
+  <div class="drill-modal" id="drillModal">
+    <div class="drill-modal-content">
+      <span class="drill-close" onclick="closeDrillModal()">&times;</span>
+      <h3 id="drillTitle">数据明细</h3>
+      <div id="drillContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin + '/api';
+    let allInquiries = [];
+
+    function getStatusText(s) {
+      const m = { 'new':'新建', 'pending_pricing':'待核价', 'pending_quote':'待报价', 'quoted':'已报价', 'negotiating':'洽谈中', 'sample':'转样品', 'project':'转项目', 'lost':'已流失', 'closed':'已成交' };
+      return m[s] || s;
+    }
+    function getStatusClass(s) {
+      const m = { 'new':'new', 'pending_pricing':'pending', 'pending_quote':'pending', 'quoted':'quoted', 'negotiating':'negotiating', 'sample':'sample', 'project':'project', 'lost':'lost', 'closed':'closed' };
+      return m[s] || 'new';
+    }
+
+    async function loadDashboard() {
+      const [summaryRes, trendRes, inquiriesRes, logsRes, pricingStatsRes, orderStatsRes, sampleStatsRes, projectStatsRes, supplierStatsRes] = await Promise.all([
+        fetch(`${API}/reports/summary`),
+        fetch(`${API}/reports/monthly-trend`),
+        fetch(`${API}/inquiries?limit=999`),
+        fetch(`${API}/reports/operation-logs?limit=10`),
+        fetch(`${API}/pricing/stats/summary`),
+        fetch(`${API}/orders/stats`),
+        fetch(`${API}/samples/stats`),
+        fetch(`${API}/projects/stats`),
+        fetch(`${API}/suppliers/stats/overview`)
+      ]);
+      const summary = await summaryRes.json();
+      const trend = await trendRes.json();
+      const inquiriesData = await inquiriesRes.json();
+      allInquiries = inquiriesData.data || [];
+
+      // KPI卡片
+      const newC = summary.new_count || 0;
+      const pendingC = (summary.pending_pricing_count || 0) + (summary.pending_quote_count || 0);
+      const quotedC = summary.quoted_count || 0;
+      const lostC = summary.lost_count || 0;
+      const closedC = summary.closed_count || 0;
+      const totalC = newC + pendingC + quotedC + lostC + closedC + (summary.negotiating_count || 0) + (summary.sample_count || 0) + (summary.project_count || 0);
+      const convRate = totalC > 0 ? Math.round(closedC / totalC * 100) : 0;
+
+      document.getElementById('newCount').textContent = newC;
+      document.getElementById('pendingCount').textContent = pendingC;
+      document.getElementById('quotedCount').textContent = quotedC;
+      document.getElementById('lostCount').textContent = lostC;
+      document.getElementById('closedCount').textContent = closedC;
+      document.getElementById('closedAmount').textContent = '¥' + ((summary.closed_amount || 0).toLocaleString());
+      document.getElementById('conversionRate').textContent = convRate + '%';
+
+      document.getElementById('newSub').textContent = '本周新增 ' + getWeekCount('new');
+      document.getElementById('pendingSub').textContent = '需尽快处理';
+      document.getElementById('quotedSub').textContent = '待客户确认';
+      document.getElementById('lostSub').textContent = '需分析原因';
+      document.getElementById('closedSub').textContent = '累计 ' + closedC + ' 单';
+      document.getElementById('amountSub').textContent = '平均单价 ¥' + (closedC > 0 ? Math.round((summary.closed_amount||0)/closedC).toLocaleString() : '0');
+      document.getElementById('rateSub').textContent = '目标 30%';
+
+      // 核价库统计
+      try {
+        const pricingStats = await pricingStatsRes.json();
+        document.getElementById('pricingCount').textContent = pricingStats.total || 0;
+        document.getElementById('pricingSub').textContent = '客户数 ' + (pricingStats.total_customers || 0);
+        document.getElementById('avgPriceRmb').textContent = '¥' + (pricingStats.avg_price_rmb || 0);
+        document.getElementById('avgPriceSub').textContent = '平均成本 ¥' + (pricingStats.avg_cost || 0);
+      } catch(e) {
+        document.getElementById('pricingSub').textContent = '加载失败';
+        document.getElementById('avgPriceSub').textContent = '加载失败';
+      }
+
+      // 订单/样品/项目/供应商统计
+      try {
+        const orderStats = await orderStatsRes.json();
+        document.getElementById('orderTotal').textContent = orderStats.total || 0;
+        document.getElementById('orderSub').textContent = '待处理 ' + ((orderStats.by_status||{}).open||0) + ' | 发货完成 ' + (((orderStats.by_status||{}).shipped||0) + ((orderStats.by_status||{}).completed||0));
+      } catch(e) { document.getElementById('orderTotal').textContent = '-'; document.getElementById('orderSub').textContent = '加载失败'; }
+      try {
+        const sampleStats = await sampleStatsRes.json();
+        document.getElementById('sampleTotal').textContent = sampleStats.total || 0;
+        document.getElementById('sampleSub').textContent = '待处理 ' + ((sampleStats.by_status||{}).open||0) + ' | 已完成 ' + ((sampleStats.by_status||{}).completed||0);
+      } catch(e) { document.getElementById('sampleTotal').textContent = '-'; document.getElementById('sampleSub').textContent = '加载失败'; }
+      try {
+        const projectStats = await projectStatsRes.json();
+        document.getElementById('projectTotal').textContent = projectStats.total || 0;
+        document.getElementById('projectSub').textContent = '进行中 ' + ((projectStats.by_status||{}).in_progress||0) + ' | 完成 ' + ((projectStats.by_status||{}).completed||0);
+      } catch(e) { document.getElementById('projectTotal').textContent = '-'; document.getElementById('projectSub').textContent = '加载失败'; }
+      try {
+        const supplierStats = await supplierStatsRes.json();
+        document.getElementById('supplierTotal').textContent = supplierStats.total || 0;
+        document.getElementById('supplierSub').textContent = '合作中 ' + ((supplierStats.by_lifecycle||{}).cooperating||0) + ' | 准入 ' + ((supplierStats.by_lifecycle||{}).approved||0);
+      } catch(e) { document.getElementById('supplierTotal').textContent = '-'; document.getElementById('supplierSub').textContent = '加载失败'; }
+
+      // 看板
+      document.getElementById('kbNew').textContent = newC;
+      document.getElementById('kbPricing').textContent = summary.pending_pricing_count || 0;
+      document.getElementById('kbQuoted').textContent = quotedC;
+      document.getElementById('kbNegotiating').textContent = summary.negotiating_count || 0;
+
+      const newToday = allInquiries.filter(i => i.status === 'new' && isToday(i.inquiry_time)).length;
+      document.getElementById('kbNewDetail').textContent = '今日新增 ' + newToday;
+      document.getElementById('kbPricingDetail').textContent = '超时 ' + allInquiries.filter(i => i.status === 'pending_pricing' && hoursSince(i.inquiry_time) > 24).length + ' 条';
+      document.getElementById('kbQuotedDetail').textContent = '待跟进 ' + allInquiries.filter(i => i.status === 'quoted').length + ' 条';
+      document.getElementById('kbNegotiatingDetail').textContent = '本周 ' + getWeekCount('negotiating') + ' 条';
+
+      // 月度趋势
+      renderMonthlyChart(trend);
+
+      // 饼图
+      renderPieChart(summary);
+
+      // 最新动态
+      renderActivity(logsRes);
+
+      // 研发项目合作分析（问题与对策）
+      loadRdAnalysis();
+
+      // 研发交付与变更分析
+      loadRdDelivery();
+    }
+
+    function getWeekCount(status) {
+      const now = new Date();
+      const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      return allInquiries.filter(i => i.status === status && new Date(i.inquiry_time) >= weekAgo).length;
+    }
+    function isToday(dateStr) {
+      if (!dateStr) return false;
+      return dateStr.substring(0, 10) === new Date().toISOString().substring(0, 10);
+    }
+    function hoursSince(dateStr) {
+      if (!dateStr) return 999;
+      return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60);
+    }
+
+    function renderMonthlyChart(trend) {
+      const chart = document.getElementById('monthlyChart');
+      chart.innerHTML = '';
+      if (!trend || trend.length === 0) {
+        chart.innerHTML = '<div style="text-align:center;width:100%;color:#999;padding-top:60px;">暂无数据</div>';
+        return;
+      }
+      const maxCount = Math.max(...trend.map(t => t.inquiry_count || t.count || 0), 1);
+      trend.forEach(t => {
+        const cnt = t.inquiry_count || t.count || 0;
+        const month = t.month || t._id || '';
+        const wrap = document.createElement('div');
+        wrap.className = 'bar-wrap';
+        wrap.onclick = () => drillDownByMonth(month);
+        wrap.innerHTML = `<div class="bar-value">${cnt}</div><div class="bar" style="height:${Math.max((cnt / maxCount) * 150, 8)}px;"></div><div class="bar-label">${month}月</div>`;
+        chart.appendChild(wrap);
+      });
+    }
+
+    function renderPieChart(summary) {
+      const newC = summary.new_count || 0;
+      const pendingC = (summary.pending_pricing_count || 0) + (summary.pending_quote_count || 0);
+      const quotedC = summary.quoted_count || 0;
+      const lostC = summary.lost_count || 0;
+      const closedC = summary.closed_count || 0;
+      const total = newC + pendingC + quotedC + lostC + closedC;
+      if (total === 0) return;
+
+      const newDeg = (newC / total) * 360;
+      const pendingDeg = (pendingC / total) * 360;
+      const quotedDeg = (quotedC / total) * 360;
+      const lostDeg = (lostC / total) * 360;
+
+      const pie = document.getElementById('pieChart');
+      pie.style.background = `conic-gradient(#3498db 0deg ${newDeg}deg, #f39c12 ${newDeg}deg ${newDeg+pendingDeg}deg, #27ae60 ${newDeg+pendingDeg}deg ${newDeg+pendingDeg+quotedDeg}deg, #e74c3c ${newDeg+pendingDeg+quotedDeg}deg ${newDeg+pendingDeg+quotedDeg+lostDeg}deg, #9b59b6 ${newDeg+pendingDeg+quotedDeg+lostDeg}deg 360deg)`;
+      document.getElementById('pieCenter').textContent = `共${total}条`;
+
+      const legend = document.getElementById('pieLegend');
+      legend.innerHTML = '';
+      const items = [
+        { color: '#3498db', label: '新建', count: newC, status: 'new' },
+        { color: '#f39c12', label: '待处理', count: pendingC, status: 'pending' },
+        { color: '#27ae60', label: '已报价', count: quotedC, status: 'quoted' },
+        { color: '#e74c3c', label: '已流失', count: lostC, status: 'lost' },
+        { color: '#9b59b6', label: '已成交', count: closedC, status: 'closed' }
+      ];
+      items.forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'legend-item';
+        div.onclick = () => drillDown(it.status);
+        div.innerHTML = `<div class="legend-color" style="background:${it.color};"></div><span>${it.label} (${it.count})</span>`;
+        legend.appendChild(div);
+      });
+    }
+
+    async function renderActivity(logsRes) {
+      const list = document.getElementById('activityList');
+      list.innerHTML = '';
+      try {
+        const logs = await logsRes.json();
+        const recent = (logs.data || logs).slice(0, 8);
+        if (recent.length === 0) {
+          list.innerHTML = '<div style="color:#999;font-size:13px;padding:10px;">暂无动态</div>';
+          return;
+        }
+        recent.forEach(log => {
+          const div = document.createElement('div');
+          div.className = 'activity-item';
+          div.innerHTML = `<div class="info">${log.operator || ''} ${log.action || ''} ${log.detail || ''}</div><div class="time">${log.created_at || ''}</div>`;
+          list.appendChild(div);
+        });
+      } catch(e) {
+        // 如果操作日志API不可用，显示最近询价动态
+        const recent = allInquiries.slice(0, 5);
+        recent.forEach(i => {
+          const div = document.createElement('div');
+          div.className = 'activity-item';
+          div.innerHTML = `<div class="info"><a href="inquiry.html?keyword=${encodeURIComponent(i.serial_number)}">${i.serial_number}</a> - ${i.customer_name} - ${getStatusText(i.status)}</div><div class="time">${i.inquiry_time}</div>`;
+          list.appendChild(div);
+        });
+      }
+    }
+
+    // ===== 研发项目合作分析（问题与对策） =====
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function trunc(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n) + '…' : s; }
+    async function loadRdAnalysis() {
+      try {
+        const [statsRes, issuesRes, reviewsRes, initStatsRes] = await Promise.all([
+          fetch(`${API}/projects/stats`),
+          fetch(`${API}/projects/supply-issues/list?closed=0&limit=6`),
+          fetch(`${API}/projects/reviews/list?limit=6`),
+          fetch(`${API}/projects/initiation/stats`)
+        ]);
+        const stats = await statsRes.json();
+        const issuesData = await issuesRes.json();
+        const reviewsData = await reviewsRes.json();
+        let initStats = { total: 0, draft: 0, submitted: 0, approved: 0, rejected: 0 };
+        try { const is = await initStatsRes.json(); initStats = is; } catch(e) {}
+        const bs = stats.by_status || {}, bt = stats.by_type || {};
+        const totalAmt = Math.round(stats.total_amount || 0).toLocaleString();
+        const orderAmt = Math.round(stats.order_amount || 0).toLocaleString();
+        document.getElementById('rdCards').innerHTML = `
+          <div class="rd-stat"><div class="num">${stats.total || 0}</div><div class="lbl">项目总数</div></div>
+          <div class="rd-stat"><div class="num" style="color:#3498db">${bs.executing || 0}</div><div class="lbl">进行中</div></div>
+          <div class="rd-stat"><div class="num" style="color:#27ae60">${bs.completed || 0}</div><div class="lbl">已完成</div></div>
+          <div class="rd-stat"><div class="num" style="color:#9b59b6">${bt['自研'] || 0}</div><div class="lbl">自研</div></div>
+          <div class="rd-stat"><div class="num" style="color:#1abc9c">${bt['客制'] || 0}</div><div class="lbl">客制</div></div>
+          <div class="rd-stat"><div class="num">¥${totalAmt}</div><div class="lbl">投入总额</div></div>
+          <div class="rd-stat"><div class="num" style="color:#27ae60">¥${orderAmt}</div><div class="lbl">订单总额</div></div>
+          <div class="rd-stat"><div class="num" style="color:#e74c3c">${stats.open_issues || 0}</div><div class="lbl">未闭环异常</div></div>
+          <div class="rd-stat" style="cursor:pointer" onclick="location.href='project.html'" title="点击进入项目台"><div class="num" style="color:#2c3e50">${initStats.total || 0}</div><div class="lbl">📝 立项申请书</div></div>
+          <div class="rd-stat"><div class="num" style="color:#27ae60">${initStats.approved || 0}</div><div class="lbl">已批准</div></div>
+          <div class="rd-stat"><div class="num" style="color:#f39c12">${initStats.submitted || 0}</div><div class="lbl">待审批</div></div>
+          <div class="rd-stat"><div class="num" style="color:#999">${initStats.draft || 0}</div><div class="lbl">草稿</div></div>
+        `;
+        // 问题：供应链品质异常
+        const issues = issuesData.data || [];
+        document.getElementById('rdIssues').innerHTML = issues.length ? issues.map(i => `
+          <div class="rd-item">
+            <div class="it-title">${esc(i.product_name || '未命名')}${i.project_no ? ' · ' + esc(i.project_no) : ''}</div>
+            <div class="it-problem"><b>问题：</b>${esc(trunc(i.problem_desc, 60) || '-')}</div>
+            ${i.long_term_measure ? `<div class="it-measure"><b>对策：</b>${esc(trunc(i.long_term_measure, 60))}</div>` : ''}
+          </div>`).join('') : '<div class="rd-empty">暂无未闭环问题</div>';
+        // 对策：复盘行动计划
+        const reviews = reviewsData.data || [];
+        document.getElementById('rdActions').innerHTML = reviews.length ? reviews.map(r => `
+          <div class="rd-item">
+            <div class="it-title">${esc(r.project_name || r.project_no || '未命名')}</div>
+            ${r.failure_causes ? `<div class="it-problem"><b>问题：</b>${esc(trunc(r.failure_causes, 60))}</div>` : ''}
+            ${r.action_plan ? `<div class="it-measure"><b>对策：</b>${esc(trunc(r.action_plan, 60))}</div>` : ''}
+          </div>`).join('') : '<div class="rd-empty">暂无复盘对策</div>';
+      } catch (e) {
+        console.error('研发项目分析加载失败', e);
+      }
+    }
+
+    // ===== 研发交付与变更分析 =====
+    async function loadRdDelivery() {
+      try {
+        const res = await fetch(`${API}/projects/analysis/delivery`);
+        const d = await res.json();
+        const del = d.delivery || {}, chg = d.change || {};
+        document.getElementById('rdMetrics').innerHTML = `
+          <div class="rd-stat"><div class="num">${del.avg_cycle_days || 0}<span style="font-size:12px;color:#999"> 天</span></div><div class="lbl">平均交付周期</div></div>
+          <div class="rd-stat"><div class="num" style="color:#e74c3c">${del.max_cycle_days || 0}<span style="font-size:12px;color:#999"> 天</span></div><div class="lbl">最长交付周期</div></div>
+          <div class="rd-stat"><div class="num" style="color:#f39c12">${chg.total || 0}</div><div class="lbl">累计变更次数</div></div>
+          <div class="rd-stat"><div class="num" style="color:#9b59b6">${chg.avg_per_project || 0}</div><div class="lbl">平均变更/项目</div></div>
+          <div class="rd-stat"><div class="num" style="color:#e67e22">${d.overdue_count || 0}</div><div class="lbl">逾期项目数</div></div>
+          <div class="rd-stat"><div class="num" style="color:#27ae60">${del.date_completeness || 0}%</div><div class="lbl">日期完整率</div></div>
+        `;
+        const insights = d.insights || [];
+        document.getElementById('rdInsights').innerHTML = insights.length
+          ? insights.map(t => `<div class="insight-item">${esc(t)}</div>`).join('')
+          : '<div class="rd-empty">暂无分析数据</div>';
+        const solutions = d.solutions || [];
+        document.getElementById('rdSolutions').innerHTML = solutions.length
+          ? solutions.map(t => `<div class="solution-item">${esc(t)}</div>`).join('')
+          : '<div class="rd-empty">暂无建议</div>';
+      } catch (e) {
+        console.error('交付变更分析加载失败', e);
+      }
+    }
+
+    // ===== 数据穿透下钻 =====
+    function drillDown(type) {
+      let status = '';
+      let title = '';
+      const statusMap = {
+        'new': 'new',
+        'pending': 'pending_pricing',
+        'quoted': 'quoted',
+        'lost': 'lost',
+        'closed': 'closed',
+        'conversion': 'closed',
+        'all': ''
+      };
+      status = statusMap[type] || '';
+      title = type === 'all' ? '全部询价单明细' : type === 'conversion' ? '成交询价单明细' : getStatusText(status) + ' 询价单明细';
+
+      // 使用后端API获取穿透数据
+      fetch(`${API}/reports/drill-by-status?status=${status}&limit=50`)
+        .then(r => r.json())
+        .then(data => {
+          renderDrillTable(data.data || [], title);
+        })
+        .catch(() => {
+          // 降级到前端过滤
+          const statuses = type === 'new' ? ['new'] : type === 'pending' ? ['pending_pricing','pending_quote'] : type === 'quoted' ? ['quoted'] : type === 'lost' ? ['lost'] : type === 'closed' ? ['closed'] : [];
+          const filtered = statuses.length > 0 ? allInquiries.filter(i => statuses.includes(i.status)) : allInquiries;
+          renderDrillTable(filtered, title);
+        });
+    }
+
+    function drillDownByMonth(month) {
+      const monthStr = String(month).padStart(2, '0');
+      fetch(`${API}/reports/drill-by-month?month=2024-${monthStr}&limit=50`)
+        .then(r => r.json())
+        .then(data => {
+          renderDrillTable(data.data || [], `${month}月 询价单明细`);
+        })
+        .catch(() => {
+          const filtered = allInquiries.filter(i => {
+            const m = i.inquiry_time ? i.inquiry_time.substring(5, 7) : '';
+            return m === monthStr;
+          });
+          renderDrillTable(filtered, `${month}月 询价单明细`);
+        });
+    }
+
+    function renderDrillTable(data, title) {
+      document.getElementById('drillTitle').textContent = title + ` (${data.length}条)`;
+      let html = '<table class="drill-table"><thead><tr><th>单号</th><th>客户</th><th>产品型号</th><th>数量</th><th>状态</th><th>报价</th><th>销售</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+      data.slice(0, 50).forEach(i => {
+        html += `<tr>
+          <td><a class="drill-link" href="inquiry.html?keyword=${encodeURIComponent(i.serial_number)}">${i.serial_number}</a></td>
+          <td>${i.customer_name}</td>
+          <td>${i.external_model}</td>
+          <td>${i.quantity}</td>
+          <td><span class="status-badge status-${getStatusClass(i.status)}">${getStatusText(i.status)}</span></td>
+          <td>${i.final_price ? '¥'+i.final_price.toFixed(2) : '-'}</td>
+          <td>${i.sales_person || '-'}</td>
+          <td style="font-size:11px;">${i.inquiry_time}</td>
+          <td><a class="drill-link" href="inquiry.html?keyword=${encodeURIComponent(i.serial_number)}">查看</a></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      if (data.length > 50) html += `<div style="text-align:center;color:#999;padding:10px;font-size:12px;">仅显示前50条，共${data.length}条</div>`;
+      document.getElementById('drillContent').innerHTML = html;
+      document.getElementById('drillModal').style.display = 'flex';
+    }
+
+    function closeDrillModal() { document.getElementById('drillModal').style.display = 'none'; }
+
+    // ===== 看板跳转 =====
+    function jumpToInquiry(status) {
+      window.location.href = `inquiry.html?status=${status}`;
+    }
+
+    function logout() {
+      localStorage.removeItem('user');
+      localStorage.removeItem('currentUserId');
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    }
+
+    // ===== 数据备份与恢复 =====
+    async function backupData() {
+      try {
+        const res = await fetch(`${API}/reports/backup`);
+        const data = await res.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `sales_system_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        alert('数据备份成功！');
+      } catch(e) { alert('备份失败: ' + e.message); }
+    }
+
+    async function restoreData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!confirm('数据恢复将覆盖当前所有数据，确定继续吗？')) { event.target.value = ''; return; }
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const res = await fetch(`${API}/reports/restore`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        alert(result.message || '恢复完成');
+        loadDashboard();
+      } catch(e) { alert('恢复失败: ' + e.message); }
+      event.target.value = '';
+    }
+
+    // 显示当前用户
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.name) {
+      document.querySelector('.header h2').textContent = `欢迎回来，${user.name}`;
+      document.getElementById('userName').textContent = user.name;
+    }
+
+    loadDashboard();
+  </script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+  <script src="feature-gate.js"></script>
+  <script>FeatureGate.init();</script>
+</body>
+</html>

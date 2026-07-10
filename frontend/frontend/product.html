@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 产品管理</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
+    .pricing-link { color: #667eea; cursor: pointer; text-decoration: underline; }
+    .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+    .badge-linked { background: #e8f5e9; color: #388e3c; }
+    .badge-unlinked { background: #ffebee; color: #c62828; }
+    .section-title { font-size: 14px; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 4px; margin: 15px 0 10px; }
+    .pricing-card { background: #f8f9ff; border: 1px solid #e0e4f5; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
+    .pricing-card .price { color: #27ae60; font-weight: 700; font-size: 16px; }
+    .detail-tab { padding: 8px 20px; border: none; background: none; cursor: pointer; font-size: 13px; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .detail-tab:hover { color: #667eea; }
+    .detail-tab.active { color: #667eea; border-bottom-color: #667eea; font-weight: 600; }
+  </style>
+  <script src="import-dropzone.js"></script>
+  <script src="table-sort-filter.js"></script>
+  <script src="dict-loader.js"></script>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content" data-module="product">
+    <div class="header">
+      <h2>产品管理</h2>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showAddModal()" data-perm="product:create" data-feature="inline_edit">新增产品</button>
+        <button class="btn btn-warning" onclick="showImportPricingModal()" data-perm="product:create" data-feature="import">从核价表导入</button>
+        <button class="btn btn-info" onclick="ImportDropzone.open()" data-perm="product:create" data-feature="import">批量导入</button>
+        <button class="btn btn-success" onclick="exportProducts()" data-perm="product:view" data-feature="export">导出数据</button>
+      </div>
+    </div>
+
+    <div class="search-bar" data-feature="filter">
+      <input type="text" id="searchInput" placeholder="搜索产品型号/名称...">
+      <select id="categoryFilter">
+        <option value="">全部分类</option>
+      </select>
+      <button class="btn btn-primary" onclick="searchProducts()">查询</button>
+      <button class="btn btn-warning" onclick="resetSearch()">重置</button>
+    </div>
+
+    <div class="table-container">
+      <table id="productTableEl">
+        <thead>
+          <tr>
+            <th class="seq-col">#</th>
+            <th data-sort="external_model">外部型号<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="internal_model">内部型号<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="category">品类<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="power">功率<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th>配置</th>
+            <th data-sort="cost_price">成本价<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="price_rmb">报价(RMB)<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="price_usd">报价(USD)<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th>核价状态</th>
+            <th data-sort="inquiry_count">询价数<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="created_at">创建时间<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="productTable">
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" id="pagination">
+    </div>
+  </div>
+
+  <!-- 新增产品 -->
+  <div class="modal" id="addModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
+      <h3>新增产品</h3>
+      <form id="addForm">
+        <div id="autoFillTip" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:8px;margin-bottom:10px;font-size:12px;"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>外部型号 *</label>
+            <select id="externalModelSelect" onchange="onModelSelected()" style="margin-bottom:4px;">
+              <option value="">选择已有型号或手动输入</option>
+            </select>
+            <input type="text" id="externalModel" required placeholder="输入或从上方选择型号" oninput="onModelInput()">
+          </div>
+          <div class="form-group">
+            <label>内部型号</label>
+            <input type="text" id="internalModel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>品类</label>
+            <select id="category">
+              <option value="">请选择</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>功率</label>
+            <input type="text" id="power">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>功能配置</label>
+          <textarea id="configuration" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>规格书</label>
+          <textarea id="specs" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 编辑产品 -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
+      <h3>编辑产品</h3>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>外部型号 *</label>
+            <input type="text" id="editExternalModel" required>
+          </div>
+          <div class="form-group">
+            <label>内部型号</label>
+            <input type="text" id="editInternalModel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>品类</label>
+            <select id="editCategory">
+              <option value="">请选择</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>功率</label>
+            <input type="text" id="editPower">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>产品名称</label>
+            <input type="text" id="editProductName">
+          </div>
+          <div class="form-group">
+            <label>成本价</label>
+            <input type="number" id="editCostPrice" step="0.01">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>报价(RMB)</label>
+            <input type="number" id="editPriceRmb" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>报价(USD)</label>
+            <input type="number" id="editPriceUsd" step="0.01">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>功能配置</label>
+          <textarea id="editConfiguration" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>规格书</label>
+          <textarea id="editSpecs" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 产品详情（含核价关联） -->
+  <div class="modal" id="detailModal">
+    <div class="modal-content" style="max-width:900px;">
+      <span class="close-btn" onclick="closeModal('detailModal')">&times;</span>
+      <h3>产品详情</h3>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="bomItemModal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close-btn" onclick="closeModal('bomItemModal')">&times;</span>
+      <h3>添加BOM物料</h3>
+      <form id="bomItemForm" onsubmit="event.preventDefault();saveBomItem();">
+        <input type="hidden" id="bomItemProductId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label>物料代码</label><input type="text" id="bomItemCode" class="form-control" required></div>
+          <div><label>物料名称</label><input type="text" id="bomItemName" class="form-control" required></div>
+          <div><label>规格型号</label><input type="text" id="bomItemSpec" class="form-control"></div>
+          <div><label>单位</label><input type="text" id="bomItemUnit" class="form-control"></div>
+          <div><label>数量</label><input type="number" id="bomItemQty" class="form-control" step="any" min="0"></div>
+          <div><label>物料属性</label>
+            <select id="bomItemType" class="form-control">
+              <option value="外购">外购</option>
+              <option value="委外加工">委外加工</option>
+              <option value="自制">自制</option>
+            </select>
+          </div>
+          <div><label>物料分类</label>
+            <select id="bomItemCategory" class="form-control">
+              <option value="">未分类</option>
+              <option value="结构类物料">结构类物料</option>
+              <option value="电子类物料">电子类物料</option>
+              <option value="包材类物料">包材类物料</option>
+              <option value="附件类物料">附件类物料</option>
+            </select>
+          </div>
+          <div><label>单价</label><input type="number" id="bomItemPrice" class="form-control" step="any" min="0"></div>
+        </div>
+        <div style="margin-top:15px;text-align:right;">
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="bomImportModal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close-btn" onclick="closeModal('bomImportModal')">&times;</span>
+      <h3>导入BOM</h3>
+      <input type="hidden" id="bomImportProductId">
+      <div style="margin:15px 0;">
+        <label style="display:block;margin-bottom:8px;color:#666;">选择Excel文件（.xls/.xlsx）</label>
+        <input type="file" id="bomImportFile" accept=".xls,.xlsx,.xlt" class="form-control">
+      </div>
+      <div style="background:#fff8e1;padding:10px;border-radius:6px;font-size:12px;color:#666;margin-bottom:15px;">
+        支持标准BOM格式：层次、物料代码、物料名称、规格型号、单位、数量、物料属性、单价、金额
+      </div>
+      <div style="text-align:right;">
+        <button class="btn btn-primary" onclick="importBomFromExcel()">导入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 从核价表导入 -->
+  <div class="modal" id="importPricingModal">
+    <div class="modal-content" style="max-width:800px;">
+      <span class="close-btn" onclick="closeModal('importPricingModal')">&times;</span>
+      <h3>从核价表导入产品</h3>
+      <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="color:#888;font-size:13px;">以下为核价表中尚未导入的产品型号，重复型号不会显示</div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="importSearchInput" placeholder="搜索型号/名称..." style="padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:180px;" oninput="filterImportList()">
+          <button class="btn btn-sm" style="background:#eee;" onclick="toggleSelectAll()">全选/取消</button>
+        </div>
+      </div>
+      <div id="importPricingList" style="max-height:400px;overflow-y:auto;border:1px solid #eee;border-radius:6px;"></div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+        <span id="importSelectedCount" style="color:#888;font-size:13px;">已选择 0 条</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="doImportFromPricing()">确认导入</button>
+        </div>
+      </div>
+      <div id="importResult" style="display:none;margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin + '/api';
+    let currentPage = 1;
+    let totalPages = 1;
+    let allInquiries = [];
+
+    async function loadCategoryOptions() {
+      try {
+        await DictLoader.fillAll([
+          { select: 'category', group: 'product_category', placeholder: '请选择' },
+          { select: 'editCategory', group: 'product_category', placeholder: '请选择' }
+        ]);
+        const items = (await DictLoader.load('product_category')).filter(i => i.enabled);
+        const filterSel = document.getElementById('categoryFilter');
+        const currentFilter = filterSel.value;
+        filterSel.innerHTML = '<option value="">全部分类</option>';
+        items.forEach(item => {
+          filterSel.innerHTML += `<option value="${item.value}">${item.value}</option>`;
+        });
+        if (currentFilter) filterSel.value = currentFilter;
+      } catch (e) {
+        console.warn('品类字典加载失败，使用默认值', e);
+      }
+    }
+
+    async function loadInquiryCount() {
+      const res = await fetch(`${API}/inquiries?limit=999`);
+      const data = await res.json();
+      allInquiries = data.data || [];
+    }
+
+    function getProductInquiryCount(model) {
+      return allInquiries.filter(i => i.external_model === model).length;
+    }
+
+    async function loadProducts(page = 1) {
+      const search = document.getElementById('searchInput').value;
+      const category = document.getElementById('categoryFilter').value;
+
+      const url = new URL(`${API}/products`);
+      url.searchParams.set('page', page);
+      url.searchParams.set('limit', 10);
+      if (search) url.searchParams.set('keyword', search);
+      if (category) url.searchParams.set('category', category);
+
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      await loadInquiryCount();
+
+      const tbody = document.getElementById('productTable');
+      tbody.innerHTML = '';
+      
+      data.data.forEach((item, idx) => {
+        const seqNum = (page - 1) * 10 + idx + 1;
+        const inqCount = getProductInquiryCount(item.external_model);
+        const costPrice = item.cost_price ? '¥' + Number(item.cost_price).toFixed(2) : '-';
+        const priceRmb = item.price_rmb ? '¥' + Number(item.price_rmb).toFixed(2) : '-';
+        const priceUsd = item.price_usd ? '$' + Number(item.price_usd).toFixed(2) : '-';
+        const hasPricing = item.cost_price || item.price_rmb;
+        const isSubModel = item.base_model && item.base_model !== item.external_model;
+        const subBadge = isSubModel ? '<span style="background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:8px;font-size:10px;margin-left:4px;">子型号</span>' : '';
+        const pricingBadge = hasPricing
+          ? `<span class="badge badge-linked">已核价</span>`
+          : `<span class="badge badge-unlinked">未核价</span>`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="seq-col">${seqNum}</td>
+          <td><span class="pricing-link" onclick="showDetail(${item.id})">${item.external_model}</span>${subBadge}</td>
+          <td>${item.internal_model || '-'}</td>
+          <td>${item.category || '-'}</td>
+          <td>${item.power || '-'}</td>
+          <td title="${item.configuration || ''}">${(item.configuration || '-').substring(0, 20)}${(item.configuration||'').length > 20 ? '...' : ''}</td>
+          <td style="color:#e74c3c;font-weight:600;">${costPrice}</td>
+          <td style="color:#27ae60;font-weight:600;">${priceRmb}</td>
+          <td style="color:#3498db;font-weight:600;">${priceUsd}</td>
+          <td>${pricingBadge}</td>
+          <td>${inqCount}</td>
+          <td>${item.created_at}</td>
+          <td>
+            <div class="btn-group">
+              <button class="btn btn-info btn-sm" onclick="showDetail(${item.id})">详情</button>
+              <button class="btn btn-sm" style="background:#9b59b6;color:#fff;" onclick="showBomFromList(${item.id})">BOM</button>
+              <button class="btn btn-success btn-sm" onclick="createInquiryForProduct('${encodeURIComponent(item.external_model)}')">询价</button>
+              <button class="btn btn-warning btn-sm" onclick="linkToPricing('${encodeURIComponent(item.external_model)}')">核价</button>
+              <button class="btn btn-primary btn-sm" onclick="showEditModal(${item.id})" data-perm="product:edit">编辑</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteProduct(${item.id})" data-perm="product:delete">删除</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      totalPages = Math.ceil(data.total / 10);
+      renderPagination(page);
+
+      // 刷新排序筛选
+      if (window.TableSortFilter) {
+        TableSortFilter.init('productTableEl');
+      }
+    }
+
+    // 产品详情（含关联核价）
+    async function showDetail(id) {
+      try {
+        const res = await fetch(`${API}/products/${id}`);
+        const item = await res.json();
+        const pricings = item.pricing_records || [];
+
+        let pricingHtml = '';
+        if (pricings.length > 0) {
+          pricingHtml = pricings.map(p => `
+            <div class="pricing-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <strong>${p.model}</strong>
+                  <span style="color:#888;margin-left:8px;">${p.pricing_version || 'V1.0'}</span>
+                  ${p.customer ? `<span style="color:#888;margin-left:8px;">客户: ${p.customer}</span>` : ''}
+                </div>
+                <div class="price">¥${Number(p.price_rmb || 0).toFixed(2)}</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;font-size:12px;color:#666;">
+                <div>成本: ¥${Number(p.total_cost || 0).toFixed(2)}</div>
+                <div>美元: $${Number(p.price_usd || 0).toFixed(2)}</div>
+                <div>核价人: ${p.pricer || '-'}</div>
+                <div>日期: ${p.effective_date || p.created_at || '-'}</div>
+              </div>
+              <div style="margin-top:6px;">
+                <button class="btn btn-info btn-sm" onclick="window.open('pricing.html?model=${encodeURIComponent(p.model)}','_blank')">查看核价</button>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          pricingHtml = '<div style="text-align:center;color:#999;padding:20px;">暂无关联核价记录<br><button class="btn btn-warning" style="margin-top:10px;" onclick="linkToPricing(\'' + encodeURIComponent(item.external_model) + '\');closeModal(\'detailModal\');">去核价</button></div>';
+        }
+
+        document.getElementById('detailContent').innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+            <div><label style="color:#888;font-size:12px;">外部型号</label><div><strong>${item.external_model}</strong></div></div>
+            <div><label style="color:#888;font-size:12px;">内部型号</label><div>${item.internal_model || '-'}</div></div>
+            <div><label style="color:#888;font-size:12px;">品类</label><div>${item.category || '-'}</div></div>
+            <div><label style="color:#888;font-size:12px;">功率</label><div>${item.power || '-'}</div></div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label style="color:#888;font-size:12px;">功能配置</label>
+            <div>${item.configuration || '-'}</div>
+          </div>
+          <div id="subModelSection"></div>
+          <div style="display:flex;gap:0;border-bottom:2px solid #e0e0e0;margin-bottom:15px;">
+            <button class="detail-tab active" onclick="switchDetailTab('pricing',this)">核价记录 (${pricings.length})</button>
+            <button class="detail-tab" onclick="switchDetailTab('bom',this)">BOM物料表</button>
+          </div>
+          <div id="tabPricing">${pricingHtml}</div>
+          <div id="tabBom" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div class="section-title" style="margin:0;">BOM物料清单</div>
+              <div>
+                <button class="btn btn-success btn-sm" onclick="showBomImportModal(${item.id})">导入BOM</button>
+                <button class="btn btn-info btn-sm" onclick="addBomItem(${item.id})">添加物料</button>
+              </div>
+            </div>
+            <div id="bomTableContainer"><div style="text-align:center;color:#999;padding:20px;">加载中...</div></div>
+          </div>
+        `;
+        document.getElementById('detailModal').style.display = 'flex';
+        loadSubModels(item.external_model);
+        loadBom(item.id);
+      } catch (e) { alert('加载失败'); }
+    }
+
+    function switchDetailTab(tab, btn) {
+      document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tabPricing').style.display = tab === 'pricing' ? '' : 'none';
+      document.getElementById('tabBom').style.display = tab === 'bom' ? '' : 'none';
+    }
+
+    async function loadBom(productId) {
+      const container = document.getElementById('bomTableContainer');
+      if (!container) return;
+      try {
+        const res = await fetch(`${API}/products/${productId}/bom`);
+        const data = await res.json();
+        if (!data.items || data.items.length === 0) {
+          container.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">暂无BOM数据<br><button class="btn btn-success btn-sm" style="margin-top:8px;" onclick="showBomImportModal(' + productId + ')">导入BOM</button></div>';
+          return;
+        }
+        renderBomTable(data.items, productId);
+      } catch (e) {
+        container.innerHTML = '<div style="color:#e74c3c;">加载BOM失败</div>';
+      }
+    }
+
+    function renderBomTable(items, productId) {
+      const container = document.getElementById('bomTableContainer');
+      const totalAmount = items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+      let html = `<table class="table" style="font-size:12px;">
+        <thead><tr>
+          <th style="width:30px;">层级</th>
+          <th>物料代码</th>
+          <th>物料名称</th>
+          <th>规格型号</th>
+          <th>单位</th>
+          <th>数量</th>
+          <th>物料属性</th>
+          <th>物料分类</th>
+          <th>单价</th>
+          <th>金额</th>
+          <th>操作</th>
+        </tr></thead><tbody>`;
+      items.forEach(item => {
+        const indent = (item.level || 1) - 1;
+        const prefix = '\u00A0\u00A0\u00A0\u00A0'.repeat(indent);
+        const levelIcon = item.level === 1 ? '📦' : item.level === 2 ? '├─' : '│\u00A0├─';
+        html += `<tr style="background:${indent > 0 ? '#f8f9ff' : ''};">
+          <td>${levelIcon}</td>
+          <td style="font-family:monospace;font-size:11px;">${prefix}${item.code || '-'}</td>
+          <td>${item.name || '-'}</td>
+          <td style="font-size:11px;color:#666;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${item.spec || ''}">${item.spec || '-'}</td>
+          <td>${item.unit || '-'}</td>
+          <td>${item.quantity || 0}</td>
+          <td><span style="background:${item.material_type === '外购' ? '#e8f5e9' : item.material_type === '委外加工' ? '#fff3e0' : '#f3e5f5'};padding:1px 6px;border-radius:8px;font-size:10px;">${item.material_type || '-'}</span></td>
+          <td><span style="background:${(item.material_category||'').includes('结构') ? '#e3f2fd' : (item.material_category||'').includes('电子') ? '#fff3e0' : (item.material_category||'').includes('包材') ? '#e8f5e9' : (item.material_category||'').includes('附件') ? '#fce4ec' : '#f5f5f5'};padding:1px 6px;border-radius:8px;font-size:10px;">${item.material_category || '-'}</span></td>
+          <td style="color:#e74c3c;">${Number(item.unit_price || 0).toFixed(4)}</td>
+          <td style="color:#e74c3c;font-weight:600;">${Number(item.amount || 0).toFixed(4)}</td>
+          <td><button class="btn btn-danger btn-sm" style="font-size:10px;padding:1px 6px;" onclick="deleteBomItem(${productId},${item.id})">删除</button></td>
+        </tr>`;
+      });
+      html += `<tr style="background:#f0f0f0;font-weight:600;">
+        <td colspan="9" style="text-align:right;">BOM合计</td>
+        <td style="color:#e74c3c;">¥${totalAmount.toFixed(4)}</td>
+        <td></td>
+      </tr>`;
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    async function deleteBomItem(productId, bomId) {
+      if (!confirm('确定删除此物料？')) return;
+      try {
+        await fetch(`${API}/products/bom-item/${bomId}`, { method: 'DELETE' });
+        loadBom(productId);
+      } catch (e) { alert('删除失败'); }
+    }
+
+    function addBomItem(productId) {
+      const modal = document.getElementById('bomItemModal');
+      document.getElementById('bomItemForm').reset();
+      document.getElementById('bomItemProductId').value = productId;
+      modal.style.display = 'flex';
+    }
+
+    async function saveBomItem() {
+      const productId = document.getElementById('bomItemProductId').value;
+      const item = {
+        code: document.getElementById('bomItemCode').value,
+        name: document.getElementById('bomItemName').value,
+        spec: document.getElementById('bomItemSpec').value,
+        unit: document.getElementById('bomItemUnit').value,
+        quantity: Number(document.getElementById('bomItemQty').value) || 0,
+        material_type: document.getElementById('bomItemType').value,
+        material_category: document.getElementById('bomItemCategory').value,
+        unit_price: Number(document.getElementById('bomItemPrice').value) || 0,
+        amount: Number(document.getElementById('bomItemPrice').value || 0) * Number(document.getElementById('bomItemQty').value || 0),
+        level: 1
+      };
+      try {
+        const res = await fetch(`${API}/products/${productId}/bom`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: [item] })
+        });
+        if (res.ok) {
+          closeModal('bomItemModal');
+          loadBom(productId);
+        } else {
+          alert('保存失败');
+        }
+      } catch (e) { alert('保存失败'); }
+    }
+
+    function showBomImportModal(productId) {
+      const modal = document.getElementById('bomImportModal');
+      document.getElementById('bomImportProductId').value = productId;
+      document.getElementById('bomImportFile').value = '';
+      modal.style.display = 'flex';
+    }
+
+    async function importBomFromExcel() {
+      const productId = document.getElementById('bomImportProductId').value;
+      const fileInput = document.getElementById('bomImportFile');
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert('请选择Excel文件');
+        return;
+      }
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('productId', productId);
+      try {
+        const res = await fetch(`${API}/products/bom-upload`, {
+          method: 'POST',
+          body: formData
+        });
+        const result = await res.json();
+        if (res.ok) {
+          alert(`导入成功！共${result.count}条物料，新增物料${result.matAdded || 0}条，更新物料${result.matUpdated || 0}条\nBOM物料已自动同步到物料库并归类`);
+          closeModal('bomImportModal');
+          loadBom(productId);
+        } else {
+          alert('导入失败: ' + (result.error || ''));
+        }
+      } catch (e) { alert('导入失败: ' + e.message); }
+    }
+
+    // 跳转到核价页面
+    function linkToPricing(model) {
+      window.open(`pricing.html?model=${model}`, '_blank');
+    }
+
+    function showBomFromList(productId) {
+      showDetail(productId);
+      setTimeout(() => {
+        const bomTab = document.querySelector('.detail-tab:nth-child(2)');
+        if (bomTab) bomTab.click();
+      }, 500);
+    }
+
+    function createInquiryForProduct(model) {
+      window.location.href = `inquiry.html?product=${model}`;
+    }
+
+    async function loadSubModels(externalModel) {
+      const section = document.getElementById('subModelSection');
+      if (!section) return;
+      try {
+        const res = await fetch(`${API}/products/sub-models/${encodeURIComponent(externalModel)}`);
+        const data = await res.json();
+        const { base, subs, diff_map, rules } = data;
+        if (!base || subs.length === 0) {
+          section.innerHTML = '';
+          return;
+        }
+        const fieldLabelMap = {
+          power: '功率', input_voltage: '输入电压', battery: '电池', color_temp: '色温',
+          luminous_flux: '光通量', light_source: '光源', main_body: '主体', lampshade: '灯罩',
+          reflector: '反光罩', cable: '电缆线', switch_type: '开关', usb: 'USB', waterproof: '防水', sensor: '感应器'
+        };
+        let html = `<div class="section-title">子型号 (${subs.length}) <button class="btn btn-success btn-sm" style="font-size:11px;margin-left:8px;" onclick="showAddSubModelModal('${encodeURIComponent(externalModel)}')">+ 新增子型号</button></div>`;
+        html += '<div style="display:grid;gap:6px;">';
+        subs.forEach(sub => {
+          const diffs = diff_map[sub.external_model] || [];
+          const diffLabels = diffs.map(f => fieldLabelMap[f] || f);
+          html += `<div style="background:#f8f9ff;border:1px solid #e0e4f5;border-radius:6px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+            <div><strong style="color:#667eea;">${sub.external_model}</strong> <span style="color:#888;font-size:12px;">${sub.product_name || ''}</span></div>
+            <div style="font-size:12px;color:#e74c3c;">差异: ${diffLabels.length > 0 ? diffLabels.join(', ') : '无'}</div>
+            <div><button class="btn btn-info btn-sm" onclick="showDetail(${sub.id})">详情</button></div>
+          </div>`;
+        });
+        html += '</div>';
+        section.innerHTML = html;
+      } catch (e) {
+        section.innerHTML = '';
+      }
+    }
+
+    async function showAddSubModelModal(baseModelEncoded) {
+      const baseModel = decodeURIComponent(baseModelEncoded);
+      try {
+        const res = await fetch(`${API}/products/sub-models/${encodeURIComponent(baseModel)}`);
+        const data = await res.json();
+        if (!data.base) { alert('基础型号不存在'); return; }
+        const base = data.base;
+        document.getElementById('externalModel').value = baseModel;
+        document.getElementById('internalModel').value = base.internal_model || '';
+        document.getElementById('category').value = base.category || '';
+        document.getElementById('power').value = base.power || '';
+        document.getElementById('configuration').value = base.configuration || '';
+        document.getElementById('specs').value = base.specs || '';
+        const tip = document.getElementById('autoFillTip');
+        tip.style.display = 'block';
+        tip.innerHTML = `<strong>子型号生成模式</strong>：已填充基础型号 ${baseModel} 的参数，修改差异参数后保存，系统将自动生成子型号（如 ${baseModel}${data.rules.separator}0${data.subs.length + 1}）`;
+        document.getElementById('addModal').style.display = 'flex';
+      } catch (e) { alert('加载基础型号失败'); }
+    }
+
+    function renderPagination(page) {
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+      if (page > 1) pagination.innerHTML += `<button onclick="loadProducts(${page - 1})">上一页</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        pagination.innerHTML += `<button ${i === page ? 'class="active"' : ''} onclick="loadProducts(${i})">${i}</button>`;
+      }
+      if (page < totalPages) pagination.innerHTML += `<button onclick="loadProducts(${page + 1})">下一页</button>`;
+    }
+
+    function showAddModal() {
+      document.getElementById('addForm').reset();
+      document.getElementById('autoFillTip').style.display = 'none';
+      document.getElementById('externalModelSelect').selectedIndex = 0;
+      loadProductModelList();
+      document.getElementById('addModal').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // 已有产品列表缓存
+    let allProductModels = [];
+
+    // 加载产品型号列表到下拉框
+    async function loadProductModelList() {
+      try {
+        const res = await fetch(`${API}/products?limit=999`);
+        const data = await res.json();
+        allProductModels = data.data || [];
+        const select = document.getElementById('externalModelSelect');
+        if (!select) return;
+        select.innerHTML = '<option value="">选择已有型号或手动输入</option>';
+        allProductModels.forEach(p => {
+          const label = `${p.external_model}${p.internal_model ? ' / ' + p.internal_model : ''}${p.category ? ' (' + p.category + ')' : ''}`;
+          select.innerHTML += `<option value="${p.external_model}" data-internal="${p.internal_model||''}" data-category="${p.category||''}" data-power="${p.power||''}" data-configuration="${p.configuration||''}" data-specs="${p.specs||''}">${label}</option>`;
+        });
+      } catch(e) { console.error('加载产品型号列表失败:', e); }
+    }
+
+    // 从下拉框选择型号后自动填充
+    function onModelSelected() {
+      const select = document.getElementById('externalModelSelect');
+      const opt = select.options[select.selectedIndex];
+      if (!opt || !opt.value) {
+        document.getElementById('autoFillTip').style.display = 'none';
+        return;
+      }
+      document.getElementById('externalModel').value = opt.value;
+      document.getElementById('internalModel').value = opt.dataset.internal || '';
+      document.getElementById('category').value = opt.dataset.category || '';
+      document.getElementById('power').value = opt.dataset.power || '';
+      document.getElementById('configuration').value = opt.dataset.configuration || '';
+      document.getElementById('specs').value = opt.dataset.specs || '';
+      const tip = document.getElementById('autoFillTip');
+      tip.style.display = 'block';
+      tip.innerHTML = '<strong>已自动填充</strong> 型号 ' + opt.value + ' 的参数，您可以修改后保存';
+    }
+
+    // 手动输入型号时匹配已有产品
+    function onModelInput() {
+      const val = document.getElementById('externalModel').value.trim();
+      if (!val) { document.getElementById('autoFillTip').style.display = 'none'; return; }
+      const match = allProductModels.find(p => p.external_model === val);
+      if (match) {
+        document.getElementById('internalModel').value = match.internal_model || '';
+        document.getElementById('category').value = match.category || '';
+        document.getElementById('power').value = match.power || '';
+        document.getElementById('configuration').value = match.configuration || '';
+        document.getElementById('specs').value = match.specs || '';
+        const tip = document.getElementById('autoFillTip');
+        tip.style.display = 'block';
+        tip.innerHTML = '<strong>已自动填充</strong> 型号 ' + val + ' 的参数，您可以修改后保存';
+        // 联动下拉框
+        const select = document.getElementById('externalModelSelect');
+        for (let i = 0; i < select.options.length; i++) {
+          if (select.options[i].value === val) { select.selectedIndex = i; break; }
+        }
+      } else {
+        document.getElementById('autoFillTip').style.display = 'none';
+        document.getElementById('externalModelSelect').selectedIndex = 0;
+      }
+    }
+
+    document.getElementById('addForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = {
+        external_model: document.getElementById('externalModel').value,
+        internal_model: document.getElementById('internalModel').value,
+        category: document.getElementById('category').value,
+        power: document.getElementById('power').value,
+        configuration: document.getElementById('configuration').value,
+        specs: document.getElementById('specs').value
+      };
+      const response = await fetch(`${API}/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (result.auto_adjusted) {
+          alert(result.message);
+        } else {
+          alert('产品创建成功');
+        }
+        closeModal('addModal');
+        loadProducts();
+      } else {
+        const result = await response.json();
+        alert(result.error || '创建失败');
+      }
+    });
+
+    async function showEditModal(id) {
+      const response = await fetch(`${API}/products/${id}`);
+      const item = await response.json();
+      document.getElementById('editId').value = item.id;
+      document.getElementById('editExternalModel').value = item.external_model;
+      document.getElementById('editInternalModel').value = item.internal_model || '';
+      document.getElementById('editCategory').value = item.category || '';
+      document.getElementById('editPower').value = item.power || '';
+      document.getElementById('editProductName').value = item.product_name || '';
+      document.getElementById('editCostPrice').value = item.cost_price || '';
+      document.getElementById('editPriceRmb').value = item.price_rmb || '';
+      document.getElementById('editPriceUsd').value = item.price_usd || '';
+      document.getElementById('editConfiguration').value = item.configuration || '';
+      document.getElementById('editSpecs').value = item.specs || '';
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const data = {
+        external_model: document.getElementById('editExternalModel').value,
+        internal_model: document.getElementById('editInternalModel').value,
+        category: document.getElementById('editCategory').value,
+        power: document.getElementById('editPower').value,
+        product_name: document.getElementById('editProductName').value,
+        cost_price: parseFloat(document.getElementById('editCostPrice').value) || null,
+        price_rmb: parseFloat(document.getElementById('editPriceRmb').value) || null,
+        price_usd: parseFloat(document.getElementById('editPriceUsd').value) || null,
+        configuration: document.getElementById('editConfiguration').value,
+        specs: document.getElementById('editSpecs').value
+      };
+      const response = await fetch(`${API}/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        alert('产品更新成功');
+        closeModal('editModal');
+        loadProducts();
+      } else {
+        alert('更新失败');
+      }
+    });
+
+    async function deleteProduct(id) {
+      if (!confirm('确定要删除该产品吗？')) return;
+      const response = await fetch(`${API}/products/${id}`, { method: 'DELETE' });
+      if (response.ok) { alert('产品删除成功'); loadProducts(); }
+      else { alert('删除失败'); }
+    }
+
+    function searchProducts() { loadProducts(1); }
+    function resetSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('categoryFilter').value = '';
+      loadProducts(1);
+    }
+
+    // 导出产品数据
+    async function exportProducts() {
+      try {
+        const url = new URL(`${API}/products`);
+        url.searchParams.set('page', 1);
+        url.searchParams.set('limit', 9999);
+        const search = document.getElementById('searchInput').value;
+        const category = document.getElementById('categoryFilter').value;
+        if (search) url.searchParams.set('keyword', search);
+        if (category) url.searchParams.set('category', category);
+
+        const response = await fetch(url);
+        const data = await response.json();
+        const list = data.data || [];
+        if (list.length === 0) { alert('暂无数据可导出'); return; }
+
+        const headers = ['产品名称','外部型号','内部型号','品类','功率','配置','规格书','成本价','报价(RMB)','报价(USD)','创建时间'];
+        let csv = headers.join(',') + '\n';
+        list.forEach(m => {
+          const row = [
+            m.product_name || m.name || '', m.external_model || '', m.internal_model || '',
+            m.category || '', m.power || '', m.configuration || '', m.specs || '',
+            m.cost_price || '', m.price_rmb || '', m.price_usd || '', m.created_at || ''
+          ].map(v => String(v).replace(/,/g, '，'));
+          csv += row.join(',') + '\n';
+        });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `产品管理_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+      } catch (e) { alert('导出失败'); }
+    }
+
+    // 从核价表导入
+    let importPricingData = [];
+
+    async function showImportPricingModal() {
+      document.getElementById('importPricingModal').style.display = 'flex';
+      document.getElementById('importResult').style.display = 'none';
+      document.getElementById('importSearchInput').value = '';
+      const list = document.getElementById('importPricingList');
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">加载中...</div>';
+      try {
+        const res = await fetch(`${API}/products/pricing-available`);
+        const data = await res.json();
+        importPricingData = data.data || [];
+        renderImportList(importPricingData);
+      } catch(e) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:#e74c3c;">加载失败</div>';
+      }
+    }
+
+    function renderImportList(items) {
+      const list = document.getElementById('importPricingList');
+      if (items.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">没有可导入的产品（核价表中的型号已全部导入）</div>';
+        document.getElementById('importSelectedCount').textContent = '已选择 0 条';
+        return;
+      }
+      let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+      html += '<thead><tr style="background:#f8f9fa;"><th style="padding:8px;width:40px;"><input type="checkbox" id="importCheckAll" onchange="toggleSelectAll()"></th><th style="padding:8px;">型号</th><th style="padding:8px;">产品名称</th><th style="padding:8px;">品类</th><th style="padding:8px;">功率</th><th style="padding:8px;">核价(RMB)</th><th style="padding:8px;">客户</th></tr></thead><tbody>';
+      items.forEach(p => {
+        html += `<tr style="border-bottom:1px solid #eee;" class="import-row" data-model="${p.model}">
+          <td style="padding:8px;"><input type="checkbox" class="import-check" value="${p.id}" onchange="updateImportCount()"></td>
+          <td style="padding:8px;font-weight:500;">${p.model}</td>
+          <td style="padding:8px;">${p.product_name || '-'}</td>
+          <td style="padding:8px;">${p.category || '-'}</td>
+          <td style="padding:8px;">${p.power || '-'}</td>
+          <td style="padding:8px;color:#27ae60;">${p.price_rmb ? '¥' + Number(p.price_rmb).toFixed(2) : '-'}</td>
+          <td style="padding:8px;">${p.customer || '-'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      list.innerHTML = html;
+      updateImportCount();
+    }
+
+    function filterImportList() {
+      const kw = document.getElementById('importSearchInput').value.trim().toLowerCase();
+      if (!kw) { renderImportList(importPricingData); return; }
+      const filtered = importPricingData.filter(p =>
+        (p.model || '').toLowerCase().includes(kw) ||
+        (p.product_name || '').toLowerCase().includes(kw) ||
+        (p.category || '').toLowerCase().includes(kw)
+      );
+      renderImportList(filtered);
+    }
+
+    function toggleSelectAll() {
+      const checkAll = document.getElementById('importCheckAll');
+      const checks = document.querySelectorAll('.import-check');
+      const allChecked = Array.from(checks).every(c => c.checked);
+      checks.forEach(c => c.checked = !allChecked);
+      if (checkAll) checkAll.checked = !allChecked;
+      updateImportCount();
+    }
+
+    function updateImportCount() {
+      const count = document.querySelectorAll('.import-check:checked').length;
+      document.getElementById('importSelectedCount').textContent = `已选择 ${count} 条`;
+    }
+
+    async function doImportFromPricing() {
+      const checks = document.querySelectorAll('.import-check:checked');
+      if (checks.length === 0) { alert('请选择要导入的产品'); return; }
+      const ids = Array.from(checks).map(c => c.value);
+      if (!confirm(`确定要导入 ${ids.length} 条产品吗？`)) return;
+      try {
+        const res = await fetch(`${API}/products/import-from-pricing`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids })
+        });
+        const data = await res.json();
+        const resultDiv = document.getElementById('importResult');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;font-size:13px;">
+          <strong>导入完成</strong>：成功 ${data.imported} 条，跳过 ${data.skipped} 条（型号已存在）
+        </div>`;
+        loadProducts();
+        // 刷新可导入列表
+        setTimeout(() => showImportPricingModal(), 1500);
+      } catch(e) {
+        alert('导入失败：' + e.message);
+      }
+    }
+
+    // 从URL参数预选产品
+    function checkPreSelect() {
+      const params = new URLSearchParams(window.location.search);
+      const model = params.get('model');
+      if (model) {
+        document.getElementById('searchInput').value = model;
+      }
+    }
+
+    checkPreSelect();
+    loadCategoryOptions();
+    loadProducts();
+  </script>
+  <div id="importDropzoneContainer"></div>
+  <script>
+    ImportDropzone.init('importDropzoneContainer', 'products', () => { loadProducts(); });
+  </script>
+  <script>
+    function initTableSortFilter() {
+      if (window.TableSortFilter) {
+        TableSortFilter.init('productTableEl', {
+          sortFields: { 0: 'external_model', 1: 'internal_model', 2: 'category', 3: 'power', 5: 'cost_price', 6: 'price_rmb', 7: 'price_usd', 10: 'created_at' },
+          filterFields: { 2: 'category', 8: 'pricing_status' }
+        });
+      }
+    }
+    const origLoad = loadProducts;
+    loadProducts = async function(page) {
+      await origLoad(page || 1);
+      initTableSortFilter();
+    };
+    initTableSortFilter();
+  </script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+<script src="feature-gate.js"></script><script>FeatureGate.init();</script>
+</body>
+</html>

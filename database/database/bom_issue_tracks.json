@@ -1,0 +1,13 @@
+{
+  "records": [
+    {
+      "issue_id": 1,
+      "action": "created",
+      "comment": "问题创建",
+      "operator": "system",
+      "created_at": "2026-06-23 17:04:15",
+      "id": 1
+    }
+  ],
+  "nextId": 2
+}

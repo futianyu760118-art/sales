@@ -1,0 +1,83 @@
+{
+  "records": [
+    {
+      "supplier_id": 3,
+      "eval_date": "2026-06-26",
+      "quality_score": 1,
+      "delivery_score": 7,
+      "price_score": 7,
+      "service_score": 7,
+      "overall_score": 5.5,
+      "evaluator": "1",
+      "remarks": "",
+      "created_at": "2026-06-26 15:38:35",
+      "id": 1
+    },
+    {
+      "supplier_id": 4,
+      "eval_date": "2026-06-27",
+      "quality_score": 0,
+      "delivery_score": 0,
+      "price_score": 0,
+      "service_score": 0,
+      "overall_score": 0,
+      "evaluator": "朱剑军",
+      "remarks": "",
+      "created_at": "2026-06-27 09:06:00",
+      "id": 2
+    },
+    {
+      "supplier_id": 4,
+      "eval_date": "2026-06-27",
+      "quality_score": 7,
+      "delivery_score": 7,
+      "price_score": 7,
+      "service_score": 7,
+      "overall_score": 7,
+      "evaluator": "朱剑军",
+      "remarks": "",
+      "created_at": "2026-06-27 09:06:18",
+      "id": 3
+    },
+    {
+      "supplier_id": 1726,
+      "eval_date": "2026-07-01",
+      "quality_score": 70,
+      "delivery_score": 70,
+      "price_score": 70,
+      "service_score": 70,
+      "overall_score": 70,
+      "evaluator": "",
+      "remarks": "",
+      "created_at": "2026-07-01 13:17:41",
+      "id": 4
+    },
+    {
+      "supplier_id": 1737,
+      "eval_date": "2026-07-01",
+      "quality_score": 70,
+      "delivery_score": 70,
+      "price_score": 70,
+      "service_score": 70,
+      "overall_score": 70,
+      "evaluator": "",
+      "remarks": "",
+      "created_at": "2026-07-01 13:18:20",
+      "id": 5
+    },
+    {
+      "supplier_id": 4,
+      "eval_date": "2026-07-01",
+      "quality_score": 70,
+      "delivery_score": 70,
+      "price_score": 70,
+      "service_score": 70,
+      "overall_score": 70,
+      "evaluator": "",
+      "remarks": "",
+      "created_at": "2026-07-01 13:31:20",
+      "id": 6
+    }
+  ],
+  "nextId": 7
+}

@@ -1,0 +1,121 @@
+{
+  "records": [
+    {
+      "username": "admin",
+      "password": "admin123",
+      "name": "管理员",
+      "role": "admin",
+      "created_at": "2026-05-20 09:11:39",
+      "id": 1
+    },
+    {
+      "username": "销售",
+      "password": "123456",
+      "name": "朱梦倩",
+      "role": "sales",
+      "created_at": "2026-05-20 09:11:39",
+      "id": 2,
+      "updated_at": "2026-05-25 04:58:54"
+    },
+    {
+      "username": "sales02",
+      "password": "123456",
+      "name": "沈旭日",
+      "role": "sales",
+      "created_at": "2026-05-20 09:11:39",
+      "id": 3,
+      "updated_at": "2026-05-25 05:06:05"
+    },
+    {
+      "username": "研发",
+      "password": "123456",
+      "name": "周峰",
+      "role": "engineer",
+      "created_at": "2026-05-22 03:53:03",
+      "id": 4,
+      "updated_at": "2026-05-28 07:14:58"
+    },
+    {
+      "username": "purchase01",
+      "password": "123456",
+      "name": "赵采购",
+      "role": "purchase",
+      "created_at": "2026-05-22 03:53:10",
+      "id": 5,
+      "updated_at": "2026-06-02 11:28:39"
+    },
+    {
+      "username": "柴妙琳",
+      "password": "123456",
+      "name": "柴妙琳",
+      "role": "admin",
+      "created_at": "2026-06-22 15:05:16",
+      "id": 6
+    },
+    {
+      "username": "洪香",
+      "password": "123456",
+      "name": "洪香",
+      "role": "finance",
+      "created_at": "2026-06-24 10:00:47",
+      "id": 7
+    },
+    {
+      "username": "包跃",
+      "password": "123123",
+      "name": "包跃",
+      "role": "engineer",
+      "created_at": "2026-06-26 17:09:32",
+      "id": 8
+    },
+    {
+      "username": "朱梦倩",
+      "password": "123456",
+      "name": "朱梦倩",
+      "role": "viewer",
+      "created_at": "2026-06-29 17:17:00",
+      "id": 9
+    },
+    {
+      "username": "廖新平",
+      "password": "123456",
+      "name": "廖新平",
+      "role": "viewer",
+      "created_at": "2026-07-01 11:07:50",
+      "id": 10
+    },
+    {
+      "username": "沈旭挺",
+      "password": "123456",
+      "name": "沈旭挺",
+      "role": "viewer",
+      "created_at": "2026-07-03 09:27:24",
+      "id": 11
+    },
+    {
+      "username": "孙周杰",
+      "password": "123123",
+      "name": "孙周杰",
+      "role": "viewer",
+      "created_at": "2026-07-03 09:50:19",
+      "id": 12
+    },
+    {
+      "username": "严纯洁",
+      "password": "123123",
+      "name": "严纯洁",
+      "role": "viewer",
+      "created_at": "2026-07-03 09:52:03",
+      "id": 13
+    },
+    {
+      "username": "王栌鑫",
+      "password": "123123",
+      "name": "王栌鑫",
+      "role": "viewer",
+      "created_at": "2026-07-10 09:14:58",
+      "id": 14
+    }
+  ],
+  "nextId": 15
+}

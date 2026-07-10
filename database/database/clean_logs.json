@@ -1,0 +1,155 @@
+{
+  "records": [
+    {
+      "rule_id": 3,
+      "rule_name": "修正询价单状态枚举",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:47:50",
+      "details": "[]",
+      "id": 1
+    },
+    {
+      "rule_id": 1,
+      "rule_name": "去除询价单客户名空白",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:47:50",
+      "details": "[]",
+      "id": 2
+    },
+    {
+      "rule_id": 2,
+      "rule_name": "填充询价单空来源",
+      "table_name": "inquiries",
+      "affected_count": 2,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:47:50",
+      "details": "[{\"id\":507,\"before\":{\"serial_number\":\"JFX20260530001\",\"customer_name\":\"深圳市诗凡国际光电有限公司\",\"customer_source\":\"\",\"sales_person\":\"朱梦倩\",\"customer_code\":\"HJ011-1-300\",\"contact_person\":\"\",\"contact_phone\":\"13302596525\",\"contact_email\":\"\",\"inquiry_time\":\"2026-05-30 18:30:05\",\"delivery_date\":\"2026-05-30\",\"external_model\":\"JFS01B-B1WA10\",\"internal_model\":\"JFS01B-B1WA10\",\"product_category\":\"\",\"power\":\"10W\",\"configuration\":\"\",\"quantity\":1000,\"custom_requirements\":\"\",\"special_process\":\"\",\"remarks\":\"\",\"quote_validity\":\"\",\"product_name\":\"S系列\",\"input_voltage\":\"127-220V\",\"battery\":\"\",\"color_temp\":\"6500\",\"luminous_flux\":\"85LM/W\",\"light_source\":\"SMD\",\"main_body\":\"铝合金\",\"lampshade\":\"玻璃\",\"reflector\":\"吸塑\",\"cable\":\"0.3M H05 3*1平方\",\"switch_type\":\"\",\"usb\":\"\",\"waterproof\":\"IP65\",\"sensor\":\"\",\"product_image\":\"\",\"target_price\":0,\"quote_time_needed\":\"\",\"certificate_compliant\":\"是\",\"certificate_level\":\"国标\",\"status\":\"quoted\",\"material_cost\":0,\"process_cost\":0,\"accessory_cost\":0,\"estimated_loss\":0,\"base_cost\":0,\"profit_rate\":0,\"discount_rate\":0,\"final_price\":19.62,\"quoted_at\":\"2026-05-30 18:30:05\",\"follow_up_records\":\"\",\"lost_reason\":\"\",\"created_at\":\"2026-05-30 18:30:05\",\"updated_at\":\"2026-05-30 18:30:05\",\"id\":507},\"updates\":{\"customer_source\":\"未指定\"}},{\"id\":508,\"before\":{\"serial_number\":\"JFX20260530001-02\",\"customer_name\":\"深圳市诗凡国际光电有限公司\",\"customer_source\":\"\",\"sales_person\":\"朱梦倩\",\"customer_code\":\"HJ011-1-300\",\"contact_person\":\"\",\"contact_phone\":\"13302596525\",\"contact_email\":\"\",\"inquiry_time\":\"2026-05-30 18:30:05\",\"delivery_date\":\"2026-05-30\",\"external_model\":\"JFS01B-B1WA20\",\"internal_model\":\"JFS01B-B1WA20\",\"product_category\":\"\",\"power\":\"20\",\"configuration\":\"\",\"quantity\":1999,\"custom_requirements\":\"\",\"special_process\":\"\",\"remarks\":\"\",\"quote_validity\":\"\",\"product_name\":\"S系列投光灯\",\"input_voltage\":\"220-240\",\"battery\":\"\",\"color_temp\":\"6500\",\"luminous_flux\":\"100Lm/W\",\"light_source\":\"SMD\",\"main_body\":\"铝合金\",\"lampshade\":\"玻璃\",\"reflector\":\"吸塑\",\"cable\":\"0.2M H05 3*1平方\",\"switch_type\":\"\",\"usb\":\"\",\"waterproof\":\"IP65\",\"sensor\":\"\",\"product_image\":\"\",\"target_price\":0,\"quote_time_needed\":\"\",\"certificate_compliant\":\"是\",\"certificate_level\":\"国标\",\"status\":\"quoted\",\"material_cost\":0,\"process_cost\":0,\"accessory_cost\":0,\"estimated_loss\":0,\"base_cost\":0,\"profit_rate\":0,\"discount_rate\":0,\"final_price\":16.05,\"quoted_at\":\"2026-05-30 18:30:05\",\"follow_up_records\":\"\",\"lost_reason\":\"\",\"created_at\":\"2026-05-30 18:30:05\",\"updated_at\":\"2026-05-30 18:30:05\",\"id\":508},\"updates\":{\"customer_source\":\"未指定\"}}]",
+      "id": 3
+    },
+    {
+      "rule_id": 3,
+      "rule_name": "修正询价单状态枚举",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:50:44",
+      "details": "[]",
+      "id": 4
+    },
+    {
+      "rule_id": 1,
+      "rule_name": "去除询价单客户名空白",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:50:44",
+      "details": "[]",
+      "id": 5
+    },
+    {
+      "rule_id": 2,
+      "rule_name": "填充询价单空来源",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:50:44",
+      "details": "[]",
+      "id": 6
+    },
+    {
+      "rule_id": 3,
+      "rule_name": "修正询价单状态枚举",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:52:13",
+      "details": "[]",
+      "id": 7
+    },
+    {
+      "rule_id": 1,
+      "rule_name": "去除询价单客户名空白",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:52:13",
+      "details": "[]",
+      "id": 8
+    },
+    {
+      "rule_id": 2,
+      "rule_name": "填充询价单空来源",
+      "table_name": "inquiries",
+      "affected_count": 1,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:52:13",
+      "details": "[{\"id\":509,\"before\":{\"serial_number\":\"JFX20260530002\",\"customer_name\":\"宁波佳和照明科技有限公司\",\"customer_source\":\"\",\"sales_person\":\"朱梦倩\",\"customer_code\":\"HJ011-12-385\",\"contact_person\":\"\",\"contact_phone\":\"13884402346\",\"contact_email\":\"\",\"inquiry_time\":\"2026-05-30 18:51:35\",\"delivery_date\":\"2026-05-30\",\"external_model\":\"JFS03-B1WA30S30\",\"internal_model\":\"JFS03-B1WA30S30\",\"power\":\"30\",\"quantity\":100,\"custom_requirements\":\"\",\"remarks\":\"\",\"quote_validity\":\"\",\"product_name\":\"S系列快接款接线盒\",\"input_voltage\":\"220-240\",\"battery\":\"\",\"color_temp\":\"6500\",\"luminous_flux\":\"85LM/W\",\"light_source\":\"SMD\",\"main_body\":\"铝合金\",\"lampshade\":\"玻璃\",\"reflector\":\"吸塑\",\"cable\":\"0.15M H05 3*1平方\",\"switch_type\":\"\",\"usb\":\"\",\"waterproof\":\"IP54\",\"sensor\":\"\",\"product_image\":\"\",\"target_price\":0,\"quote_time_needed\":\"\",\"certificate_compliant\":\"\",\"certificate_level\":\"国标\",\"status\":\"quoted\",\"material_cost\":0,\"process_cost\":0,\"accessory_cost\":0,\"estimated_loss\":0,\"base_cost\":0,\"profit_rate\":0,\"discount_rate\":0,\"final_price\":42.53,\"quoted_at\":\"2026-05-30 18:51:35\",\"follow_up_records\":\"\",\"lost_reason\":\"\",\"created_at\":\"2026-05-30 18:51:35\",\"updated_at\":\"2026-05-30 18:51:35\",\"id\":509},\"updates\":{\"customer_source\":\"未指定\"}}]",
+      "id": 9
+    },
+    {
+      "rule_id": 3,
+      "rule_name": "修正询价单状态枚举",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:53:02",
+      "details": "[]",
+      "id": 10
+    },
+    {
+      "rule_id": 1,
+      "rule_name": "去除询价单客户名空白",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:53:02",
+      "details": "[]",
+      "id": 11
+    },
+    {
+      "rule_id": 2,
+      "rule_name": "填充询价单空来源",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-05-30 18:53:02",
+      "details": "[]",
+      "id": 12
+    },
+    {
+      "rule_id": 3,
+      "rule_name": "修正询价单状态枚举",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-06-26 12:56:07",
+      "details": "[]",
+      "id": 13
+    },
+    {
+      "rule_id": 1,
+      "rule_name": "去除询价单客户名空白",
+      "table_name": "inquiries",
+      "affected_count": 0,
+      "operator": "admin",
+      "executed_at": "2026-06-26 12:56:07",
+      "details": "[]",
+      "id": 14
+    },
+    {
+      "rule_id": 2,
+      "rule_name": "填充询价单空来源",
+      "table_name": "inquiries",
+      "affected_count": 4,
+      "operator": "admin",
+      "executed_at": "2026-06-26 12:56:07",
+      "details": "[{\"id\":616,\"before\":{\"serial_number\":\"JFX20260623007\",\"customer_name\":\"Ilumitec International\",\"customer_source\":\"\",\"country_region\":\"\",\"sales_person\":\"徐盼\",\"customer_code\":\"HJ028-021-936\",\"contact_person\":\"\",\"contact_phone\":\"tofy@ilumitec.com\",\"contact_email\":\"tofy@ilumitec.com\",\"inquiry_time\":\"2026-06-23 09:45:29\",\"delivery_date\":\"2026-06-23\",\"external_model\":\"JFX71-B1WA10C-X\",\"internal_model\":\"\",\"product_category\":\"\",\"power\":\"10W\",\"configuration\":\"\",\"quantity\":1000,\"custom_requirements\":\"\",\"special_process\":\"\",\"remarks\":\"\",\"quote_validity\":\"\",\"product_name\":\"X系列7代10W剪刀支架工作灯\",\"input_voltage\":\"5v2a\",\"battery\":\"3.7V 2200mAh\",\"color_temp\":\"6500K\",\"luminous_flux\":\"800lm\",\"light_source\":\"SMD\",\"main_body\":\"铝\",\"lampshade\":\"玻璃\",\"reflector\":\"吸塑\",\"cable\":\"1米USB充电线\",\"switch_type\":\"-50%-100%-OFF（轻触按钮）\",\"usb\":\"USB-C\",\"waterproof\":\"IP54\",\"sensor\":\"\",\"product_image\":\"图片-8340549171\",\"target_price\":0,\"quote_time_needed\":\"5天\",\"certificate_compliant\":\"是\",\"certificate_level\":\"国标\",\"status\":\"quoted\",\"material_cost\":27.48,\"process_cost\":0,\"accessory_cost\":0,\"estimated_loss\":0,\"base_cost\":27.48,\"profit_rate\":0.25,\"discount_rate\":0.95,\"final_price\":40,\"quoted_at\":\"2026-06-23 12:56:20\",\"follow_up_records\":\"\",\"lost_reason\":\"\",\"created_at\":\"2026-06-23 09:45:29\",\"updated_at\":\"2026-06-23 15:18:00\",\"id\":616,\"quoted_price\":40,\"quoted_price_usd\":5.88,\"pricing_id\":246},\"updates\":{\"customer_source\":\"未指定\"}},{\"id\":617,\"before\":{\"serial_number\":\"JFX20260623007-02\",\"customer_name\":\"Ilumitec International\",\"customer_source\":\"\",\"country_region\":\"\",\"sales_person\":\"徐盼\",\"customer_code\":\"HJ028-021-936\",\"contact_person\":\"\",\"contact_phone\":\"tofy@ilumitec.com\",\"contact_email\":\"tofy@ilumitec.com\",\"inquiry_time\":\"2026-06-23 09:45:29\",\"delivery_date\":\"2026-06-23\",\"external_model\":\"JFX72-B1WA20C-X\",\"internal_model\":\"\",\"product_category\":\"\",\"power\":\"20W\",\"configuration\":\"\",\"quantity\":2000,\"custom_requirements\":\"\",\"special_process\":\"\",\"remarks\":\"\",\"quote_validity\":\"\",\"product_name\":\"X系列7代20W剪刀支架工作灯\",\"input_voltage\":\"5v2a\",\"battery\":\"3.7V  4400mAh\",\"color_temp\":\"6500K\",\"luminous_flux\":\"1600lm\",\"light_source\":\"SMD\",\"main_body\":\"铝\",\"lampshade\":\"玻璃\",\"reflector\":\"吸塑\",\"cable\":\"1米USB充电线\",\"switch_type\":\"-50%-100%-OFF（轻触按钮）\",\"usb\":\"USB-C\",\"waterproof\":\"IP54\",\"sensor\":\"\",\"product_image\":\"\",\"target_price\":0,\"quote_time_needed\":\"5天\",\"certificate_compliant\":\"是\",\"certificate_level\":\"国标\",\"status\":\"quoted\",\"material_cost\":39.55,\"process_cost\":0,\"accessory_cost\":0,\"estimated_loss\":0,\"base_cost\":39.55,\"profit_rate\":0,\"discount_rate\":0,\"final_price\":65.05,\"quoted_at\":\"2026-06-23 11:33:06\",\"follow_up_records\":\"\",\"lost_reason\":\"\",\"created_at\":\"2026-06-23 09:45:29\",\"updated_at\":\"2026-06-23 15:13:33\",\"id\":617,\"quoted_price\":65.05,\"quoted_price_usd\":9.57,\"pricing_id\":247},\"updates\":{\"customer_source\":\"未指定\"}},{\"id\":618,\"before\":{\"serial_number\":\"JFX20260623007-03\",\"customer_name\":\"Ilumitec International\",\"customer_source\":\"\",\"country_region\":\"\",\"sales_person\":\"徐盼\",\"customer_code\":\"HJ028-021-936\",\"contact_person\":\"\",\"contact_phone\":\"tofy@ilumitec.com\",\"contact_email\":\"tofy@ilumitec.com\",\"inquiry_time\":\"2026-06-23 09:45:29\",\"delivery_date\":\"2026-06-23\",\"external_model\":\"JFX73-B1WA50C-X\",\"internal_model\":\"\",\"product_category\":\"\",\"power\":\"50W\",\"configuration\":\"\",\"quantity\":3000,\"custom_requirements\":\"\",\"special_process\":\"\",\"remarks\":\"\",\"quote_validity\":\"\",\"product_name\":\"X系列7代30W剪刀支架工作灯\",\"input_voltage\":\"5v2a\",\"battery\":\"4400*2\",\"color_temp\":\"6500K\",\"luminous_flux\":\"3500lm\",\"light_source\":\"SMD\",\"main_body\":\"铝\",\"lampshade\":\"玻璃\",\"reflector\":\"吸塑\",\"cable\":\"1米USB充电线\",\"switch_type\":\"-50%-100%-OFF（轻触按钮）\",\"usb\":\"USB-C\",\"waterproof\":\"IP54\",\"sensor\":\"\",\"product_image\":\"\",\"target_price\":0,\"quote_time_needed\":\"5天\",\"certificate_compliant\":\"是\",\"certificate_level\":\"国标\",\"status\":\"quoted\",\"material_cost\":64.2,\"process_cost\":0,\"accessory_cost\":0,\"estimated_loss\":0,\"base_cost\":64.2,\"profit_rate\":0,\"discount_rate\":0,\"final_price\":86.99,\"quoted_at\":\"2026-06-23 15:15:01\",\"follow_up_records\":\"\",\"lost_reason\":\"\",\"created_at\":\"2026-06-23 09:45:29\",\"updated_at\":\"2026-06-23 15:24:10\",\"id\":618,\"quoted_price\":86.99,\"quoted_price_usd\":12.79,\"pricing_id\":248},\"updates\":{\"customer_source\":\"未指定\"}},{\"id\":619,\"before\":{\"serial_number\":\"JFX20260623007-04\",\"customer_name\":\"Ilumitec International\",\"customer_source\":\"\",\"country_region\":\"\",\"sales_person\":\"徐盼\",\"customer_code\":\"HJ028-021-936\",\"contact_person\":\"\",\"contact_phone\":\"tofy@ilumitec.com\",\"contact_email\":\"tofy@ilumitec.com\",\"inquiry_time\":\"2026-06-23 09:45:29\",\"delivery_date\":\"2026-06-23\",\"external_model\":\"JFX72-B1WA20C-X\",\"internal_model\":\"JFX72-B1WA20C-X-1\",\"product_category\":\"\",\"power\":\"20W\",\"configuration\":\"\",\"quantity\":1000,\"custom_requirements\":\"1）指定电池供应商，鹏辉；\\n2）电路板加温度保护（over temperature）;\\n3）要求有CE，UL2595（依据内容出测试报告）。认证费用单独列出。\\n认证费用：（立讯）\\nCE：2.65万\\nUL2595测试报告费用：0.45万\",\"special_process\":\"\",\"remarks\":\"\",\"quote_validity\":\"\",\"product_name\":\"X系列7代20W剪刀支架工作灯\",\"input_voltage\":\"5v2a\",\"battery\":\"4400\",\"color_temp\":\"6500K\",\"luminous_flux\":\"1600lm\",\"light_source\":\"SMD\",\"main_body\":\"铝\",\"lampshade\":\"玻璃\",\"reflector\":\"吸塑\",\"cable\":\"1米USB充电线\",\"switch_type\":\"-50%-100%-OFF（轻触按钮）\",\"usb\":\"USB-C\",\"waterproof\":\"IP54\",\"sensor\":\"\",\"product_image\":\"\",\"target_price\":\"\",\"quote_time_needed\":\"5天\",\"certificate_compliant\":\"是\",\"certificate_level\":\"国标\",\"status\":\"quoted\",\"material_cost\":41.4,\"process_cost\":0,\"accessory_cost\":0,\"estimated_loss\":0,\"base_cost\":41.4,\"profit_rate\":0,\"discount_rate\":0,\"final_price\":67.98,\"quoted_at\":\"2026-06-23 11:58:22\",\"follow_up_records\":\"\",\"lost_reason\":\"\",\"created_at\":\"2026-06-23 09:45:29\",\"updated_at\":\"2026-06-23 15:17:07\",\"id\":619,\"quoted_price\":67.98,\"quoted_price_usd\":10,\"pricing_id\":249},\"updates\":{\"customer_source\":\"未指定\"}}]",
+      "id": 15
+    }
+  ],
+  "nextId": 16
+}

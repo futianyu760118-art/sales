@@ -1,0 +1,31 @@
+{
+  "records": [
+    {
+      "name": "2024年Q1考核",
+      "start_date": "2024-01-01",
+      "end_date": "2024-03-31",
+      "targets": {
+        "conversion_rate": 30,
+        "timely_rate": 80,
+        "lost_rate": 20
+      },
+      "status": "active",
+      "created_at": "2024-01-01 00:00:00",
+      "id": 1
+    },
+    {
+      "name": "2024年Q2考核",
+      "start_date": "2024-04-01",
+      "end_date": "2024-06-30",
+      "targets": {
+        "conversion_rate": 35,
+        "timely_rate": 85,
+        "lost_rate": 15
+      },
+      "status": "planned",
+      "created_at": "2024-04-01 00:00:00",
+      "id": 2
+    }
+  ],
+  "nextId": 3
+}

@@ -1,0 +1,2676 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 客户管理</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .search-bar select { min-width: 120px; }
+    .table-container table { min-width: 1200px; }
+    .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .form-section { border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+    .form-section-title { font-size: 14px; font-weight: 600; color: #667eea; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+    .level-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .level-A { background: #ffe0b2; color: #e65100; }
+    .level-B { background: #e1f5fe; color: #0277bd; }
+    .level-C { background: #f3e5f5; color: #7b1fa2; }
+    .level-D { background: #f5f5f5; color: #616161; }
+    .status-active { background: #e8f5e9; color: #2e7d32; }
+    .status-sample { background: #fff3e0; color: #ef6c00; }
+    .status-potential { background: #e3f2fd; color: #1565c0; }
+    .status-dormant { background: #f5f5f5; color: #757575; }
+    .mode-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+    .mode-export { background: #e8eaf6; color: #283593; }
+    .mode-domestic { background: #fce4ec; color: #c62828; }
+    .mode-trade { background: #e0f2f1; color: #00695c; }
+    .detail-row { display: flex; gap: 20px; margin-bottom: 8px; font-size: 13px; }
+    .detail-label { color: #999; min-width: 80px; flex-shrink: 0; }
+    .detail-value { color: #333; }
+    .batch-bar { display: none; background: #e3f2fd; border-radius: 8px; padding: 10px 16px; margin-bottom: 10px; align-items: center; gap: 12px; font-size: 13px; }
+    .batch-bar.show { display: flex; }
+    .chk-col { width: 36px; text-align: center; }
+    .cell-edit { cursor: pointer; min-height: 20px; padding: 2px 4px; border-radius: 3px; transition: background 0.15s; }
+    .cell-edit:hover { background: #e8eaf6; }
+    .cell-edit-input { width: 100%; padding: 2px 4px; border: 2px solid #667eea; border-radius: 4px; font-size: 13px; outline: none; background: #fff; }
+    .cell-edit-select { padding: 2px 4px; border: 2px solid #667eea; border-radius: 4px; font-size: 13px; outline: none; background: #fff; min-width: 80px; }
+    .row-new { background: #f0fff0 !important; }
+    .row-selected { background: #e3f2fd !important; }
+    .btn-xs { padding: 2px 6px; font-size: 11px; }
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { background: #e8eaf6; }
+    th .sort-arrow { margin-left: 4px; font-size: 10px; color: #bbb; }
+    th.sorted-asc .sort-arrow { color: #667eea; }
+    th.sorted-desc .sort-arrow { color: #667eea; }
+
+    .table-scroll-bar { display: flex; align-items: center; gap: 8px; padding: 8px 0; margin-top: 4px; }
+    .scroll-btn { background: #667eea; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 14px; transition: all 0.2s; white-space: nowrap; }
+    .scroll-btn:hover { background: #5a6fd6; }
+    .scroll-btn:active { transform: scale(0.95); }
+    .scroll-track { flex: 1; height: 8px; background: #e8eaf6; border-radius: 4px; position: relative; cursor: pointer; }
+    .scroll-thumb { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; position: absolute; left: 0; width: 30%; min-width: 40px; transition: left 0.1s; cursor: grab; }
+    .scroll-thumb:active { cursor: grabbing; }
+    #tableContainer { overflow-x: auto; overflow-y: visible; }
+
+    /* ===== 客户分析仪表盘 ===== */
+    .cust-dash { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); margin-bottom:14px; overflow:hidden; }
+    .cust-dash-head { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); }
+    .cust-dash-head h3 { margin:0; color:#fff; font-size:15px; font-weight:600; }
+    .cust-dash-head .dh-btns { display:flex; gap:8px; align-items:center; position:relative; }
+    .dh-btn { background:rgba(255,255,255,0.2); color:#fff; border:none; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer; transition:background .15s; }
+    .dh-btn:hover { background:rgba(255,255,255,0.35); }
+    .dh-settings-panel { position:absolute; top:36px; right:0; background:#fff; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.18); padding:10px 12px; z-index:50; min-width:200px; max-height:340px; overflow-y:auto; display:none; }
+    .dh-settings-panel.show { display:block; }
+    .dh-settings-panel .sp-title { font-size:12px; color:#888; margin-bottom:6px; font-weight:600; }
+    .dh-settings-panel label { display:flex; align-items:center; gap:6px; font-size:13px; color:#444; padding:4px 0; cursor:pointer; }
+    .dh-settings-panel label input { margin:0; }
+    .cust-dash-body { padding:14px 16px; }
+    .cust-dash-body.collapsed { display:none; }
+    .dash-kpi { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:14px; }
+    .kpi-card { border-radius:10px; padding:12px 14px; color:#fff; position:relative; overflow:hidden; }
+    .kpi-card .kpi-num { font-size:24px; font-weight:700; line-height:1.1; }
+    .kpi-card .kpi-lbl { font-size:12px; opacity:.9; margin-top:2px; }
+    .kpi-card .kpi-ico { position:absolute; right:10px; top:8px; font-size:26px; opacity:.3; }
+    .kc-blue{background:linear-gradient(135deg,#4facfe,#00c6fb);} .kc-purple{background:linear-gradient(135deg,#667eea,#764ba2);}
+    .kc-green{background:linear-gradient(135deg,#43e97b,#38f9d7);color:#0a6b3a;} .kc-orange{background:linear-gradient(135deg,#fa709a,#fee140);}
+    .kc-red{background:linear-gradient(135deg,#ff6a00,#ee0979);} .kc-teal{background:linear-gradient(135deg,#2af598,#009efd);}
+    .kc-pink{background:linear-gradient(135deg,#f093fb,#f5576c);} .kc-indigo{background:linear-gradient(135deg,#5b86e5,#36d1dc);}
+    .kc-lime{background:linear-gradient(135deg,#a8ff78,#78ffd6);color:#0a6b3a;}
+    .dash-charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+    .chart-box { border:1px solid #eee; border-radius:10px; padding:10px 12px 12px; background:#fff; }
+    .chart-box h4 { margin:0 0 8px; font-size:13px; color:#555; font-weight:600; }
+    .chart-box .cb-empty { text-align:center; color:#bbb; font-size:12px; padding:30px 0; }
+    /* 环形图 */
+    .cd-pie-wrap { display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center; }
+    .cd-pie { width:130px; height:130px; border-radius:50%; flex-shrink:0; position:relative; }
+    .cd-pie-hole { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:66px; height:66px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; color:#888; font-weight:600; }
+    .cd-legend { display:flex; flex-direction:column; gap:4px; min-width:120px; flex:1; }
+    .cd-leg-item { display:flex; align-items:center; gap:6px; font-size:11px; color:#555; }
+    .cd-leg-item .cd-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+    .cd-leg-item .cd-leg-txt { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .cd-leg-item .cd-leg-val { color:#888; font-weight:600; }
+    /* 横向条形图 */
+    .cd-hbars { display:flex; flex-direction:column; gap:7px; }
+    .cd-hbar-row { display:flex; align-items:center; gap:8px; font-size:11px; }
+    .cd-hbar-label { width:90px; flex-shrink:0; color:#555; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+    .cd-hbar-track { flex:1; height:16px; background:#f0f1f5; border-radius:8px; overflow:hidden; }
+    .cd-hbar-fill { height:100%; border-radius:8px; transition:width .4s; }
+    .cd-hbar-val { width:64px; flex-shrink:0; text-align:right; color:#666; font-weight:600; }
+    @media(max-width:760px){ .dash-charts{grid-template-columns:1fr;} }
+
+    /* ===== 智能文字分析模块 ===== */
+    .dash-insights { margin-top:14px; }
+    .ins-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px; }
+    .ins-card { border:1px solid #eee; border-radius:10px; padding:12px 14px; background:#fff; border-left:4px solid #667eea; }
+    .ins-card.warn { border-left-color:#f39c12; }
+    .ins-card.good { border-left-color:#27ae60; }
+    .ins-card.risk { border-left-color:#e74c3c; }
+    .ins-title { font-size:13px; font-weight:600; color:#333; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .ins-body { font-size:12.5px; color:#555; line-height:1.7; }
+    .ins-hl { color:#667eea; font-weight:700; }
+    .ins-hl.r { color:#e74c3c; } .ins-hl.g { color:#27ae60; } .ins-hl.o { color:#f39c12; }
+    @media(max-width:760px){ .ins-grid{grid-template-columns:1fr;} }
+
+    /* ===== 客户附件 ===== */
+    .att-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
+    .att-card { border:1px solid #eee; border-radius:8px; overflow:hidden; position:relative; background:#fafbff; }
+    .att-thumb { height:90px; display:flex; align-items:center; justify-content:center; background:#f0f1f5; cursor:pointer; overflow:hidden; }
+    .att-thumb img { width:100%; height:100%; object-fit:cover; }
+    .att-thumb .att-file-ico { font-size:34px; color:#667eea; }
+    .att-info { padding:5px 7px; }
+    .att-name { font-size:11px; color:#444; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .att-meta { font-size:10px; color:#aaa; margin-top:1px; }
+    .att-ops { display:flex; gap:3px; padding:0 7px 6px; }
+    .att-ops button { flex:1; font-size:10px; padding:3px 0; border:1px solid #ddd; background:#fff; border-radius:4px; cursor:pointer; }
+    .att-ops button:hover { background:#667eea; color:#fff; border-color:#667eea; }
+    .att-ops .del:hover { background:#e74c3c; border-color:#e74c3c; }
+    #attPreviewBody img { max-width:100%; max-height:65vh; border-radius:6px; }
+    #attPreviewBody iframe { width:100%; height:65vh; border:none; border-radius:6px; }
+
+    /* 表单内附件行 */
+    .fa-row { display:flex; align-items:center; gap:8px; padding:5px 8px; background:#fafbff; border:1px solid #eee; border-radius:6px; margin-bottom:5px; font-size:12px; }
+    .fa-row.fa-pending { border-left:3px solid #f39c12; }
+    .fa-row .fa-ico { font-size:15px; }
+    .fa-row .fa-name { flex:1; color:#444; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .fa-row .fa-size { color:#aaa; font-size:11px; }
+    .fa-row .fa-del { background:none; border:none; color:#e74c3c; cursor:pointer; font-size:14px; padding:0 4px; }
+
+    /* ===== 客户矩阵/卡片视图 ===== */
+    .view-toggle { display:inline-flex; border:1px solid #ddd; border-radius:6px; overflow:hidden; }
+    .view-toggle button { padding:5px 12px; border:none; background:#fff; cursor:pointer; font-size:12px; color:#666; }
+    .view-toggle button.active { background:#667eea; color:#fff; }
+    .matrix-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; padding:4px 0; }
+    .cust-card { background:#fff; border:1px solid #eee; border-radius:10px; padding:12px 14px; box-shadow:0 1px 6px rgba(0,0,0,0.05); position:relative; transition:all .2s; }
+    .cust-card:hover { box-shadow:0 4px 16px rgba(102,126,234,0.15); transform:translateY(-2px); border-color:#c7d2fe; }
+    .cust-card .cc-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
+    .cust-card .cc-name { font-weight:600; font-size:14px; color:#333; cursor:pointer; line-height:1.3; }
+    .cust-card .cc-name:hover { color:#667eea; }
+    .cust-card .cc-code { font-size:11px; color:#999; }
+    .cust-card .cc-badges { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }
+    .cust-card .cc-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; font-size:12px; }
+    .cust-card .cc-field { display:flex; flex-direction:column; }
+    .cust-card .cc-field .cc-lbl { color:#aaa; font-size:10px; }
+    .cust-card .cc-field .cc-val { color:#444; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cust-card .cc-val a { color:#667eea; }
+    .cust-card .cc-acts { display:flex; gap:5px; margin-top:10px; padding-top:8px; border-top:1px solid #f0f0f0; }
+    .cust-card .cc-acts button { flex:1; font-size:11px; padding:4px 0; border:none; border-radius:5px; cursor:pointer; }
+    .cust-card .cc-att-tag { position:absolute; top:10px; right:12px; font-size:10px; color:#fff; background:#f39c12; border-radius:10px; padding:1px 7px; }
+  </style>
+  <script src="import-dropzone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content" data-module="customer">
+    <div class="header">
+      <h2>客户管理</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-success" onclick="addInlineRow()" data-perm="customer:create" data-feature="inline_edit">新增行</button>
+        <button class="btn btn-primary" onclick="showAddModal()" data-perm="customer:create" data-feature="inline_edit">新增客户(完整)</button>
+        <button class="btn btn-info" onclick="showOcrModal()" data-perm="customer:create" data-feature="ocr">拍照识别导入</button>
+        <button class="btn btn-warning" onclick="ImportDropzone.open()" data-perm="customer:create" data-feature="import">Excel导入</button>
+        <button class="btn" style="background:#2980b9;color:#fff;" data-perm="customer:create" data-feature="sync" onclick="syncExternalCustomers()">从外部同步</button>
+        <button class="btn btn-success" onclick="downloadTemplate()" data-perm="customer:create">下载模板</button>
+        <button class="btn" style="background:#8e44ad;color:#fff;" data-feature="export" onclick="exportCustomers()">导出Excel</button>
+        <button class="btn" style="background:#2c3e50;color:#fff;" onclick="createInitiationFromCustomer()">发起立项</button>
+      </div>
+    </div>
+
+    <!-- 客户分析仪表盘 -->
+    <div class="cust-dash" id="custDashboard">
+      <div class="cust-dash-head">
+        <h3>📊 客户多维度分析</h3>
+        <div class="dh-btns">
+          <button class="dh-btn" onclick="CustDash.toggleSettings()">显示设置 ▾</button>
+          <button class="dh-btn" id="dashCollapseBtn" onclick="CustDash.toggleCollapse()">折叠 ▴</button>
+          <div class="dh-settings-panel" id="dashSettingsPanel">
+            <div class="sp-title">勾选要显示的内容（自动记忆）</div>
+            <div id="dashSettingsList"></div>
+          </div>
+        </div>
+      </div>
+      <div class="cust-dash-body" id="dashBody">
+      <div class="dash-kpi" id="dashKpi"></div>
+      <div class="dash-insights" id="dashInsights"></div>
+      <div class="dash-charts" id="dashCharts"></div>
+      </div>
+    </div>
+
+    <div class="search-bar" data-feature="filter">
+      <input type="text" id="searchInput" placeholder="搜索客户名称/编号/联系人..." style="min-width:220px;">
+      <select id="levelFilter">
+        <option value="">全部等级</option>
+        <option value="A级（核心大客户）">A级（核心大客户）</option>
+        <option value="B级（普通大客户）">B级（普通大客户）</option>
+        <option value="C级（中小客户）">C级（中小客户）</option>
+        <option value="D级（新客/休眠客）">D级（新客/休眠客）</option>
+      </select>
+      <select id="modeFilter">
+        <option value="">全部模式</option>
+        <option value="外销">外销</option>
+        <option value="内销">内销</option>
+        <option value="外贸公司">外贸公司</option>
+      </select>
+      <select id="statusFilter">
+        <option value="">全部状态</option>
+        <option value="大货合作客户">大货合作客户</option>
+        <option value="样品单客户">样品单客户</option>
+        <option value="潜在客户">潜在客户</option>
+        <option value="未合作休眠客户">未合作休眠客户</option>
+      </select>
+      <select id="salesFilter">
+        <option value="">全部业务员</option>
+      </select>
+      <button class="btn btn-primary" onclick="searchCustomers()">查询</button>
+      <span class="view-toggle">
+        <button id="viewBtnTable" class="active" onclick="CustView.set('table')">表格</button>
+        <button id="viewBtnMatrix" onclick="CustView.set('matrix')">矩阵</button>
+      </span>
+    </div>
+
+    <!-- 批量操作栏 -->
+    <div class="batch-bar" id="batchBar">
+      <span id="batchCount">已选 0 条</span>
+      <button class="btn btn-sm btn-primary" onclick="showBatchEditModal()" data-feature="batch">批量修改</button>
+      <button class="btn btn-sm btn-danger" onclick="batchDelete()" data-feature="batch">批量删除</button>
+      <button class="btn btn-sm" style="background:#eee;" onclick="clearSelection()">取消选择</button>
+    </div>
+
+    <div class="table-container" id="tableContainer">
+      <table id="customerTableEl">
+        <thead>
+          <tr>
+            <th class="chk-col"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
+            <th class="seq-col">#</th>
+            <th class="sortable" data-field="customer_code">客户编号 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="name">客户全称 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="customer_level">客户等级 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="sales_mode">销售模式 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="customer_status">客户状态 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="decision_maker">决策人 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="contact_person">对接人 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="phone">联系电话 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="email">邮箱 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="customer_source">客户来源 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="country_region">国家/地区 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="sales_person">所属业务员 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="last_trade_year">最后交易 <span class="sort-arrow">&#8597;</span></th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="customerTable"></tbody>
+      </table>
+    </div>
+
+    <div class="table-scroll-bar" id="tableScrollBar">
+      <button class="scroll-btn" onclick="scrollTableLeft()" title="向左滚动">&#9664;&#9664;</button>
+      <div class="scroll-track" id="scrollTrack">
+        <div class="scroll-thumb" id="scrollThumb"></div>
+      </div>
+      <button class="scroll-btn" onclick="scrollTableRight()" title="向右滚动">&#9654;&#9654;</button>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+
+    <!-- 客户矩阵/卡片视图 -->
+    <div id="matrixView" style="display:none;">
+      <div class="matrix-grid" id="matrixGrid"></div>
+      <div class="pagination" id="matrixPagination"></div>
+    </div>
+  </div>
+
+  <!-- 批量修改弹窗 -->
+  <div class="modal" id="batchEditModal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close-btn" onclick="closeModal('batchEditModal')">&times;</span>
+      <h3>批量修改客户</h3>
+      <div style="color:#888;font-size:13px;margin-bottom:15px;">仅修改勾选的字段，未勾选的字段保持不变</div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group"><label><input type="checkbox" id="beLevelCheck" onchange="toggleBatchField('beLevel')"> 客户等级</label>
+            <select id="beLevel" disabled><option value="">请选择</option><option value="A级（核心大客户）">A级（核心大客户）</option><option value="B级（普通大客户）">B级（普通大客户）</option><option value="C级（中小客户）">C级（中小客户）</option><option value="D级（新客/休眠客）">D级（新客/休眠客）</option></select>
+          </div>
+          <div class="form-group"><label><input type="checkbox" id="beModeCheck" onchange="toggleBatchField('beMode')"> 销售模式</label>
+            <select id="beMode" disabled><option value="">请选择</option><option value="外销">外销</option><option value="内销">内销</option><option value="外贸公司">外贸公司</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label><input type="checkbox" id="beStatusCheck" onchange="toggleBatchField('beStatus')"> 客户状态</label>
+            <select id="beStatus" disabled><option value="">请选择</option><option value="大货合作客户">大货合作客户</option><option value="样品单客户">样品单客户</option><option value="潜在客户">潜在客户</option><option value="未合作休眠客户">未合作休眠客户</option></select>
+          </div>
+          <div class="form-group"><label><input type="checkbox" id="beSalesCheck" onchange="toggleBatchField('beSales')"> 所属业务员</label>
+            <input type="text" id="beSales" disabled placeholder="业务员姓名">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+        <button class="btn" style="background:#eee;" onclick="closeModal('batchEditModal')">取消</button>
+        <button class="btn btn-primary" onclick="doBatchUpdate()">确认修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增/编辑客户弹窗 -->
+  <div class="modal" id="customerModal">
+    <div class="modal-content" style="max-width:860px;">
+      <span class="close-btn" onclick="closeModal('customerModal')">&times;</span>
+      <h3 id="modalTitle">新增客户</h3>
+      <form id="customerForm">
+        <input type="hidden" id="editId">
+
+        <div class="form-section">
+          <div class="form-section-title">基本信息</div>
+          <div class="form-row">
+            <div class="form-group"><label>客户编号</label><input type="text" id="fCustomerCode" placeholder="如 HJ009-19-358"></div>
+            <div class="form-group"><label>客户全称</label><input type="text" id="fName"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>客户曾用名</label><input type="text" id="fFormerName"></div>
+            <div class="form-group"><label>母公司编号</label><input type="text" id="fParentCode"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>客户等级 *</label>
+              <select id="fCustomerLevel">
+                <option value="">请选择</option>
+                <option value="A级（核心大客户）">A级（核心大客户）</option>
+                <option value="B级（普通大客户）">B级（普通大客户）</option>
+                <option value="C级（中小客户）">C级（中小客户）</option>
+                <option value="D级（新客/休眠客）">D级（新客/休眠客）</option>
+              </select>
+            </div>
+            <div class="form-group"><label>销售模式 *</label>
+              <select id="fSalesMode">
+                <option value="">请选择</option>
+                <option value="外销">外销</option>
+                <option value="内销">内销</option>
+                <option value="外贸公司">外贸公司</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>客户状态 *</label>
+              <select id="fCustomerStatus">
+                <option value="">请选择</option>
+                <option value="大货合作客户">大货合作客户</option>
+                <option value="样品单客户">样品单客户</option>
+                <option value="潜在客户">潜在客户</option>
+                <option value="未合作休眠客户">未合作休眠客户</option>
+              </select>
+            </div>
+            <div class="form-group"><label>所属业务员 *</label><input type="text" id="fSalesPerson" placeholder="所属业务员"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>最后交易年份</label><input type="text" id="fLastTradeYear" placeholder="如 2025"></div>
+            <div class="form-group"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">决策人信息</div>
+          <div class="form-row-3">
+            <div class="form-group"><label>决策人姓名</label><input type="text" id="fDecisionMaker"></div>
+            <div class="form-group"><label>决策人职位</label><input type="text" id="fDecisionMakerPosition"></div>
+            <div class="form-group"><label>决策核心诉求</label><input type="text" id="fDecisionCoreNeed"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">对接人信息</div>
+          <div class="form-row-3">
+            <div class="form-group"><label>普通对接人</label><input type="text" id="fContactPerson"></div>
+            <div class="form-group"><label>对接人职位</label><input type="text" id="fContactPosition"></div>
+            <div class="form-group"><label>联系电话(含区号)</label><input type="text" id="fPhone"></div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group"><label>对接邮箱</label><input type="text" id="fEmail"></div>
+            <div class="form-group"><label>微信号</label><input type="text" id="fWechat"></div>
+            <div class="form-group"><label>WhatsApp</label><input type="text" id="fWhatsapp"></div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group"><label>Skype</label><input type="text" id="fSkype"></div>
+            <div class="form-group"><label>其他即时联系方式</label><input type="text" id="fOtherIm"></div>
+            <div class="form-group"><label>网址</label><input type="text" id="fWebsite" placeholder="如 www.example.com"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">开票信息</div>
+          <div class="form-row-3">
+            <div class="form-group"><label>开票抬头</label><input type="text" id="fInvoiceTitle"></div>
+            <div class="form-group"><label>纳税人识别号</label><input type="text" id="fTaxId"></div>
+            <div class="form-group"><label>开户银行</label><input type="text" id="fBankName"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>银行账号</label><input type="text" id="fBankAccount"></div>
+            <div class="form-group"><label>地址</label><input type="text" id="fAddress"></div>
+            <div class="form-group"><label>客户来源</label><select id="fCustomerSource"><option value="">请选择</option></select></div>
+            <div class="form-group"><label>国家/地区</label><select id="fCountryRegion"><option value="">请选择</option></select></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>备注说明</label>
+          <textarea id="fRemarks" rows="2" placeholder="备注说明"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>图片 / 文件附件
+            <button type="button" class="btn btn-sm btn-primary" style="margin-left:8px;padding:3px 10px;" onclick="CustFormAtt.pick()">＋ 添加文件</button>
+            <button type="button" class="btn btn-sm" style="margin-left:4px;padding:3px 10px;background:#8e44ad;color:#fff;" onclick="CustFormAtt.addLink()">＋ 粘贴链接</button>
+          </label>
+          <div id="formAttachments" style="margin-top:6px;"><div style="color:#bbb;font-size:12px;">暂无附件</div></div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+          <button type="button" class="btn" style="background:#eee;" onclick="closeModal('customerModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 客户详情弹窗 -->
+  <div class="modal" id="detailModal">
+    <div class="modal-content" style="max-width:860px;">
+      <span class="close-btn" onclick="closeModal('detailModal')">&times;</span>
+      <h3 id="detailTitle">客户详情</h3>
+      <div id="detailContent"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button class="btn btn-success" id="detailInquiryBtn" onclick="createInquiryForCustomer()">新建询价</button>
+        <button class="btn btn-primary" id="detailEditBtn">编辑</button>
+        <button class="btn" style="background:#eee;" onclick="closeModal('detailModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 附件预览弹窗 -->
+  <div class="modal" id="attPreviewModal" style="z-index:1100;">
+    <div class="modal-content" style="max-width:900px;">
+      <span class="close-btn" onclick="closeModal('attPreviewModal')">&times;</span>
+      <h3 id="attPreviewTitle">预览</h3>
+      <div id="attPreviewBody" style="text-align:center;min-height:200px;"></div>
+    </div>
+  </div>
+
+  <!-- 客户询价单弹窗 -->
+  <div class="modal" id="inquiryListModal">
+    <div class="modal-content" style="max-width:700px;">
+      <span class="close-btn" onclick="closeModal('inquiryListModal')">&times;</span>
+      <h3 id="inquiryListTitle">客户询价单</h3>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th class="seq-col" style="padding:8px;border-bottom:1px solid #eee;">#</th>
+            <th style="padding:8px;border-bottom:1px solid #eee;">询价单号</th>
+            <th style="padding:8px;border-bottom:1px solid #eee;">产品型号</th>
+            <th style="padding:8px;border-bottom:1px solid #eee;">数量</th>
+            <th style="padding:8px;border-bottom:1px solid #eee;">状态</th>
+            <th style="padding:8px;border-bottom:1px solid #eee;">时间</th>
+          </tr>
+        </thead>
+        <tbody id="customerInquiryTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- OCR拍照识别导入客户 -->
+  <div class="modal" id="ocrModal">
+    <div class="modal-content" style="max-width:620px;">
+      <span class="close-btn" onclick="closeModal('ocrModal')">&times;</span>
+      <h3>拍照识别导入客户 <span style="font-size:12px;color:#999;font-weight:normal;">支持多张图片批量识别，无限制</span></h3>
+      <div id="ocrHttpsTip" style="display:none;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#856404;">
+        ⚠️ 截图/拍照功能需要HTTPS安全连接。请使用 <a href="https://localhost:3001/customer.html" style="color:#0066cc;text-decoration:underline;">https://localhost:3001</a> 访问（首次需点击"高级"→"继续访问"）
+      </div>
+      <div style="text-align:center;margin:15px 0;">
+        <div id="ocrPreviewArea" style="display:none;margin-bottom:10px;max-height:180px;overflow-x:auto;white-space:nowrap;"></div>
+        <div id="ocrDropZone" style="border:2px dashed #3498db;border-radius:8px;padding:30px;cursor:pointer;transition:all 0.3s;" onclick="document.getElementById('ocrFileInput').click()" onmouseover="this.style.background='#eaf4fc'" onmouseout="this.style.background=''">
+          <div style="font-size:32px;color:#3498db;">&#128247;</div>
+          <div style="color:#666;margin-top:8px;">点击拍照/上传 或 拖拽到此处</div>
+          <div style="color:#999;font-size:12px;margin-top:4px;">支持 JPG/PNG/PDF/BMP，可多选，可粘贴截图</div>
+          <div style="color:#3498db;font-size:12px;margin-top:4px;">Ctrl+V 粘贴剪贴板图片</div>
+        </div>
+        <input type="file" id="ocrFileInput" accept="image/*,.pdf" capture="environment" multiple style="display:none;" onchange="handleOcrFiles(this.files)">
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
+          <button type="button" class="btn" style="background:#2ecc71;color:#fff;padding:8px 16px;" onclick="startCameraCapture()">&#128247; 拍照</button>
+          <button type="button" class="btn" style="background:#e67e22;color:#fff;padding:8px 16px;" onclick="screenCapture()">&#128240; 截图</button>
+        </div>
+      </div>
+      <!-- 摄像头拍照区域 -->
+      <div id="ocrCameraArea" style="display:none;margin:10px 0;">
+        <div style="position:relative;background:#000;border-radius:8px;overflow:hidden;">
+          <video id="ocrCameraVideo" autoplay playsinline style="width:100%;max-height:300px;display:block;"></video>
+          <canvas id="ocrCameraCanvas" style="display:none;"></canvas>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
+          <button type="button" class="btn btn-primary" onclick="captureCameraPhoto()">&#128248; 拍摄</button>
+          <button type="button" class="btn" style="background:#eee;" onclick="stopCamera()">取消</button>
+        </div>
+      </div>
+      <div id="ocrProgress" style="display:none;margin:10px 0;">
+        <div style="background:#ecf0f1;border-radius:4px;height:20px;overflow:hidden;"><div id="ocrProgressBar" style="background:linear-gradient(90deg,#3498db,#2ecc71);height:100%;width:0%;transition:width 0.3s;text-align:center;color:#fff;font-size:11px;line-height:20px;"></div></div>
+        <div id="ocrStatusText" style="text-align:center;color:#666;font-size:12px;margin-top:4px;">正在识别...</div>
+      </div>
+      <div id="ocrResult" style="display:none;margin:10px 0;">
+        <h4 style="font-size:13px;color:#27ae60;margin-bottom:8px;">识别结果（可编辑，无限制）</h4>
+        <div id="ocrResultFields" style="background:#f8f9fa;border-radius:6px;padding:10px;"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn" style="background:#eee;" onclick="resetOcr()">重新识别</button>
+          <button type="button" class="btn" style="background:#8e44ad;color:#fff;" onclick="applyOcrToInline()">直接导入</button>
+          <button type="button" class="btn btn-primary" onclick="applyOcrResult()">填入完整表单</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel批量导入（表头映射组件 ImportDropzone）容器位于页面底部，已由 ImportDropzone.init 初始化 -->
+
+  <script>
+    const API = window.location.origin + '/api';
+    let currentPage = 1;
+    let totalPages = 1;
+    let ocrResultData = {};
+    let currentDetailCustomer = null;
+    let sortField = '';
+    let sortOrder = '';
+    let selectedIds = new Set();
+    let customerData = [];
+
+    // 可行内编辑的字段配置
+    const EDITABLE_FIELDS = {
+      customer_code: { type: 'text' },
+      name: { type: 'text' },
+      customer_level: { type: 'select', options: ['','A级（核心大客户）','B级（普通大客户）','C级（中小客户）','D级（新客/休眠客）'] },
+      sales_mode: { type: 'select', options: ['','外销','内销','外贸公司'] },
+      customer_status: { type: 'select', options: ['','大货合作客户','样品单客户','潜在客户','未合作休眠客户'] },
+      decision_maker: { type: 'text' },
+      contact_person: { type: 'text' },
+      phone: { type: 'text' },
+      email: { type: 'text' },
+      sales_person: { type: 'text' },
+      last_trade_year: { type: 'text' }
+    };
+
+    // ===== 排序：点击表头 =====
+    document.querySelectorAll('#customerTableEl th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const field = th.dataset.field;
+        if (sortField === field) {
+          sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortField = field;
+          sortOrder = 'asc';
+        }
+        document.querySelectorAll('#customerTableEl th.sortable').forEach(h => h.classList.remove('sorted-asc','sorted-desc'));
+        th.classList.add(sortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        sortCurrentData();
+        renderTable();
+      });
+    });
+
+    function sortCurrentData() {
+      if (!sortField || !sortOrder) return;
+      customerData.sort((a, b) => {
+        let va = (a[sortField] || '').toString();
+        let vb = (b[sortField] || '').toString();
+        return sortOrder === 'asc' ? va.localeCompare(vb, 'zh') : vb.localeCompare(va, 'zh');
+      });
+    }
+
+    // ===== 加载业务员列表 =====
+    async function loadSalesOptions() {
+      try {
+        const res = await fetch(`${API}/users?role=sales&limit=100`);
+        const data = await res.json();
+        const users = data.data || data || [];
+        const salesFilter = document.getElementById('salesFilter');
+        users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.name || u.username;
+          opt.textContent = u.name || u.username;
+          salesFilter.appendChild(opt);
+        });
+      } catch(e) { console.error('加载业务员列表失败', e); }
+    }
+
+    // ===== 加载客户列表 =====
+    async function loadCustomers(page = 1) {
+      currentPage = page;
+      const keyword = document.getElementById('searchInput').value.trim();
+      const customer_level = document.getElementById('levelFilter').value;
+      const sales_mode = document.getElementById('modeFilter').value;
+      const customer_status = document.getElementById('statusFilter').value;
+      const sales_person = document.getElementById('salesFilter').value;
+
+      const params = new URLSearchParams({ page, limit: 20 });
+      if (keyword) params.set('keyword', keyword);
+      if (customer_level) params.set('customer_level', customer_level);
+      if (sales_mode) params.set('sales_mode', sales_mode);
+      if (customer_status) params.set('customer_status', customer_status);
+      if (sales_person) params.set('sales_person', sales_person);
+
+      const res = await fetch(`${API}/customers?${params}`);
+      const data = await res.json();
+      customerData = data.data || [];
+
+      if (sortField) sortCurrentData();
+
+      totalPages = Math.ceil(data.total / 20);
+      CustView.render(page);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('customerTable');
+      tbody.innerHTML = '';
+      if (customerData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:30px;color:#999;">暂无客户数据</td></tr>';
+        return;
+      }
+      customerData.forEach((item, idx) => {
+        const seqNum = (currentPage - 1) * 20 + idx + 1;
+        const isSelected = selectedIds.has(item.id);
+        const tr = document.createElement('tr');
+        if (isSelected) tr.classList.add('row-selected');
+        tr.dataset.id = item.id;
+        tr.innerHTML = `
+          <td class="chk-col"><input type="checkbox" class="row-check" value="${item.id}" ${isSelected ? 'checked' : ''} onchange="toggleRowCheck(${item.id}, this)"></td>
+          <td class="seq-col">${seqNum}</td>
+          <td><div class="cell-edit" data-field="customer_code" data-id="${item.id}">${item.customer_code || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="name" data-id="${item.id}" style="color:#667eea;font-weight:500;cursor:pointer;" onclick="showDetail(${item.id})">${item.name || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="customer_level" data-id="${item.id}">${renderBadge('level', item.customer_level)}</div></td>
+          <td><div class="cell-edit" data-field="sales_mode" data-id="${item.id}">${renderBadge('mode', item.sales_mode)}</div></td>
+          <td><div class="cell-edit" data-field="customer_status" data-id="${item.id}">${renderBadge('status', item.customer_status)}</div></td>
+          <td><div class="cell-edit" data-field="decision_maker" data-id="${item.id}">${item.decision_maker || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="contact_person" data-id="${item.id}">${item.contact_person || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="phone" data-id="${item.id}">${item.phone || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="email" data-id="${item.id}">${item.email || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="customer_source" data-id="${item.id}">${item.customer_source || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="country_region" data-id="${item.id}">${item.country_region || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="sales_person" data-id="${item.id}">${item.sales_person || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td><div class="cell-edit" data-field="last_trade_year" data-id="${item.id}">${item.last_trade_year || '<span style="color:#ccc;">-</span>'}</div></td>
+          <td>
+            <button class="btn btn-success btn-xs" onclick="createInquiryForCustomerById(${item.id})">询价</button>
+            <button class="btn btn-primary btn-xs" onclick="showEditModal(${item.id})">编辑</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteCustomer(${item.id})">删除</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderBadge(type, value) {
+      if (!value) return '<span style="color:#ccc;">-</span>';
+      if (type === 'level') {
+        const cls = value.includes('A') ? 'level-A' : value.includes('B') ? 'level-B' : value.includes('C') ? 'level-C' : 'level-D';
+        return `<span class="level-badge ${cls}">${value}</span>`;
+      }
+      if (type === 'mode') {
+        const cls = value === '外销' ? 'mode-export' : value === '内销' ? 'mode-domestic' : 'mode-trade';
+        return `<span class="mode-badge ${cls}">${value}</span>`;
+      }
+      if (type === 'status') {
+        const cls = value.includes('大货') ? 'status-active' : value.includes('样品') ? 'status-sample' : value.includes('潜在') ? 'status-potential' : 'status-dormant';
+        return `<span class="status-badge ${cls}">${value}</span>`;
+      }
+      return value;
+    }
+
+    function renderPagination(page, targetId) {
+      const pagination = document.getElementById(targetId || 'pagination');
+      if (!pagination) return;
+      pagination.innerHTML = '';
+      if (totalPages <= 1) return;
+      if (page > 1) pagination.innerHTML += `<button onclick="loadCustomers(${page - 1})">上一页</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && Math.abs(i - page) > 2 && i !== 1 && i !== totalPages) {
+          if (i === page - 3 || i === page + 3) pagination.innerHTML += '<button disabled>...</button>';
+          continue;
+        }
+        pagination.innerHTML += `<button ${i === page ? 'class="active"' : ''} onclick="loadCustomers(${i})">${i}</button>`;
+      }
+      if (page < totalPages) pagination.innerHTML += `<button onclick="loadCustomers(${page + 1})">下一页</button>`;
+    }
+
+    function searchCustomers() { loadCustomers(1); }
+
+    // ===== 行内编辑：双击单元格 =====
+    document.addEventListener('dblclick', function(e) {
+      const cell = e.target.closest('.cell-edit');
+      if (!cell) return;
+      const field = cell.dataset.field;
+      const id = parseInt(cell.dataset.id);
+      const config = EDITABLE_FIELDS[field];
+      if (!config) return;
+
+      const item = customerData.find(c => c.id === id);
+      const currentValue = item ? (item[field] || '') : '';
+
+      if (config.type === 'select') {
+        const select = document.createElement('select');
+        select.className = 'cell-edit-select';
+        config.options.forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt; o.textContent = opt || '(空)';
+          if (opt === currentValue) o.selected = true;
+          select.appendChild(o);
+        });
+        cell.replaceWith(select);
+        select.focus();
+
+        let saved = false;
+        const save = () => {
+          if (saved) return;
+          saved = true;
+          const newVal = select.value;
+          updateCell(id, field, newVal);
+          const div = document.createElement('div');
+          div.className = 'cell-edit'; div.dataset.field = field; div.dataset.id = id;
+          if (field === 'customer_level' || field === 'sales_mode' || field === 'customer_status') {
+            const type = field === 'customer_level' ? 'level' : field === 'sales_mode' ? 'mode' : 'status';
+            div.innerHTML = renderBadge(type, newVal);
+          } else { div.textContent = newVal || '-'; }
+          select.replaceWith(div);
+        };
+        select.addEventListener('change', save);
+        select.addEventListener('blur', save);
+      } else {
+        const input = document.createElement('input');
+        input.type = 'text'; input.className = 'cell-edit-input'; input.value = currentValue;
+        cell.replaceWith(input); input.focus(); input.select();
+
+        let saved = false;
+        const save = () => {
+          if (saved) return;
+          saved = true;
+          const newVal = input.value.trim();
+          updateCell(id, field, newVal);
+          const div = document.createElement('div');
+          div.className = 'cell-edit'; div.dataset.field = field; div.dataset.id = id;
+          if (field === 'name') div.style.cssText = 'color:#667eea;font-weight:500;cursor:pointer;';
+          div.textContent = newVal || '-';
+          input.replaceWith(div);
+        };
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') { e.preventDefault(); save(); }
+          if (e.key === 'Escape') { saved = true; const div = document.createElement('div'); div.className = 'cell-edit'; div.dataset.field = field; div.dataset.id = id; if (field === 'name') div.style.cssText = 'color:#667eea;font-weight:500;cursor:pointer;'; div.textContent = currentValue || '-'; input.replaceWith(div); }
+        });
+        input.addEventListener('blur', save);
+      }
+    });
+
+    async function updateCell(id, field, value) {
+      const item = customerData.find(c => c.id === id);
+      if (item && item[field] === value) return;
+      try {
+        const res = await fetch(`${API}/customers/${id}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ [field]: value })
+        });
+        if (res.ok) { if (item) item[field] = value; }
+        else { const err = await res.json(); alert(err.error || '更新失败'); loadCustomers(currentPage); }
+      } catch(e) { alert('更新失败: ' + e.message); loadCustomers(currentPage); }
+    }
+
+    // ===== 表格内新增行 =====
+    function addInlineRow() {
+      const tbody = document.getElementById('customerTable');
+      const existingNew = tbody.querySelector('.row-new');
+      if (existingNew) existingNew.remove();
+
+      const tr = document.createElement('tr');
+      tr.classList.add('row-new');
+      tr.innerHTML = `
+        <td class="chk-col"></td>
+        <td class="seq-col" style="color:#27ae60;font-weight:600;">新</td>
+        <td><input type="text" class="cell-edit-input" data-new="customer_code" placeholder="编号" style="width:90px;"></td>
+        <td><input type="text" class="cell-edit-input" data-new="name" placeholder="客户全称 *" style="min-width:120px;"></td>
+        <td><select class="cell-edit-select" data-new="customer_level"><option value="">等级</option><option value="A级（核心大客户）">A级</option><option value="B级（普通大客户）">B级</option><option value="C级（中小客户）">C级</option><option value="D级（新客/休眠客）">D级</option></select></td>
+        <td><select class="cell-edit-select" data-new="sales_mode"><option value="">模式</option><option value="外销">外销</option><option value="内销">内销</option><option value="外贸公司">外贸公司</option></select></td>
+        <td><select class="cell-edit-select" data-new="customer_status"><option value="">状态</option><option value="大货合作客户">大货</option><option value="样品单客户">样品</option><option value="潜在客户">潜在</option><option value="未合作休眠客户">休眠</option></select></td>
+        <td><input type="text" class="cell-edit-input" data-new="decision_maker" placeholder="决策人" style="width:70px;"></td>
+        <td><input type="text" class="cell-edit-input" data-new="contact_person" placeholder="对接人" style="width:70px;"></td>
+        <td><input type="text" class="cell-edit-input" data-new="phone" placeholder="电话" style="width:90px;"></td>
+        <td><input type="text" class="cell-edit-input" data-new="email" placeholder="邮箱" style="width:100px;"></td>
+        <td><input type="text" class="cell-edit-input" data-new="sales_person" placeholder="业务员" style="width:70px;"></td>
+        <td><input type="text" class="cell-edit-input" data-new="last_trade_year" placeholder="年份" style="width:50px;"></td>
+        <td>
+          <button class="btn btn-success btn-xs" onclick="saveInlineRow(this)">保存</button>
+          <button class="btn btn-xs" style="background:#eee;" onclick="this.closest('tr').remove()">取消</button>
+        </td>
+      `;
+      tbody.insertBefore(tr, tbody.firstChild);
+      tr.querySelector('[data-new="name"]').focus();
+    }
+
+    async function saveInlineRow(btn) {
+      const tr = btn.closest('tr');
+      const data = {};
+      tr.querySelectorAll('[data-new]').forEach(el => { data[el.dataset.new] = el.value.trim(); });
+      if (!data.name && !data.phone && !data.email && !data.contact_person) { data.name = '待补充'; }
+
+      try {
+        const res = await fetch(`${API}/customers`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+        if (res.ok) { loadCustomers(currentPage); }
+        else { const err = await res.json(); alert(err.error || '创建失败'); }
+      } catch(e) { alert('创建失败: ' + e.message); }
+    }
+
+    // ===== 选择/批量操作 =====
+    function toggleCheckAll(checkbox) {
+      const checked = checkbox.checked;
+      document.querySelectorAll('.row-check').forEach(cb => {
+        cb.checked = checked;
+        const id = parseInt(cb.value);
+        if (checked) selectedIds.add(id); else selectedIds.delete(id);
+        cb.closest('tr').classList.toggle('row-selected', checked);
+      });
+      updateBatchBar();
+    }
+
+    function toggleRowCheck(id, checkbox) {
+      if (checkbox.checked) selectedIds.add(id); else selectedIds.delete(id);
+      checkbox.closest('tr').classList.toggle('row-selected', checkbox.checked);
+      updateBatchBar();
+    }
+
+    function updateBatchBar() {
+      const bar = document.getElementById('batchBar');
+      if (selectedIds.size > 0) {
+        bar.classList.add('show');
+        document.getElementById('batchCount').textContent = `已选 ${selectedIds.size} 条`;
+      } else { bar.classList.remove('show'); }
+      const allChecks = document.querySelectorAll('.row-check');
+      document.getElementById('checkAll').checked = allChecks.length > 0 && [...allChecks].every(c => c.checked);
+    }
+
+    function clearSelection() {
+      selectedIds.clear();
+      document.querySelectorAll('.row-check').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('row-selected'); });
+      document.getElementById('checkAll').checked = false;
+      updateBatchBar();
+    }
+
+    // ===== 批量修改 =====
+    function showBatchEditModal() {
+      if (selectedIds.size === 0) { alert('请先选择客户'); return; }
+      ['beLevel','beMode','beStatus','beSales'].forEach(f => {
+        document.getElementById(f).value = ''; document.getElementById(f).disabled = true;
+        document.getElementById(f + 'Check').checked = false;
+      });
+      document.getElementById('batchEditModal').style.display = 'flex';
+    }
+
+    function toggleBatchField(field) {
+      const checkbox = document.getElementById(field + 'Check');
+      document.getElementById(field).disabled = !checkbox.checked;
+    }
+
+    async function doBatchUpdate() {
+      const fields = {};
+      if (document.getElementById('beLevelCheck').checked && document.getElementById('beLevel').value) fields.customer_level = document.getElementById('beLevel').value;
+      if (document.getElementById('beModeCheck').checked && document.getElementById('beMode').value) fields.sales_mode = document.getElementById('beMode').value;
+      if (document.getElementById('beStatusCheck').checked && document.getElementById('beStatus').value) fields.customer_status = document.getElementById('beStatus').value;
+      if (document.getElementById('beSalesCheck').checked && document.getElementById('beSales').value.trim()) fields.sales_person = document.getElementById('beSales').value.trim();
+
+      if (Object.keys(fields).length === 0) { alert('请至少勾选一个字段并填写值'); return; }
+      if (!confirm(`确定要批量修改 ${selectedIds.size} 条客户吗？`)) return;
+
+      try {
+        const res = await fetch(`${API}/customers/batch-update`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: [...selectedIds], fields })
+        });
+        const data = await res.json();
+        if (res.ok) { alert(data.message); closeModal('batchEditModal'); clearSelection(); loadCustomers(currentPage); }
+        else { alert(data.error || '批量修改失败'); }
+      } catch(e) { alert('批量修改失败: ' + e.message); }
+    }
+
+    // ===== 批量删除 =====
+    async function batchDelete() {
+      if (selectedIds.size === 0) { alert('请先选择客户'); return; }
+      if (!confirm(`确定要删除 ${selectedIds.size} 条客户吗？此操作不可恢复！`)) return;
+
+      try {
+        const res = await fetch(`${API}/customers/batch-delete`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: [...selectedIds] })
+        });
+        const data = await res.json();
+        if (res.ok) { alert(data.message); clearSelection(); loadCustomers(currentPage); }
+        else { alert(data.error || '批量删除失败'); }
+      } catch(e) { alert('批量删除失败: ' + e.message); }
+    }
+
+    // ===== 客户详情 =====
+    async function showDetail(id) {
+      const res = await fetch(`${API}/customers/${id}`);
+      const item = await res.json();
+      currentDetailCustomer = item;
+      document.getElementById('detailTitle').textContent = item.name + ' - 客户详情';
+      document.getElementById('detailEditBtn').onclick = () => { closeModal('detailModal'); showEditModal(id); };
+
+      let html = '';
+      html += '<div class="form-section"><div class="form-section-title">基本信息</div>';
+      html += detailRow('客户编号', item.customer_code);
+      html += detailRow('客户全称', item.name);
+      html += detailRow('客户曾用名', item.former_name);
+      html += detailRow('母公司编号', item.parent_code);
+      html += detailRow('客户等级', `<span class="level-badge ${getLevelClass(item.customer_level)}">${item.customer_level || '-'}</span>`);
+      html += detailRow('销售模式', `<span class="mode-badge ${getModeClass(item.sales_mode)}">${item.sales_mode || '-'}</span>`);
+      html += detailRow('客户状态', `<span class="status-badge ${getStatusClass(item.customer_status)}">${item.customer_status || '-'}</span>`);
+      html += detailRow('所属业务员', item.sales_person);
+      html += detailRow('最后交易年份', item.last_trade_year);
+      html += '</div>';
+
+      html += '<div class="form-section"><div class="form-section-title">决策人信息</div>';
+      html += detailRow('决策人姓名', item.decision_maker);
+      html += detailRow('决策人职位', item.decision_maker_position);
+      html += detailRow('决策核心诉求', item.decision_core_need);
+      html += '</div>';
+
+      html += '<div class="form-section"><div class="form-section-title">对接人信息</div>';
+      html += detailRow('普通对接人', item.contact_person);
+      html += detailRow('对接人职位', item.contact_position);
+      html += detailRow('联系电话', item.phone);
+      html += detailRow('对接邮箱', item.email ? `<a href="mailto:${item.email}" style="color:#667eea;">${item.email}</a>` : '-');
+      html += detailRow('网址', item.website ? formatWebsite(item.website) : '-');
+      html += detailRow('微信号', item.wechat);
+      html += detailRow('WhatsApp', item.whatsapp);
+      html += detailRow('Skype', item.skype);
+      html += detailRow('其他即时联系方式', item.other_im);
+      html += '</div>';
+
+      html += '<div class="form-section"><div class="form-section-title">开票信息</div>';
+      html += detailRow('开票抬头', item.invoice_title);
+      html += detailRow('纳税人识别号', item.tax_id);
+      html += detailRow('开户银行', item.bank_name);
+      html += detailRow('银行账号', item.bank_account);
+      html += detailRow('地址', item.address);
+      html += detailRow('客户来源', item.customer_source);
+      html += detailRow('国家/地区', item.country_region);
+      html += '</div>';
+
+      if (item.remarks) {
+        html += '<div class="form-section"><div class="form-section-title">备注</div>';
+        html += `<div style="font-size:13px;color:#555;">${item.remarks}</div>`;
+        html += '</div>';
+      }
+
+      // 附件区域（图片/文件：预览/下载/删除）
+      html += '<div class="form-section"><div class="form-section-title">图片 / 文件附件';
+      html += ' <button class="btn btn-sm btn-primary" style="margin-left:8px;padding:3px 10px;" onclick="CustAttach.upload(' + id + ')">＋ 上传文件</button>';
+      html += ' <button class="btn btn-sm" style="margin-left:4px;padding:3px 10px;background:#8e44ad;color:#fff;" onclick="CustAttach.addLink(' + id + ')">＋ 粘贴链接</button>';
+      html += '</div><div id="detailAttachments"><div style="color:#bbb;font-size:12px;">加载中...</div></div></div>';
+
+      document.getElementById('detailContent').innerHTML = html;
+      document.getElementById('detailModal').style.display = 'flex';
+      CustAttach.load(id);
+    }
+
+    function formatWebsite(w) {
+      let url = String(w).trim();
+      if (!url) return '-';
+      const full = /^https?:\/\//i.test(url) ? url : 'http://' + url;
+      const display = url.replace(/^https?:\/\//i, '');
+      return `<a href="${full}" target="_blank" style="color:#667eea;">${display}</a>`;
+    }
+
+    function detailRow(label, value) {
+      return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${value || '-'}</span></div>`;
+    }
+
+    // ===== 新增客户 =====
+    function showAddModal() {
+      document.getElementById('modalTitle').textContent = '新增客户';
+      document.getElementById('editId').value = '';
+      document.getElementById('customerForm').reset();
+      CustFormAtt.reset();
+      document.getElementById('customerModal').style.display = 'flex';
+    }
+
+    // ===== 编辑客户 =====
+    async function showEditModal(id) {
+      const res = await fetch(`${API}/customers/${id}`);
+      const item = await res.json();
+      document.getElementById('modalTitle').textContent = '编辑客户';
+      document.getElementById('editId').value = item.id;
+      // 填充表单
+      const fieldMap = {
+        fCustomerCode: 'customer_code', fName: 'name', fFormerName: 'former_name', fParentCode: 'parent_code',
+        fDecisionMaker: 'decision_maker', fDecisionMakerPosition: 'decision_maker_position', fDecisionCoreNeed: 'decision_core_need',
+        fContactPerson: 'contact_person', fContactPosition: 'contact_position', fPhone: 'phone', fEmail: 'email', fWebsite: 'website',
+        fWechat: 'wechat', fWhatsapp: 'whatsapp', fSkype: 'skype', fOtherIm: 'other_im',
+        fCustomerLevel: 'customer_level', fSalesMode: 'sales_mode', fCustomerStatus: 'customer_status',
+        fSalesPerson: 'sales_person', fLastTradeYear: 'last_trade_year',
+        fInvoiceTitle: 'invoice_title', fTaxId: 'tax_id', fBankName: 'bank_name', fBankAccount: 'bank_account',
+        fAddress: 'address', fCustomerSource: 'customer_source', fCountryRegion: 'country_region', fRemarks: 'remarks'
+      };
+      for (const [elId, field] of Object.entries(fieldMap)) {
+        const el = document.getElementById(elId);
+        if (el) el.value = item[field] || '';
+      }
+      CustFormAtt.reset();
+      CustFormAtt.loadExisting(id);
+      document.getElementById('customerModal').style.display = 'flex';
+    }
+
+    // 收集表单数据（保存与即时上传时的草稿创建共用）
+    function collectCustomerData() {
+      const data = {
+        customer_code: document.getElementById('fCustomerCode').value.trim(),
+        name: document.getElementById('fName').value.trim(),
+        former_name: document.getElementById('fFormerName').value.trim(),
+        parent_code: document.getElementById('fParentCode').value.trim(),
+        decision_maker: document.getElementById('fDecisionMaker').value.trim(),
+        decision_maker_position: document.getElementById('fDecisionMakerPosition').value.trim(),
+        decision_core_need: document.getElementById('fDecisionCoreNeed').value.trim(),
+        contact_person: document.getElementById('fContactPerson').value.trim(),
+        contact_position: document.getElementById('fContactPosition').value.trim(),
+        phone: document.getElementById('fPhone').value.trim(),
+        email: document.getElementById('fEmail').value.trim(),
+        website: document.getElementById('fWebsite').value.trim(),
+        wechat: document.getElementById('fWechat').value.trim(),
+        whatsapp: document.getElementById('fWhatsapp').value.trim(),
+        skype: document.getElementById('fSkype').value.trim(),
+        other_im: document.getElementById('fOtherIm').value.trim(),
+        customer_level: document.getElementById('fCustomerLevel').value,
+        sales_mode: document.getElementById('fSalesMode').value,
+        customer_status: document.getElementById('fCustomerStatus').value,
+        sales_person: document.getElementById('fSalesPerson').value.trim(),
+        last_trade_year: document.getElementById('fLastTradeYear').value.trim(),
+        invoice_title: document.getElementById('fInvoiceTitle').value.trim(),
+        tax_id: document.getElementById('fTaxId').value.trim(),
+        bank_name: document.getElementById('fBankName').value.trim(),
+        bank_account: document.getElementById('fBankAccount').value.trim(),
+        address: document.getElementById('fAddress').value.trim(),
+        customer_source: document.getElementById('fCustomerSource').value,
+        country_region: document.getElementById('fCountryRegion').value,
+        remarks: document.getElementById('fRemarks').value.trim()
+      };
+      return data;
+    }
+
+    // ===== 保存客户 =====
+    document.getElementById('customerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const data = collectCustomerData();
+      if (!data.name && !data.phone && !data.email && !data.contact_person) { data.name = '待补充'; }
+
+      const url = id ? `${API}/customers/${id}` : `${API}/customers`;
+      const method = id ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        // 附件已在添加时即时上传，这里只需保存客户信息
+        if (!id) await response.json().catch(() => {});
+        CustFormAtt.reset();
+        alert(id ? '客户更新成功' : '客户创建成功');
+        closeModal('customerModal');
+        loadCustomers(currentPage);
+      } else {
+        const err = await response.json();
+        alert(err.error || '操作失败');
+      }
+    });
+
+    // ===== 删除客户 =====
+    async function deleteCustomer(id) {
+      if (!confirm('确定要删除该客户吗？')) return;
+      const response = await fetch(`${API}/customers/${id}`, { method: 'DELETE' });
+      if (response.ok) { loadCustomers(currentPage); }
+      else { alert('删除失败'); }
+    }
+
+    // ===== 新建询价 =====
+    function createInquiryForCustomer() {
+      if (currentDetailCustomer) {
+        window.location.href = `inquiry.html?customer=${encodeURIComponent(currentDetailCustomer.name)}`;
+      }
+    }
+
+    function createInquiryForCustomerById(id) {
+      fetch(`${API}/customers/${id}`).then(r => r.json()).then(c => {
+        window.location.href = `inquiry.html?customer=${encodeURIComponent(c.name)}`;
+      });
+    }
+
+    // ===== 客户询价单 =====
+    async function showCustomerInquiries(id, name) {
+      document.getElementById('inquiryListTitle').textContent = `${name} - 询价单列表`;
+      const res = await fetch(`${API}/customers/${id}/inquiries`);
+      const inquiries = await res.json();
+      const tbody = document.getElementById('customerInquiryTable');
+      tbody.innerHTML = '';
+      if (inquiries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">暂无询价记录</td></tr>';
+      } else {
+        inquiries.forEach((item, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="seq-col" style="padding:8px;border-bottom:1px solid #eee;">${idx+1}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${item.serial_number}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${item.external_model}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${item.quantity}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${item.status}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee;">${item.inquiry_time}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+      document.getElementById('inquiryListModal').style.display = 'flex';
+    }
+
+    // ===== OCR拍照识别导入客户 =====
+    let ocrAllTexts = [];
+
+    function showOcrModal() {
+      resetOcr();
+      document.getElementById('ocrModal').style.display = 'flex';
+      const httpsTip = document.getElementById('ocrHttpsTip');
+      if (httpsTip) {
+        httpsTip.style.display = isSecureContext() ? 'none' : 'block';
+      }
+      const dz = document.getElementById('ocrDropZone');
+      dz.ondragover = e => { e.preventDefault(); dz.style.background='#eaf4fc'; };
+      dz.ondragleave = e => { e.preventDefault(); dz.style.background=''; };
+      dz.ondrop = e => { e.preventDefault(); dz.style.background=''; if(e.dataTransfer.files.length) handleOcrFiles(e.dataTransfer.files); };
+      document.addEventListener('paste', ocrPasteHandler);
+    }
+
+    function ocrPasteHandler(e) {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      const files = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          files.push(items[i].getAsFile());
+        }
+      }
+      if (files.length > 0) {
+        e.preventDefault();
+        handleOcrFiles(files);
+      }
+    }
+
+    function resetOcr() {
+      ocrResultData = {};
+      ocrAllTexts = [];
+      stopCamera();
+      document.getElementById('ocrPreviewArea').style.display = 'none';
+      document.getElementById('ocrPreviewArea').innerHTML = '';
+      document.getElementById('ocrDropZone').style.display = 'block';
+      document.getElementById('ocrCameraArea').style.display = 'none';
+      document.getElementById('ocrProgress').style.display = 'none';
+      document.getElementById('ocrResult').style.display = 'none';
+      document.getElementById('ocrFileInput').value = '';
+      document.removeEventListener('paste', ocrPasteHandler);
+    }
+
+    let ocrCameraStream = null;
+
+    function isSecureContext() {
+      return window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    }
+
+    async function startCameraCapture() {
+      if (!isSecureContext()) {
+        alert('摄像头功能需要安全连接(HTTPS)才能使用。\n\n请使用以下地址访问：\n• https://localhost:3001 (本机)\n• https://192.168.0.159:3001 (局域网)\n\n首次访问时请点击"高级"→"继续访问"以信任自签名证书。');
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('当前浏览器不支持摄像头访问，请使用Chrome浏览器');
+        return;
+      }
+      try {
+        ocrCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } });
+        const video = document.getElementById('ocrCameraVideo');
+        video.srcObject = ocrCameraStream;
+        await video.play();
+        document.getElementById('ocrCameraArea').style.display = 'block';
+        document.getElementById('ocrDropZone').style.display = 'none';
+      } catch (e) {
+        if (e.name === 'NotAllowedError') {
+          alert('摄像头权限被拒绝，请在浏览器设置中允许访问摄像头');
+        } else if (e.name === 'NotFoundError') {
+          alert('未检测到摄像头设备');
+        } else {
+          alert('无法访问摄像头: ' + e.message);
+        }
+      }
+    }
+
+    function stopCamera() {
+      if (ocrCameraStream) {
+        ocrCameraStream.getTracks().forEach(t => t.stop());
+        ocrCameraStream = null;
+      }
+      const video = document.getElementById('ocrCameraVideo');
+      if (video) video.srcObject = null;
+      document.getElementById('ocrCameraArea').style.display = 'none';
+    }
+
+    async function captureCameraPhoto() {
+      const video = document.getElementById('ocrCameraVideo');
+      if (!video || !video.videoWidth) {
+        alert('摄像头尚未就绪，请稍候再试');
+        return;
+      }
+      const canvas = document.getElementById('ocrCameraCanvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      stopCamera();
+
+      const previewArea = document.getElementById('ocrPreviewArea');
+      const img = document.createElement('img');
+      img.src = canvas.toDataURL('image/png');
+      img.style.cssText = 'max-height:160px;max-width:200px;border-radius:6px;border:1px solid #ddd;display:inline-block;margin:0 4px;vertical-align:top;';
+      previewArea.appendChild(img);
+      previewArea.style.display = 'block';
+
+      canvas.toBlob(async blob => {
+        const file = new File([blob], 'camera_capture.png', { type: 'image/png' });
+        await handleOcrFiles([file]);
+      }, 'image/png');
+    }
+
+    async function screenCapture() {
+      if (!isSecureContext()) {
+        alert('截图功能需要安全连接(HTTPS)才能使用。\n\n请使用以下地址访问：\n• https://localhost:3001 (本机)\n• https://192.168.0.159:3001 (局域网)\n\n首次访问时请点击"高级"→"继续访问"以信任自签名证书。\n\n或者可使用系统截图工具截图后 Ctrl+V 粘贴。');
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        alert('当前浏览器不支持屏幕截图，请使用Chrome浏览器或手动截图后Ctrl+V粘贴');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' } });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.muted = true;
+        await video.play();
+
+        await new Promise(r => setTimeout(r, 300));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        stream.getTracks().forEach(t => t.stop());
+        video.srcObject = null;
+
+        const previewArea = document.getElementById('ocrPreviewArea');
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/png');
+        img.style.cssText = 'max-height:160px;max-width:200px;border-radius:6px;border:1px solid #ddd;display:inline-block;margin:0 4px;vertical-align:top;';
+        previewArea.appendChild(img);
+        previewArea.style.display = 'block';
+        document.getElementById('ocrDropZone').style.display = 'none';
+
+        canvas.toBlob(async blob => {
+          const file = new File([blob], 'screen_capture.png', { type: 'image/png' });
+          await handleOcrFiles([file]);
+        }, 'image/png');
+      } catch (e) {
+        if (e.name === 'NotAllowedError') {
+          // 用户取消了截图，不弹窗
+        } else {
+          alert('截图失败: ' + e.message + '\n可手动截图后Ctrl+V粘贴');
+        }
+      }
+    }
+
+    async function handleOcrFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      const files = Array.from(fileList).filter(f => f.type.startsWith('image/') || f.name.endsWith('.pdf'));
+      if (files.length === 0) { alert('请上传图片或PDF文件'); return; }
+
+      const previewArea = document.getElementById('ocrPreviewArea');
+      previewArea.style.display = 'block';
+      document.getElementById('ocrDropZone').style.display = 'none';
+      document.getElementById('ocrProgress').style.display = 'block';
+      document.getElementById('ocrResult').style.display = 'none';
+      const bar = document.getElementById('ocrProgressBar');
+      const status = document.getElementById('ocrStatusText');
+      ocrAllTexts = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        await new Promise(resolve => {
+          reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'max-height:160px;max-width:200px;border-radius:6px;border:1px solid #ddd;display:inline-block;margin:0 4px;vertical-align:top;';
+            previewArea.appendChild(img);
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+
+        const pctBase = Math.round((i / files.length) * 100);
+        bar.style.width = pctBase + '%';
+        status.textContent = `正在识别第 ${i + 1}/${files.length} 张...`;
+
+        try {
+          const result = await Tesseract.recognize(file, 'chi_sim+eng', {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                const pct = Math.round(m.progress * 100);
+                bar.style.width = (pctBase + Math.round(pct / files.length)) + '%';
+                status.textContent = `识别第 ${i + 1}/${files.length} 张... ${pct}%`;
+              } else if (m.status === 'loading language traineddata') {
+                status.textContent = '正在下载中文语言包...';
+              }
+            }
+          });
+          ocrAllTexts.push(result.data.text);
+          if (result.data.lines && result.data.lines.length > 0) {
+            parseBusinessCard(result.data);
+          } else {
+            parseOcrResult(result.data.text);
+          }
+        } catch (e) {
+          console.error('OCR error:', e);
+        }
+      }
+
+      bar.style.width = '100%';
+      status.textContent = `识别完成，共${files.length}张`;
+    }
+
+    async function handleOcrFile(file) {
+      handleOcrFiles([file]);
+    }
+
+    function parseBusinessCard(data) {
+      const text = data.text;
+      const lines = data.lines || [];
+
+      if (!lines || lines.length === 0) {
+        parseOcrResult(text);
+        return;
+      }
+
+      const imgHeight = data.imageHeight || 1;
+      const imgWidth = data.imageWidth || 1;
+
+      const lineData = lines.map(l => ({
+        text: (l.text || '').trim(),
+        y: l.bbox ? l.bbox.y0 : 0,
+        yCenter: l.bbox ? (l.bbox.y0 + l.bbox.y1) / 2 : 0,
+        height: l.bbox ? (l.bbox.y1 - l.bbox.y0) : 0,
+        x: l.bbox ? l.bbox.x0 : 0,
+        width: l.bbox ? (l.bbox.x1 - l.bbox.x0) : 0,
+        confidence: l.confidence || 0,
+        words: l.words || []
+      })).filter(l => l.text.length > 0);
+
+      if (lineData.length === 0) {
+        parseOcrResult(text);
+        return;
+      }
+
+      const avgLineHeight = lineData.reduce((s, l) => s + l.height, 0) / lineData.length;
+
+      const topZone = imgHeight * 0.25;
+      const midZone = imgHeight * 0.55;
+
+      const topLines = lineData.filter(l => l.yCenter < topZone);
+      const midLines = lineData.filter(l => l.yCenter >= topZone && l.yCenter < midZone);
+      const bottomLines = lineData.filter(l => l.yCenter >= midZone);
+
+      const largeLines = lineData.filter(l => l.height > avgLineHeight * 1.3);
+
+      ocrResultData = {};
+
+      const companyKeywords = ['公司','集团','有限','责任','股份','科技','贸易','实业','电子','照明','电器','光电','Co.','Ltd','Inc.','Corp','GmbH','S.A.','LLC','Company','Group','企业','产业','工程','制造','机械','化工','纺织','服装','食品','医药','物流','咨询','设计','装饰','建筑','材料','金属','塑料','包装','印刷'];
+      const contactKeywords = ['联系人','姓名','联系','Contact','Name','Attn','Mr.','Mrs.','Ms.','Dr.'];
+      const positionKeywords = ['总经理','经理','总监','主管','工程师','采购','销售','业务','董事长','副总','总裁','主任','科长','部长','代表','顾问','助理','专员','President','Manager','Director','Engineer','VP','CEO','CTO','CFO','COO','Purchasing','Sales','Supervisor','Consultant','Assistant','Representative','Head','Chief','Senior','Deputy','General'];
+      const phoneKeywords = ['电话','手机','联系电话','手机号','Tel','Phone','Mobile','Cell','热线','直线','总机'];
+      const emailKeywords = ['邮箱','电子邮件','Email','E-mail','Mail'];
+      const whatsappKeywords = ['WhatsApp','Whatsapp','WA'];
+      const wechatKeywords = ['微信','WeChat','Wechat'];
+      const skypeKeywords = ['Skype','skype'];
+      const addressKeywords = ['地址','Address','Addr','Add'];
+      const faxKeywords = ['传真','Fax','FAX'];
+      const websiteKeywords = ['网址','官网','Website','URL','Web'];
+      const countryKeywords = ['国家','地区','Country','Region','Nation'];
+      const sourceKeywords = ['来源','渠道','Source','Channel'];
+
+      function lineMatchLabel(line, keywords) {
+        return keywords.some(k => line.text.includes(k) || new RegExp(k, 'i').test(line.text));
+      }
+
+      function extractAfterLabel(line, keywords) {
+        for (const k of keywords) {
+          const re = new RegExp(k + '\\s*[:：\\-–—]?\\s*(.*)', 'i');
+          const m = line.text.match(re);
+          if (m && m[1].trim()) return m[1].trim();
+        }
+        return '';
+      }
+
+      function findLabelValue(keywords, searchLines) {
+        for (const line of searchLines) {
+          if (lineMatchLabel(line, keywords)) {
+            const val = extractAfterLabel(line, keywords);
+            if (val) return val;
+          }
+        }
+        for (let i = 0; i < searchLines.length; i++) {
+          if (lineMatchLabel(searchLines[i], keywords) && i + 1 < searchLines.length) {
+            const next = searchLines[i + 1];
+            if (!lineMatchLabel(next, [...phoneKeywords, ...emailKeywords, ...whatsappKeywords, ...wechatKeywords, ...skypeKeywords, ...faxKeywords, ...addressKeywords, ...websiteKeywords])) {
+              return next.text;
+            }
+          }
+        }
+        return '';
+      }
+
+      // === 公司名称：优先从顶部区域和大字区域找 ===
+      let company = findLabelValue(['公司名称','客户名称','Company Name','Company'], lineData);
+      if (!company) {
+        const companyLine = topLines.find(l => companyKeywords.some(k => l.text.includes(k)));
+        if (companyLine) company = companyLine.text;
+      }
+      if (!company) {
+        const largeCompanyLine = largeLines.find(l => companyKeywords.some(k => l.text.includes(k)));
+        if (largeCompanyLine) company = largeCompanyLine.text;
+      }
+      if (!company) {
+        const companyLine = lineData.find(l => companyKeywords.some(k => l.text.includes(k)));
+        if (companyLine) company = companyLine.text;
+      }
+      if (!company && largeLines.length > 0) {
+        const topLarge = largeLines.filter(l => l.yCenter < midZone);
+        if (topLarge.length > 0) {
+          const candidate = topLarge.sort((a, b) => b.height - a.height)[0];
+          if (candidate.text.length > 2) company = candidate.text;
+        }
+      }
+      if (company) ocrResultData.company = company;
+
+      // === 姓名：优先从中部大字区域找 ===
+      let contact = findLabelValue(contactKeywords, lineData);
+      if (!contact) {
+        const nameInMid = midLines.filter(l => l.height >= avgLineHeight * 1.1 && l.text.length >= 2 && l.text.length <= 10);
+        if (nameInMid.length > 0) {
+          const nameCandidate = nameInMid.sort((a, b) => b.height - a.height)[0];
+          if (!companyKeywords.some(k => nameCandidate.text.includes(k)) &&
+              !positionKeywords.some(k => nameCandidate.text.includes(k))) {
+            contact = nameCandidate.text;
+          }
+        }
+      }
+      if (!contact) {
+        const chineseName = lineData.find(l => /^[\u4e00-\u9fa5]{2,4}$/.test(l.text));
+        if (chineseName) contact = chineseName.text;
+      }
+      if (!contact) {
+        const engName = lineData.find(l => /^[A-Z][a-z]+\s+[A-Z][a-z]+$/.test(l.text));
+        if (engName) contact = engName.text;
+      }
+      if (!contact && largeLines.length > 0) {
+        const nameFromLarge = largeLines.find(l => l.text.length >= 2 && l.text.length <= 15 && !companyKeywords.some(k => l.text.includes(k)));
+        if (nameFromLarge) contact = nameFromLarge.text;
+      }
+      if (contact) ocrResultData.contact = contact;
+
+      // === 职位：从中部区域找 ===
+      let position = findLabelValue(positionKeywords.slice(0, 8), lineData);
+      if (!position) {
+        const posLine = midLines.find(l => positionKeywords.some(k => l.text.includes(k)));
+        if (posLine) {
+          const m = posLine.text.match(/[:：]\s*(.+)/);
+          position = m ? m[1].trim() : posLine.text;
+        }
+      }
+      if (!position) {
+        const posLine = lineData.find(l => positionKeywords.some(k => l.text.includes(k)));
+        if (posLine) {
+          const m = posLine.text.match(/[:：]\s*(.+)/);
+          position = m ? m[1].trim() : posLine.text;
+        }
+      }
+      if (position) ocrResultData.position = position;
+
+      // === 电话：优先从底部区域找 ===
+      const phoneRegex = /1[3-9]\d{9}/g;
+      const telRegex = /0\d{2,3}[-\s]?\d{7,8}/g;
+      const intlPhoneRegex = /\+\d{1,3}[\s-]?\d{7,15}/g;
+      let phones = text.match(phoneRegex) || [];
+      let tels = text.match(telRegex) || [];
+      let intlPhones = text.match(intlPhoneRegex) || [];
+      let allPhones = [...intlPhones, ...phones, ...tels];
+
+      let phone = findLabelValue(phoneKeywords, lineData);
+      if (phone) {
+        ocrResultData.phone = phone;
+      } else if (allPhones.length > 0) {
+        ocrResultData.phone = allPhones[0];
+      }
+      if (!ocrResultData.phone && bottomLines.length > 0) {
+        for (const bl of bottomLines) {
+          const pMatch = bl.text.match(/1[3-9]\d{9}/);
+          if (pMatch) { ocrResultData.phone = pMatch[0]; break; }
+          const tMatch = bl.text.match(/0\d{2,3}[-\s]?\d{7,8}/);
+          if (tMatch) { ocrResultData.phone = tMatch[0]; break; }
+          const iMatch = bl.text.match(/\+\d{1,3}[\s-]?\d{7,15}/);
+          if (iMatch) { ocrResultData.phone = iMatch[0]; break; }
+        }
+      }
+      if (allPhones.length > 1 && !phone) ocrResultData.phone2 = allPhones[1];
+
+      // === 邮箱 ===
+      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+      let emails = text.match(emailRegex) || [];
+      let email = findLabelValue(emailKeywords, lineData);
+      if (email && email.includes('@')) {
+        ocrResultData.email = email;
+      } else if (emails.length > 0) {
+        ocrResultData.email = emails[0];
+      }
+      if (!ocrResultData.email && bottomLines.length > 0) {
+        for (const bl of bottomLines) {
+          const eMatch = bl.text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+          if (eMatch) { ocrResultData.email = eMatch[0]; break; }
+        }
+      }
+
+      // === WhatsApp ===
+      let whatsapp = findLabelValue(whatsappKeywords, lineData);
+      if (whatsapp) {
+        ocrResultData.whatsapp = whatsapp;
+      } else {
+        const waRegex = /(?:WhatsApp|Whatsapp|whatsapp)[:\s]*(\+?\d{10,15})/i;
+        const waMatch = text.match(waRegex);
+        if (waMatch) ocrResultData.whatsapp = waMatch[1];
+        else if (intlPhones.length > 0 && !ocrResultData.phone) ocrResultData.whatsapp = intlPhones[0];
+      }
+
+      // === 微信 ===
+      let wechat = findLabelValue(wechatKeywords, lineData);
+      if (wechat) ocrResultData.wechat = wechat;
+      else {
+        const wechatLine = lineData.find(l => /微信|wechat|WeChat/i.test(l.text));
+        if (wechatLine) { const m = wechatLine.text.match(/[:：]\s*(.+)/); if (m) ocrResultData.wechat = m[1].trim(); }
+      }
+
+      // === Skype ===
+      let skype = findLabelValue(skypeKeywords, lineData);
+      if (skype) ocrResultData.skype = skype;
+      else {
+        const skypeLine = lineData.find(l => /skype/i.test(l.text));
+        if (skypeLine) { const m = skypeLine.text.match(/[:：]\s*(.+)/); if (m) ocrResultData.skype = m[1].trim(); }
+      }
+
+      // === 地址：优先从底部区域找 ===
+      let address = findLabelValue(addressKeywords, lineData);
+      if (address) {
+        ocrResultData.address = address;
+      } else {
+        const addrKw = ['省','市','区','县','镇','路','街','号','栋','楼','室','工业园','开发区','Room','Floor','Building','Street','Road','Ave','Blvd','District','Zone'];
+        const addrLines = bottomLines.filter(l => addrKw.some(k => l.text.includes(k)) && l.text.length > 4);
+        if (addrLines.length > 0) ocrResultData.address = addrLines.map(l => l.text).join(' ');
+        else {
+          const allAddrLines = lineData.filter(l => addrKw.some(k => l.text.includes(k)) && l.text.length > 4);
+          if (allAddrLines.length > 0) ocrResultData.address = allAddrLines.map(l => l.text).join(' ');
+        }
+      }
+
+      // === 传真 ===
+      let fax = findLabelValue(faxKeywords, lineData);
+      if (fax) ocrResultData.fax = fax;
+      else {
+        const faxRegex = /(?:传真|Fax|FAX)[:\s]*(\d[\d\s-]+)/i;
+        const faxMatch = text.match(faxRegex);
+        if (faxMatch) ocrResultData.fax = faxMatch[1].trim();
+      }
+
+      // === 网址 ===
+      let website = findLabelValue(websiteKeywords, lineData);
+      if (website) {
+        ocrResultData.website = website;
+      } else {
+        const websiteRegex = /(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/\S*)?/g;
+        const websites = text.match(websiteRegex) || [];
+        const filtered = websites.filter(w => !w.includes('tesseract') && !w.includes('github'));
+        if (filtered.length > 0) ocrResultData.website = filtered[0];
+      }
+
+      // === 国家/地区 ===
+      const countryMap = { '中国':'中国','China':'中国','美国':'美国','USA':'美国','United States':'美国','UK':'英国','英国':'英国','United Kingdom':'英国','德国':'德国','Germany':'德国','日本':'日本','Japan':'日本','韩国':'韩国','Korea':'韩国','South Korea':'韩国','印度':'印度','India':'印度','巴西':'巴西','Brazil':'巴西','澳大利亚':'澳大利亚','Australia':'澳大利亚','加拿大':'加拿大','Canada':'加拿大','法国':'法国','France':'法国','意大利':'意大利','Italy':'意大利','西班牙':'西班牙','Spain':'西班牙','泰国':'泰国','Thailand':'泰国','越南':'越南','Vietnam':'越南','马来西亚':'马来西亚','Malaysia':'马来西亚','新加坡':'新加坡','Singapore':'新加坡','印尼':'印度尼西亚','Indonesia':'印度尼西亚','菲律宾':'菲律宾','Philippines':'菲律宾','俄罗斯':'俄罗斯','Russia':'俄罗斯','Turkey':'土耳其','土耳其':'土耳其','Mexico':'墨西哥','墨西哥':'墨西哥','UAE':'阿联酋','Dubai':'阿联酋','沙特':'沙特阿拉伯','Saudi':'沙特阿拉伯','Egypt':'埃及','埃及':'埃及','Pakistan':'巴基斯坦','巴基斯坦':'巴基斯坦','Bangladesh':'孟加拉','孟加拉':'孟加拉','Chile':'智利','智利':'智利','Colombia':'哥伦比亚','哥伦比亚':'哥伦比亚','Argentina':'阿根廷','阿根廷':'阿根廷','Netherlands':'荷兰','荷兰':'荷兰','Belgium':'比利时','比利时':'比利时','Poland':'波兰','波兰':'波兰','Czech':'捷克','捷克':'捷克','Sweden':'瑞典','瑞典':'瑞典','Norway':'挪威','挪威':'挪威','Denmark':'丹麦','丹麦':'丹麦','Finland':'芬兰','芬兰':'芬兰','Switzerland':'瑞士','瑞士':'瑞士','Austria':'奥地利','奥地利':'奥地利','Portugal':'葡萄牙','葡萄牙':'葡萄牙','Greece':'希腊','希腊':'希腊','Israel':'以色列','以色列':'以色列','South Africa':'南非','南非':'南非','Nigeria':'尼日利亚','尼日利亚':'尼日利亚','Kenya':'肯尼亚','肯尼亚':'肯尼亚' };
+      let countryLabel = findLabelValue(countryKeywords, lineData);
+      if (countryLabel) {
+        for (const [k, v] of Object.entries(countryMap)) {
+          if (countryLabel.includes(k)) { ocrResultData.country_region = v; break; }
+        }
+        if (!ocrResultData.country_region) ocrResultData.country_region = countryLabel;
+      } else {
+        for (const [k, v] of Object.entries(countryMap)) {
+          if (text.includes(k)) { ocrResultData.country_region = v; break; }
+        }
+      }
+
+      // === 客户来源 ===
+      const sourceMap = { '展会':'展会','Exhibition':'展会','Fair':'展会','阿里巴巴':'阿里巴巴','Alibaba':'阿里巴巴','Made-in-China':'中国制造网','中国制造网':'中国制造网','Google':'Google搜索','谷歌':'Google搜索','推荐':'客户推荐','Referral':'客户推荐','介绍':'客户推荐','官网':'官网留言','Website':'官网留言','Facebook':'Facebook','LinkedIn':'LinkedIn','领英':'LinkedIn','B2B':'B2B平台','询盘':'询盘','Inquiry':'询盘','广告':'广告投放','Advertisement':'广告投放' };
+      let sourceLabel = findLabelValue(sourceKeywords, lineData);
+      if (sourceLabel) {
+        for (const [k, v] of Object.entries(sourceMap)) {
+          if (sourceLabel.includes(k)) { ocrResultData.customer_source = v; break; }
+        }
+        if (!ocrResultData.customer_source) ocrResultData.customer_source = sourceLabel;
+      } else {
+        for (const [k, v] of Object.entries(sourceMap)) {
+          if (text.includes(k)) { ocrResultData.customer_source = v; break; }
+        }
+      }
+
+      ocrResultData.rawText = text;
+      ocrResultData._cardMeta = {
+        totalLines: lineData.length,
+        topLines: topLines.length,
+        midLines: midLines.length,
+        bottomLines: bottomLines.length,
+        largeLines: largeLines.length,
+        avgLineHeight: Math.round(avgLineHeight),
+        imgHeight,
+        imgWidth
+      };
+
+      showOcrResult();
+    }
+
+    function parseOcrResult(text) {
+      ocrResultData = {};
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1);
+
+      const labelPatterns = {
+        company: [/公司名称?|客户名称?|公司|Company\s*Name|Company/i],
+        contact: [/联系人|姓名|联系|Contact\s*(Person|Name)?|Attn|Name/i],
+        position: [/职位|职务|Position|Title|Job/i],
+        phone: [/电话|手机|联系电话?|手机号|Tel|Phone|Mobile|Cell/i],
+        email: [/邮箱|电子邮件|Email|E-mail|Mail/i],
+        whatsapp: [/WhatsApp|Whatsapp|WA/i],
+        wechat: [/微信|WeChat|Wechat/i],
+        skype: [/Skype|skype/i],
+        address: [/地址|Address|Addr|Add/i],
+        fax: [/传真|Fax|FAX/i],
+        website: [/网址|官网|Website|URL|Web/i],
+        country_region: [/国家|地区|Country|Region|Nation/i],
+        customer_source: [/来源|渠道|Source|Channel/i],
+      };
+
+      function extractValue(line) {
+        let m = line.match(/[:：]\s*(.+)/);
+        if (m) return m[1].trim();
+        m = line.match(/[-–—]\s*(.+)/);
+        if (m) return m[1].trim();
+        const parts = line.split(/\s{2,}|\t/);
+        if (parts.length > 1) return parts.slice(1).join(' ').trim();
+        return '';
+      }
+
+      function fuzzyMatchField(fieldKey) {
+        const patterns = labelPatterns[fieldKey] || [];
+        for (const line of lines) {
+          for (const pat of patterns) {
+            if (pat.test(line)) {
+              const val = extractValue(line);
+              if (val && val.length > 0 && val.length < 100) return val;
+            }
+          }
+        }
+        for (let i = 0; i < lines.length; i++) {
+          for (const pat of patterns) {
+            if (pat.test(lines[i])) {
+              if (i + 1 < lines.length) {
+                const next = lines[i + 1].trim();
+                if (next.length > 0 && next.length < 100 && !/[:：]/.test(next)) return next;
+              }
+            }
+          }
+        }
+        return '';
+      }
+
+      const phoneRegex = /1[3-9]\d{9}/g;
+      const telRegex = /0\d{2,3}[-\s]?\d{7,8}/g;
+      const intlPhoneRegex = /\+\d{1,3}[\s-]?\d{7,15}/g;
+      let phones = text.match(phoneRegex) || [];
+      let tels = text.match(telRegex) || [];
+      let intlPhones = text.match(intlPhoneRegex) || [];
+      let allPhones = [...intlPhones, ...phones, ...tels];
+
+      const labelPhone = fuzzyMatchField('phone');
+      if (labelPhone) {
+        ocrResultData.phone = labelPhone;
+      } else if (allPhones.length > 0) {
+        ocrResultData.phone = allPhones[0];
+      }
+      if (allPhones.length > 1 && !labelPhone) ocrResultData.phone2 = allPhones[1];
+
+      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+      let emails = text.match(emailRegex) || [];
+      const labelEmail = fuzzyMatchField('email');
+      if (labelEmail && labelEmail.includes('@')) {
+        ocrResultData.email = labelEmail;
+      } else if (emails.length > 0) {
+        ocrResultData.email = emails[0];
+      }
+
+      const labelAddr = fuzzyMatchField('address');
+      if (labelAddr) {
+        ocrResultData.address = labelAddr;
+      } else {
+        const addrKeywords = ['省','市','区','县','镇','路','街','号','栋','楼','室','工业园','开发区','Room','Floor','Building','Street','Road','Ave','Blvd','District','Zone'];
+        let addrLines = lines.filter(l => addrKeywords.some(k => l.includes(k)) && l.length > 4);
+        if (addrLines.length > 0) ocrResultData.address = addrLines.join(' ');
+      }
+
+      const labelCompany = fuzzyMatchField('company');
+      if (labelCompany) {
+        ocrResultData.company = labelCompany;
+      } else {
+        const companyKeywords = ['公司','集团','有限','责任','股份','科技','贸易','实业','电子','照明','电器','光电','Co.','Ltd','Inc.','Corp','GmbH','S.A.','LLC','Company','Group'];
+        let companyLines = lines.filter(l => companyKeywords.some(k => l.includes(k)));
+        if (companyLines.length > 0) ocrResultData.company = companyLines[0];
+      }
+
+      const labelContact = fuzzyMatchField('contact');
+      if (labelContact) {
+        ocrResultData.contact = labelContact;
+      } else {
+        const nameLine = lines.find(l => /^[\u4e00-\u9fa5]{2,4}$/.test(l));
+        if (nameLine) ocrResultData.contact = nameLine;
+      }
+
+      const labelPosition = fuzzyMatchField('position');
+      if (labelPosition) {
+        ocrResultData.position = labelPosition;
+      } else {
+        const posKeywords = ['总经理','经理','总监','主管','工程师','采购','销售','业务','President','Manager','Director','Engineer','VP','CEO','CTO','CFO','Purchasing','Sales'];
+        const posLine = lines.find(l => posKeywords.some(k => l.includes(k)));
+        if (posLine) {
+          const m = posLine.match(/[:：]\s*(.+)/);
+          ocrResultData.position = m ? m[1].trim() : posLine;
+        }
+      }
+
+      const labelWhatsapp = fuzzyMatchField('whatsapp');
+      if (labelWhatsapp) {
+        ocrResultData.whatsapp = labelWhatsapp;
+      } else {
+        const waRegex = /(?:WhatsApp|Whatsapp|whatsapp)[:\s]*(\+?\d{10,15})/i;
+        const waMatch = text.match(waRegex);
+        if (waMatch) {
+          ocrResultData.whatsapp = waMatch[1];
+        } else if (intlPhones.length > 0 && !ocrResultData.phone) {
+          ocrResultData.whatsapp = intlPhones[0];
+        }
+      }
+
+      const labelSkype = fuzzyMatchField('skype');
+      if (labelSkype) ocrResultData.skype = labelSkype;
+      else {
+        const skypeLine = lines.find(l => /skype/i.test(l));
+        if (skypeLine) { const m = skypeLine.match(/[:：]\s*(.+)/); if (m) ocrResultData.skype = m[1].trim(); }
+      }
+
+      const labelWechat = fuzzyMatchField('wechat');
+      if (labelWechat) ocrResultData.wechat = labelWechat;
+      else {
+        const wechatLine = lines.find(l => /微信|wechat|WeChat/i.test(l));
+        if (wechatLine) { const m = wechatLine.match(/[:：]\s*(.+)/); if (m) ocrResultData.wechat = m[1].trim(); }
+      }
+
+      const labelFax = fuzzyMatchField('fax');
+      if (labelFax) {
+        ocrResultData.fax = labelFax;
+      } else {
+        const faxRegex = /(?:传真|Fax|FAX)[:\s]*(\d[\d\s-]+)/i;
+        const faxMatch = text.match(faxRegex);
+        if (faxMatch) ocrResultData.fax = faxMatch[1].trim();
+      }
+
+      const labelWebsite = fuzzyMatchField('website');
+      if (labelWebsite) {
+        ocrResultData.website = labelWebsite;
+      } else {
+        const websiteRegex = /(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/\S*)?/g;
+        const websites = text.match(websiteRegex) || [];
+        const filteredWebsites = websites.filter(w => !w.includes('tesseract') && !w.includes('github'));
+        if (filteredWebsites.length > 0) ocrResultData.website = filteredWebsites[0];
+      }
+
+      const countryKeywords = { '中国':'中国','China':'中国','美国':'美国','USA':'美国','United States':'美国','UK':'英国','英国':'英国','United Kingdom':'英国','德国':'德国','Germany':'德国','日本':'日本','Japan':'日本','韩国':'韩国','Korea':'韩国','South Korea':'韩国','印度':'印度','India':'印度','巴西':'巴西','Brazil':'巴西','澳大利亚':'澳大利亚','Australia':'澳大利亚','加拿大':'加拿大','Canada':'加拿大','法国':'法国','France':'法国','意大利':'意大利','Italy':'意大利','西班牙':'西班牙','Spain':'西班牙','泰国':'泰国','Thailand':'泰国','越南':'越南','Vietnam':'越南','马来西亚':'马来西亚','Malaysia':'马来西亚','新加坡':'新加坡','Singapore':'新加坡','印尼':'印度尼西亚','Indonesia':'印度尼西亚','菲律宾':'菲律宾','Philippines':'菲律宾','俄罗斯':'俄罗斯','Russia':'俄罗斯','Turkey':'土耳其','土耳其':'土耳其','Mexico':'墨西哥','墨西哥':'墨西哥','UAE':'阿联酋','Dubai':'阿联酋','沙特':'沙特阿拉伯','Saudi':'沙特阿拉伯','Egypt':'埃及','埃及':'埃及','Pakistan':'巴基斯坦','巴基斯坦':'巴基斯坦','Bangladesh':'孟加拉','孟加拉':'孟加拉','Chile':'智利','智利':'智利','Colombia':'哥伦比亚','哥伦比亚':'哥伦比亚','Argentina':'阿根廷','阿根廷':'阿根廷','Netherlands':'荷兰','荷兰':'荷兰','Belgium':'比利时','比利时':'比利时','Poland':'波兰','波兰':'波兰','Czech':'捷克','捷克':'捷克','Sweden':'瑞典','瑞典':'瑞典','Norway':'挪威','挪威':'挪威','Denmark':'丹麦','丹麦':'丹麦','Finland':'芬兰','芬兰':'芬兰','Switzerland':'瑞士','瑞士':'瑞士','Austria':'奥地利','奥地利':'奥地利','Portugal':'葡萄牙','葡萄牙':'葡萄牙','Greece':'希腊','希腊':'希腊','Israel':'以色列','以色列':'以色列','South Africa':'南非','南非':'南非','Nigeria':'尼日利亚','尼日利亚':'尼日利亚','Kenya':'肯尼亚','肯尼亚':'肯尼亚' };
+      const labelCountry = fuzzyMatchField('country_region');
+      if (labelCountry) {
+        for (const [keyword, country] of Object.entries(countryKeywords)) {
+          if (labelCountry.includes(keyword)) { ocrResultData.country_region = country; break; }
+        }
+        if (!ocrResultData.country_region) ocrResultData.country_region = labelCountry;
+      } else {
+        for (const [keyword, country] of Object.entries(countryKeywords)) {
+          if (text.includes(keyword)) { ocrResultData.country_region = country; break; }
+        }
+      }
+
+      const sourceKeywords = { '展会':'展会','Exhibition':'展会','Fair':'展会','阿里巴巴':'阿里巴巴','Alibaba':'阿里巴巴','Made-in-China':'中国制造网','中国制造网':'中国制造网','Google':'Google搜索','谷歌':'Google搜索','推荐':'客户推荐','Referral':'客户推荐','介绍':'客户推荐','官网':'官网留言','Website':'官网留言','Facebook':'Facebook','LinkedIn':'LinkedIn','领英':'LinkedIn','B2B':'B2B平台','询盘':'询盘','Inquiry':'询盘','广告':'广告投放','Advertisement':'广告投放' };
+      const labelSource = fuzzyMatchField('customer_source');
+      if (labelSource) {
+        for (const [keyword, source] of Object.entries(sourceKeywords)) {
+          if (labelSource.includes(keyword)) { ocrResultData.customer_source = source; break; }
+        }
+        if (!ocrResultData.customer_source) ocrResultData.customer_source = labelSource;
+      } else {
+        for (const [keyword, source] of Object.entries(sourceKeywords)) {
+          if (text.includes(keyword)) { ocrResultData.customer_source = source; break; }
+        }
+      }
+
+      ocrResultData.rawText = text;
+
+      showOcrResult();
+    }
+
+    function showOcrResult() {
+      const container = document.getElementById('ocrResultFields');
+      const fieldMap = {
+        company:'公司名称', contact:'联系人', position:'职位', phone:'电话', phone2:'电话2',
+        email:'邮箱', whatsapp:'WhatsApp', wechat:'微信', skype:'Skype',
+        address:'地址', country_region:'国家/地区', customer_source:'客户来源',
+        website:'网址', fax:'传真'
+      };
+      let html = '';
+      for (const [key, label] of Object.entries(fieldMap)) {
+        const val = ocrResultData[key] || '';
+        html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <label style="width:80px;text-align:right;color:#666;font-size:12px;flex-shrink:0;">${label}:</label>
+          <input type="text" id="ocr_${key}" value="${val}" placeholder="可手动输入" style="flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;">
+        </div>`;
+      }
+      html += `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#999;font-size:12px;">查看原始识别文本</summary><pre style="background:#fff;padding:8px;border-radius:4px;font-size:11px;max-height:150px;overflow:auto;white-space:pre-wrap;margin-top:4px;">${(ocrResultData.rawText || '').replace(/</g,'&lt;')}</pre></details>`;
+      if (ocrResultData._cardMeta) {
+        const m = ocrResultData._cardMeta;
+        html += `<details style="margin-top:4px;"><summary style="cursor:pointer;color:#667eea;font-size:12px;">名片布局分析</summary><div style="background:#f0f2ff;padding:8px;border-radius:4px;font-size:11px;margin-top:4px;line-height:1.8;">
+          <div>总行数: ${m.totalLines} | 大字行: ${m.largeLines}</div>
+          <div>顶部(公司): ${m.topLines}行 | 中部(姓名/职位): ${m.midLines}行 | 底部(联系方式): ${m.bottomLines}行</div>
+          <div>平均行高: ${m.avgLineHeight}px | 图片: ${m.imgWidth}x${m.imgHeight}</div>
+          <div style="margin-top:4px;color:#999;">识别模式: 名片格式智能解析</div>
+        </div></details>`;
+      }
+      container.innerHTML = html;
+      document.getElementById('ocrResult').style.display = 'block';
+      setTimeout(() => { document.getElementById('ocrProgress').style.display = 'none'; }, 500);
+    }
+
+    function collectOcrFields() {
+      const fields = ['company','contact','position','phone','phone2','email','whatsapp','wechat','skype','address','country_region','customer_source','website','fax'];
+      fields.forEach(f => {
+        const el = document.getElementById('ocr_' + f);
+        if (el) ocrResultData[f] = el.value.trim();
+      });
+    }
+
+    async function applyOcrToInline() {
+      collectOcrFields();
+      const hasAny = ['company','contact','phone','email','whatsapp','wechat','skype','address'].some(f => ocrResultData[f]);
+      if (!hasAny) { alert('请至少填写一个字段'); return; }
+
+      const data = {
+        name: ocrResultData.company || ocrResultData.contact || '待补充',
+        contact_person: ocrResultData.contact || '',
+        contact_position: ocrResultData.position || '',
+        phone: ocrResultData.phone || '',
+        email: ocrResultData.email || '',
+        whatsapp: ocrResultData.whatsapp || '',
+        wechat: ocrResultData.wechat || '',
+        skype: ocrResultData.skype || '',
+        address: ocrResultData.address || '',
+        country_region: ocrResultData.country_region || '',
+        customer_source: ocrResultData.customer_source || '',
+        customer_level: 'D级（新客/休眠客）',
+        customer_status: '潜在客户',
+        sales_person: localStorage.getItem('username') || '',
+        remarks: [ocrResultData.website, ocrResultData.fax ? `传真:${ocrResultData.fax}` : '', ocrResultData.phone2 ? `电话2:${ocrResultData.phone2}` : ''].filter(Boolean).join(' | ')
+      };
+
+      try {
+        const res = await fetch(`${API}/customers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (res.ok) {
+          alert('客户导入成功！');
+          closeModal('ocrModal');
+          searchCustomers();
+        } else {
+          alert('导入失败: ' + (result.error || '未知错误'));
+        }
+      } catch (e) {
+        alert('导入失败: ' + e.message);
+      }
+    }
+
+    async function applyOcrResult() {
+      collectOcrFields();
+      showAddModal();
+      setTimeout(() => {
+        document.getElementById('fName').value = ocrResultData.company || '';
+        document.getElementById('fContactPerson').value = ocrResultData.contact || '';
+        document.getElementById('fPhone').value = ocrResultData.phone || '';
+        document.getElementById('fEmail').value = ocrResultData.email || '';
+        document.getElementById('fWhatsapp').value = ocrResultData.whatsapp || '';
+        document.getElementById('fWechat').value = ocrResultData.wechat || '';
+        document.getElementById('fSkype').value = ocrResultData.skype || '';
+        document.getElementById('fAddress').value = ocrResultData.address || '';
+        const countryEl = document.getElementById('fCountryRegion');
+        if (countryEl) countryEl.value = ocrResultData.country_region || '';
+        const sourceEl = document.getElementById('fCustomerSource');
+        if (sourceEl) sourceEl.value = ocrResultData.customer_source || '';
+        const posEl = document.getElementById('fContactPosition');
+        if (posEl) posEl.value = ocrResultData.position || '';
+        closeModal('ocrModal');
+      }, 200);
+    }
+
+    // ===== 下载模板 =====
+    function downloadTemplate() {
+      const a = document.createElement('a');
+      a.href = `${API}/customers/template/download`;
+      a.download = '客户资料导入模板.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // 从客户发起立项申请书
+    function createInitiationFromCustomer() {
+      if (selectedIds.size === 0) {
+        alert('请先勾选一个客户（点击行首复选框）');
+        return;
+      }
+      if (selectedIds.size > 1) {
+        alert('一次只能为一个客户发起立项，请只勾选一个客户');
+        return;
+      }
+      const customerId = Array.from(selectedIds)[0];
+      if (!confirm('确认为该客户发起立项申请书？将跳转到研发项目管理-立项申请书模块。')) return;
+      fetch(`${API}/customers/${customerId}/create-initiation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      }).then(r => r.json()).then(d => {
+        if (d.error) { alert('创建失败: ' + d.error); return; }
+        alert(d.message || '立项申请书已创建');
+        // 跳转到项目管理的立项申请书模块
+        window.location.href = 'project.html';
+      }).catch(e => alert('创建失败: ' + e.message));
+    }
+
+    function exportCustomers() {
+      const keyword = document.getElementById('searchInput').value.trim();
+      const level = document.getElementById('levelFilter').value;
+      const mode = document.getElementById('modeFilter').value;
+      const status = document.getElementById('statusFilter').value;
+      const sales = document.getElementById('salesFilter').value;
+
+      let url = `${API}/customers/export?`;
+      if (selectedIds.size > 0) {
+        url += `ids=${Array.from(selectedIds).join(',')}`;
+      } else {
+        if (keyword) url += `keyword=${encodeURIComponent(keyword)}&`;
+        if (level) url += `customer_level=${encodeURIComponent(level)}&`;
+        if (mode) url += `sales_mode=${encodeURIComponent(mode)}&`;
+        if (status) url += `customer_status=${encodeURIComponent(status)}&`;
+        if (sales) url += `sales_person=${encodeURIComponent(sales)}&`;
+      }
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `客户资料导出_${new Date().toISOString().substring(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // ===== 通用 =====
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // ===== 表格左右滚动 =====
+    const tableContainer = document.getElementById('tableContainer');
+    const scrollThumb = document.getElementById('scrollThumb');
+    const scrollTrack = document.getElementById('scrollTrack');
+    let isDragging = false;
+
+    function scrollTableLeft() {
+      tableContainer.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+
+    function scrollTableRight() {
+      tableContainer.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+
+    function updateScrollBar() {
+      const el = tableContainer;
+      if (!el) return;
+      const scrollWidth = el.scrollWidth;
+      const clientWidth = el.clientWidth;
+      if (scrollWidth <= clientWidth) {
+        document.getElementById('tableScrollBar').style.display = 'none';
+        return;
+      }
+      document.getElementById('tableScrollBar').style.display = 'flex';
+      const ratio = clientWidth / scrollWidth;
+      const thumbWidth = Math.max(ratio * 100, 10);
+      const scrollLeft = el.scrollLeft;
+      const maxScroll = scrollWidth - clientWidth;
+      const thumbLeft = maxScroll > 0 ? (scrollLeft / maxScroll) * (100 - thumbWidth) : 0;
+      scrollThumb.style.width = thumbWidth + '%';
+      scrollThumb.style.left = thumbLeft + '%';
+    }
+
+    tableContainer.addEventListener('scroll', updateScrollBar);
+    window.addEventListener('resize', updateScrollBar);
+
+    scrollThumb.addEventListener('mousedown', e => {
+      isDragging = true;
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      const trackRect = scrollTrack.getBoundingClientRect();
+      const x = e.clientX - trackRect.left;
+      const ratio = Math.max(0, Math.min(1, x / trackRect.width));
+      const el = tableContainer;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      el.scrollLeft = ratio * maxScroll;
+    });
+    document.addEventListener('mouseup', () => { isDragging = false; });
+
+    scrollTrack.addEventListener('click', e => {
+      if (e.target === scrollThumb) return;
+      const trackRect = scrollTrack.getBoundingClientRect();
+      const x = e.clientX - trackRect.left;
+      const ratio = x / trackRect.width;
+      const el = tableContainer;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      el.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' });
+    });
+
+    setTimeout(updateScrollBar, 500);
+
+    // 从URL参数预选客户
+    function checkPreSelect() {
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get('name');
+      if (name) document.getElementById('searchInput').value = name;
+    }
+
+    // 从外部系统同步客户
+    // ===== 外部同步：先预览，确认后才真正写入 =====
+    function syncStatsHtml(d){
+      let h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">';
+      h+='<div style="background:#fff;padding:12px;border-radius:8px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#667eea;">'+(d.total_fetched||0)+'</div><div style="font-size:11px;color:#999;">拉取总数</div></div>';
+      h+='<div style="background:#fff;padding:12px;border-radius:8px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#27ae60;">'+(d.imported||0)+'</div><div style="font-size:11px;color:#999;">'+(d.applied?'已导入新客户':'可导入')+'</div></div>';
+      h+='<div style="background:#fff;padding:12px;border-radius:8px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#3498db;">'+(d.skipped||0)+'</div><div style="font-size:11px;color:#999;">已存在跳过</div></div>';
+      h+='</div>';
+      return h;
+    }
+    function syncDetailsHtml(d){
+      if(!d.details||!d.details.length) return '<div style="color:#bbb;font-size:12px;text-align:center;padding:10px;">无可导入数据</div>';
+      let h='<table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="background:#f5f6fa;"><th style="padding:4px 8px;text-align:left;">名称</th><th style="padding:4px 8px;text-align:left;">代码</th><th style="padding:4px 8px;text-align:left;">等级</th><th style="padding:4px 8px;text-align:left;">状态</th></tr></thead><tbody>';
+      d.details.forEach(r=>{h+='<tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:3px 8px;">'+(r.name||'')+'</td><td style="padding:3px 8px;">'+(r.code||'-')+'</td><td style="padding:3px 8px;">'+(r.level||'')+'</td><td style="padding:3px 8px;">'+(r.status||'')+'</td></tr>';});
+      h+='</tbody></table>';
+      if((d.imported||0) > d.details.length) h += '<div style="font-size:11px;color:#aaa;text-align:center;padding:6px;">...共 '+(d.imported||0)+' 条，仅预览前 '+d.details.length+' 条</div>';
+      return h;
+    }
+    function syncModal(){
+      const modal=document.createElement('div');
+      modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+      modal.innerHTML='<div style="background:#fff;border-radius:12px;padding:24px;width:600px;max-width:92vw;max-height:85vh;overflow:auto;"><h3>从外部系统同步客户</h3><div id="custSyncBody"></div></div>';
+      document.body.appendChild(modal);
+      return modal;
+    }
+    async function syncExternalCustomers(){
+      const modal=syncModal();
+      const body=document.getElementById('custSyncBody');
+      body.innerHTML='<div style="padding:40px;text-align:center;color:#667eea;">正在从外部系统拉取数据生成预览...</div>';
+      try{
+        // 第一步：预览（apply:false，不写入）
+        const res=await fetch('/api/external-api/sync-customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply:false})});
+        const d=await res.json();
+        if(!res.ok){ body.innerHTML='<span style="color:#e74c3c;">'+(d.error||'预览失败')+'</span>'; return; }
+        let html='<div style="background:#fff8e1;border:1px solid #ffe082;padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:13px;color:#8a6d3b;">⚠ 以下是预览结果（尚未写入），确认后才会真正同步</div>';
+        html+='<div style="background:#f0f4ff;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;">'+d.message+'</div>';
+        html+=syncStatsHtml(d)+syncDetailsHtml(d);
+        html+='<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">';
+        html+='<button class="btn" style="background:#eee;" onclick="this.closest(\'div[style*=fixed]\')?.remove();">取消</button>';
+        html+='<button class="btn btn-primary" id="custSyncConfirmBtn" onclick="syncExternalApply(this)">确认执行同步</button>';
+        html+='</div>';
+        body.innerHTML=html;
+      }catch(e){ body.innerHTML='<span style="color:#e74c3c;">预览失败: '+e.message+'</span>'; }
+    }
+    async function syncExternalApply(btn){
+      btn.disabled=true; btn.textContent='正在同步...';
+      const body=document.getElementById('custSyncBody');
+      try{
+        const res=await fetch('/api/external-api/sync-customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply:true})});
+        const d=await res.json();
+        if(!res.ok){ btn.disabled=false; btn.textContent='确认执行同步'; body.insertAdjacentHTML('afterbegin','<div style="color:#e74c3c;margin-bottom:8px;">'+(d.error||'同步失败')+'</div>'); return; }
+        let html='<div style="background:#e8f5e9;border:1px solid #a5d6a7;padding:12px;border-radius:8px;margin-bottom:14px;font-size:14px;font-weight:600;color:#2e7d32;">✓ '+d.message+'</div>';
+        html+=syncStatsHtml(d)+syncDetailsHtml(d);
+        html+='<div style="text-align:right;margin-top:14px;"><button class="btn btn-primary" onclick="this.closest(\'div[style*=fixed]\')?.remove();loadCustomers();CustDash.load();">完成</button></div>';
+        body.innerHTML=html;
+      }catch(e){ btn.disabled=false; btn.textContent='确认执行同步'; body.insertAdjacentHTML('afterbegin','<div style="color:#e74c3c;margin-bottom:8px;">同步失败: '+e.message+'</div>'); }
+    }
+
+    // ===== 视图切换：表格 / 矩阵 =====
+    const CustView = {
+      _store: '_cust_view_mode',
+      mode() { return localStorage.getItem(this._store) || 'table'; },
+      set(m) {
+        localStorage.setItem(this._store, m);
+        document.getElementById('viewBtnTable').classList.toggle('active', m === 'table');
+        document.getElementById('viewBtnMatrix').classList.toggle('active', m === 'matrix');
+        CustView.render(currentPage);
+      },
+      render(page) {
+        const isMatrix = this.mode() === 'matrix';
+        document.getElementById('viewBtnTable').classList.toggle('active', !isMatrix);
+        document.getElementById('viewBtnMatrix').classList.toggle('active', isMatrix);
+        document.getElementById('tableContainer').style.display = isMatrix ? 'none' : '';
+        document.getElementById('tableScrollBar').style.display = isMatrix ? 'none' : '';
+        document.getElementById('pagination').style.display = isMatrix ? 'none' : '';
+        document.getElementById('matrixView').style.display = isMatrix ? '' : 'none';
+        if (isMatrix) {
+          this.renderMatrix();
+          renderPagination(page, 'matrixPagination');
+        } else {
+          renderTable();
+          renderPagination(page, 'pagination');
+        }
+      },
+      renderMatrix() {
+        const grid = document.getElementById('matrixGrid');
+        if (customerData.length === 0) { grid.innerHTML = '<div style="color:#999;padding:30px;text-align:center;grid-column:1/-1;">暂无客户数据</div>'; return; }
+        grid.innerHTML = customerData.map(item => {
+          const lvl = item.customer_level || '';
+          const lvlShort = lvl ? lvl.charAt(0) + '级' : '';
+          const web = item.website ? formatWebsite(item.website) : '<span style="color:#ccc;">-</span>';
+          return `<div class="cust-card">
+            ${item._attCount ? `<span class="cc-att-tag" title="附件">📎 ${item._attCount}</span>` : ''}
+            <div class="cc-head">
+              <div>
+                <div class="cc-name" onclick="showDetail(${item.id})">${this.esc(item.name || '未命名')}</div>
+                <div class="cc-code">${this.esc(item.customer_code || '')}</div>
+              </div>
+            </div>
+            <div class="cc-badges">
+              ${item.customer_level ? renderBadge('level', item.customer_level) : ''}
+              ${item.sales_mode ? renderBadge('mode', item.sales_mode) : ''}
+              ${item.customer_status ? renderBadge('status', item.customer_status) : ''}
+            </div>
+            <div class="cc-grid">
+              <div class="cc-field"><span class="cc-lbl">联系人</span><span class="cc-val">${this.esc(item.contact_person || '-')}</span></div>
+              <div class="cc-field"><span class="cc-lbl">电话</span><span class="cc-val">${this.esc(item.phone || '-')}</span></div>
+              <div class="cc-field"><span class="cc-lbl">邮箱</span><span class="cc-val">${this.esc(item.email || '-')}</span></div>
+              <div class="cc-field"><span class="cc-lbl">地区</span><span class="cc-val">${this.esc(item.country_region || '-')}</span></div>
+              <div class="cc-field"><span class="cc-lbl">业务员</span><span class="cc-val">${this.esc(item.sales_person || '-')}</span></div>
+              <div class="cc-field"><span class="cc-lbl">网址</span><span class="cc-val">${web}</span></div>
+            </div>
+            <div class="cc-acts">
+              <button class="btn-success" style="color:#fff;" onclick="createInquiryForCustomerById(${item.id})">询价</button>
+              <button class="btn-primary" style="color:#fff;" onclick="showEditModal(${item.id})">编辑</button>
+              <button style="background:#eee;" onclick="showDetail(${item.id})">详情</button>
+              <button class="btn-danger" style="color:#fff;" onclick="deleteCustomer(${item.id})">删除</button>
+            </div>
+          </div>`;
+        }).join('');
+      },
+      esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    };
+
+    // ===== 客户附件：上传/链接/列表/预览/下载/删除 =====
+    const CustAttach = {
+      _list: [],
+      _cid: null,
+      async load(customerId) {
+        this._cid = customerId;
+        const box = document.getElementById('detailAttachments');
+        if (!box) return;
+        try {
+          const res = await fetch(`${API}/customers/${customerId}/attachments`);
+          this._list = await res.json();
+          if (!this._list.length) { box.innerHTML = '<div style="color:#bbb;font-size:12px;">暂无附件，可点上方"上传文件"或"粘贴链接"</div>'; return; }
+          box.innerHTML = '<div class="att-grid">' + this._list.map(a => {
+            const isLink = a.is_link;
+            const isImg = a.is_image;
+            let thumb;
+            if (isLink && isImg) {
+              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><img src="${this.esc(a.url)}" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;att-file-ico&quot;>🔗</span>'"></div>`;
+            } else if (isLink) {
+              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><span class="att-file-ico">🔗</span></div>`;
+            } else if (isImg) {
+              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><img src="${API}/customers/attachments/${a.id}/preview" loading="lazy"></div>`;
+            } else {
+              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><span class="att-file-ico">📄</span></div>`;
+            }
+            const meta = isLink ? '链接' : (this.fmtSize(a.size) + ' · ' + (a.uploaded_at || '').substring(0, 10));
+            return `<div class="att-card">${thumb}
+              <div class="att-info"><div class="att-name" title="${this.esc(a.is_link ? a.url : a.file_name)}">${this.esc(a.file_name)}</div><div class="att-meta">${meta}</div></div>
+              <div class="att-ops">
+                <button onclick="CustAttach.preview(${a.id})">预览</button>
+                ${isLink ? `<button onclick="CustAttach.openLink(${a.id})">打开</button>` : `<button onclick="CustAttach.download(${a.id})">下载</button>`}
+                <button class="del" onclick="CustAttach.remove(${a.id},${customerId})">删除</button>
+              </div></div>`;
+          }).join('') + '</div>';
+        } catch (e) { box.innerHTML = '<div style="color:#e74c3c;font-size:12px;">加载失败</div>'; }
+      },
+      upload(customerId) {
+        const input = document.createElement('input');
+        input.type = 'file'; input.multiple = true; input.accept = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.txt';
+        input.onchange = async () => {
+          for (const file of input.files) {
+            const fd = new FormData(); fd.append('file', file);
+            try {
+              const res = await fetch(`${API}/customers/${customerId}/attachments`, { method: 'POST', body: fd });
+              if (!res.ok) { const r = await res.json(); alert('上传失败 [' + file.name + ']: ' + (r.error || '')); }
+            } catch (e) { alert('上传失败 [' + file.name + ']: ' + e.message); }
+          }
+          this.load(customerId);
+        };
+        input.click();
+      },
+      addLink(customerId) {
+        const url = prompt('请粘贴链接地址（图片/文件/网页网址）：', 'https://');
+        if (url === null) return;
+        const u = url.trim();
+        if (!u) return;
+        const title = prompt('给链接起个名字（可留空）：', '');
+        fetch(`${API}/customers/${customerId}/attachments/link`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: u, title: (title || '').trim() || u })
+        }).then(r => r.ok ? this.load(customerId) : r.json().then(e => alert('添加失败: ' + (e.error || ''))))
+          .catch(e => alert('添加失败: ' + e.message));
+      },
+      _get(id) { return this._list.find(a => a.id === id); },
+      preview(id) {
+        const a = this._get(id);
+        if (!a) return;
+        document.getElementById('attPreviewTitle').textContent = a.file_name || '预览';
+        const body = document.getElementById('attPreviewBody');
+        if (a.is_link) {
+          // 链接预览：图片直接显示，其他用 iframe（部分站点禁止嵌入则提示打开）
+          if (a.is_image) {
+            body.innerHTML = `<img src="${this.esc(a.url)}" alt="" onerror="this.parentNode.innerHTML='<div style=&quot;padding:40px;color:#888;&quot;>图片加载失败，可点击打开原链接</div>'">`;
+          } else {
+            body.innerHTML = `<iframe src="${this.esc(a.url)}"></iframe>`;
+          }
+          document.getElementById('attPreviewModal').style.display = 'flex';
+          return;
+        }
+        // 文件预览
+        const url = `${API}/customers/attachments/${id}/preview`;
+        const mime = a.mime || '';
+        if (/^image\//.test(mime)) {
+          body.innerHTML = `<img src="${url}" alt="${this.esc(a.file_name)}">`;
+          document.getElementById('attPreviewModal').style.display = 'flex';
+        } else if (mime === 'application/pdf') {
+          body.innerHTML = `<iframe src="${url}"></iframe>`;
+          document.getElementById('attPreviewModal').style.display = 'flex';
+        } else {
+          // Office 等无法在线预览的格式：直接下载打开（文件名已修复，可正常识别）
+          this.download(id);
+        }
+      },
+      openLink(id) { const a = this._get(id); if (a && a.url) window.open(a.url, '_blank'); },
+      download(id) {
+        const a = document.createElement('a');
+        a.href = `${API}/customers/attachments/${id}/download`; a.click();
+      },
+      async remove(id, customerId) {
+        if (!confirm('确定删除该附件？')) return;
+        const res = await fetch(`${API}/customers/attachments/${id}`, { method: 'DELETE' });
+        if (res.ok) this.load(customerId); else alert('删除失败');
+      },
+      fmtSize(b) { b = Number(b) || 0; if (b < 1024) return b + 'B'; if (b < 1048576) return (b/1024).toFixed(1) + 'KB'; return (b/1048576).toFixed(1) + 'MB'; },
+      esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    };
+
+    // ===== 表单内附件管理（即时上传）=====
+    // 添加文件/链接时立即上传：编辑模式直接传；新增模式自动创建客户草稿拿到ID后再传
+    const CustFormAtt = {
+      _editId: null,      // 当前客户ID（新增模式下首次添加附件时自动创建）
+      _existing: [],      // 已有附件
+      _uploading: [],     // 正在上传中的文件 {name,size}
+      pick() {
+        const input = document.createElement('input');
+        input.type = 'file'; input.multiple = true;
+        input.accept = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.txt';
+        input.onchange = async () => {
+          const files = Array.from(input.files);
+          if (!files.length) return;
+          const cid = await this._ensureCustomerId();
+          if (!cid) return;
+          // 加入“上传中”列表并逐个上传
+          files.forEach(f => this._uploading.push({ name: f.name, size: f.size }));
+          this.render();
+          for (const f of files) {
+            try {
+              const fd = new FormData(); fd.append('file', f);
+              const r = await fetch(`${API}/customers/${cid}/attachments`, { method: 'POST', body: fd });
+              if (!r.ok) { const e = await r.json().catch(() => ({})); alert('上传失败 [' + f.name + ']: ' + (e.error || r.status)); }
+            } catch (e) { alert('上传失败 [' + f.name + ']: ' + e.message); }
+            this._uploading.shift();
+            this.render();
+          }
+          this.loadExisting(cid);
+        };
+        input.click();
+      },
+      async addLink() {
+        const url = prompt('请粘贴链接地址（图片/文件/网页网址）：', 'https://');
+        if (url === null) return;
+        const u = url.trim();
+        if (!u) return;
+        const title = (prompt('给链接起个名字（可留空）：', '') || '').trim() || u;
+        const cid = await this._ensureCustomerId();
+        if (!cid) return;
+        this._uploading.push({ name: title, size: 0, link: true });
+        this.render();
+        try {
+          const r = await fetch(`${API}/customers/${cid}/attachments/link`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: u, title })
+          });
+          if (!r.ok) { const e = await r.json().catch(() => ({})); alert('添加失败: ' + (e.error || r.status)); }
+        } catch (e) { alert('添加失败: ' + e.message); }
+        this._uploading.shift();
+        this.loadExisting(cid);
+      },
+      // 确保有一个客户ID：编辑模式直接返回；新增模式自动创建草稿
+      async _ensureCustomerId() {
+        if (this._editId) return this._editId;
+        const data = collectCustomerData();
+        if (!data.name && !data.phone && !data.email && !data.contact_person) data.name = '待补充';
+        if (!data.sales_mode) data.sales_mode = '外销';
+        if (!data.customer_status) data.customer_status = '潜在客户';
+        try {
+          const res = await fetch(`${API}/customers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+          if (!res.ok) { const e = await res.json().catch(() => ({})); alert('创建客户失败，无法上传附件: ' + (e.error || '')); return null; }
+          const j = await res.json();
+          this._editId = j.data.id;
+          document.getElementById('editId').value = this._editId;
+          document.getElementById('modalTitle').textContent = '编辑客户';
+          return this._editId;
+        } catch (e) { alert('创建客户失败: ' + e.message); return null; }
+      },
+      reset() { this._editId = null; this._existing = []; this._uploading = []; this.render(); },
+      async loadExisting(id) {
+        this._editId = id; this._existing = [];
+        try {
+          const res = await fetch(`${API}/customers/${id}/attachments`);
+          this._existing = await res.json();
+        } catch (e) {}
+        this.render();
+      },
+      render() {
+        const box = document.getElementById('formAttachments');
+        if (!box) return;
+        let html = '';
+        if (this._existing.length) {
+          html += this._existing.map(a => `<div class="fa-row"><span class="fa-ico">${a.is_link ? '🔗' : (a.is_image ? '🖼️' : '📄')}</span><span class="fa-name" title="${this.esc(a.is_link ? a.url : a.file_name)}">${this.esc(a.file_name)}</span><span class="fa-size">${a.is_link ? '链接' : this.fmt(a.size)}</span><button type="button" class="fa-del" onclick="CustFormAtt.removeExisting(${a.id})">✕</button></div>`).join('');
+        }
+        if (this._uploading.length) {
+          html += this._uploading.map(u => `<div class="fa-row fa-pending"><span class="fa-ico">${u.link ? '🔗' : '⏳'}</span><span class="fa-name">${this.esc(u.name)} <span style="color:#f39c12;font-size:10px;">上传中...</span></span><span class="fa-size">${u.size ? this.fmt(u.size) : ''}</span></div>`).join('');
+        }
+        if (!html) html = '<div style="color:#bbb;font-size:12px;">暂无附件，可"添加文件"或"粘贴链接"（即时上传）</div>';
+        box.innerHTML = html;
+      },
+      async removeExisting(attId) {
+        if (!confirm('删除该附件？')) return;
+        await fetch(`${API}/customers/attachments/${attId}`, { method: 'DELETE' });
+        this._existing = this._existing.filter(a => a.id !== attId);
+        this.render();
+      },
+      fmt(b) { b = Number(b) || 0; if (b < 1024) return b + 'B'; if (b < 1048576) return (b / 1024).toFixed(1) + 'KB'; return (b / 1048576).toFixed(1) + 'MB'; },
+      esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    };
+
+    checkPreSelect();
+    loadSalesOptions();
+    loadCustomers();
+  </script>
+  <!-- 客户分析仪表盘逻辑 -->
+  <script>
+  const CustDash = {
+    _data: null, _charts: {}, _store: '_cust_dash_panels', _collapseStore: '_cust_dash_collapsed',
+    COLORS: ['#667eea','#764ba2','#43e97b','#fa709a','#4facfe','#ff6a00','#2af598','#f093fb','#fee140','#5b86e5','#36d1dc','#a8ff78','#ee0979','#00c6fb'],
+    STATUS_MAP: {
+      inquiry: {new:'新建',pending_pricing:'待核价',pending_quote:'待报价',quoted:'已报价',negotiating:'谈判中',sample:'样品',project:'项目',lost:'流失',closed:'已成交',unknown:'未知'},
+      order: {open:'进行中',confirmed:'已确认',procurement_ready:'采购中',material_ready:'已齐套',packaging_done:'包装中',shipped:'已发货',completed:'已完成',closed:'已关闭',cancelled:'已取消',unknown:'未知'},
+      sample: {pending:'待处理',confirmed:'已确认',producing:'制作中',sent:'已寄出',customer_confirmed:'客户确认',completed:'已完成',unknown:'未知'}
+    },
+    PANELS: [
+      {key:'kpi', label:'关键指标卡片'},
+      {key:'insights', label:'📈 智能文字分析'},
+      {key:'level', label:'客户等级分布'},
+      {key:'status', label:'客户状态分布'},
+      {key:'mode', label:'销售模式分布'},
+      {key:'source', label:'客户来源分布'},
+      {key:'region', label:'地区分布 TOP12'},
+      {key:'sales', label:'业务员客户数 TOP12'},
+      {key:'inquiry', label:'询价状态分布'},
+      {key:'order', label:'订单状态分布'},
+      {key:'sample', label:'样品状态分布'},
+      {key:'topInquiry', label:'询价数 TOP10 客户'},
+      {key:'topOrder', label:'订单金额 TOP10 客户'}
+    ],
+    KPI_SPECS: [
+      {key:'total', label:'客户总数', icon:'👥', cls:'kc-blue'},
+      {key:'inquiryCustomers', label:'询价客户', icon:'📋', cls:'kc-purple'},
+      {key:'orderCustomers', label:'订单客户', icon:'📦', cls:'kc-green'},
+      {key:'sampleCustomers', label:'样品客户', icon:'🧪', cls:'kc-orange'},
+      {key:'activeCustomers', label:'大货合作', icon:'🤝', cls:'kc-red'},
+      {key:'inquiryTotal', label:'询价总数', icon:'📈', cls:'kc-teal'},
+      {key:'orderTotal', label:'订单总数', icon:'🛒', cls:'kc-pink'},
+      {key:'sampleTotal', label:'样品总数', icon:'🧫', cls:'kc-lime'},
+      {key:'orderAmount', label:'订单金额(元)', icon:'💰', cls:'kc-indigo'}
+    ],
+    CHART_SPECS: {
+      level:{t:'客户等级分布',type:'doughnut',dk:'byLevel'},
+      status:{t:'客户状态分布',type:'doughnut',dk:'byStatus'},
+      mode:{t:'销售模式分布',type:'doughnut',dk:'byMode'},
+      source:{t:'客户来源分布',type:'doughnut',dk:'bySource'},
+      region:{t:'地区分布 TOP12',type:'bar',dk:'byRegion'},
+      sales:{t:'业务员客户数 TOP12',type:'bar',dk:'bySales'},
+      inquiry:{t:'询价状态分布',type:'doughnut',dk:'inquiry.byStatus',map:'inquiry'},
+      order:{t:'订单状态分布',type:'bar',dk:'order.byStatus',map:'order'},
+      sample:{t:'样品状态分布',type:'doughnut',dk:'sample.byStatus',map:'sample'},
+      topInquiry:{t:'询价数 TOP10 客户',type:'bar',dk:'inquiry.topByCustomer'},
+      topOrder:{t:'订单金额 TOP10 客户',type:'bar',dk:'order.topByCustomer'}
+    },
+
+    init() {
+      // 渲染显示设置复选框
+      const list = document.getElementById('dashSettingsList');
+      if (list) {
+        list.innerHTML = this.PANELS.map(p =>
+          `<label><input type="checkbox" data-panel="${p.key}" ${this.isVisible(p.key)?'checked':''} onchange="CustDash.onPanelToggle('${p.key}',this.checked)"> ${p.label}</label>`
+        ).join('');
+      }
+      // 恢复折叠状态
+      if (this._collapsed()) this._applyCollapsed(true);
+      // 点击外部关闭设置面板
+      document.addEventListener('click', (e) => {
+        const panel = document.getElementById('dashSettingsPanel');
+        if (panel && panel.classList.contains('show') && !e.target.closest('.dh-btns')) {
+          panel.classList.remove('show');
+        }
+      });
+    },
+
+    _visible() { try { return JSON.parse(localStorage.getItem(this._store) || '{}'); } catch(e) { return {}; } },
+    isVisible(key) { const v = this._visible(); return v[key] !== false; },
+    onPanelToggle(key, on) {
+      const v = this._visible(); v[key] = on; localStorage.setItem(this._store, JSON.stringify(v));
+      this.render();
+    },
+    _collapsed() { return localStorage.getItem(this._collapseStore) === '1'; },
+    toggleCollapse() { this._applyCollapsed(!this._collapsed()); localStorage.setItem(this._collapseStore, this._collapsed()?'0':'1'); },
+    _applyCollapsed(c) {
+      const body = document.getElementById('dashBody');
+      const btn = document.getElementById('dashCollapseBtn');
+      if (c) { body.classList.add('collapsed'); btn.textContent = '展开 ▾'; }
+      else { body.classList.remove('collapsed'); btn.textContent = '折叠 ▴'; }
+    },
+    toggleSettings() { document.getElementById('dashSettingsPanel').classList.toggle('show'); },
+
+    async load() {
+      try {
+        const res = await fetch(`${API}/customers/analytics`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        this._data = await res.json();
+        this.render();
+      } catch (e) {
+        const el = document.getElementById('dashCharts');
+        if (el) el.innerHTML = `<div style="color:#e74c3c;font-size:13px;padding:8px;">仪表盘加载失败: ${e.message}</div>`;
+      }
+    },
+
+    render() {
+      if (!this._data) return;
+      this.renderKpi();
+      this.renderInsights();
+      this.renderCharts();
+    },
+
+    // ===== 智能文字分析：根据数据自动生成分析结论 =====
+    renderInsights() {
+      const box = document.getElementById('dashInsights');
+      if (!box) return;
+      if (!this.isVisible('insights')) { box.innerHTML = ''; return; }
+      const d = this._data, k = d.kpi;
+      const pct = (n, t) => (t > 0 ? (n / t * 100) : 0).toFixed(1);
+      const lvl = (code) => (d.byLevel.find(x => (x.label || '').includes(code)) || {}).value || 0;
+      const A = lvl('A'), B = lvl('B'), C = lvl('C'), D = lvl('D');
+      const potential = (d.byStatus.find(x => (x.label || '').includes('潜在')) || {}).value || 0;
+      const cards = [];
+
+      // 1. 总体规模与活跃度
+      cards.push(`<div class="ins-card"><div class="ins-title">📊 总体规模与活跃度</div><div class="ins-body">
+        共管理 <span class="ins-hl">${k.total}</span> 家客户，其中有业务往来（询价/订单/样品）的 <span class="ins-hl g">${k.activeBusiness}</span> 家（${pct(k.activeBusiness, k.total)}%），
+        <span class="ins-hl o">${k.noBusiness}</span> 家尚无任何业务记录。大货合作客户 <span class="ins-hl">${k.activeCustomers}</span> 家，潜在客户 <span class="ins-hl">${potential}</span> 家。
+        ${k.noBusiness / (k.total||1) > 0.5 ? '<br>⚠ 超半数客户无业务往来，建议梳理客户库、激活或归档休眠客户。' : ''}
+      </div></div>`);
+
+      // 2. 等级金字塔
+      const highEnd = A + B;
+      cards.push(`<div class="ins-card ${D/(k.total||1) > 0.6 ? 'warn' : ''}"><div class="ins-title">🏆 客户等级金字塔</div><div class="ins-body">
+        A级核心 <span class="ins-hl">${A}</span> 家（${pct(A, k.total)}%）、B级 <span class="ins-hl">${B}</span> 家、C级 <span class="ins-hl">${C}</span> 家、D级 <span class="ins-hl">${D}</span> 家（${pct(D, k.total)}%）。
+        高价值客户（A+B）合计 <span class="ins-hl g">${highEnd}</span> 家，占比 ${pct(highEnd, k.total)}%。
+        ${D/(k.total||1) > 0.6 ? '<br>⚠ D级（新客/休眠）占比过高，客户金字塔底部庞大，建议加强 A/B 级重点客户维护与新客培育转化。' : '客户分层较为均衡，注意持续提升 A/B 级客户占比。'}
+      </div></div>`);
+
+      // 3. 地域集中度
+      const regions = d.byRegion || [];
+      const top3 = regions.slice(0, 3);
+      const top3Sum = top3.reduce((s, r) => s + r.value, 0);
+      cards.push(`<div class="ins-card ${top3Sum/(k.total||1) > 0.5 ? 'warn' : 'good'}"><div class="ins-title">🌍 地域分布集中度</div><div class="ins-body">
+        客户覆盖 <span class="ins-hl">${regions.length}</span> 个地区，主要集中在
+        ${top3.map((r, i) => `${i?'、':''}<span class="ins-hl">${this._et(r.label)}</span>(${r.value}家)`).join('')}，
+        TOP3 合计占比 <span class="ins-hl">${pct(top3Sum, k.total)}%</span>。
+        ${top3Sum/(k.total||1) > 0.5 ? '<br>⚠ 地域集中度偏高，存在区域依赖风险，建议拓展新地区分散风险。' : '地域分布较为分散，区域风险可控。'}
+      </div></div>`);
+
+      // 4. 业务转化漏斗
+      cards.push(`<div class="ins-card"><div class="ins-title">🔄 业务转化漏斗</div><div class="ins-body">
+        发起过询价的客户 <span class="ins-hl">${k.inquiryCustomers}</span> 家（占 ${pct(k.inquiryCustomers, k.total)}%），
+        寄送样品的客户 <span class="ins-hl">${k.sampleCustomers}</span> 家，
+        产生订单的客户 <span class="ins-hl g">${k.orderCustomers}</span> 家（占 ${pct(k.orderCustomers, k.total)}%）。
+        共 <span class="ins-hl">${k.inquiryTotal}</span> 条询价、<span class="ins-hl">${k.sampleTotal}</span> 个样品、<span class="ins-hl">${k.orderTotal}</span> 笔订单，
+        累计订单金额 <span class="ins-hl g">¥${Number(k.orderAmount||0).toLocaleString()}</span>。
+        ${k.inquiryCustomers > 0 && k.orderCustomers/k.inquiryCustomers < 0.2 ? '<br>⚠ 询价到订单转化率偏低，建议优化报价跟进与样品转化流程。' : ''}
+      </div></div>`);
+
+      // 5. 客户来源
+      const src = (d.bySource || []).slice(0, 3);
+      cards.push(`<div class="ins-card"><div class="ins-title">📢 客户来源渠道</div><div class="ins-body">
+        客户主要来自 ${src.map((s, i) => `${i?'、':''}<span class="ins-hl">${this._et(s.label)}</span>(${s.value}家)`).join('') || '暂无来源数据'}。
+        ${src[0] && src[0].value/(k.total||1) > 0.5 ? '⚠ 来源高度集中于单一渠道，建议拓展获客渠道。' : '获客渠道较为多元。'}
+      </div></div>`);
+
+      // 6. 重点客户
+      const ti = (d.inquiry.topByCustomer || [])[0];
+      const to = (d.order.topByCustomer || [])[0];
+      cards.push(`<div class="ins-card good"><div class="ins-title">⭐ 重点客户</div><div class="ins-body">
+        ${ti ? `询价最活跃：<span class="ins-hl">${this._et(ti.label)}</span>（${ti.value} 次）` : '暂无询价数据'}<br>
+        ${to ? `订单金额最高：<span class="ins-hl g">${this._et(to.label)}</span>（¥${Number(to.value).toLocaleString()}）` : '暂无订单数据'}。
+        建议对头部客户配置专属服务与 retained 策略。
+      </div></div>`);
+
+      // 7. 风险提示
+      const risks = [];
+      if (k.noBusiness / (k.total||1) > 0.4) risks.push(`${k.noBusiness} 家客户（${pct(k.noBusiness, k.total)}%）无任何业务往来，建议定期清理或激活`);
+      if (D/(k.total||1) > 0.6) risks.push(`D级休眠客户 ${D} 家占比过高`);
+      if (top3Sum/(k.total||1) > 0.5) risks.push(`地域集中度高，TOP3 地区占 ${pct(top3Sum, k.total)}%`);
+      if (k.inquiryCustomers > 0 && k.orderCustomers/k.inquiryCustomers < 0.2) risks.push('询价→订单转化率偏低');
+      cards.push(`<div class="ins-card risk"><div class="ins-title">⚠️ 风险提示与建议</div><div class="ins-body">
+        ${risks.length ? risks.map(r => `• <span class="ins-hl r">${r}</span>`).join('<br>') : '当前各项指标平稳，暂无明显风险。'}<br>
+        建议：定期复盘休眠客户、加强高价值客户维护、拓展获客地区与渠道、提升询价到订单的转化跟进。
+      </div></div>`);
+
+      box.innerHTML = '<div class="ins-grid">' + cards.join('') + '</div>';
+    },
+    _et(s) { return this._esc(s == null ? '' : s); },
+
+    renderKpi() {
+      const wrap = document.getElementById('dashKpi');
+      if (!wrap) return;
+      if (!this.isVisible('kpi')) { wrap.innerHTML = ''; return; }
+      const k = this._data.kpi || {};
+      wrap.innerHTML = this.KPI_SPECS.map(s => {
+        let val = k[s.key] || 0;
+        if (s.key === 'orderAmount') val = Number(val).toLocaleString();
+        return `<div class="kpi-card ${s.cls}"><span class="kpi-ico">${s.icon}</span><div class="kpi-num">${val}</div><div class="kpi-lbl">${s.label}</div></div>`;
+      }).join('');
+    },
+
+    _get(path) { return path.split('.').reduce((o, k) => (o == null ? null : o[k]), this._data); },
+    renderCharts() {
+      const wrap = document.getElementById('dashCharts');
+      if (!wrap) return;
+      let html = '';
+      Object.keys(this.CHART_SPECS).forEach(key => {
+        if (!this.isVisible(key)) return;
+        const spec = this.CHART_SPECS[key];
+        const raw = (this._get(spec.dk) || []).slice();
+        // 状态码 → 中文标签
+        const items = raw.map((d, i) => {
+          let lb = d.label || '未知';
+          if (spec.map && this.STATUS_MAP[spec.map] && this.STATUS_MAP[spec.map][lb]) lb = this.STATUS_MAP[spec.map][lb];
+          return { label: lb, value: Number(d.value) || 0, color: this.COLORS[i % this.COLORS.length] };
+        }).filter(d => d.value > 0);
+        const inner = items.length === 0 ? '<div class="cb-empty">暂无数据</div>'
+          : (spec.type === 'doughnut' ? this._doughnutHtml(items) : this._hbarHtml(items));
+        html += `<div class="chart-box"><h4>${spec.t}</h4>${inner}</div>`;
+      });
+      wrap.innerHTML = html;
+    },
+
+    _esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
+
+    _doughnutHtml(items) {
+      const total = items.reduce((s, d) => s + d.value, 0) || 1;
+      let acc = 0;
+      const segs = items.map(d => {
+        const start = (acc / total) * 360;
+        acc += d.value;
+        const end = (acc / total) * 360;
+        return Object.assign({}, d, { start, end, pct: d.value / total * 100 });
+      });
+      const grad = 'conic-gradient(' + segs.map(s => `${s.color} ${s.start.toFixed(2)}deg ${s.end.toFixed(2)}deg`).join(',') + ')';
+      const legend = segs.map(s =>
+        `<div class="cd-leg-item"><span class="cd-dot" style="background:${s.color}"></span><span class="cd-leg-txt" title="${this._esc(s.label)}">${this._esc(s.label)}</span><span class="cd-leg-val">${s.value} · ${s.pct.toFixed(0)}%</span></div>`
+      ).join('');
+      return `<div class="cd-pie-wrap"><div class="cd-pie" style="background:${grad}"><div class="cd-pie-hole">共${total}</div></div><div class="cd-legend">${legend}</div></div>`;
+    },
+
+    _hbarHtml(items) {
+      const max = Math.max.apply(null, items.map(d => d.value).concat([1]));
+      const rows = items.map(d => {
+        const pct = (d.value / max * 100).toFixed(1);
+        const val = d.value >= 10000 ? d.value.toLocaleString() : d.value;
+        return `<div class="cd-hbar-row"><span class="cd-hbar-label" title="${this._esc(d.label)}">${this._esc(d.label)}</span><div class="cd-hbar-track"><div class="cd-hbar-fill" style="width:${pct}%;background:${d.color}"></div></div><span class="cd-hbar-val">${val}</span></div>`;
+      }).join('');
+      return `<div class="cd-hbars">${rows}</div>`;
+    }
+  };
+  CustDash.init();
+  CustDash.load();
+  </script>
+  <div id="importDropzoneContainer"></div>
+  <script>
+    ImportDropzone.init('importDropzoneContainer', 'customers', () => { loadCustomers(); CustDash.load(); });
+  </script>
+<script src="dict-loader.js"></script><script src="permission-check.js"></script><script>PermissionCheck.init();DictLoader.fillAll([{select:'fCustomerSource',group:'customer_source',placeholder:'请选择'},{select:'fCountryRegion',group:'country_region',placeholder:'请选择'}]);</script>
+<script src="chat-widget.js"></script>
+<script src="feature-gate.js"></script><script>FeatureGate.init();</script>
+</body>
+</html>

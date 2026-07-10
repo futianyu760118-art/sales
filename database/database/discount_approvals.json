@@ -1,0 +1,69 @@
+{
+  "records": [
+    {
+      "inquiry_id": 609,
+      "inquiry_no": "JFX20260621003-05",
+      "discount_rate": 0.9,
+      "original_price": 0,
+      "discounted_price": 0,
+      "reason": "??????",
+      "applicant": "?????",
+      "approval_level": "director",
+      "status": "approved",
+      "approver": "????",
+      "approved_at": "2026-06-21 18:03:11",
+      "created_at": "2026-06-21 18:03:00",
+      "updated_at": "2026-06-21 18:03:11",
+      "id": 1
+    },
+    {
+      "inquiry_id": 609,
+      "inquiry_no": "JFX20260621003-05",
+      "discount_rate": 0.97,
+      "original_price": 0,
+      "discounted_price": 0,
+      "reason": "?????",
+      "applicant": "?????",
+      "approval_level": "manager",
+      "status": "pending",
+      "approver": "",
+      "approved_at": "",
+      "created_at": "2026-06-21 18:03:22",
+      "updated_at": "2026-06-21 18:03:22",
+      "id": 2
+    },
+    {
+      "inquiry_id": 599,
+      "inquiry_no": "JFX20260621005",
+      "discount_rate": 0.95,
+      "original_price": 40937.4,
+      "discounted_price": 40937.4,
+      "reason": "打开市场",
+      "applicant": "朱梦倩",
+      "approval_level": "manager",
+      "status": "approved",
+      "approver": "aaa",
+      "approved_at": "2026-06-22 10:08:46",
+      "created_at": "2026-06-22 08:26:05",
+      "updated_at": "2026-06-22 10:08:46",
+      "id": 3
+    },
+    {
+      "inquiry_id": 615,
+      "inquiry_no": "JFX20260621006",
+      "discount_rate": 0.95,
+      "original_price": 75.89,
+      "discounted_price": 0,
+      "reason": "新客户引流",
+      "applicant": "朱梦倩",
+      "approval_level": "manager",
+      "status": "approved",
+      "approver": "朱剑军",
+      "approved_at": "2026-06-22 11:12:04",
+      "created_at": "2026-06-22 11:09:27",
+      "updated_at": "2026-06-22 11:12:04",
+      "id": 4
+    }
+  ],
+  "nextId": 5
+}

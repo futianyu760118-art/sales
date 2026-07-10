@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 组织模块</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .org-tabs { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+    .org-tabs button { padding: 12px 24px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .org-tabs button.active { color: #667eea; border-bottom-color: #667eea; }
+    .org-tabs button:hover { color: #667eea; }
+    .org-tab { display: none; }
+    .org-tab.active { display: block; }
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat-card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+    .stat-card .num { font-size: 24px; font-weight: 700; color: #667eea; }
+    .stat-card .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+    .toolbar { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+    .toolbar input, .toolbar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .toolbar input { min-width: 180px; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th { background: #f5f6fa; padding: 10px; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #eee; font-size: 13px; white-space: nowrap; }
+    td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    tr:hover td { background: #f8f9ff; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .badge-on { background: #d4edda; color: #155724; }
+    .badge-off { background: #f5f5f5; color: #999; }
+    .btn { padding: 7px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+    .btn-primary { background: #667eea; color: white; }
+    .btn-info { background: #17a2b8; color: white; }
+    .btn-success { background: #27ae60; color: white; }
+    .btn-warning { background: #f39c12; color: white; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-default { background: #e0e0e0; color: #333; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-group { display: inline-flex; gap: 4px; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-start; padding-top: 40px; }
+    .modal.open { display: flex; }
+    .modal-content { background: white; border-radius: 12px; padding: 20px; width: 640px; max-width: 95%; max-height: 88vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .modal-content.wide { width: 880px; }
+    .modal-content h3 { margin-bottom: 16px; color: #333; font-size: 16px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+    .close-btn { float: right; cursor: pointer; font-size: 22px; color: #999; line-height: 1; }
+    .close-btn:hover { color: #333; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-actions { margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #eee; }
+    .perm-picker { max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 10px; background: #fafafa; }
+    .perm-picker .perm-module { margin-bottom: 12px; }
+    .perm-picker .perm-module-title { font-size: 13px; font-weight: 600; color: #667eea; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; }
+    .perm-picker .perm-item { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; margin: 2px; background: white; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .perm-picker .perm-item.checked { background: #e8eaf6; border-color: #667eea; color: #3949ab; }
+    .tree-row { display: flex; align-items: center; }
+    .tree-indent { display: inline-block; }
+    .tree-toggle { cursor: pointer; user-select: none; width: 14px; display: inline-block; color: #999; }
+    .table-container { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; }
+    .empty { text-align: center; padding: 40px; color: #999; }
+    .col-seq { width: 50px; text-align: center; color: #999; }
+    .perm-cell { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin: 1px; }
+    .perm-cell-default { background: #e3f2fd; color: #1565c0; }
+    .perm-cell-grant { background: #d4edda; color: #155724; }
+    .perm-cell-deny { background: #f8d7da; color: #721c24; text-decoration: line-through; }
+    .help-text { font-size: 11px; color: #999; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content">
+    <div class="header">
+      <h2>组织模块</h2>
+      <div class="btn-group">
+        <button class="btn btn-info btn-sm" onclick="loadStats()">刷新统计</button>
+        <a href="settings.html" class="btn btn-default btn-sm" style="text-decoration:none;display:inline-block;">返回系统设置</a>
+      </div>
+    </div>
+
+    <div class="org-tabs">
+      <button class="active" onclick="switchOrgTab('dept', this)">部门管理</button>
+      <button onclick="switchOrgTab('pos', this)">岗位管理</button>
+      <button onclick="switchOrgTab('per', this)">人员管理</button>
+      <button onclick="switchOrgTab('perm', this)">权限分配</button>
+    </div>
+
+    <!-- 统计行 -->
+    <div class="stat-row" id="statRow">
+      <div class="stat-card"><div class="num" id="statDept">-</div><div class="lbl">部门数</div></div>
+      <div class="stat-card"><div class="num" id="statDeptActive">-</div><div class="lbl">启用部门</div></div>
+      <div class="stat-card"><div class="num" id="statPos">-</div><div class="lbl">岗位数</div></div>
+      <div class="stat-card"><div class="num" id="statPosActive">-</div><div class="lbl">启用岗位</div></div>
+      <div class="stat-card"><div class="num" id="statPer">-</div><div class="lbl">人员数</div></div>
+      <div class="stat-card"><div class="num" id="statPerActive">-</div><div class="lbl">在职人员</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#fff5f5,#fff);"><div class="num" id="statLeader" style="color:#e74c3c;">-</div><div class="lbl">负责人</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#fffaf0,#fff);"><div class="num" id="statAdmin" style="color:#f39c12;">-</div><div class="lbl">管理员</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,#f0f8ff,#fff);"><div class="num" id="statOperator" style="color:#3498db;">-</div><div class="lbl">操作员</div></div>
+    </div>
+
+    <!-- 部门管理 -->
+    <div class="org-tab active" id="tab-dept">
+      <div class="toolbar">
+        <input type="text" id="deptKw" placeholder="搜索部门名称/编码" onkeydown="if(event.key==='Enter')loadDepartments()">
+        <select id="deptStatus" onchange="loadDepartments()">
+          <option value="">全部状态</option><option value="active">启用</option><option value="inactive">停用</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadDepartments()">查询</button>
+        <button class="btn btn-success" data-perm="org:create" onclick="showDeptModal()">+ 新增部门</button>
+        <button class="btn btn-default btn-sm" onclick="toggleDeptView()">展开/折叠</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-seq">#</th>
+              <th>部门名称</th>
+              <th>编码</th>
+              <th>上级部门</th>
+              <th>负责人</th>
+              <th>岗位数</th>
+              <th>人员数</th>
+              <th>排序</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="deptTable"><tr><td colspan="10" class="empty">加载中...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 岗位管理 -->
+    <div class="org-tab" id="tab-pos">
+      <div class="toolbar">
+        <input type="text" id="posKw" placeholder="搜索岗位名称/编码" onkeydown="if(event.key==='Enter')loadPositions()">
+        <select id="posDept" onchange="loadPositions()"><option value="">全部部门</option></select>
+        <select id="posStatus" onchange="loadPositions()">
+          <option value="">全部状态</option><option value="active">启用</option><option value="inactive">停用</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadPositions()">查询</button>
+        <button class="btn btn-success" data-perm="org:position:manage" onclick="showPosModal()">+ 新增岗位</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-seq">#</th>
+              <th>岗位名称</th>
+              <th>编码</th>
+              <th>所属部门</th>
+              <th>级别</th>
+              <th>人员数</th>
+              <th>默认角色</th>
+              <th>默认权限数</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="posTable"><tr><td colspan="10" class="empty">加载中...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 人员管理 -->
+    <div class="org-tab" id="tab-per">
+      <div class="toolbar">
+        <input type="text" id="perKw" placeholder="搜索姓名/工号/手机号" onkeydown="if(event.key==='Enter')loadPersonnel()">
+        <select id="perDept" onchange="onPerDeptChange()"><option value="">全部部门</option></select>
+        <select id="perPos" onchange="loadPersonnel()"><option value="">全部岗位</option></select>
+        <select id="perWorkRole" onchange="loadPersonnel()">
+          <option value="">全部工作角色</option><option value="leader">负责人</option><option value="admin">管理员</option><option value="operator">操作员</option>
+        </select>
+        <select id="perStatus" onchange="loadPersonnel()">
+          <option value="">全部状态</option><option value="active">在职</option><option value="inactive">离职</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadPersonnel()">查询</button>
+        <button class="btn btn-success" data-perm="org:personnel:manage" onclick="showPerModal()">+ 新增人员</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-seq">#</th>
+              <th>工号</th>
+              <th>姓名</th>
+              <th>性别</th>
+              <th>所属部门</th>
+              <th>岗位</th>
+              <th>工作角色</th>
+              <th>手机号</th>
+              <th>邮箱</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="perTable"><tr><td colspan="11" class="empty">加载中...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 权限分配 -->
+    <div class="org-tab" id="tab-perm">
+      <div class="toolbar">
+        <select id="permTargetType" onchange="onPermTargetChange()">
+          <option value="position">按岗位分配默认权限</option>
+          <option value="personnel">按人员调整权限</option>
+        </select>
+        <select id="permTarget" onchange="loadPermissionEditor()"><option value="">请选择...</option></select>
+        <button class="btn btn-primary" data-perm="org:position:manage" id="permSaveBtn" onclick="savePermissionEditor()">保存</button>
+      </div>
+      <div id="permEditor" style="background:white;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div class="empty">请选择岗位或人员以调整权限</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 部门弹窗 -->
+  <div class="modal" id="deptModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('deptModal')">&times;</span>
+      <h3 id="deptModalTitle">新增部门</h3>
+      <form id="deptForm">
+        <input type="hidden" id="deptEditId">
+        <div class="form-row">
+          <div class="form-group"><label>部门名称 *</label><input type="text" id="dName" required></div>
+          <div class="form-group"><label>部门编码</label><input type="text" id="dCode" placeholder="可选，唯一"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>上级部门</label>
+            <select id="dParent"><option value="">（无）</option></select>
+          </div>
+          <div class="form-group">
+            <label>负责人</label>
+            <select id="dManager"><option value="">（无）</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>排序</label><input type="number" id="dSort" value="0"></div>
+          <div class="form-group">
+            <label>状态</label>
+            <select id="dStatus"><option value="active">启用</option><option value="inactive">停用</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>描述</label><textarea id="dDesc" rows="2"></textarea></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-default" onclick="closeModal('deptModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 岗位弹窗 -->
+  <div class="modal" id="posModal">
+    <div class="modal-content wide">
+      <span class="close-btn" onclick="closeModal('posModal')">&times;</span>
+      <h3 id="posModalTitle">新增岗位</h3>
+      <form id="posForm">
+        <input type="hidden" id="posEditId">
+        <div class="form-row">
+          <div class="form-group"><label>岗位名称 *</label><input type="text" id="pName" required></div>
+          <div class="form-group"><label>岗位编码</label><input type="text" id="pCode" placeholder="可选，唯一"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>所属部门 *</label>
+            <select id="pDept" required><option value="">请选择部门</option></select>
+          </div>
+          <div class="form-group"><label>级别</label><input type="text" id="pLevel" placeholder="如 P5/M1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>排序</label><input type="number" id="pSort" value="0"></div>
+          <div class="form-group">
+            <label>状态</label>
+            <select id="pStatus"><option value="active">启用</option><option value="inactive">停用</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>描述</label><textarea id="pDesc" rows="2"></textarea></div>
+
+        <div class="form-group">
+          <label>默认关联角色（人员入职该岗位后自动获得角色下的权限）</label>
+          <div id="pRoles" class="perm-picker"><div class="empty">加载中...</div></div>
+        </div>
+
+        <div class="form-group">
+          <label>默认权限（勾选后，该岗位下所有人员默认拥有以下权限）</label>
+          <div class="help-text">⚠️ 注意：权限初始化、岗位默认权限、人员个性化权限，三者合并计算为人员最终权限</div>
+          <div id="pPerms" class="perm-picker"><div class="empty">加载中...</div></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-default" onclick="closeModal('posModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 人员弹窗 -->
+  <div class="modal" id="perModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('perModal')">&times;</span>
+      <h3 id="perModalTitle">新增人员</h3>
+      <form id="perForm">
+        <input type="hidden" id="perEditId">
+        <div class="form-row">
+          <div class="form-group"><label>工号</label><input type="text" id="perCode"></div>
+          <div class="form-group"><label>姓名 *</label><input type="text" id="perName" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>性别</label>
+            <select id="perGender"><option value="">未知</option><option value="男">男</option><option value="女">女</option></select>
+          </div>
+          <div class="form-group"><label>手机号</label><input type="text" id="perPhone"></div>
+        </div>
+        <div class="form-group"><label>邮箱</label><input type="email" id="perEmail"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>所属部门</label>
+            <select id="perDeptSel"><option value="">（无）</option></select>
+          </div>
+          <div class="form-group">
+            <label>岗位</label>
+            <select id="perPosSel"><option value="">（无）</option></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>关联系统用户</label>
+          <select id="perUserSel"><option value="">（无）</option></select>
+          <div class="help-text">关联后，该人员的有效权限会与系统用户角色权限合并计算</div>
+        </div>
+        <div class="form-group">
+          <label>工作角色 *</label>
+          <select id="perWorkRoleSel" required>
+            <option value="operator">操作员（日常业务操作）</option>
+            <option value="admin">管理员（本中心数据与权限管理）</option>
+            <option value="leader">负责人（本中心全面负责：审批 + 业务 + 管理）</option>
+          </select>
+          <div class="help-text">工作角色用于在"所属中心"范围内控制数据可见性与操作权限，负责人 &gt; 管理员 &gt; 操作员</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>排序</label><input type="number" id="perSort" value="0"></div>
+          <div class="form-group">
+            <label>状态</label>
+            <select id="perStatusSel"><option value="active">在职</option><option value="inactive">离职</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>描述</label><textarea id="perDesc" rows="2"></textarea></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-default" onclick="closeModal('perModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+const API_BASE = window.location.origin + '/api/organization';
+const API_PERM = window.location.origin + '/api/permissions';
+
+let allDepartments = [];
+let allPositions = [];
+let allPersonnel = [];
+let allPermissions = [];
+let allRoles = [];
+let allUsers = [];
+let allPermsGrouped = {};
+let deptTreeExpanded = true;
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+
+function switchOrgTab(name, btn) {
+  document.querySelectorAll('.org-tabs button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.org-tab').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'dept') loadDepartments();
+  else if (name === 'pos') loadPositions();
+  else if (name === 'per') loadPersonnel();
+  else if (name === 'perm') onPermTargetChange();
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API_BASE}/stats/summary`);
+    const data = await res.json();
+    document.getElementById('statDept').textContent = data.total_departments;
+    document.getElementById('statDeptActive').textContent = data.active_departments;
+    document.getElementById('statPos').textContent = data.total_positions;
+    document.getElementById('statPosActive').textContent = data.active_positions;
+    document.getElementById('statPer').textContent = data.total_personnel;
+    document.getElementById('statPerActive').textContent = data.active_personnel;
+    const wrStats = (data.work_role_stats || []);
+    const wrMap = Object.fromEntries(wrStats.map(w => [w.code, w.count]));
+    document.getElementById('statLeader').textContent = wrMap.leader || 0;
+    document.getElementById('statAdmin').textContent = wrMap.admin || 0;
+    document.getElementById('statOperator').textContent = wrMap.operator || 0;
+  } catch (e) { console.error(e); }
+}
+
+// ===== 通用加载 =====
+async function loadAuxData() {
+  try {
+    const [depts, positions, personnel, perms, roles, users] = await Promise.all([
+      fetch(`${API_BASE}/departments`).then(r => r.json()),
+      fetch(`${API_BASE}/positions`).then(r => r.json()),
+      fetch(`${API_BASE}/personnel`).then(r => r.json()),
+      fetch(`${API_PERM}/permissions`).then(r => r.json()),
+      fetch(`${API_PERM}/roles`).then(r => r.json()),
+      fetch(`${API_PERM}/users`).then(r => r.json())
+    ]);
+    allDepartments = depts.flat || depts.data || [];
+    allPositions = positions.data || positions || [];
+    allPersonnel = personnel.data || personnel || [];
+    allPermissions = perms.data || perms || [];
+    allPermsGrouped = perms.grouped || {};
+    allRoles = roles.data || roles || [];
+    allUsers = users.data || users || [];
+    fillSelect('pDept', allDepartments.map(d => ({ id: d.id, name: d.name })), '请选择部门');
+    fillSelect('dParent', allDepartments.map(d => ({ id: d.id, name: d.name })), '（无）');
+    fillSelect('dManager', allPersonnel.filter(p => p.status === 'active').map(p => ({ id: p.id, name: p.name })), '（无）');
+    fillSelect('posDept', allDepartments.map(d => ({ id: d.id, name: d.name })), '全部部门', true);
+    fillSelect('perDept', allDepartments.map(d => ({ id: d.id, name: d.name })), '全部部门', true);
+    fillSelect('perDeptSel', allDepartments.map(d => ({ id: d.id, name: d.name })), '（无）');
+    fillSelect('perPosSel', allPositions.filter(p => p.status === 'active').map(p => ({ id: p.id, name: p.name + (p.department_name ? ' / ' + p.department_name : '') })), '（无）');
+    fillSelect('perUserSel', allUsers.map(u => ({ id: u.id, name: u.name + ' (' + u.username + ')' })), '（无）');
+  } catch (e) { console.error('加载基础数据失败', e); }
+}
+
+function fillSelect(id, items, defaultLabel, includeEmpty) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const current = el.value;
+  let html = includeEmpty ? `<option value="">${defaultLabel}</option>` : `<option value="">${defaultLabel}</option>`;
+  items.forEach(it => { html += `<option value="${it.id}">${escapeHtml(it.name)}</option>`; });
+  el.innerHTML = html;
+  if (current) el.value = current;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// ===== 部门 =====
+async function loadDepartments() {
+  await loadAuxData();
+  const kw = document.getElementById('deptKw').value.trim();
+  const status = document.getElementById('deptStatus').value;
+  const tbody = document.getElementById('deptTable');
+  try {
+    const url = new URL(`${API_BASE}/departments`);
+    if (kw) url.searchParams.set('keyword', kw);
+    if (status) url.searchParams.set('status', status);
+    url.searchParams.set('flat', '1');
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = data.data || [];
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty">暂无部门</td></tr>';
+      return;
+    }
+    const byParent = {};
+    list.forEach(d => { const p = d.parent_id || 0; (byParent[p] = byParent[p] || []).push(d); });
+    const rows = [];
+    const buildRows = (parentId, depth) => {
+      (byParent[parentId] || []).forEach((d, i) => {
+        rows.push({ ...d, _depth: depth, _hasChildren: (byParent[d.id] || []).length > 0 });
+        buildRows(d.id, depth + 1);
+      });
+    };
+    buildRows(0, 0);
+    let html = '';
+    rows.forEach((d, idx) => {
+      const indent = d._depth * 18;
+      const toggle = d._hasChildren ? `<span class="tree-toggle" onclick="alert('子部门行已展开显示')">▾</span>` : '<span class="tree-toggle">·</span>';
+      html += `<tr>
+        <td class="col-seq">${idx + 1}</td>
+        <td><div class="tree-row" style="padding-left:${indent}px;">${toggle}<strong>${escapeHtml(d.name)}</strong></div></td>
+        <td><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:11px;">${escapeHtml(d.code || '-')}</code></td>
+        <td>${escapeHtml(d.parent_name || '-')}</td>
+        <td>${escapeHtml(d.manager_name || '-')}</td>
+        <td>${d.position_count || 0}</td>
+        <td>${d.personnel_count || 0}</td>
+        <td>${d.sort || 0}</td>
+        <td><span class="badge ${d.status === 'active' ? 'badge-on' : 'badge-off'}">${d.status === 'active' ? '启用' : '停用'}</span></td>
+        <td>
+          <div class="btn-group">
+            <button class="btn btn-info btn-sm" onclick="showDeptModal(${d.id})">编辑</button>
+            <button class="btn btn-danger btn-sm" data-perm="org:delete" onclick="deleteDept(${d.id})">删除</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+    loadStats();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">加载失败</td></tr>';
+    console.error(e);
+  }
+}
+
+function toggleDeptView() { alert('已展开显示，可按部门名称前的 ▾/· 标识层级'); }
+
+function showDeptModal(id) {
+  document.getElementById('deptForm').reset();
+  document.getElementById('deptEditId').value = '';
+  document.getElementById('deptModalTitle').textContent = '新增部门';
+  if (id) {
+    const d = allDepartments.find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('deptModalTitle').textContent = '编辑部门';
+    document.getElementById('deptEditId').value = d.id;
+    document.getElementById('dName').value = d.name || '';
+    document.getElementById('dCode').value = d.code || '';
+    document.getElementById('dParent').value = d.parent_id || '';
+    document.getElementById('dManager').value = d.manager_id || '';
+    document.getElementById('dSort').value = d.sort || 0;
+    document.getElementById('dStatus').value = d.status || 'active';
+    document.getElementById('dDesc').value = d.description || '';
+    // 父部门选项中移除自身及其子部门
+    Array.from(document.getElementById('dParent').options).forEach(opt => {
+      if (opt.value && isDescendantOrSelf(Number(opt.value), d.id)) opt.disabled = true;
+    });
+  }
+  openModal('deptModal');
+}
+
+function isDescendantOrSelf(candidateId, ancestorId) {
+  if (candidateId === ancestorId) return true;
+  let cur = allDepartments.find(d => d.id === candidateId);
+  while (cur && cur.parent_id) {
+    if (cur.parent_id === ancestorId) return true;
+    cur = allDepartments.find(d => d.id === cur.parent_id);
+  }
+  return false;
+}
+
+document.getElementById('deptForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const id = document.getElementById('deptEditId').value;
+  const data = {
+    name: document.getElementById('dName').value.trim(),
+    code: document.getElementById('dCode').value.trim(),
+    parent_id: document.getElementById('dParent').value || null,
+    manager_id: document.getElementById('dManager').value || null,
+    sort: Number(document.getElementById('dSort').value) || 0,
+    status: document.getElementById('dStatus').value,
+    description: document.getElementById('dDesc').value.trim()
+  };
+  if (!data.name) { alert('部门名称为必填'); return; }
+  const url = id ? `${API_BASE}/departments/${id}` : `${API_BASE}/departments`;
+  const method = id ? 'PUT' : 'POST';
+  try {
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const r = await res.json();
+    if (res.ok) { closeModal('deptModal'); await loadDepartments(); }
+    else alert(r.error || '操作失败');
+  } catch (e) { alert('操作失败: ' + e.message); }
+});
+
+async function deleteDept(id) {
+  if (!confirm('确定删除该部门？\n（仅当部门下无子部门、岗位、人员时可删除）')) return;
+  try {
+    const res = await fetch(`${API_BASE}/departments/${id}`, { method: 'DELETE' });
+    const r = await res.json();
+    if (res.ok) { await loadDepartments(); }
+    else alert(r.error || '删除失败');
+  } catch (e) { alert('删除失败'); }
+}
+
+// ===== 岗位 =====
+async function loadPositions() {
+  await loadAuxData();
+  const kw = document.getElementById('posKw').value.trim();
+  const dept = document.getElementById('posDept').value;
+  const status = document.getElementById('posStatus').value;
+  const tbody = document.getElementById('posTable');
+  try {
+    const url = new URL(`${API_BASE}/positions`);
+    if (kw) url.searchParams.set('keyword', kw);
+    if (dept) url.searchParams.set('department_id', dept);
+    if (status) url.searchParams.set('status', status);
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = data.data || [];
+    if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="10" class="empty">暂无岗位</td></tr>'; return; }
+    let html = '';
+    list.forEach((p, idx) => {
+      html += `<tr>
+        <td class="col-seq">${idx + 1}</td>
+        <td><strong>${escapeHtml(p.name)}</strong></td>
+        <td><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:11px;">${escapeHtml(p.code || '-')}</code></td>
+        <td>${escapeHtml(p.department_name || '-')}</td>
+        <td>${escapeHtml(p.level || '-')}</td>
+        <td>${p.personnel_count || 0}</td>
+        <td>${(p.role_codes || []).map(c => `<span class="badge badge-on" style="margin-right:2px;">${escapeHtml(c)}</span>`).join('') || '-'}</td>
+        <td>${p.permission_count || 0}</td>
+        <td><span class="badge ${p.status === 'active' ? 'badge-on' : 'badge-off'}">${p.status === 'active' ? '启用' : '停用'}</span></td>
+        <td>
+          <div class="btn-group">
+            <button class="btn btn-info btn-sm" onclick="showPosModal(${p.id})">编辑</button>
+            <button class="btn btn-success btn-sm" onclick="viewPosPerms(${p.id}, '${escapeHtml(p.name)}')">查看权限</button>
+            <button class="btn btn-danger btn-sm" data-perm="org:position:manage" onclick="deletePos(${p.id})">删除</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+    loadStats();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">加载失败</td></tr>';
+    console.error(e);
+  }
+}
+
+async function showPosModal(id) {
+  await loadAuxData();
+  document.getElementById('posForm').reset();
+  document.getElementById('posEditId').value = '';
+  document.getElementById('posModalTitle').textContent = '新增岗位';
+  let selectedPermIds = new Set();
+  let selectedRoleIds = new Set();
+  if (id) {
+    const res = await fetch(`${API_BASE}/positions/${id}`);
+    const p = await res.json();
+    document.getElementById('posModalTitle').textContent = '编辑岗位';
+    document.getElementById('posEditId').value = p.id;
+    document.getElementById('pName').value = p.name || '';
+    document.getElementById('pCode').value = p.code || '';
+    document.getElementById('pDept').value = p.department_id || '';
+    document.getElementById('pLevel').value = p.level || '';
+    document.getElementById('pSort').value = p.sort || 0;
+    document.getElementById('pStatus').value = p.status || 'active';
+    document.getElementById('pDesc').value = p.description || '';
+    (p.permissions || []).forEach(x => selectedPermIds.add(x.id));
+    (p.roles || []).forEach(x => selectedRoleIds.add(x.id));
+  }
+  renderPermPicker('pPerms', selectedPermIds);
+  renderRolePicker('pRoles', selectedRoleIds);
+  openModal('posModal');
+}
+
+function renderPermPicker(elId, selectedSet) {
+  const el = document.getElementById(elId);
+  const grouped = allPermsGrouped && Object.keys(allPermsGrouped).length ? allPermsGrouped : groupByModule(allPermissions);
+  let html = '';
+  Object.keys(grouped).forEach(mod => {
+    html += `<div class="perm-module">`;
+    html += `<div class="perm-module-title">${escapeHtml(mod)}（<a href="javascript:;" onclick="toggleModulePerms(this, '${escapeHtml(mod)}')">全选</a>）</div>`;
+    grouped[mod].forEach(p => {
+      const checked = selectedSet.has(p.id);
+      html += `<label class="perm-item ${checked ? 'checked' : ''}" data-mod="${escapeHtml(mod)}" data-pid="${p.id}">
+        <input type="checkbox" value="${p.id}" ${checked ? 'checked' : ''} onchange="onPermItemChange(this)"> ${escapeHtml(p.name)}
+        <span style="color:#999;font-size:10px;">${escapeHtml(p.code)}</span>
+      </label>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+}
+
+function groupByModule(perms) {
+  const g = {};
+  perms.forEach(p => { (g[p.module] = g[p.module] || []).push(p); });
+  return g;
+}
+
+function renderRolePicker(elId, selectedSet) {
+  const el = document.getElementById(elId);
+  let html = '';
+  allRoles.forEach(r => {
+    const checked = selectedSet.has(r.id);
+    html += `<label class="perm-item ${checked ? 'checked' : ''}">
+      <input type="checkbox" value="${r.id}" ${checked ? 'checked' : ''} onchange="this.parentElement.classList.toggle('checked', this.checked)"> ${escapeHtml(r.name)}
+      <span style="color:#999;font-size:10px;">${escapeHtml(r.code)}</span>
+    </label>`;
+  });
+  el.innerHTML = html || '<div class="empty">无角色数据</div>';
+}
+
+function onPermItemChange(cb) {
+  cb.parentElement.classList.toggle('checked', cb.checked);
+}
+
+function toggleModulePerms(link, mod) {
+  const el = link.closest('.perm-module');
+  const boxes = el.querySelectorAll('input[type=checkbox]');
+  const allChecked = Array.from(boxes).every(b => b.checked);
+  boxes.forEach(b => { b.checked = !allChecked; b.parentElement.classList.toggle('checked', !allChecked); });
+}
+
+function getCheckedPermIds(elId) {
+  return Array.from(document.querySelectorAll(`#${elId} input[type=checkbox]:checked`)).map(b => Number(b.value));
+}
+
+document.getElementById('posForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const id = document.getElementById('posEditId').value;
+  const data = {
+    name: document.getElementById('pName').value.trim(),
+    code: document.getElementById('pCode').value.trim(),
+    department_id: document.getElementById('pDept').value,
+    level: document.getElementById('pLevel').value.trim(),
+    sort: Number(document.getElementById('pSort').value) || 0,
+    status: document.getElementById('pStatus').value,
+    description: document.getElementById('pDesc').value.trim(),
+    permission_ids: getCheckedPermIds('pPerms'),
+    role_ids: getCheckedPermIds('pRoles')
+  };
+  if (!data.name) { alert('岗位名称为必填'); return; }
+  if (!data.department_id) { alert('请选择所属部门'); return; }
+  const url = id ? `${API_BASE}/positions/${id}` : `${API_BASE}/positions`;
+  const method = id ? 'PUT' : 'POST';
+  try {
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const r = await res.json();
+    if (res.ok) { closeModal('posModal'); await loadPositions(); }
+    else alert(r.error || '操作失败');
+  } catch (e) { alert('操作失败: ' + e.message); }
+});
+
+async function deletePos(id) {
+  if (!confirm('确定删除该岗位？\n（仅当岗位下无人员时可删除）')) return;
+  try {
+    const res = await fetch(`${API_BASE}/positions/${id}`, { method: 'DELETE' });
+    const r = await res.json();
+    if (res.ok) await loadPositions();
+    else alert(r.error || '删除失败');
+  } catch (e) { alert('删除失败'); }
+}
+
+async function viewPosPerms(id, name) {
+  try {
+    const res = await fetch(`${API_BASE}/positions/${id}/permissions`);
+    const data = await res.json();
+    const list = data.data || [];
+    const html = list.length === 0 ? '<div class="empty">该岗位未配置默认权限</div>' :
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+      list.map(p => `<span class="perm-cell perm-cell-default" title="${escapeHtml(p.code)}">${escapeHtml(p.name)}</span>`).join('') +
+      '</div>';
+    showInfoModal(`岗位默认权限 - ${name}`, html);
+  } catch (e) { alert('加载失败'); }
+}
+
+function showInfoModal(title, htmlContent) {
+  let modal = document.getElementById('infoModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'infoModal';
+    modal.className = 'modal';
+    modal.innerHTML = `<div class="modal-content"><span class="close-btn" onclick="closeModal('infoModal')">&times;</span><h3 id="infoModalTitle"></h3><div id="infoModalBody"></div></div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('infoModalTitle').textContent = title;
+  document.getElementById('infoModalBody').innerHTML = htmlContent;
+  openModal('infoModal');
+}
+
+// ===== 人员 =====
+async function loadPersonnel() {
+  await loadAuxData();
+  const kw = document.getElementById('perKw').value.trim();
+  const dept = document.getElementById('perDept').value;
+  const pos = document.getElementById('perPos').value;
+  const wr = document.getElementById('perWorkRole').value;
+  const status = document.getElementById('perStatus').value;
+  const tbody = document.getElementById('perTable');
+  try {
+    const url = new URL(`${API_BASE}/personnel`);
+    if (kw) url.searchParams.set('keyword', kw);
+    if (dept) url.searchParams.set('department_id', dept);
+    if (pos) url.searchParams.set('position_id', pos);
+    if (wr) url.searchParams.set('work_role', wr);
+    if (status) url.searchParams.set('status', status);
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = data.data || [];
+    if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="11" class="empty">暂无人员</td></tr>'; return; }
+    let html = '';
+    list.forEach((p, idx) => {
+      const roleCode = p.work_role || 'operator';
+      const roleName = p.work_role_name || '操作员';
+      const roleColor = p.work_role_color || '#3498db';
+      html += `<tr>
+        <td class="col-seq">${idx + 1}</td>
+        <td><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:11px;">${escapeHtml(p.emp_code || '-')}</code></td>
+        <td><strong>${escapeHtml(p.name)}</strong></td>
+        <td>${escapeHtml(p.gender || '-')}</td>
+        <td>${escapeHtml(p.department_name || '-')}</td>
+        <td>${escapeHtml(p.position_name || '-')}</td>
+        <td><span class="badge" style="background:${roleColor}22;color:${roleColor};border:1px solid ${roleColor};">${escapeHtml(roleName)}</span></td>
+        <td>${escapeHtml(p.phone || '-')}</td>
+        <td>${escapeHtml(p.email || '-')}</td>
+        <td><span class="badge ${p.status === 'active' ? 'badge-on' : 'badge-off'}">${p.status === 'active' ? '在职' : '离职'}</span></td>
+        <td>
+          <div class="btn-group">
+            <button class="btn btn-info btn-sm" onclick="showPerModal(${p.id})">编辑</button>
+            <button class="btn btn-success btn-sm" onclick="viewPerPerms(${p.id}, '${escapeHtml(p.name)}')">查看权限</button>
+            <button class="btn btn-danger btn-sm" data-perm="org:personnel:manage" onclick="deletePer(${p.id})">删除</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+    loadStats();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="11" class="empty">加载失败</td></tr>';
+    console.error(e);
+  }
+}
+
+function onPerDeptChange() {
+  const deptId = document.getElementById('perDept').value;
+  const posSel = document.getElementById('perPos');
+  const positions = deptId ? allPositions.filter(p => String(p.department_id) === String(deptId)) : allPositions;
+  let html = '<option value="">全部岗位</option>';
+  positions.forEach(p => { html += `<option value="${p.id}">${escapeHtml(p.name)}</option>`; });
+  posSel.innerHTML = html;
+  loadPersonnel();
+}
+
+async function showPerModal(id) {
+  await loadAuxData();
+  document.getElementById('perForm').reset();
+  document.getElementById('perEditId').value = '';
+  document.getElementById('perModalTitle').textContent = '新增人员';
+  document.getElementById('perWorkRoleSel').value = 'operator';
+  if (id) {
+    const res = await fetch(`${API_BASE}/personnel/${id}`);
+    const p = await res.json();
+    document.getElementById('perModalTitle').textContent = '编辑人员';
+    document.getElementById('perEditId').value = p.id;
+    document.getElementById('perCode').value = p.emp_code || '';
+    document.getElementById('perName').value = p.name || '';
+    document.getElementById('perGender').value = p.gender || '';
+    document.getElementById('perPhone').value = p.phone || '';
+    document.getElementById('perEmail').value = p.email || '';
+    document.getElementById('perDeptSel').value = p.department_id || '';
+    document.getElementById('perPosSel').value = p.position_id || '';
+    document.getElementById('perUserSel').value = p.linked_user_id || '';
+    document.getElementById('perSort').value = p.sort || 0;
+    document.getElementById('perStatusSel').value = p.status || 'active';
+    document.getElementById('perDesc').value = p.description || '';
+    document.getElementById('perWorkRoleSel').value = p.work_role || 'operator';
+  }
+  openModal('perModal');
+}
+
+document.getElementById('perForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const id = document.getElementById('perEditId').value;
+  const data = {
+    emp_code: document.getElementById('perCode').value.trim(),
+    name: document.getElementById('perName').value.trim(),
+    gender: document.getElementById('perGender').value,
+    phone: document.getElementById('perPhone').value.trim(),
+    email: document.getElementById('perEmail').value.trim(),
+    department_id: document.getElementById('perDeptSel').value || null,
+    position_id: document.getElementById('perPosSel').value || null,
+    linked_user_id: document.getElementById('perUserSel').value || null,
+    work_role: document.getElementById('perWorkRoleSel').value || 'operator',
+    sort: Number(document.getElementById('perSort').value) || 0,
+    status: document.getElementById('perStatusSel').value,
+    description: document.getElementById('perDesc').value.trim()
+  };
+  if (!data.name) { alert('人员姓名为必填'); return; }
+  const url = id ? `${API_BASE}/personnel/${id}` : `${API_BASE}/personnel`;
+  const method = id ? 'PUT' : 'POST';
+  try {
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const r = await res.json();
+    if (res.ok) { closeModal('perModal'); await loadPersonnel(); }
+    else alert(r.error || '操作失败');
+  } catch (e) { alert('操作失败: ' + e.message); }
+});
+
+async function deletePer(id) {
+  if (!confirm('确定删除该人员？\n（会清除该人员的个性化权限调整）')) return;
+  try {
+    const res = await fetch(`${API_BASE}/personnel/${id}`, { method: 'DELETE' });
+    const r = await res.json();
+    if (res.ok) await loadPersonnel();
+    else alert(r.error || '删除失败');
+  } catch (e) { alert('删除失败'); }
+}
+
+async function viewPerPerms(id, name) {
+  try {
+    const res = await fetch(`${API_BASE}/personnel/${id}/effective-permissions`);
+    const data = await res.json();
+    const perms = data.effective_permissions || [];
+    const source = data.source || {};
+    const grouped = {};
+    perms.forEach(p => { (grouped[p.module] = grouped[p.module] || []).push(p); });
+    let body = `<div style="font-size:12px;color:#666;margin-bottom:8px;">
+      来源岗位：<b>${escapeHtml(source.position_name || '-')}</b>，
+      个性化调整：${source.overrides_count || 0} 项
+    </div>`;
+    if (perms.length === 0) body += '<div class="empty">该人员当前无有效权限</div>';
+    else {
+      body += '<div style="display:flex;flex-direction:column;gap:10px;">';
+      Object.keys(grouped).forEach(mod => {
+        body += `<div><div style="font-weight:600;color:#667eea;margin-bottom:4px;">${escapeHtml(mod)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">${grouped[mod].map(p => `<span class="perm-cell perm-cell-default" title="${escapeHtml(p.code)}">${escapeHtml(p.name)}</span>`).join('')}</div></div>`;
+      });
+      body += '</div>';
+    }
+    showInfoModal(`人员有效权限 - ${name}`, body);
+  } catch (e) { alert('加载失败'); }
+}
+
+// ===== 权限分配 Tab =====
+function onPermTargetChange() {
+  const type = document.getElementById('permTargetType').value;
+  const sel = document.getElementById('permTarget');
+  if (type === 'position') {
+    let html = '<option value="">请选择岗位...</option>';
+    allPositions.forEach(p => { html += `<option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(p.department_name || '')})</option>`; });
+    sel.innerHTML = html;
+  } else {
+    let html = '<option value="">请选择人员...</option>';
+    allPersonnel.forEach(p => { html += `<option value="${p.id}">${escapeHtml(p.name)} - ${escapeHtml(p.department_name || '')}</option>`; });
+    sel.innerHTML = html;
+  }
+  document.getElementById('permEditor').innerHTML = '<div class="empty">请选择岗位或人员以调整权限</div>';
+}
+
+async function loadPermissionEditor() {
+  const type = document.getElementById('permTargetType').value;
+  const id = document.getElementById('permTarget').value;
+  const editor = document.getElementById('permEditor');
+  if (!id) { editor.innerHTML = '<div class="empty">请选择岗位或人员以调整权限</div>'; return; }
+  if (type === 'position') await editPositionPerms(id);
+  else await editPersonnelPerms(id);
+}
+
+async function editPositionPerms(id) {
+  const editor = document.getElementById('permEditor');
+  const p = allPositions.find(x => x.id === Number(id));
+  editor.innerHTML = `<h3 style="margin-bottom:12px;">配置岗位默认权限 - ${escapeHtml(p ? p.name : '')}</h3>
+    <div class="help-text" style="margin-bottom:12px;">勾选即该岗位下所有人员默认拥有；也可调整"默认关联角色"使其继承角色权限</div>
+    <div id="editorPicker"></div>`;
+  const res = await fetch(`${API_BASE}/positions/${id}/permissions`);
+  const data = await res.json();
+  const selected = new Set((data.data || []).map(x => x.id));
+  renderEditorPicker('editorPicker', selected, 'grant');
+}
+
+async function editPersonnelPerms(id) {
+  const editor = document.getElementById('permEditor');
+  const person = allPersonnel.find(x => x.id === Number(id));
+  editor.innerHTML = `<h3 style="margin-bottom:12px;">人员权限个性化调整 - ${escapeHtml(person ? person.name : '')}</h3>
+    <div class="help-text" style="margin-bottom:12px;">⚪ 默认（来自岗位）　　🟢 额外授予（叠加）　　🔴 撤销（取消岗位默认）</div>
+    <div id="editorPicker"></div>`;
+  const res = await fetch(`${API_BASE}/personnel/${id}/permissions`);
+  const data = await res.json();
+  const defaultSet = new Set(data.default_permission_ids || []);
+  const grantSet = new Set(data.granted_permission_ids || []);
+  const denySet = new Set(data.denied_permission_ids || []);
+  renderPersonnelPicker('editorPicker', defaultSet, grantSet, denySet);
+}
+
+function renderEditorPicker(elId, grantSet, denySet) {
+  const el = document.getElementById(elId);
+  const grouped = allPermsGrouped && Object.keys(allPermsGrouped).length ? allPermsGrouped : groupByModule(allPermissions);
+  let html = '';
+  Object.keys(grouped).forEach(mod => {
+    html += `<div class="perm-module">`;
+    html += `<div class="perm-module-title">${escapeHtml(mod)}</div>`;
+    grouped[mod].forEach(p => {
+      const state = grantSet.has(p.id) ? 'grant' : (denySet && denySet.has(p.id) ? 'deny' : (grantSet.has(p.id) ? 'grant' : 'none'));
+      html += `<label class="perm-item" data-pid="${p.id}" onclick="cyclePosPerm(this, event)">
+        <input type="hidden" name="perm_${p.id}" value="${state}">
+        <span class="perm-state-badge">${stateLabel(state)}</span>
+        ${escapeHtml(p.name)}
+        <span style="color:#999;font-size:10px;">${escapeHtml(p.code)}</span>
+      </label>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+}
+
+function renderPersonnelPicker(elId, defaultSet, grantSet, denySet) {
+  const el = document.getElementById(elId);
+  const grouped = allPermsGrouped && Object.keys(allPermsGrouped).length ? allPermsGrouped : groupByModule(allPermissions);
+  let html = '';
+  Object.keys(grouped).forEach(mod => {
+    html += `<div class="perm-module">`;
+    html += `<div class="perm-module-title">${escapeHtml(mod)}</div>`;
+    grouped[mod].forEach(p => {
+      let state = 'none';
+      if (grantSet.has(p.id)) state = 'grant';
+      else if (denySet.has(p.id)) state = 'deny';
+      else if (defaultSet.has(p.id)) state = 'default';
+      const hint = state === 'default' ? '<span style="color:#1565c0;font-size:10px;">岗位默认</span>' : '';
+      html += `<label class="perm-item" data-pid="${p.id}" onclick="cyclePerPerm(this, event)" data-default="${defaultSet.has(p.id) ? 1 : 0}">
+        <input type="hidden" name="perm_${p.id}" value="${state}">
+        <span class="perm-state-badge">${stateLabel(state)}</span>
+        ${escapeHtml(p.name)} ${hint}
+        <span style="color:#999;font-size:10px;">${escapeHtml(p.code)}</span>
+      </label>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+}
+
+function stateLabel(s) {
+  return { grant: '🟢+', deny: '🔴-', default: '⚪默认', none: '⚪无' }[s] || '⚪无';
+}
+
+function cyclePosPerm(label, ev) {
+  if (ev.target.tagName === 'INPUT') return;
+  ev.preventDefault();
+  const input = label.querySelector('input');
+  const cur = input.value;
+  const next = cur === 'grant' ? 'none' : 'grant';
+  input.value = next;
+  label.classList.remove('perm-grant', 'perm-deny');
+  if (next === 'grant') label.classList.add('perm-grant');
+  label.querySelector('.perm-state-badge').textContent = stateLabel(next);
+}
+
+function cyclePerPerm(label, ev) {
+  if (ev.target.tagName === 'INPUT') return;
+  ev.preventDefault();
+  const isDefault = label.dataset.default === '1';
+  const input = label.querySelector('input');
+  let cur = input.value;
+  let next;
+  if (isDefault) {
+    // 路径：default → grant → deny → default
+    next = cur === 'default' ? 'grant' : cur === 'grant' ? 'deny' : 'default';
+  } else {
+    // 非默认：none → grant → deny → none
+    next = cur === 'none' ? 'grant' : cur === 'grant' ? 'deny' : 'none';
+  }
+  input.value = next;
+  label.querySelector('.perm-state-badge').textContent = stateLabel(next);
+}
+
+async function savePermissionEditor() {
+  const type = document.getElementById('permTargetType').value;
+  const id = document.getElementById('permTarget').value;
+  if (!id) { alert('请先选择岗位或人员'); return; }
+  const inputs = document.querySelectorAll('#editorPicker input[type=hidden]');
+  if (type === 'position') {
+    const permIds = [];
+    inputs.forEach(i => { if (i.value === 'grant') permIds.push(Number(i.name.replace('perm_', ''))); });
+    try {
+      const res = await fetch(`${API_BASE}/positions/${id}/permissions`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ permission_ids: permIds }) });
+      const r = await res.json();
+      if (res.ok) alert(`岗位默认权限已更新（${permIds.length} 项）`);
+      else alert(r.error || '保存失败');
+    } catch (e) { alert('保存失败'); }
+  } else {
+    const overrides = [];
+    inputs.forEach(i => {
+      const pid = Number(i.name.replace('perm_', ''));
+      if (i.value === 'grant') overrides.push({ permission_id: pid, type: 'grant' });
+      else if (i.value === 'deny') overrides.push({ permission_id: pid, type: 'deny' });
+    });
+    try {
+      const res = await fetch(`${API_BASE}/personnel/${id}/permissions`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ overrides }) });
+      const r = await res.json();
+      if (res.ok) alert(`人员权限个性化调整已更新（${overrides.length} 项）`);
+      else alert(r.error || '保存失败');
+    } catch (e) { alert('保存失败'); }
+  }
+}
+
+// 初始化
+(async function init() {
+  await loadAuxData();
+  loadStats();
+  loadDepartments();
+})();
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body>
+</html>

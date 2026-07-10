@@ -1,0 +1,2865 @@
+{
+  "records": [
+    {
+      "personnel_id": 50,
+      "emp_code": "306",
+      "department_id": 34,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 48
+    },
+    {
+      "personnel_id": 58,
+      "emp_code": "268",
+      "department_id": 16,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 56
+    },
+    {
+      "personnel_id": 66,
+      "emp_code": "244",
+      "department_id": 28,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 64
+    },
+    {
+      "personnel_id": 74,
+      "emp_code": "190",
+      "department_id": 17,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 72
+    },
+    {
+      "personnel_id": 82,
+      "emp_code": "149",
+      "department_id": 30,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 80
+    },
+    {
+      "personnel_id": 90,
+      "emp_code": "125",
+      "department_id": 17,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 88
+    },
+    {
+      "personnel_id": 98,
+      "emp_code": "114",
+      "department_id": 32,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 96
+    },
+    {
+      "personnel_id": 107,
+      "emp_code": "93",
+      "department_id": 20,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 104
+    },
+    {
+      "personnel_id": 115,
+      "emp_code": "61",
+      "department_id": 22,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 112
+    },
+    {
+      "personnel_id": 123,
+      "emp_code": "48",
+      "department_id": 22,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 120
+    },
+    {
+      "personnel_id": 131,
+      "emp_code": "32",
+      "department_id": 21,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 128
+    },
+    {
+      "personnel_id": 139,
+      "emp_code": "20",
+      "department_id": 15,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 136
+    },
+    {
+      "personnel_id": 147,
+      "emp_code": "10",
+      "department_id": 7,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "按部门名匹配",
+      "created_at": "2026-07-09 14:45:34",
+      "id": 144
+    },
+    {
+      "personnel_id": 8,
+      "emp_code": "377",
+      "department_id": 23,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 152
+    },
+    {
+      "personnel_id": 16,
+      "emp_code": "369",
+      "department_id": 11,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 160
+    },
+    {
+      "personnel_id": 24,
+      "emp_code": "360",
+      "department_id": 29,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 168
+    },
+    {
+      "personnel_id": 32,
+      "emp_code": "348",
+      "department_id": 11,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 176
+    },
+    {
+      "personnel_id": 40,
+      "emp_code": "330",
+      "department_id": 11,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 184
+    },
+    {
+      "personnel_id": 48,
+      "emp_code": "309",
+      "department_id": 32,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 192
+    },
+    {
+      "personnel_id": 56,
+      "emp_code": "281",
+      "department_id": 32,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 200
+    },
+    {
+      "personnel_id": 64,
+      "emp_code": "248",
+      "department_id": 36,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 208
+    },
+    {
+      "personnel_id": 72,
+      "emp_code": "214",
+      "department_id": 17,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 216
+    },
+    {
+      "personnel_id": 80,
+      "emp_code": "153",
+      "department_id": 35,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 224
+    },
+    {
+      "personnel_id": 89,
+      "emp_code": "127",
+      "department_id": 15,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 232
+    },
+    {
+      "personnel_id": 97,
+      "emp_code": "116",
+      "department_id": 26,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 240
+    },
+    {
+      "personnel_id": 106,
+      "emp_code": "95",
+      "department_id": 17,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 248
+    },
+    {
+      "personnel_id": 114,
+      "emp_code": "64",
+      "department_id": 20,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 256
+    },
+    {
+      "personnel_id": 122,
+      "emp_code": "49",
+      "department_id": 23,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 264
+    },
+    {
+      "personnel_id": 130,
+      "emp_code": "38",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 272
+    },
+    {
+      "personnel_id": 139,
+      "emp_code": "20",
+      "department_id": 15,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 280
+    },
+    {
+      "personnel_id": 147,
+      "emp_code": "10",
+      "department_id": 7,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:50:59",
+      "id": 288
+    },
+    {
+      "personnel_id": 8,
+      "emp_code": "377",
+      "department_id": 47,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 293
+    },
+    {
+      "personnel_id": 16,
+      "emp_code": "369",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 297
+    },
+    {
+      "personnel_id": 24,
+      "emp_code": "360",
+      "department_id": 29,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 301
+    },
+    {
+      "personnel_id": 32,
+      "emp_code": "348",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 305
+    },
+    {
+      "personnel_id": 40,
+      "emp_code": "330",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 309
+    },
+    {
+      "personnel_id": 48,
+      "emp_code": "309",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 313
+    },
+    {
+      "personnel_id": 56,
+      "emp_code": "281",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 317
+    },
+    {
+      "personnel_id": 64,
+      "emp_code": "248",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 321
+    },
+    {
+      "personnel_id": 72,
+      "emp_code": "214",
+      "department_id": 17,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 325
+    },
+    {
+      "personnel_id": 80,
+      "emp_code": "153",
+      "department_id": 35,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 329
+    },
+    {
+      "personnel_id": 88,
+      "emp_code": "128",
+      "department_id": 17,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 333
+    },
+    {
+      "personnel_id": 96,
+      "emp_code": "117",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 337
+    },
+    {
+      "personnel_id": 104,
+      "emp_code": "100",
+      "department_id": 45,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 341
+    },
+    {
+      "personnel_id": 112,
+      "emp_code": "68",
+      "department_id": 33,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 345
+    },
+    {
+      "personnel_id": 120,
+      "emp_code": "51",
+      "department_id": 47,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 349
+    },
+    {
+      "personnel_id": 128,
+      "emp_code": "41",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 353
+    },
+    {
+      "personnel_id": 136,
+      "emp_code": "25",
+      "department_id": 47,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 357
+    },
+    {
+      "personnel_id": 144,
+      "emp_code": "13",
+      "department_id": 33,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 361
+    },
+    {
+      "personnel_id": 151,
+      "emp_code": "379",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 365
+    },
+    {
+      "personnel_id": 155,
+      "emp_code": "372",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 369
+    },
+    {
+      "personnel_id": 159,
+      "emp_code": "364",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 373
+    },
+    {
+      "personnel_id": 163,
+      "emp_code": "352",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 377
+    },
+    {
+      "personnel_id": 167,
+      "emp_code": "338",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 381
+    },
+    {
+      "personnel_id": 171,
+      "emp_code": "316",
+      "department_id": 42,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 385
+    },
+    {
+      "personnel_id": 175,
+      "emp_code": "298",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 389
+    },
+    {
+      "personnel_id": 179,
+      "emp_code": "261",
+      "department_id": 37,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 393
+    },
+    {
+      "personnel_id": 183,
+      "emp_code": "237",
+      "department_id": 47,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 397
+    },
+    {
+      "personnel_id": 187,
+      "emp_code": "170",
+      "department_id": 33,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 401
+    },
+    {
+      "personnel_id": 191,
+      "emp_code": "133",
+      "department_id": 45,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 405
+    },
+    {
+      "personnel_id": 195,
+      "emp_code": "122",
+      "department_id": 17,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 409
+    },
+    {
+      "personnel_id": 199,
+      "emp_code": "109",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 413
+    },
+    {
+      "personnel_id": 204,
+      "emp_code": "74",
+      "department_id": 43,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 417
+    },
+    {
+      "personnel_id": 208,
+      "emp_code": "53",
+      "department_id": 45,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 421
+    },
+    {
+      "personnel_id": 212,
+      "emp_code": "43",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 425
+    },
+    {
+      "personnel_id": 216,
+      "emp_code": "27",
+      "department_id": 47,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 429
+    },
+    {
+      "personnel_id": 220,
+      "emp_code": "15",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:11",
+      "id": 433
+    },
+    {
+      "personnel_id": 6,
+      "emp_code": "380",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 437
+    },
+    {
+      "personnel_id": 14,
+      "emp_code": "371",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 439
+    },
+    {
+      "personnel_id": 22,
+      "emp_code": "363",
+      "department_id": 66,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 441
+    },
+    {
+      "personnel_id": 30,
+      "emp_code": "351",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 443
+    },
+    {
+      "personnel_id": 38,
+      "emp_code": "336",
+      "department_id": 66,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 445
+    },
+    {
+      "personnel_id": 46,
+      "emp_code": "315",
+      "department_id": 42,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 447
+    },
+    {
+      "personnel_id": 54,
+      "emp_code": "291",
+      "department_id": 56,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 449
+    },
+    {
+      "personnel_id": 62,
+      "emp_code": "259",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 451
+    },
+    {
+      "personnel_id": 70,
+      "emp_code": "234",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 453
+    },
+    {
+      "personnel_id": 78,
+      "emp_code": "167",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 455
+    },
+    {
+      "personnel_id": 86,
+      "emp_code": "131",
+      "department_id": 44,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 457
+    },
+    {
+      "personnel_id": 94,
+      "emp_code": "119",
+      "department_id": 42,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 459
+    },
+    {
+      "personnel_id": 102,
+      "emp_code": "108",
+      "department_id": 62,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 461
+    },
+    {
+      "personnel_id": 110,
+      "emp_code": "79",
+      "department_id": 60,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 463
+    },
+    {
+      "personnel_id": 118,
+      "emp_code": "55",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 465
+    },
+    {
+      "personnel_id": 126,
+      "emp_code": "44",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 467
+    },
+    {
+      "personnel_id": 134,
+      "emp_code": "28",
+      "department_id": 64,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 469
+    },
+    {
+      "personnel_id": 142,
+      "emp_code": "17",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 471
+    },
+    {
+      "personnel_id": 150,
+      "emp_code": "382",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 473
+    },
+    {
+      "personnel_id": 154,
+      "emp_code": "374",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 475
+    },
+    {
+      "personnel_id": 158,
+      "emp_code": "366",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 477
+    },
+    {
+      "personnel_id": 162,
+      "emp_code": "354",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 479
+    },
+    {
+      "personnel_id": 166,
+      "emp_code": "342",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 481
+    },
+    {
+      "personnel_id": 170,
+      "emp_code": "322",
+      "department_id": 64,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 483
+    },
+    {
+      "personnel_id": 174,
+      "emp_code": "303",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 485
+    },
+    {
+      "personnel_id": 178,
+      "emp_code": "266",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 487
+    },
+    {
+      "personnel_id": 182,
+      "emp_code": "242",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 489
+    },
+    {
+      "personnel_id": 186,
+      "emp_code": "187",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 491
+    },
+    {
+      "personnel_id": 190,
+      "emp_code": "140",
+      "department_id": 15,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 493
+    },
+    {
+      "personnel_id": 194,
+      "emp_code": "124",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 495
+    },
+    {
+      "personnel_id": 198,
+      "emp_code": "113",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 497
+    },
+    {
+      "personnel_id": 204,
+      "emp_code": "74",
+      "department_id": 60,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 499
+    },
+    {
+      "personnel_id": 208,
+      "emp_code": "53",
+      "department_id": 62,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 501
+    },
+    {
+      "personnel_id": 212,
+      "emp_code": "43",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 503
+    },
+    {
+      "personnel_id": 216,
+      "emp_code": "27",
+      "department_id": 64,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 505
+    },
+    {
+      "personnel_id": 220,
+      "emp_code": "15",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 507
+    },
+    {
+      "personnel_id": 224,
+      "emp_code": "381",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 509
+    },
+    {
+      "personnel_id": 226,
+      "emp_code": "377",
+      "department_id": 64,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 511
+    },
+    {
+      "personnel_id": 228,
+      "emp_code": "373",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 513
+    },
+    {
+      "personnel_id": 230,
+      "emp_code": "369",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 515
+    },
+    {
+      "personnel_id": 232,
+      "emp_code": "365",
+      "department_id": 50,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 517
+    },
+    {
+      "personnel_id": 234,
+      "emp_code": "360",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 519
+    },
+    {
+      "personnel_id": 236,
+      "emp_code": "353",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 521
+    },
+    {
+      "personnel_id": 238,
+      "emp_code": "348",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 523
+    },
+    {
+      "personnel_id": 240,
+      "emp_code": "341",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 525
+    },
+    {
+      "personnel_id": 242,
+      "emp_code": "330",
+      "department_id": 38,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 527
+    },
+    {
+      "personnel_id": 244,
+      "emp_code": "318",
+      "department_id": 42,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 529
+    },
+    {
+      "personnel_id": 246,
+      "emp_code": "309",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 531
+    },
+    {
+      "personnel_id": 248,
+      "emp_code": "302",
+      "department_id": 27,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 533
+    },
+    {
+      "personnel_id": 250,
+      "emp_code": "281",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 535
+    },
+    {
+      "personnel_id": 252,
+      "emp_code": "262",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 537
+    },
+    {
+      "personnel_id": 254,
+      "emp_code": "248",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 539
+    },
+    {
+      "personnel_id": 256,
+      "emp_code": "240",
+      "department_id": 64,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 541
+    },
+    {
+      "personnel_id": 258,
+      "emp_code": "214",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 543
+    },
+    {
+      "personnel_id": 260,
+      "emp_code": "175",
+      "department_id": 57,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 545
+    },
+    {
+      "personnel_id": 262,
+      "emp_code": "153",
+      "department_id": 35,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 547
+    },
+    {
+      "personnel_id": 264,
+      "emp_code": "134",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 549
+    },
+    {
+      "personnel_id": 266,
+      "emp_code": "128",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 551
+    },
+    {
+      "personnel_id": 268,
+      "emp_code": "123",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 553
+    },
+    {
+      "personnel_id": 270,
+      "emp_code": "117",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 555
+    },
+    {
+      "personnel_id": 272,
+      "emp_code": "111",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 557
+    },
+    {
+      "personnel_id": 274,
+      "emp_code": "100",
+      "department_id": 62,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 559
+    },
+    {
+      "personnel_id": 276,
+      "emp_code": "89",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 561
+    },
+    {
+      "personnel_id": 278,
+      "emp_code": "68",
+      "department_id": 69,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 563
+    },
+    {
+      "personnel_id": 280,
+      "emp_code": "57",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 565
+    },
+    {
+      "personnel_id": 282,
+      "emp_code": "51",
+      "department_id": 64,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 567
+    },
+    {
+      "personnel_id": 284,
+      "emp_code": "47",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 569
+    },
+    {
+      "personnel_id": 286,
+      "emp_code": "41",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 571
+    },
+    {
+      "personnel_id": 288,
+      "emp_code": "30",
+      "department_id": 15,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 573
+    },
+    {
+      "personnel_id": 290,
+      "emp_code": "25",
+      "department_id": 64,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 575
+    },
+    {
+      "personnel_id": 292,
+      "emp_code": "19",
+      "department_id": 54,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 577
+    },
+    {
+      "personnel_id": 294,
+      "emp_code": "13",
+      "department_id": 69,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 579
+    },
+    {
+      "personnel_id": 296,
+      "emp_code": "9",
+      "department_id": 31,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:52:37",
+      "id": 581
+    },
+    {
+      "personnel_id": 10,
+      "emp_code": "375",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 583
+    },
+    {
+      "personnel_id": 18,
+      "emp_code": "163",
+      "department_id": 76,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 584
+    },
+    {
+      "personnel_id": 26,
+      "emp_code": "356",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 585
+    },
+    {
+      "personnel_id": 34,
+      "emp_code": "343",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 586
+    },
+    {
+      "personnel_id": 42,
+      "emp_code": "324",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 587
+    },
+    {
+      "personnel_id": 50,
+      "emp_code": "306",
+      "department_id": 87,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 588
+    },
+    {
+      "personnel_id": 58,
+      "emp_code": "268",
+      "department_id": 44,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 589
+    },
+    {
+      "personnel_id": 66,
+      "emp_code": "244",
+      "department_id": 84,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 590
+    },
+    {
+      "personnel_id": 74,
+      "emp_code": "190",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 591
+    },
+    {
+      "personnel_id": 82,
+      "emp_code": "149",
+      "department_id": 85,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 592
+    },
+    {
+      "personnel_id": 90,
+      "emp_code": "125",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 593
+    },
+    {
+      "personnel_id": 98,
+      "emp_code": "114",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 594
+    },
+    {
+      "personnel_id": 106,
+      "emp_code": "95",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 595
+    },
+    {
+      "personnel_id": 114,
+      "emp_code": "64",
+      "department_id": 80,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 596
+    },
+    {
+      "personnel_id": 122,
+      "emp_code": "49",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 597
+    },
+    {
+      "personnel_id": 130,
+      "emp_code": "38",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 598
+    },
+    {
+      "personnel_id": 138,
+      "emp_code": "23",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 599
+    },
+    {
+      "personnel_id": 146,
+      "emp_code": "11",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 600
+    },
+    {
+      "personnel_id": 152,
+      "emp_code": "378",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 601
+    },
+    {
+      "personnel_id": 156,
+      "emp_code": "370",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 602
+    },
+    {
+      "personnel_id": 160,
+      "emp_code": "362",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 603
+    },
+    {
+      "personnel_id": 164,
+      "emp_code": "350",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 604
+    },
+    {
+      "personnel_id": 168,
+      "emp_code": "332",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 605
+    },
+    {
+      "personnel_id": 172,
+      "emp_code": "314",
+      "department_id": 76,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 606
+    },
+    {
+      "personnel_id": 176,
+      "emp_code": "290",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 607
+    },
+    {
+      "personnel_id": 180,
+      "emp_code": "256",
+      "department_id": 73,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 608
+    },
+    {
+      "personnel_id": 184,
+      "emp_code": "227",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 609
+    },
+    {
+      "personnel_id": 188,
+      "emp_code": "145",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 610
+    },
+    {
+      "personnel_id": 192,
+      "emp_code": "129",
+      "department_id": 44,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 611
+    },
+    {
+      "personnel_id": 196,
+      "emp_code": "118",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 612
+    },
+    {
+      "personnel_id": 204,
+      "emp_code": "74",
+      "department_id": 77,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 613
+    },
+    {
+      "personnel_id": 208,
+      "emp_code": "53",
+      "department_id": 79,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 614
+    },
+    {
+      "personnel_id": 212,
+      "emp_code": "43",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 615
+    },
+    {
+      "personnel_id": 216,
+      "emp_code": "27",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 616
+    },
+    {
+      "personnel_id": 220,
+      "emp_code": "15",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 617
+    },
+    {
+      "personnel_id": 224,
+      "emp_code": "381",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 618
+    },
+    {
+      "personnel_id": 226,
+      "emp_code": "377",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 619
+    },
+    {
+      "personnel_id": 228,
+      "emp_code": "373",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 620
+    },
+    {
+      "personnel_id": 230,
+      "emp_code": "369",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 621
+    },
+    {
+      "personnel_id": 232,
+      "emp_code": "365",
+      "department_id": 84,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 622
+    },
+    {
+      "personnel_id": 234,
+      "emp_code": "360",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 623
+    },
+    {
+      "personnel_id": 236,
+      "emp_code": "353",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 624
+    },
+    {
+      "personnel_id": 238,
+      "emp_code": "348",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 625
+    },
+    {
+      "personnel_id": 240,
+      "emp_code": "341",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 626
+    },
+    {
+      "personnel_id": 242,
+      "emp_code": "330",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 627
+    },
+    {
+      "personnel_id": 244,
+      "emp_code": "318",
+      "department_id": 76,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 628
+    },
+    {
+      "personnel_id": 246,
+      "emp_code": "309",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 629
+    },
+    {
+      "personnel_id": 248,
+      "emp_code": "302",
+      "department_id": 27,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 630
+    },
+    {
+      "personnel_id": 250,
+      "emp_code": "281",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 631
+    },
+    {
+      "personnel_id": 252,
+      "emp_code": "262",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 632
+    },
+    {
+      "personnel_id": 254,
+      "emp_code": "248",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 633
+    },
+    {
+      "personnel_id": 256,
+      "emp_code": "240",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 634
+    },
+    {
+      "personnel_id": 258,
+      "emp_code": "214",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 635
+    },
+    {
+      "personnel_id": 260,
+      "emp_code": "175",
+      "department_id": 57,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 636
+    },
+    {
+      "personnel_id": 262,
+      "emp_code": "153",
+      "department_id": 35,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 637
+    },
+    {
+      "personnel_id": 264,
+      "emp_code": "134",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 638
+    },
+    {
+      "personnel_id": 266,
+      "emp_code": "128",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 639
+    },
+    {
+      "personnel_id": 268,
+      "emp_code": "123",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 640
+    },
+    {
+      "personnel_id": 270,
+      "emp_code": "117",
+      "department_id": 40,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 641
+    },
+    {
+      "personnel_id": 272,
+      "emp_code": "111",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 642
+    },
+    {
+      "personnel_id": 274,
+      "emp_code": "100",
+      "department_id": 79,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 643
+    },
+    {
+      "personnel_id": 276,
+      "emp_code": "89",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 644
+    },
+    {
+      "personnel_id": 278,
+      "emp_code": "68",
+      "department_id": 69,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 645
+    },
+    {
+      "personnel_id": 280,
+      "emp_code": "57",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 646
+    },
+    {
+      "personnel_id": 282,
+      "emp_code": "51",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 647
+    },
+    {
+      "personnel_id": 284,
+      "emp_code": "47",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 648
+    },
+    {
+      "personnel_id": 286,
+      "emp_code": "41",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 649
+    },
+    {
+      "personnel_id": 288,
+      "emp_code": "30",
+      "department_id": 78,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 650
+    },
+    {
+      "personnel_id": 290,
+      "emp_code": "25",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 651
+    },
+    {
+      "personnel_id": 292,
+      "emp_code": "19",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 652
+    },
+    {
+      "personnel_id": 294,
+      "emp_code": "13",
+      "department_id": 69,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 653
+    },
+    {
+      "personnel_id": 296,
+      "emp_code": "9",
+      "department_id": 86,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 654
+    },
+    {
+      "personnel_id": 298,
+      "emp_code": "382",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 655
+    },
+    {
+      "personnel_id": 299,
+      "emp_code": "379",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 656
+    },
+    {
+      "personnel_id": 300,
+      "emp_code": "380",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 657
+    },
+    {
+      "personnel_id": 301,
+      "emp_code": "376",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 658
+    },
+    {
+      "personnel_id": 302,
+      "emp_code": "374",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 659
+    },
+    {
+      "personnel_id": 303,
+      "emp_code": "372",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 660
+    },
+    {
+      "personnel_id": 304,
+      "emp_code": "371",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 661
+    },
+    {
+      "personnel_id": 305,
+      "emp_code": "368",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 662
+    },
+    {
+      "personnel_id": 306,
+      "emp_code": "366",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 663
+    },
+    {
+      "personnel_id": 307,
+      "emp_code": "364",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 664
+    },
+    {
+      "personnel_id": 308,
+      "emp_code": "363",
+      "department_id": 83,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 665
+    },
+    {
+      "personnel_id": 309,
+      "emp_code": "357",
+      "department_id": 79,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 666
+    },
+    {
+      "personnel_id": 310,
+      "emp_code": "354",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 667
+    },
+    {
+      "personnel_id": 311,
+      "emp_code": "352",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 668
+    },
+    {
+      "personnel_id": 312,
+      "emp_code": "351",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 669
+    },
+    {
+      "personnel_id": 313,
+      "emp_code": "345",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 670
+    },
+    {
+      "personnel_id": 314,
+      "emp_code": "342",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 671
+    },
+    {
+      "personnel_id": 315,
+      "emp_code": "338",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 672
+    },
+    {
+      "personnel_id": 316,
+      "emp_code": "336",
+      "department_id": 83,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 673
+    },
+    {
+      "personnel_id": 317,
+      "emp_code": "326",
+      "department_id": 77,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 674
+    },
+    {
+      "personnel_id": 318,
+      "emp_code": "322",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 675
+    },
+    {
+      "personnel_id": 319,
+      "emp_code": "316",
+      "department_id": 76,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 676
+    },
+    {
+      "personnel_id": 320,
+      "emp_code": "315",
+      "department_id": 76,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 677
+    },
+    {
+      "personnel_id": 321,
+      "emp_code": "307",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 678
+    },
+    {
+      "personnel_id": 322,
+      "emp_code": "303",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 679
+    },
+    {
+      "personnel_id": 323,
+      "emp_code": "298",
+      "department_id": 72,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 680
+    },
+    {
+      "personnel_id": 324,
+      "emp_code": "291",
+      "department_id": 73,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 681
+    },
+    {
+      "personnel_id": 325,
+      "emp_code": "275",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 682
+    },
+    {
+      "personnel_id": 326,
+      "emp_code": "266",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 683
+    },
+    {
+      "personnel_id": 327,
+      "emp_code": "261",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 684
+    },
+    {
+      "personnel_id": 328,
+      "emp_code": "259",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 685
+    },
+    {
+      "personnel_id": 329,
+      "emp_code": "246",
+      "department_id": 73,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 686
+    },
+    {
+      "personnel_id": 330,
+      "emp_code": "242",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 687
+    },
+    {
+      "personnel_id": 331,
+      "emp_code": "237",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 688
+    },
+    {
+      "personnel_id": 332,
+      "emp_code": "234",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 689
+    },
+    {
+      "personnel_id": 333,
+      "emp_code": "191",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 690
+    },
+    {
+      "personnel_id": 334,
+      "emp_code": "187",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 691
+    },
+    {
+      "personnel_id": 335,
+      "emp_code": "170",
+      "department_id": 69,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 692
+    },
+    {
+      "personnel_id": 336,
+      "emp_code": "167",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 693
+    },
+    {
+      "personnel_id": 337,
+      "emp_code": "150",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 694
+    },
+    {
+      "personnel_id": 338,
+      "emp_code": "140",
+      "department_id": 78,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 695
+    },
+    {
+      "personnel_id": 339,
+      "emp_code": "133",
+      "department_id": 79,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 696
+    },
+    {
+      "personnel_id": 340,
+      "emp_code": "131",
+      "department_id": 44,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 697
+    },
+    {
+      "personnel_id": 341,
+      "emp_code": "127",
+      "department_id": 78,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 698
+    },
+    {
+      "personnel_id": 342,
+      "emp_code": "124",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 699
+    },
+    {
+      "personnel_id": 343,
+      "emp_code": "122",
+      "department_id": 61,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 700
+    },
+    {
+      "personnel_id": 344,
+      "emp_code": "119",
+      "department_id": 76,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 701
+    },
+    {
+      "personnel_id": 345,
+      "emp_code": "116",
+      "department_id": 83,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 702
+    },
+    {
+      "personnel_id": 346,
+      "emp_code": "113",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 703
+    },
+    {
+      "personnel_id": 347,
+      "emp_code": "109",
+      "department_id": 52,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 704
+    },
+    {
+      "personnel_id": 348,
+      "emp_code": "108",
+      "department_id": 79,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 705
+    },
+    {
+      "personnel_id": 349,
+      "emp_code": "99",
+      "department_id": 80,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 706
+    },
+    {
+      "personnel_id": 350,
+      "emp_code": "93",
+      "department_id": 80,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 707
+    },
+    {
+      "personnel_id": 351,
+      "emp_code": "80",
+      "department_id": 77,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 708
+    },
+    {
+      "personnel_id": 352,
+      "emp_code": "79",
+      "department_id": 77,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 709
+    },
+    {
+      "personnel_id": 353,
+      "emp_code": "65",
+      "department_id": 67,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 710
+    },
+    {
+      "personnel_id": 354,
+      "emp_code": "61",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 711
+    },
+    {
+      "personnel_id": 355,
+      "emp_code": "56",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 712
+    },
+    {
+      "personnel_id": 356,
+      "emp_code": "55",
+      "department_id": 71,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 713
+    },
+    {
+      "personnel_id": 357,
+      "emp_code": "50",
+      "department_id": 27,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 714
+    },
+    {
+      "personnel_id": 358,
+      "emp_code": "48",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 715
+    },
+    {
+      "personnel_id": 359,
+      "emp_code": "45",
+      "department_id": 83,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 716
+    },
+    {
+      "personnel_id": 360,
+      "emp_code": "44",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 717
+    },
+    {
+      "personnel_id": 361,
+      "emp_code": "39",
+      "department_id": 19,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 718
+    },
+    {
+      "personnel_id": 362,
+      "emp_code": "32",
+      "department_id": 63,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 719
+    },
+    {
+      "personnel_id": 363,
+      "emp_code": "29",
+      "department_id": 65,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 720
+    },
+    {
+      "personnel_id": 364,
+      "emp_code": "28",
+      "department_id": 82,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 721
+    },
+    {
+      "personnel_id": 365,
+      "emp_code": "24",
+      "department_id": 48,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 722
+    },
+    {
+      "personnel_id": 366,
+      "emp_code": "20",
+      "department_id": 78,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 723
+    },
+    {
+      "personnel_id": 367,
+      "emp_code": "18",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 724
+    },
+    {
+      "personnel_id": 368,
+      "emp_code": "17",
+      "department_id": 88,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 725
+    },
+    {
+      "personnel_id": 369,
+      "emp_code": "12",
+      "department_id": 35,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 726
+    },
+    {
+      "personnel_id": 370,
+      "emp_code": "10",
+      "department_id": 74,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 727
+    },
+    {
+      "personnel_id": 371,
+      "emp_code": "6",
+      "department_id": 85,
+      "org_code": "",
+      "relation_type": "primary",
+      "remark": "同步自 personnel.department_id",
+      "created_at": "2026-07-09 14:56:04",
+      "id": 728
+    }
+  ],
+  "nextId": 729
+}

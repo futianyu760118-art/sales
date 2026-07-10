@@ -1,0 +1,803 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 产品配置表</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .status-draft { background: #e8f5e9; color: #2e7d32; }
+    .status-confirmed { background: #e3f2fd; color: #1565c0; }
+    .status-imported { background: #fff3e0; color: #e65100; }
+    .status-submitted { background: #f3e5f5; color: #7b1fa2; }
+    .pagination { display: flex; gap: 5px; margin-top: 15px; justify-content: center; }
+    .pagination button { padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; }
+    .pagination button.active { background: #667eea; color: white; border-color: #667eea; }
+    .config-section { margin-bottom: 20px; border: 1px solid #e8eaf6; border-radius: 8px; overflow: hidden; }
+    .config-section-title { background: #e8eaf6; color: #3949ab; padding: 10px 15px; font-weight: 600; font-size: 14px; }
+    .config-section-body { padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .form-group textarea { min-height: 60px; resize: vertical; }
+    .flow-step.done { background: #27ae60; color: white; }
+    .import-zone { border: 2px dashed #ddd; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 15px; cursor: pointer; transition: all 0.2s; }
+    .import-zone:hover { border-color: #667eea; background: #f8f9ff; }
+    .import-zone input { display: none; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main-content">
+    <!-- 流程指示 -->
+    <div class="flow-bar">
+      <span class="flow-step" id="flowInquiry">询价单</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step" id="flowPricing">核价表</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step active" id="flowConfig">配置表</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step" id="flowBack">同步回询价</span>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+      <input type="text" id="keywordInput" placeholder="搜索型号、参数...">
+      <input type="text" id="modelInput" placeholder="产品型号">
+      <select id="statusFilter">
+        <option value="">全部状态</option>
+        <option value="draft">草稿</option>
+        <option value="imported">已导入</option>
+        <option value="confirmed">已确认</option>
+        <option value="submitted">已提交</option>
+      </select>
+      <button class="btn btn-primary" onclick="searchConfigs()">查询</button>
+      <button class="btn btn-warning" onclick="resetSearch()">重置</button>
+      <button class="btn btn-success" onclick="showAddModal()">新建配置表</button>
+      <button class="btn btn-warning" onclick="showImportPricingModal()">从核价表导入</button>
+      <button class="btn btn-info" onclick="showImportModal()">导入模板</button>
+      <button class="btn btn-info" onclick="downloadTemplate()">下载导入模板</button>
+      <button class="btn btn-success" onclick="showBatchImportModal()">一键导入产品配置表</button>
+      <button class="btn btn-primary" onclick="batchExport()">批量导出</button>
+    </div>
+
+    <!-- 配置表列表 -->
+    <div class="table-container">
+      <table id="configTableEl">
+        <thead>
+          <tr>
+            <th class="seq-col"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
+            <th data-sort="model">型号<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th>壳体材质</th>
+            <th>防水等级</th>
+            <th>光参数</th>
+            <th>色温</th>
+            <th>标称功率</th>
+            <th>芯片方案</th>
+            <th>证书</th>
+            <th data-sort="status">状态<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th>关联询价</th>
+            <th data-sort="created_at">创建时间<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="configTable"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- 新建/编辑配置表弹窗 -->
+  <div class="modal" id="addModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">新建配置表</h3>
+        <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
+      </div>
+      <form id="configForm" onsubmit="submitConfig(event)">
+        <input type="hidden" id="fId">
+        <input type="hidden" id="fInquiryId">
+
+        <div class="config-section">
+          <div class="config-section-title">基本信息</div>
+          <div class="config-section-body">
+            <div class="form-group"><label>产品型号 *</label><input type="text" id="fModel" required></div>
+            <div class="form-group"><label>关联询价单</label><select id="fInquirySelect" onchange="onInquirySelect()"><option value="">选择询价单（可选）</option></select></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section-title">1、结构</div>
+          <div class="config-section-body">
+            <div class="form-group"><label>1.1 壳体材质</label><input type="text" id="fStructureShell" placeholder="如：PC"></div>
+            <div class="form-group"><label>1.2 反光罩材质</label><input type="text" id="fStructureReflector"></div>
+            <div class="form-group"><label>1.3 支架</label><input type="text" id="fStructureBracket"></div>
+            <div class="form-group"><label>1.4 手杆</label><input type="text" id="fStructureHandle"></div>
+            <div class="form-group"><label>1.5 防水等级</label><input type="text" id="fStructureWaterproof" placeholder="如：IP20"></div>
+            <div class="form-group"><label>1.6 电缆线规格</label><input type="text" id="fStructureCable"></div>
+            <div class="form-group"><label>1.7 螺丝材质</label><input type="text" id="fStructureScrew"></div>
+            <div class="form-group"><label>1.8 玻璃</label><input type="text" id="fStructureGlass"></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section-title">2、电子技术参数</div>
+          <div class="config-section-body">
+            <div class="form-group"><label>2.1 光参数(LM)</label><input type="text" id="fElecLuminous" placeholder="如：60lm"></div>
+            <div class="form-group"><label>2.2 补偿后光参数</label><input type="text" id="fElecLuminousComp"></div>
+            <div class="form-group"><label>2.3 光效(LM/W)</label><input type="text" id="fElecEfficiency"></div>
+            <div class="form-group"><label>2.4 电参数</label><input type="text" id="fElecParam"></div>
+            <div class="form-group"><label>2.5 色温(K)</label><input type="text" id="fElecColorTemp" placeholder="如：6500k±10%"></div>
+            <div class="form-group"><label>2.6 显指(RA)</label><input type="text" id="fElecRa"></div>
+            <div class="form-group"><label>2.7 灯珠数量</label><input type="text" id="fElecLedCount"></div>
+            <div class="form-group"><label>2.8 标称功率</label><input type="text" id="fElecRatedPower" placeholder="如：1.5W"></div>
+            <div class="form-group"><label>2.9 芯片方案</label><input type="text" id="fElecChip"></div>
+            <div class="form-group"><label>2.10 电路板型号</label><input type="text" id="fElecBoardModel"></div>
+            <div class="form-group"><label>2.11 电池容量</label><input type="text" id="fElecBattery"></div>
+            <div class="form-group"><label>2.12 放电时间(h)</label><input type="text" id="fElecDischargeTime"></div>
+            <div class="form-group"><label>2.13 充电时间(h)</label><input type="text" id="fElecChargeTime"></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section-title">3、包装</div>
+          <div class="config-section-body">
+            <div class="form-group"><label>3.1 内包</label><input type="text" id="fPackInner" placeholder="如：115*105*80mm（24个装）"></div>
+            <div class="form-group"><label>3.2 外包</label><input type="text" id="fPackOuter" placeholder="如：135*120*100mm（1个装）"></div>
+            <div class="form-group"><label>3.3 运输要求</label><input type="text" id="fPackTransport"></div>
+            <div class="form-group"><label>3.4 其他</label><input type="text" id="fPackOther"></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section-title">4、证书</div>
+          <div class="config-section-body">
+            <div class="form-group"><label>4.1 认证需求</label><input type="text" id="fCertificateRequired"></div>
+            <div class="form-group"><label>证书合规</label><input type="text" id="fCertificateCompliant"></div>
+            <div class="form-group"><label>证书等级</label><input type="text" id="fCertificateLevel"></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section-title">5、特殊需求</div>
+          <div class="config-section-body">
+            <div class="form-group"><label>5.1 环保要求</label><input type="text" id="fSpecialEnv"></div>
+            <div class="form-group"><label>5.2 UV测试</label><input type="text" id="fSpecialUv"></div>
+            <div class="form-group"><label>5.3 盐雾测试</label><input type="text" id="fSpecialSalt"></div>
+            <div class="form-group"><label>5.4 其他</label><textarea id="fSpecialOther"></textarea></div>
+          </div>
+        </div>
+
+        <div style="text-align:right;margin-top:15px;">
+          <button type="button" class="btn btn-warning" onclick="closeModal('addModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 详情弹窗 -->
+  <div class="modal" id="detailModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="detailTitle">配置表详情</h3>
+        <button class="close-btn" onclick="closeModal('detailModal')">&times;</button>
+      </div>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- 导入弹窗 -->
+  <div class="modal" id="importModal">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <h3>导入配置表模板</h3>
+        <button class="close-btn" onclick="closeModal('importModal')">&times;</button>
+      </div>
+      <div class="import-zone" onclick="document.getElementById('importFile').click()">
+        <div style="font-size:36px;color:#667eea;margin-bottom:10px;">&#128196;</div>
+        <div style="color:#666;margin-bottom:5px;">点击选择Excel文件</div>
+        <div style="color:#999;font-size:12px;">支持 .xlsx/.xls 格式的核价配置表模板</div>
+        <input type="file" id="importFile" accept=".xlsx,.xls" onchange="handleImportFile(this)">
+      </div>
+      <div style="text-align:center;margin-top:10px;">
+        <a href="javascript:downloadTemplate()" style="color:#667eea;font-size:13px;text-decoration:underline;">下载导入模板</a>
+        <span style="color:#999;font-size:12px;margin-left:8px;">（按模板格式填写后导入）</span>
+      </div>
+      <div id="importPreview" style="display:none;margin-top:15px;"></div>
+    </div>
+  </div>
+
+  <!-- 从核价表导入 -->
+  <div class="modal" id="importPricingModal">
+    <div class="modal-content" style="max-width:850px;">
+      <div class="modal-header">
+        <h3>从核价表一键导入配置表</h3>
+        <button class="close-btn" onclick="closeModal('importPricingModal')">&times;</button>
+      </div>
+      <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="color:#888;font-size:13px;">以下为核价表中尚未生成配置表的型号，重复型号不会显示</div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="cfgImportSearch" placeholder="搜索型号/名称..." style="padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:180px;" oninput="filterCfgImportList()">
+          <button class="btn btn-sm" style="background:#eee;" onclick="toggleCfgSelectAll()">全选/取消</button>
+        </div>
+      </div>
+      <div id="cfgImportList" style="max-height:400px;overflow-y:auto;border:1px solid #eee;border-radius:6px;"></div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+        <span id="cfgImportCount" style="color:#888;font-size:13px;">已选择 0 条</span>
+        <button class="btn btn-primary" onclick="doCfgImportFromPricing()">确认导入</button>
+      </div>
+      <div id="cfgImportResult" style="display:none;margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- 一键导入产品配置表弹窗 -->
+  <div class="modal" id="batchImportModal">
+    <div class="modal-content" style="max-width:600px;">
+      <div class="modal-header">
+        <h3>一键导入产品配置表</h3>
+        <button class="close-btn" onclick="closeModal('batchImportModal')">&times;</button>
+      </div>
+      <div class="import-zone" onclick="document.getElementById('batchImportFile').click()">
+        <div style="font-size:36px;color:#27ae60;margin-bottom:10px;">&#128230;</div>
+        <div style="color:#666;margin-bottom:5px;">点击选择产品配置表Excel文件</div>
+        <div style="color:#999;font-size:12px;">支持报价配置表横向格式（每行一个产品），自动识别列映射</div>
+        <input type="file" id="batchImportFile" accept=".xlsx,.xls" onchange="handleBatchImportFile(this)">
+      </div>
+      <div style="background:#f8f9fa;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;color:#666;">
+        <div style="font-weight:600;margin-bottom:6px;color:#333;">支持的列名自动映射：</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
+          <span>产品型号 → 型号</span><span>产品名称 → 备注</span>
+          <span>功率 → 标称功率</span><span>输入电压 → 电参数</span>
+          <span>电池 → 电池容量</span><span>色温 → 色温</span>
+          <span>光通量/光效 → 光参数</span><span>光源 → 芯片方案</span>
+          <span>主体 → 壳体材质</span><span>灯罩 → 玻璃</span>
+          <span>反光罩 → 反光罩材质</span><span>电缆线 → 电缆线规格</span>
+          <span>防水等级 → 防水等级</span><span>开关 → 支架</span>
+          <span>感应器 → 特殊需求</span><span>报价 → 参考报价</span>
+        </div>
+      </div>
+      <div id="batchImportProgress" style="display:none;margin-top:15px;text-align:center;">
+        <div style="color:#667eea;">正在导入中...</div>
+      </div>
+      <div id="batchImportResult" style="display:none;margin-top:15px;"></div>
+    </div>
+  </div>
+
+<script src="table-sort-filter.js"></script>
+<script>
+const API = '/api/configs';
+const INQUIRY_API = '/api/inquiries';
+let currentPage = 1, totalPages = 1;
+let cfgImportData = [];
+
+// ===== 从核价表一键导入配置表 =====
+async function showImportPricingModal() {
+  openModal('importPricingModal');
+  document.getElementById('cfgImportResult').style.display = 'none';
+  document.getElementById('cfgImportSearch').value = '';
+  const list = document.getElementById('cfgImportList');
+  list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">加载中...</div>';
+  try {
+    const res = await fetch(`${API}/pricing-available`);
+    const data = await res.json();
+    cfgImportData = data.data || [];
+    renderCfgImportList(cfgImportData);
+  } catch(e) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#e74c3c;">加载失败</div>';
+  }
+}
+
+function renderCfgImportList(items) {
+  const list = document.getElementById('cfgImportList');
+  if (items.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">没有可导入的数据（核价表中的型号已全部生成配置表）</div>';
+    document.getElementById('cfgImportCount').textContent = '已选择 0 条';
+    return;
+  }
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  html += '<thead><tr style="background:#f8f9fa;"><th style="padding:8px;width:40px;"><input type="checkbox" id="cfgCheckAll" onchange="toggleCfgSelectAll()"></th><th style="padding:8px;">型号</th><th style="padding:8px;">产品名称</th><th style="padding:8px;">功率</th><th style="padding:8px;">光源</th><th style="padding:8px;">防水</th><th style="padding:8px;">核价(RMB)</th><th style="padding:8px;">客户</th></tr></thead><tbody>';
+  items.forEach(p => {
+    html += `<tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;"><input type="checkbox" class="cfg-check" value="${p.id}" onchange="updateCfgImportCount()"></td>
+      <td style="padding:8px;font-weight:500;">${p.model}</td>
+      <td style="padding:8px;">${p.product_name || '-'}</td>
+      <td style="padding:8px;">${p.power || '-'}</td>
+      <td style="padding:8px;">${p.light_source || '-'}</td>
+      <td style="padding:8px;">${p.waterproof || '-'}</td>
+      <td style="padding:8px;color:#27ae60;">${p.price_rmb ? '¥' + Number(p.price_rmb).toFixed(2) : '-'}</td>
+      <td style="padding:8px;">${p.customer || '-'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  list.innerHTML = html;
+  updateCfgImportCount();
+}
+
+function filterCfgImportList() {
+  const kw = document.getElementById('cfgImportSearch').value.trim().toLowerCase();
+  if (!kw) { renderCfgImportList(cfgImportData); return; }
+  const filtered = cfgImportData.filter(p =>
+    (p.model || '').toLowerCase().includes(kw) ||
+    (p.product_name || '').toLowerCase().includes(kw) ||
+    (p.power || '').toLowerCase().includes(kw)
+  );
+  renderCfgImportList(filtered);
+}
+
+function toggleCfgSelectAll() {
+  const checks = document.querySelectorAll('.cfg-check');
+  const allChecked = Array.from(checks).every(c => c.checked);
+  checks.forEach(c => c.checked = !allChecked);
+  const checkAll = document.getElementById('cfgCheckAll');
+  if (checkAll) checkAll.checked = !allChecked;
+  updateCfgImportCount();
+}
+
+function updateCfgImportCount() {
+  const count = document.querySelectorAll('.cfg-check:checked').length;
+  document.getElementById('cfgImportCount').textContent = `已选择 ${count} 条`;
+}
+
+async function doCfgImportFromPricing() {
+  const checks = document.querySelectorAll('.cfg-check:checked');
+  if (checks.length === 0) { alert('请选择要导入的记录'); return; }
+  const ids = Array.from(checks).map(c => c.value);
+  if (!confirm(`确定要导入 ${ids.length} 条配置表吗？`)) return;
+  try {
+    const res = await fetch(`${API}/import-from-pricing`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    const data = await res.json();
+    const resultDiv = document.getElementById('cfgImportResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;font-size:13px;">
+      <strong>导入完成</strong>：成功 ${data.imported} 条，跳过 ${data.skipped} 条（型号已存在）
+    </div>`;
+    loadConfigs(1);
+    setTimeout(() => showImportPricingModal(), 1500);
+  } catch(e) {
+    alert('导入失败：' + e.message);
+  }
+}
+
+// ===== 加载配置表列表 =====
+async function loadConfigs(page = 1) {
+  const params = new URLSearchParams({ page, limit: 15 });
+  const keyword = document.getElementById('keywordInput').value;
+  const model = document.getElementById('modelInput').value;
+  const status = document.getElementById('statusFilter').value;
+  if (keyword) params.set('keyword', keyword);
+  if (model) params.set('model', model);
+  if (status) params.set('status', status);
+
+  try {
+    const res = await fetch(`${API}?${params}`);
+    const data = await res.json();
+    currentPage = page;
+    totalPages = Math.ceil(data.total / 15);
+
+    const tbody = document.getElementById('configTable');
+    tbody.innerHTML = '';
+    (data.data || []).forEach((item, idx) => {
+      const seqNum = (page - 1) * 15 + idx + 1;
+      const statusText = { draft: '草稿', imported: '已导入', confirmed: '已确认', submitted: '已提交' };
+      const statusClass = { draft: 'status-draft', imported: 'status-imported', confirmed: 'status-confirmed', submitted: 'status-submitted' };
+      tbody.innerHTML += `<tr>
+        <td class="seq-col"><input type="checkbox" class="row-check" value="${item.id}">${seqNum}</td>
+        <td style="font-weight:600;color:#667eea;">${item.model || '-'}</td>
+        <td>${item.structure_shell || '-'}</td>
+        <td>${item.structure_waterproof || '-'}</td>
+        <td>${item.elec_luminous || '-'}</td>
+        <td>${item.elec_color_temp || '-'}</td>
+        <td>${item.elec_rated_power || '-'}</td>
+        <td>${item.elec_chip || '-'}</td>
+        <td>${item.certificate_compliant || '-'}</td>
+        <td><span class="status-badge ${statusClass[item.status] || ''}">${statusText[item.status] || item.status}</span></td>
+        <td>${item.inquiry_id ? `<a href="inquiry.html" style="color:#667eea;"># ${item.inquiry_id}</a>` : '-'}</td>
+        <td>${item.created_at || '-'}</td>
+        <td><div class="btn-group">
+          <button class="btn btn-info btn-sm" onclick="showDetail(${item.id})">详情</button>
+          <button class="btn btn-warning btn-sm" onclick="editConfig(${item.id})">编辑</button>
+          <button class="btn btn-success btn-sm" onclick="exportXlsx(${item.id})">导出</button>
+          ${item.inquiry_id ? `<button class="btn btn-primary btn-sm" onclick="syncToInquiry(${item.id})">同步询价</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteConfig(${item.id})">删除</button>
+        </div></td></tr>`;
+    });
+    renderPagination();
+    if (window.TableSortFilter) { TableSortFilter.init('configTableEl'); }
+  } catch (e) { console.error('加载配置表失败:', e); }
+}
+
+function renderPagination() {
+  const p = document.getElementById('pagination');
+  p.innerHTML = '';
+  if (currentPage > 1) p.innerHTML += `<button onclick="loadConfigs(${currentPage - 1})">上一页</button>`;
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++)
+    p.innerHTML += `<button class="${i === currentPage ? 'active' : ''}" onclick="loadConfigs(${i})">${i}</button>`;
+  if (currentPage < totalPages) p.innerHTML += `<button onclick="loadConfigs(${currentPage + 1})">下一页</button>`;
+}
+
+function searchConfigs() { loadConfigs(1); }
+function resetSearch() {
+  ['keywordInput', 'modelInput'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('statusFilter').value = '';
+  loadConfigs(1);
+}
+
+// ===== 弹窗控制 =====
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// ===== 加载询价单列表到下拉 =====
+async function loadInquiryOptions() {
+  try {
+    const res = await fetch(`${INQUIRY_API}?limit=100`);
+    const data = await res.json();
+    const sel = document.getElementById('fInquirySelect');
+    sel.innerHTML = '<option value="">选择询价单（可选）</option>';
+    (data.data || []).forEach(i => {
+      sel.innerHTML += `<option value="${i.id}">${i.serial_number} - ${i.external_model} - ${i.customer_name}</option>`;
+    });
+  } catch (e) { console.error('加载询价单列表失败:', e); }
+}
+
+// ===== 从询价单自动填充 =====
+async function onInquirySelect() {
+  const inqId = document.getElementById('fInquirySelect').value;
+  if (!inqId) return;
+  document.getElementById('fInquiryId').value = inqId;
+  try {
+    const res = await fetch(`${INQUIRY_API}/${inqId}`);
+    const inq = await res.json();
+    document.getElementById('fModel').value = inq.external_model || '';
+    document.getElementById('fStructureShell').value = inq.main_body || '';
+    document.getElementById('fStructureReflector').value = inq.reflector || '';
+    document.getElementById('fStructureWaterproof').value = inq.waterproof || '';
+    document.getElementById('fStructureCable').value = inq.cable || '';
+    document.getElementById('fElecLuminous').value = inq.luminous_flux || '';
+    document.getElementById('fElecColorTemp').value = inq.color_temp || '';
+    document.getElementById('fElecRatedPower').value = inq.power || '';
+    document.getElementById('fElecBattery').value = inq.battery || '';
+    document.getElementById('fElecChip').value = inq.light_source || '';
+    document.getElementById('fCertificateCompliant').value = inq.certificate_compliant || '';
+    document.getElementById('fCertificateLevel').value = inq.certificate_level || '';
+    document.getElementById('fSpecialOther').value = inq.custom_requirements || '';
+  } catch (e) { console.error('加载询价单详情失败:', e); }
+}
+
+// ===== 新建配置表 =====
+function showAddModal() {
+  document.getElementById('modalTitle').textContent = '新建配置表';
+  document.getElementById('configForm').reset();
+  document.getElementById('fId').value = '';
+  document.getElementById('fInquiryId').value = '';
+  loadInquiryOptions();
+  openModal('addModal');
+}
+
+// ===== 编辑配置表 =====
+async function editConfig(id) {
+  try {
+    const res = await fetch(`${API}/${id}`);
+    const data = await res.json();
+    document.getElementById('modalTitle').textContent = '编辑配置表';
+    document.getElementById('fId').value = data.id;
+    document.getElementById('fInquiryId').value = data.inquiry_id || '';
+    document.getElementById('fModel').value = data.model || '';
+    document.getElementById('fStructureShell').value = data.structure_shell || '';
+    document.getElementById('fStructureReflector').value = data.structure_reflector || '';
+    document.getElementById('fStructureBracket').value = data.structure_bracket || '';
+    document.getElementById('fStructureHandle').value = data.structure_handle || '';
+    document.getElementById('fStructureWaterproof').value = data.structure_waterproof || '';
+    document.getElementById('fStructureCable').value = data.structure_cable || '';
+    document.getElementById('fStructureScrew').value = data.structure_screw || '';
+    document.getElementById('fStructureGlass').value = data.structure_glass || '';
+    document.getElementById('fElecLuminous').value = data.elec_luminous || '';
+    document.getElementById('fElecLuminousComp').value = data.elec_luminous_comp || '';
+    document.getElementById('fElecEfficiency').value = data.elec_efficiency || '';
+    document.getElementById('fElecParam').value = data.elec_param || '';
+    document.getElementById('fElecColorTemp').value = data.elec_color_temp || '';
+    document.getElementById('fElecRa').value = data.elec_ra || '';
+    document.getElementById('fElecLedCount').value = data.elec_led_count || '';
+    document.getElementById('fElecRatedPower').value = data.elec_rated_power || '';
+    document.getElementById('fElecChip').value = data.elec_chip || '';
+    document.getElementById('fElecBoardModel').value = data.elec_board_model || '';
+    document.getElementById('fElecBattery').value = data.elec_battery || '';
+    document.getElementById('fElecDischargeTime').value = data.elec_discharge_time || '';
+    document.getElementById('fElecChargeTime').value = data.elec_charge_time || '';
+    document.getElementById('fPackInner').value = data.pack_inner || '';
+    document.getElementById('fPackOuter').value = data.pack_outer || '';
+    document.getElementById('fPackTransport').value = data.pack_transport || '';
+    document.getElementById('fPackOther').value = data.pack_other || '';
+    document.getElementById('fCertificateRequired').value = data.certificate_required || '';
+    document.getElementById('fCertificateCompliant').value = data.certificate_compliant || '';
+    document.getElementById('fCertificateLevel').value = data.certificate_level || '';
+    document.getElementById('fSpecialEnv').value = data.special_env || '';
+    document.getElementById('fSpecialUv').value = data.special_uv || '';
+    document.getElementById('fSpecialSalt').value = data.special_salt || '';
+    document.getElementById('fSpecialOther').value = data.special_other || '';
+    loadInquiryOptions();
+    openModal('addModal');
+  } catch (e) { console.error('加载配置表失败:', e); }
+}
+
+// ===== 提交配置表 =====
+async function submitConfig(e) {
+  e.preventDefault();
+  const id = document.getElementById('fId').value;
+  const body = {
+    inquiry_id: document.getElementById('fInquiryId').value || document.getElementById('fInquirySelect').value || null,
+    model: document.getElementById('fModel').value,
+    structure_shell: document.getElementById('fStructureShell').value,
+    structure_reflector: document.getElementById('fStructureReflector').value,
+    structure_bracket: document.getElementById('fStructureBracket').value,
+    structure_handle: document.getElementById('fStructureHandle').value,
+    structure_waterproof: document.getElementById('fStructureWaterproof').value,
+    structure_cable: document.getElementById('fStructureCable').value,
+    structure_screw: document.getElementById('fStructureScrew').value,
+    structure_glass: document.getElementById('fStructureGlass').value,
+    elec_luminous: document.getElementById('fElecLuminous').value,
+    elec_luminous_comp: document.getElementById('fElecLuminousComp').value,
+    elec_efficiency: document.getElementById('fElecEfficiency').value,
+    elec_param: document.getElementById('fElecParam').value,
+    elec_color_temp: document.getElementById('fElecColorTemp').value,
+    elec_ra: document.getElementById('fElecRa').value,
+    elec_led_count: document.getElementById('fElecLedCount').value,
+    elec_rated_power: document.getElementById('fElecRatedPower').value,
+    elec_chip: document.getElementById('fElecChip').value,
+    elec_board_model: document.getElementById('fElecBoardModel').value,
+    elec_battery: document.getElementById('fElecBattery').value,
+    elec_discharge_time: document.getElementById('fElecDischargeTime').value,
+    elec_charge_time: document.getElementById('fElecChargeTime').value,
+    pack_inner: document.getElementById('fPackInner').value,
+    pack_outer: document.getElementById('fPackOuter').value,
+    pack_transport: document.getElementById('fPackTransport').value,
+    pack_other: document.getElementById('fPackOther').value,
+    certificate_required: document.getElementById('fCertificateRequired').value,
+    certificate_compliant: document.getElementById('fCertificateCompliant').value,
+    certificate_level: document.getElementById('fCertificateLevel').value,
+    special_env: document.getElementById('fSpecialEnv').value,
+    special_uv: document.getElementById('fSpecialUv').value,
+    special_salt: document.getElementById('fSpecialSalt').value,
+    special_other: document.getElementById('fSpecialOther').value,
+    status: 'draft'
+  };
+
+  try {
+    const url = id ? `${API}/${id}` : API;
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (res.ok) {
+      alert(id ? '更新成功' : '创建成功');
+      closeModal('addModal');
+      loadConfigs(currentPage);
+    } else {
+      const data = await res.json();
+      alert(data.error || '操作失败');
+    }
+  } catch (e) { alert('网络错误'); }
+}
+
+// ===== 详情 =====
+async function showDetail(id) {
+  try {
+    const res = await fetch(`${API}/${id}`);
+    const data = await res.json();
+    document.getElementById('detailTitle').textContent = `配置表 - ${data.model}`;
+    const sections = [
+      { title: '1、结构', items: [
+        ['壳体材质', data.structure_shell], ['反光罩材质', data.structure_reflector], ['支架', data.structure_bracket],
+        ['手杆', data.structure_handle], ['防水等级', data.structure_waterproof], ['电缆线规格', data.structure_cable],
+        ['螺丝材质', data.structure_screw], ['玻璃', data.structure_glass]
+      ]},
+      { title: '2、电子技术参数', items: [
+        ['光参数(LM)', data.elec_luminous], ['补偿后光参数', data.elec_luminous_comp], ['光效(LM/W)', data.elec_efficiency],
+        ['电参数', data.elec_param], ['色温(K)', data.elec_color_temp], ['显指(RA)', data.elec_ra],
+        ['灯珠数量', data.elec_led_count], ['标称功率', data.elec_rated_power], ['芯片方案', data.elec_chip],
+        ['电路板型号', data.elec_board_model], ['电池容量', data.elec_battery], ['放电时间(h)', data.elec_discharge_time],
+        ['充电时间(h)', data.elec_charge_time]
+      ]},
+      { title: '3、包装', items: [
+        ['内包', data.pack_inner], ['外包', data.pack_outer], ['运输要求', data.pack_transport], ['其他', data.pack_other]
+      ]},
+      { title: '4、证书', items: [
+        ['认证需求', data.certificate_required], ['证书合规', data.certificate_compliant], ['证书等级', data.certificate_level]
+      ]},
+      { title: '5、特殊需求', items: [
+        ['环保要求', data.special_env], ['UV测试', data.special_uv], ['盐雾测试', data.special_salt], ['其他', data.special_other]
+      ]}
+    ];
+
+    let html = '';
+    if (data.inquiry) {
+      html += `<div style="background:#e8f5e9;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;">
+        <strong>关联询价单：</strong>${data.inquiry.serial_number} | ${data.inquiry.customer_name} | ${data.inquiry.external_model}
+        <a href="inquiry.html" style="color:#667eea;margin-left:10px;">查看询价 &rarr;</a>
+      </div>`;
+    }
+    if (data.pricing_data) {
+      html += `<div style="background:#e3f2fd;padding:10px 15px;border-radius:8px;margin-bottom:15px;font-size:13px;">
+        <strong>核价数据：</strong>成本 ¥${(data.pricing_data.total_cost||0).toLocaleString()} | 报价 ¥${(data.pricing_data.price_rmb||0).toLocaleString()} | $${(data.pricing_data.price_usd||0).toLocaleString()}
+        <a href="pricing.html" style="color:#667eea;margin-left:10px;">查看核价 &rarr;</a>
+      </div>`;
+    }
+
+    sections.forEach(s => {
+      html += `<div class="config-section"><div class="config-section-title">${s.title}</div><div class="config-section-body">`;
+      s.items.forEach(([label, val]) => {
+        html += `<div class="form-group"><label>${label}</label><div style="padding:8px 0;color:${val && val !== '/' ? '#333' : '#999'};">${val || '/'}</div></div>`;
+      });
+      html += '</div></div>';
+    });
+
+    html += `<div style="text-align:right;margin-top:15px;">
+      <button class="btn btn-info" onclick="exportXlsx(${data.id})">导出Excel</button>
+      ${data.inquiry_id ? `<button class="btn btn-success" onclick="syncToInquiry(${data.id})">同步到询价单</button>` : ''}
+    </div>`;
+
+    document.getElementById('detailContent').innerHTML = html;
+    openModal('detailModal');
+  } catch (e) { console.error('加载详情失败:', e); }
+}
+
+// ===== 同步到询价单 =====
+async function syncToInquiry(id) {
+  if (!confirm('确认将配置表数据同步到关联的询价单？')) return;
+  try {
+    const res = await fetch(`${API}/${id}/sync-to-inquiry`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) { alert('同步成功！询价单数据已更新。'); } else { alert(data.error || '同步失败'); }
+  } catch (e) { alert('网络错误'); }
+}
+
+// ===== 删除 =====
+async function deleteConfig(id) {
+  if (!confirm('确认删除此配置表？')) return;
+  try {
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+    if (res.ok) { loadConfigs(currentPage); } else { alert('删除失败'); }
+  } catch (e) { alert('网络错误'); }
+}
+
+// ===== 导入 =====
+function showImportModal() { openModal('importModal'); }
+
+async function handleImportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const preview = document.getElementById('importPreview');
+  preview.style.display = 'block';
+  preview.innerHTML = '<div style="color:#667eea;">正在上传并解析文件...</div>';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const importRes = await fetch(`${API}/import-xlsx`, { method: 'POST', body: formData });
+    const importData = await importRes.json();
+    if (importRes.ok) {
+      preview.innerHTML = `<div style="color:#27ae60;">导入成功！型号：${importData.model}，ID：${importData.id}</div>
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="closeModal('importModal');loadConfigs(1);">查看配置表</button>`;
+    } else {
+      preview.innerHTML = `<div style="color:#e74c3c;">导入失败：${importData.error}</div>`;
+    }
+  } catch (e) {
+    preview.innerHTML = `<div style="color:#e74c3c;">导入出错：${e.message}</div>`;
+  }
+  // 重置文件输入，允许再次选择同一文件
+  input.value = '';
+}
+
+// ===== 下载导入模板 =====
+function downloadTemplate() {
+  const a = document.createElement('a');
+  a.href = `${API}/template/download`;
+  a.download = '核价配置表模板.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ===== 一键导入产品配置表 =====
+function showBatchImportModal() {
+  document.getElementById('batchImportResult').style.display = 'none';
+  document.getElementById('batchImportProgress').style.display = 'none';
+  document.getElementById('batchImportFile').value = '';
+  openModal('batchImportModal');
+}
+
+async function handleBatchImportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  document.getElementById('batchImportProgress').style.display = 'block';
+  document.getElementById('batchImportResult').style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch(`${API}/batch-import-xlsx`, { method: 'POST', body: formData });
+    const data = await res.json();
+    document.getElementById('batchImportProgress').style.display = 'none';
+    document.getElementById('batchImportResult').style.display = 'block';
+
+    if (!res.ok) {
+      document.getElementById('batchImportResult').innerHTML =
+        `<div style="color:#e74c3c;padding:10px;">导入失败：${data.error}</div>`;
+      return;
+    }
+
+    let html = `<div style="padding:12px;background:#e8f5e9;border-radius:6px;margin-bottom:12px;">
+      <strong>导入完成</strong><br>
+      成功导入: <span style="color:#27ae60;font-weight:600;">${data.imported}</span> 条，
+      跳过: <span style="color:#f39c12;font-weight:600;">${data.skipped}</span> 条
+    </div>`;
+
+    // 显示详细结果
+    if (data.details && data.details.length > 0) {
+      const skippedItems = data.details.filter(d => d.status === 'skipped');
+      if (skippedItems.length > 0) {
+        html += `<div style="max-height:150px;overflow-y:auto;border:1px solid #eee;border-radius:6px;padding:8px;font-size:12px;">
+          <div style="font-weight:600;margin-bottom:4px;color:#e65100;">跳过记录：</div>`;
+        skippedItems.forEach(d => {
+          html += `<div style="color:#666;">第${d.row}行${d.model ? ' ('+d.model+')' : ''}：${d.reason}</div>`;
+        });
+        html += '</div>';
+      }
+    }
+
+    html += `<button class="btn btn-primary" style="margin-top:10px;" onclick="closeModal('batchImportModal');loadConfigs(1);">查看配置表</button>`;
+    document.getElementById('batchImportResult').innerHTML = html;
+  } catch (e) {
+    document.getElementById('batchImportProgress').style.display = 'none';
+    document.getElementById('batchImportResult').style.display = 'block';
+    document.getElementById('batchImportResult').innerHTML =
+      `<div style="color:#e74c3c;padding:10px;">导入出错：${e.message}</div>`;
+  }
+  input.value = '';
+}
+
+// ===== 单条导出 =====
+function exportXlsx(id) {
+  window.open(`${API}/${id}/export-xlsx`, '_blank');
+}
+
+// ===== 批量导出 =====
+async function batchExport() {
+  const checks = document.querySelectorAll('.row-check:checked');
+  if (checks.length === 0) { alert('请先勾选要导出的配置表'); return; }
+  const ids = Array.from(checks).map(c => Number(c.value));
+  try {
+    const res = await fetch(`${API}/export-batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (!res.ok) { alert('导出失败'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `配置表_批量导出_${ids.length}条.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) { alert('导出出错：' + e.message); }
+}
+
+// ===== 全选/取消 =====
+function toggleCheckAll(el) {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = el.checked);
+}
+
+// 初始化
+loadConfigs();
+</script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+</body>
+</html>

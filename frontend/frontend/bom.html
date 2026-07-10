@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>BOM管理</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:720px;max-width:95%;max-height:90vh;overflow:auto}
+.mb2{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:50px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-yes{background:#d4edda;color:#155724}.st-no{background:#f8d7da;color:#721c24}.st-buy{background:#cce5ff;color:#004085}.st-make{background:#fff3cd;color:#856404}.st-out{background:#f3e5f5;color:#7b1fa2}
+.tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
+.pn{display:inline-block;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;cursor:pointer}
+.row-disabled td{background:#fafafa!important;color:#bbb;text-decoration:line-through}
+.row-disabled td:first-child::before{content:"⊘ ";color:#e74c3c;font-weight:bold}
+.st-ext{background:#e3f2fd;color:#0d47a1}
+.st-manual{background:#f5f5f5;color:#666}
+.st-on{background:#d4edda;color:#155724}
+.st-off{background:#f8d7da;color:#721c24}
+.st-key{background:#fff3cd;color:#856404}
+/* 仪表盘 */
+.dash{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden}
+.dash-hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;cursor:pointer;user-select:none}
+.dash-hd h3{margin:0;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.dash-hd h3::before{content:"📊"}
+.dash-toggle{font-size:18px;transition:transform .2s}
+.dash-toggle.collapsed{transform:rotate(-90deg)}
+.dash-bd{padding:14px 16px;max-height:600px;overflow:hidden;transition:max-height .3s,padding .3s}
+.dash-bd.collapsed{max-height:0;padding:0 16px}
+.dash-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.dash-card{background:#f8f9ff;padding:10px 12px;border-radius:8px;border-left:3px solid #667eea}
+.dash-card .v{font-size:20px;font-weight:700;color:#333}
+.dash-card .l{font-size:11px;color:#888;margin-top:2px}
+.dash-card.c1{border-left-color:#667eea}
+.dash-card.c2{border-left-color:#27ae60}
+.dash-card.c3{border-left-color:#e74c3c}
+.dash-card.c4{border-left-color:#f39c12}
+.dash-card.c5{border-left-color:#17a2b8}
+.dash-card.c6{border-left-color:#764ba2}
+.dash-card.c7{border-left-color:#fd7e14}
+.dash-card.c8{border-left-color:#20c997}
+.dash-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.dash-panel{background:#fafbff;padding:10px 12px;border-radius:8px;border:1px solid #eef}
+.dash-panel h4{margin:0 0 8px;font-size:13px;color:#555;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.dash-panel h4 .hint{font-size:11px;color:#999;font-weight:normal}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px}
+.bar-row .lb{flex:0 0 90px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .bar{flex:1;height:14px;background:#eef;border-radius:7px;overflow:hidden;position:relative}
+.bar-row .fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:7px;transition:width .3s}
+.bar-row .ct{flex:0 0 50px;text-align:right;color:#999;font-weight:600}
+.top-tbl{width:100%;font-size:12px;border-collapse:collapse}
+.top-tbl th{background:transparent;color:#888;font-weight:500;padding:4px 6px;position:static;border-bottom:1px solid #eef}
+.top-tbl td{padding:4px 6px;border-bottom:1px solid #f5f5f5}
+.tag-mini{display:inline-block;padding:1px 5px;border-radius:8px;font-size:10px;background:#eef;color:#666}
+/* 时间范围工具栏 */
+.dash-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:#f8f9ff;border-radius:6px;font-size:13px}
+.dash-toolbar-label{color:#555;font-weight:600}
+.dash-sel,.dash-date{padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;background:#fff}
+.dash-date{font-family:inherit}
+.dash-btn{padding:5px 12px;border:none;border-radius:4px;background:#667eea;color:#fff;cursor:pointer;font-size:12px}
+.dash-btn:hover{background:#5568d3}
+.dash-sep{color:#999;font-size:12px}
+.dash-compare-toggle{display:flex;align-items:center;gap:4px;color:#555;font-size:12px;cursor:pointer;user-select:none;padding:4px 8px;background:#fff;border:1px solid #ddd;border-radius:4px}
+.dash-compare-toggle input{cursor:pointer}
+.dash-period-tip{margin-left:auto;color:#888;font-size:11px;font-style:italic}
+/* 数值变动标签 */
+.delta{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;font-size:11px;font-weight:600;vertical-align:middle}
+.delta-up{background:#d4edda;color:#155724}
+.delta-down{background:#f8d7da;color:#721c24}
+.delta-flat{background:#eef;color:#888}
+/* 同期对比行 */
+.dash-compare-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px;padding:10px 12px;background:linear-gradient(135deg,#fff8e1 0%,#fff3cd 100%);border-radius:8px;border:1px dashed #ffc107}
+.dash-compare-row .dash-card{background:#fff;border-left-color:#ff9800}
+.dash-compare-row .dash-card .v{color:#e65100}
+.dash-compare-row .dash-card .l{color:#bf6000}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>BOM管理</h2>
+<div style="display:flex;gap:8px">
+<button class="btn b1" onclick="openAddBom()">新增BOM</button>
+<button class="btn b2" onclick="syncFromMaterials()">从物料库同步</button>
+<button class="btn b3" onclick="syncBomFromExternal()">从外部系统同步</button>
+<button class="btn b4" onclick="ImportDropzone.open()">从Excel导入</button>
+</div>
+</div>
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('list',this)">BOM列表</button>
+<button onclick="swTab('summary',this)">订单汇总</button>
+</div>
+
+<div class="tc ac" id="tab-list">
+<div class="dash" id="bomDash">
+<div class="dash-hd" onclick="toggleDash()">
+<h3>仪表盘</h3>
+<span style="display:flex;align-items:center;gap:10px">
+<span style="font-size:12px;opacity:.85" id="dashSyncTip">—</span>
+<span class="dash-toggle" id="dashToggle">▼</span>
+</span>
+</div>
+<div class="dash-bd" id="dashBd">
+<div class="dash-toolbar">
+  <span class="dash-toolbar-label">时间范围：</span>
+  <select id="dashRange" class="dash-sel">
+    <option value="all">全部</option>
+    <option value="today">今日</option>
+    <option value="week">本周</option>
+    <option value="month">本月</option>
+    <option value="quarter">本季度</option>
+    <option value="year">本年</option>
+    <option value="custom">自定义</option>
+  </select>
+  <input type="date" id="dashStart" class="dash-date" style="display:none">
+  <span class="dash-sep" id="dashDateSep" style="display:none">至</span>
+  <input type="date" id="dashEnd" class="dash-date" style="display:none">
+  <button class="dash-btn" id="dashApplyBtn" style="display:none" onclick="loadDashboard()">应用</button>
+  <label class="dash-compare-toggle">
+    <input type="checkbox" id="dashCompare"> 同期对比
+  </label>
+  <span class="dash-period-tip" id="dashPeriodTip">全部数据</span>
+</div>
+<div class="dash-row" id="dashRow1"></div>
+<div class="dash-compare-row" id="dashCompareRow" style="display:none"></div>
+<div class="dash-charts" id="dashCharts"></div>
+</div>
+</div>
+<div class="sb">
+<input type="text" id="bomKw" placeholder="搜索产品代码/物料名称" style="width:200px" onkeydown="if(event.key==='Enter')loadBom(1)">
+<select id="bomMatType"><option value="">物料类型</option><option value="外购">外购</option><option value="委外加工">委外加工</option><option value="自制">自制</option></select>
+<select id="bomCls"><option value="">物料分类</option><option value="结构类物料">结构类物料</option><option value="电子类物料">电子类物料</option><option value="包材类物料">包材类物料</option><option value="附件类物料">附件类物料</option></select>
+<select id="bomStatus"><option value="">使用状态</option><option value="使用中">使用中</option><option value="停用">停用</option></select>
+<select id="bomKey"><option value="">关键部件</option><option value="1">关键</option><option value="0">非关键</option></select>
+<select id="bomLevel"><option value="">层级</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+<select id="bomSource"><option value="">数据来源</option><option value="external_sync">外部同步</option><option value="manual">手工/导入</option></select>
+<select id="bomEnabled"><option value="">启用状态</option><option value="1">已启用</option><option value="0">已禁用</option></select>
+<button class="btn b1" onclick="loadBom(1)">搜索</button>
+<button class="btn" onclick="resetBomFilter()" style="background:#f0f0f0;color:#666">重置</button>
+<span style="margin-left:auto">共 <b id="bomTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>产品代码</th><th>产品名称</th><th>层级</th><th>物料代码</th><th>物料名称</th><th>规格</th><th>单位</th><th>数量</th><th>物料类型</th><th>关键部件</th><th>单位成本</th><th>金额</th><th>来源</th><th>状态</th><th>操作</th>
+</tr></thead><tbody id="bomTb"><tr><td colspan="15" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="bomPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<div class="tc" id="tab-summary">
+<div class="sg" id="sumStats"></div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>产品代码</th><th>产品名称</th><th>BOM物料数</th><th>BOM总额</th><th>关键部件数</th><th>订单号</th><th>订单数量</th><th>订单金额</th>
+</tr></thead><tbody id="sumTb"><tr><td colspan="8" class="em">暂无数据</td></tr></tbody></table>
+</div>
+</div>
+</div>
+
+<div class="mo" id="bomMo"><div class="mb">
+<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+<h3 id="bomMoTi">BOM详情</h3>
+<span onclick="document.getElementById('bomMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span>
+</div>
+<div id="bomMoBody"></div>
+</div></div>
+
+<div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
+
+<div id="import-dropzone-container"></div>
+
+<script src="import-dropzone.js"></script>
+<script>
+const API='/api/bom';
+let bomPage=1;
+let dashCollapsed=localStorage.getItem('bomDashCollapsed')==='1';
+
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');
+  document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='list'){loadBom(1);loadDashboard();}
+  else if(name==='summary')loadSummary();
+}
+
+// 仪表盘 收起/展开
+function toggleDash(){
+  dashCollapsed=!dashCollapsed;
+  document.getElementById('dashBd').classList.toggle('collapsed',dashCollapsed);
+  document.getElementById('dashToggle').classList.toggle('collapsed',dashCollapsed);
+  localStorage.setItem('bomDashCollapsed',dashCollapsed?'1':'0');
+}
+
+// 时间范围切换处理
+function onDashRangeChange(){
+  const v = document.getElementById('dashRange').value;
+  const showCustom = v === 'custom';
+  document.getElementById('dashStart').style.display = showCustom ? '' : 'none';
+  document.getElementById('dashEnd').style.display = showCustom ? '' : 'none';
+  document.getElementById('dashDateSep').style.display = showCustom ? '' : 'none';
+  document.getElementById('dashApplyBtn').style.display = showCustom ? '' : 'none';
+  if (!showCustom) {
+    document.getElementById('dashCompare').checked = false;
+    document.getElementById('dashCompareRow').style.display = 'none';
+    loadDashboard();
+  }
+}
+
+// 根据当前选择计算时间范围
+function getDashDateRange(){
+  const v = document.getElementById('dashRange').value;
+  const today = new Date();
+  today.setHours(23,59,59,999);
+  const startOfDay = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+  const fmt = d => { const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; };
+  let start, end;
+  if (v === 'today') {
+    start = startOfDay(today); end = today;
+  } else if (v === 'week') {
+    const ws = new Date(today); ws.setDate(today.getDate() - today.getDay());
+    start = startOfDay(ws); end = today;
+  } else if (v === 'month') {
+    start = new Date(today.getFullYear(), today.getMonth(), 1); end = today;
+  } else if (v === 'quarter') {
+    const q = Math.floor(today.getMonth() / 3) * 3;
+    start = new Date(today.getFullYear(), q, 1); end = today;
+  } else if (v === 'year') {
+    start = new Date(today.getFullYear(), 0, 1); end = today;
+  } else if (v === 'custom') {
+    const s = document.getElementById('dashStart').value;
+    const e = document.getElementById('dashEnd').value;
+    if (s) start = startOfDay(new Date(s));
+    if (e) { end = new Date(e); end.setHours(23,59,59,999); }
+  } else {
+    return { start: null, end: null };
+  }
+  return { start: start ? fmt(start) : null, end: end ? fmt(end) : null };
+}
+
+function renderDelta(delta, fmt){
+  if (delta === null || delta === undefined) return '';
+  const sign = delta > 0 ? '+' : '';
+  return fmt ? `${sign}${fmt(delta)}` : `${sign}${delta}`;
+}
+
+function deltaClass(v){
+  if (v > 0) return 'delta delta-up';
+  if (v < 0) return 'delta delta-down';
+  return 'delta delta-flat';
+}
+
+// 加载仪表盘数据
+async function loadDashboard(){
+  try{
+    const { start, end } = getDashDateRange();
+    const compareEnabled = document.getElementById('dashCompare').checked;
+    const qs = new URLSearchParams();
+    if (start) qs.set('start', start);
+    if (end) qs.set('end', end);
+    if (compareEnabled) qs.set('compare', '1');
+
+    // 时间提示
+    const tipEl = document.getElementById('dashPeriodTip');
+    if (!start && !end) {
+      tipEl.textContent = '全部数据';
+    } else {
+      tipEl.textContent = `${start || '起始不限'} ~ ${end || '至今'}`;
+    }
+
+    const r=await fetch(API+'/dashboard?'+qs);
+    const d=await r.json();
+
+    // 顶部统计卡（带变动标签）
+    const cmp = d.compare;
+    const dlt = cmp ? cmp.delta : null;
+    document.getElementById('dashRow1').innerHTML=`
+      <div class="dash-card c1"><div class="v">${formatNum(d.total||0)}${dlt?`<span class="${deltaClass(dlt.total)}" title="较上期">${renderDelta(dlt.total)}</span>`:''}</div><div class="l">BOM总行数</div></div>
+      <div class="dash-card c2"><div class="v">${formatNum(d.enabled||0)} (${pct(d.enabled,d.total)})</div><div class="l">已启用${dlt?`<span class="${deltaClass(dlt.enabled)}">${renderDelta(dlt.enabled)}</span>`:''}</div></div>
+      <div class="dash-card c3"><div class="v">${formatNum(d.disabled||0)} (${pct(d.disabled,d.total)})</div><div class="l">已禁用${dlt?`<span class="${deltaClass(dlt.disabled)}">${renderDelta(dlt.disabled)}</span>`:''}</div></div>
+      <div class="dash-card c4"><div class="v">${formatNum(d.key_part_count||0)}${dlt?`<span class="${deltaClass(dlt.key_part_count)}">${renderDelta(dlt.key_part_count)}</span>`:''}</div><div class="l">关键部件数</div></div>
+      <div class="dash-card c5"><div class="v">¥${formatNum(d.total_amount||0)}${dlt?`<span class="${deltaClass(dlt.total_amount)}">${dlt.total_amount_pct!==null?renderDelta(dlt.total_amount_pct,v=>v.toFixed(1)+'%'):renderDelta(dlt.total_amount,v=>'¥'+formatNum(v))}</span>`:''}</div><div class="l">金额合计</div></div>
+      <div class="dash-card c6"><div class="v">${formatNum(d.summary_count||0)}</div><div class="l">订单汇总产品</div></div>
+      <div class="dash-card c7"><div class="v">${formatNum(d.order_count||0)}</div><div class="l">关联订单数</div></div>
+    `;
+
+    // 同期对比行（橙色面板）
+    if (cmp) {
+      const cmpPeriod = cmp.period ? `${(cmp.period.start||'').substring(0,10)} ~ ${(cmp.period.end||'').substring(0,10)}` : '上一时段';
+      document.getElementById('dashCompareRow').style.display = '';
+      document.getElementById('dashCompareRow').innerHTML = `
+        <div style="grid-column:1/-1;font-size:12px;color:#bf6000;margin-bottom:4px">📊 同期对比：${cmpPeriod}</div>
+        <div class="dash-card"><div class="v">${formatNum(cmp.total||0)}</div><div class="l">上期 BOM行数</div></div>
+        <div class="dash-card"><div class="v">${formatNum(cmp.enabled||0)}</div><div class="l">上期 已启用</div></div>
+        <div class="dash-card"><div class="v">${formatNum(cmp.disabled||0)}</div><div class="l">上期 已禁用</div></div>
+        <div class="dash-card"><div class="v">${formatNum(cmp.key_part_count||0)}</div><div class="l">上期 关键部件</div></div>
+        <div class="dash-card"><div class="v">¥${formatNum(cmp.total_amount||0)}</div><div class="l">上期 金额</div></div>
+        <div class="dash-card"><div class="v">${formatNum((cmp.source_distribution||[])[0]?.count||0)}</div><div class="l">上期 外部同步</div></div>
+        <div class="dash-card"><div class="v">${formatNum((cmp.source_distribution||[])[1]?.count||0)}</div><div class="l">上期 手工/导入</div></div>
+      `;
+    } else {
+      document.getElementById('dashCompareRow').style.display = 'none';
+    }
+
+    // 图表区
+    const srcDist=d.source_distribution||[];
+    const srcMax=Math.max(1,...srcDist.map(s=>s.count));
+    const matTypes=d.material_types||[];
+    const matMax=Math.max(1,...matTypes.map(s=>s.count));
+    const levels=d.levels||[];
+    const levelMax=Math.max(1,...levels.map(s=>s.count));
+    const topProducts=d.top_products||[];
+
+    document.getElementById('dashCharts').innerHTML=`
+      <div class="dash-panel">
+        <h4>数据来源分布 <span class="hint">同步/手工/其他</span></h4>
+        ${srcDist.length?srcDist.map(s=>`<div class="bar-row">
+          <span class="lb">${s.name}</span>
+          <span class="bar"><span class="fill" style="width:${(s.count/srcMax*100).toFixed(1)}%;background:${s.key==='external_sync'?'linear-gradient(90deg,#17a2b8,#138496)':s.key==='manual'?'linear-gradient(90deg,#667eea,#764ba2)':'linear-gradient(90deg,#999,#666)'}"></span></span>
+          <span class="ct">${s.count}</span>
+        </div>`).join(''):'<div style="color:#999;font-size:12px;text-align:center;padding:10px">暂无数据</div>'}
+      </div>
+      <div class="dash-panel">
+        <h4>物料类型分布 <span class="hint">Top ${matTypes.length}</span></h4>
+        ${matTypes.length?matTypes.map(s=>`<div class="bar-row">
+          <span class="lb" title="${s.name}">${s.name}</span>
+          <span class="bar"><span class="fill" style="width:${(s.count/matMax*100).toFixed(1)}%"></span></span>
+          <span class="ct">${s.count}</span>
+        </div>`).join(''):'<div style="color:#999;font-size:12px;text-align:center;padding:10px">暂无数据</div>'}
+      </div>
+      <div class="dash-panel">
+        <h4>层级分布 <span class="hint">BOM深度</span></h4>
+        ${levels.length?levels.map(s=>`<div class="bar-row">
+          <span class="lb">第 ${s.level} 层</span>
+          <span class="bar"><span class="fill" style="width:${(s.count/levelMax*100).toFixed(1)}%;background:linear-gradient(90deg,#27ae60,#2ecc71)"></span></span>
+          <span class="ct">${s.count}</span>
+        </div>`).join(''):'<div style="color:#999;font-size:12px;text-align:center;padding:10px">暂无数据</div>'}
+      </div>
+      <div class="dash-panel" style="grid-column:span 2">
+        <h4>Top 10 产品（按BOM行数） <span class="hint">物料数 / 金额</span></h4>
+        ${topProducts.length?`<table class="top-tbl"><thead><tr>
+          <th style="width:24%">产品代码</th><th>产品名称</th><th style="width:60px">行数</th><th style="width:90px">金额</th><th style="width:60px">标识</th>
+        </tr></thead><tbody>${topProducts.map(p=>`<tr>
+          <td><b>${p.product_code||'-'}</b></td>
+          <td title="${p.product_name}">${(p.product_name||'').substring(0,18)||'-'}</td>
+          <td>${p.count}</td>
+          <td>${p.total?'¥'+formatNum(p.total):'-'}</td>
+          <td>${p.has_external?'<span class="tag-mini" style="background:#e3f2fd;color:#0d47a1">外</span>':''}${p.has_disabled?'<span class="tag-mini" style="background:#f8d7da;color:#721c24">禁</span>':''}</td>
+        </tr>`).join('')}</tbody></table>`:'<div style="color:#999;font-size:12px;text-align:center;padding:10px">暂无数据</div>'}
+      </div>
+    `;
+
+    // 同步时间提示
+    document.getElementById('dashSyncTip').textContent = d.last_external_sync_at ? `最近外部同步：${d.last_external_sync_at}` : '尚无外部同步';
+  }catch(e){console.error('仪表盘加载失败:',e)}
+}
+
+function pct(a,b){return b?`${(a/b*100).toFixed(1)}%`:'0%'}
+function formatNum(n){return Math.round(n).toLocaleString()}
+
+async function loadBom(page){
+  bomPage=page||1;
+  const p=new URLSearchParams({page:bomPage,limit:50});
+  const kw=document.getElementById('bomKw').value,mt=document.getElementById('bomMatType').value;
+  const cls=document.getElementById('bomCls').value,st=document.getElementById('bomStatus').value;
+  const kp=document.getElementById('bomKey').value,lv=document.getElementById('bomLevel').value;
+  const src=document.getElementById('bomSource').value,en=document.getElementById('bomEnabled').value;
+  if(kw)p.set('keyword',kw);if(mt)p.set('material_type',mt);
+  if(cls)p.set('classification',cls);if(st)p.set('status',st);
+  if(kp)p.set('key_part',kp);if(lv)p.set('level',lv);
+  if(src)p.set('data_source',src);if(en!=='')p.set('enabled',en);
+  try{
+    const r=await fetch(API+'?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('bomTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('bomTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="15" class="em">暂无BOM数据</td></tr>';renderPg('bomPg',total,bomPage,loadBom);return}
+    tb.innerHTML=recs.map(m=>{
+      const isDisabled=String(m.is_disabled)==='1'||m.is_disabled===true;
+      const isExt=m.source==='external_sync';
+      return `<tr class="${isDisabled?'row-disabled':''}">
+      <td><b>${m.product_code||'-'}</b></td>
+      <td>${(m.product_name||'').substring(0,16)}</td>
+      <td>${m.level||1}</td>
+      <td>${m.material_code||'-'}</td>
+      <td>${(m.material_name||'').substring(0,16)}</td>
+      <td>${(m.spec||'').substring(0,15)}</td>
+      <td>${m.unit||'-'}</td>
+      <td>${m.quantity||0}</td>
+      <td>${renderMatType(m.material_attr||m.classification)}</td>
+      <td>${m.key_part?'<span class="badge st-key">关键</span>':'<span class="badge">普通</span>'}</td>
+      <td>${m.unit_price?'¥'+Number(m.unit_price).toFixed(2):'-'}</td>
+      <td>${m.amount?'¥'+Number(m.amount).toFixed(2):'-'}</td>
+      <td>${isExt?'<span class="badge st-ext">外部同步</span>':'<span class="badge st-manual">手工</span>'}</td>
+      <td>${isDisabled?'<span class="badge st-off">禁用</span>':'<span class="badge st-on">启用</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="openBomDtl(${m.id})">详情</button>
+        <button class="btn bs b4" onclick="openEditBom(${m.id})">编辑</button>
+        <button class="btn bs ${isDisabled?'b2':'b3'}" onclick="toggleDisabledBom(${m.id})">${isDisabled?'启用':'禁用'}</button>
+        <button class="btn bs" style="background:#999;color:#fff" onclick="delBom(${m.id})">删</button>
+      </td>
+    </tr>`}).join('');
+    renderPg('bomPg',total,bomPage,loadBom);
+  }catch(e){console.error(e)}
+}
+
+function resetBomFilter(){
+  ['bomKw','bomMatType','bomCls','bomStatus','bomKey','bomLevel','bomSource','bomEnabled'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el.tagName==='INPUT')el.value='';else el.selectedIndex=0;
+  });
+  loadBom(1);
+}
+
+function renderMatType(t){
+  if(t==='外购')return '<span class="badge st-buy">外购</span>';
+  if(t==='自制')return '<span class="badge st-make">自制</span>';
+  if(t==='委外加工')return '<span class="badge st-out">委外加工</span>';
+  return '<span class="badge">'+((t||'').substring(0,6)||'-')+'</span>';
+}
+
+function renderPg(elId,total,page,fn){
+  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  if(pages<=1){el.innerHTML='';return}
+  let h='';
+  if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
+  for(let i=Math.max(1,page-2);i<=Math.min(pages,page+2);i++)h+=`<button class="btn bs ${i===page?'b1':''}" onclick="${fn.name}(${i})">${i}</button> `;
+  if(page<pages)h+=`<button class="btn bs" onclick="${fn.name}(${page+1})">下一页</button>`;
+  el.innerHTML=h;
+}
+
+async function openBomDtl(id){
+  try{
+    const r=await fetch(API+'/'+id);const m=await r.json();
+    const isExt=m.source==='external_sync';
+    const isDisabled=String(m.is_disabled)==='1'||m.is_disabled===true;
+    document.getElementById('bomMoTi').textContent='BOM详情 - '+(m.material_name||'');
+    document.getElementById('bomMoBody').innerHTML=`
+      <table style="width:100%;font-size:13px;margin-bottom:14px">
+        ${df('产品代码',m.product_code)}
+        ${df('产品名称',m.product_name)}
+        ${df('层级',m.level)}
+        ${df('物料代码',m.material_code)}
+        ${df('物料名称',m.material_name)}
+        ${df('规格',m.spec)}
+        ${df('辅助属性',m.aux_attr)}
+        ${df('单位',m.unit)}
+        ${df('数量',m.quantity)}
+        ${df('物料类型',m.material_attr||m.classification)}
+        ${df('关键部件',m.key_part?'是':'否')}
+        ${df('使用状态',m.use_status)}
+        ${df('数据来源',isExt?'<span class="badge st-ext">外部同步</span>':'<span class="badge st-manual">手工/导入</span>')}
+        ${df('启用状态',isDisabled?'<span class="badge st-off">禁用</span>':'<span class="badge st-on">启用</span>')}
+        ${df('单位成本',m.unit_price?'¥'+Number(m.unit_price).toFixed(2):'-')}
+        ${df('金额',m.amount?'¥'+Number(m.amount).toFixed(2):'-')}
+        ${df('总金额',m.total?'¥'+Number(m.total).toFixed(2):'-')}
+      </table>
+      <div style="text-align:right;margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn ${isDisabled?'b2':'b3'}" onclick="toggleDisabledBom(${m.id});document.getElementById('bomMo').classList.remove('ac')">${isDisabled?'启用':'禁用'}</button>
+        <button class="btn b4" onclick="openEditBom(${m.id})">编辑</button>
+        <button class="btn" style="background:#999;color:#fff" onclick="delBom(${m.id})">删除</button>
+      </div>
+    `;
+    document.getElementById('bomMo').classList.add('ac');
+  }catch(e){alert('加载失败: '+e.message)}
+}
+function df(l,v){return`<tr><td style="color:#999;width:100px;padding:4px 8px">${l}</td><td style="padding:4px 8px">${v||'-'}</td></tr>`}
+
+function openAddBom(){
+  const fields=[
+    ['product_code','产品代码','text'],['product_name','产品名称','text'],['level','层级','number'],
+    ['material_code','物料代码','text'],['material_name','物料名称','text'],['spec','规格','text'],
+    ['aux_attr','辅助属性','text'],['unit','单位','text'],['quantity','数量','number'],
+    ['material_attr','物料类型','select:外购,委外加工,自制'],['key_part','关键部件','select:0,1'],
+    ['use_status','使用状态','select:使用中,停用'],['is_disabled','是否禁用','select:0,1'],
+    ['unit_price','单位成本','number'],['amount','金额','number'],['total','总金额','number']
+  ];
+  openForm('新增BOM',fields,{level:1,quantity:1,key_part:'0',is_disabled:'0',use_status:'使用中'},async(data)=>{
+    await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');loadBom(bomPage);loadDashboard();
+  });
+}
+async function openEditBom(id){
+  try{
+    const r=await fetch(API+'/'+id);const m=await r.json();
+    const fields=[
+      ['product_code','产品代码','text'],['product_name','产品名称','text'],['level','层级','number'],
+      ['material_code','物料代码','text'],['material_name','物料名称','text'],['spec','规格','text'],
+      ['aux_attr','辅助属性','text'],['unit','单位','text'],['quantity','数量','number'],
+      ['material_attr','物料类型','select:外购,委外加工,自制'],['key_part','关键部件','select:0,1'],
+      ['use_status','使用状态','select:使用中,停用'],['is_disabled','是否禁用','select:0,1'],
+      ['unit_price','单位成本','number'],['amount','金额','number'],['total','总金额','number']
+    ];
+    openForm('编辑BOM',fields,m,async(data)=>{
+      await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');loadBom(bomPage);loadDashboard();
+    });
+  }catch(e){alert('加载失败')}
+}
+async function toggleDisabledBom(id){
+  try{
+    const r=await fetch(API+'/'+id+'/toggle-disabled',{method:'PUT'});
+    const d=await r.json();
+    loadBom(bomPage);loadDashboard();
+  }catch(e){alert('操作失败: '+e.message)}
+}
+async function delBom(id){
+  if(!confirm('确定删除此BOM记录？'))return;
+  await fetch(API+'/'+id,{method:'DELETE'});
+  loadBom(bomPage);loadDashboard();
+}
+
+async function syncFromMaterials(){
+  if(!confirm('从物料库同步BOM？将匹配产品代码关联物料'))return;
+  try{
+    const r=await fetch(API+'/sync-from-materials',{method:'POST'});
+    const d=await r.json();
+    alert(d.message||'同步完成');
+    loadBom(bomPage);
+  }catch(e){alert('同步失败: '+e.message)}
+}
+
+async function syncBomFromExternal(){
+  if(!confirm('从外部数据供给系统同步BOM明细？\n\n按 bom_no + 物料代码 去重，已存在则更新。\n默认拉取10000行（可在弹窗等待，数据量大耗时较长）。'))return;
+  try{
+    const r=await fetch('/api/external-sync/sync-boms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({max_pages:50})});
+    const d=await r.json();
+    if(r.ok){alert(d.message||'同步完成');loadBom(bomPage);loadDashboard();}else{alert(d.error||'同步失败');}
+  }catch(e){alert('同步失败: '+e.message)}
+}
+
+async function loadSummary(){
+  try{
+    const r=await fetch(API+'/order-summary');const d=await r.json();
+    const recs=d.data||[];
+    document.getElementById('sumTb').innerHTML=recs.length?recs.map(o=>`<tr>
+      <td><b>${o.product_code||'-'}</b></td><td>${(o.product_name||'').substring(0,16)}</td>
+      <td>${o.bom_count||0}</td><td>${o.bom_total?'¥'+Number(o.bom_total).toFixed(2):'-'}</td>
+      <td>${o.key_part_count||0}</td><td>${o.order_no||'-'}</td>
+      <td>${o.order_qty||0}</td><td>${o.order_amount?'¥'+Number(o.order_amount).toFixed(2):'-'}</td>
+    </tr>`).join(''):'<tr><td colspan="8" class="em">暂无数据</td></tr>';
+    document.getElementById('sumStats').innerHTML=`
+      <div class="sc"><div class="n">${d.total||0}</div><div class="l">关联订单数</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${d.products||0}</div><div class="l">产品数</div></div>
+      <div class="sc"><div class="n" style="color:#e67e22">${d.bom_items||0}</div><div class="l">BOM物料总数</div></div>
+      <div class="sc"><div class="n">¥${Math.round(d.total_amount||0).toLocaleString()}</div><div class="l">订单总额</div></div>
+    `;
+  }catch(e){console.error(e)}
+}
+
+function openForm(title,fields,data,onSave){
+  const box=document.getElementById('gMoBox');
+  let html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${title}</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>`;
+  html+='<div style="max-height:60vh;overflow-y:auto;padding-right:6px">';
+  let i=0;
+  while(i<fields.length){
+    const [key,label,type]=fields[i];
+    if(type==='textarea'){
+      html+=`<div class="fg"><label>${label}</label><textarea id="ff_${key}">${data[key]||''}</textarea></div>`;
+      i++;
+    }else{
+      const next=fields[i+1];
+      if(next&&next[2]!=='textarea'){
+        html+='<div class="gr">'+renderField(fields[i],data)+renderField(next,data)+'</div>';
+        i+=2;
+      }else{
+        html+='<div class="gr">'+renderField(fields[i],data)+'</div>';
+        i++;
+      }
+    }
+  }
+  html+='</div><div style="text-align:right;margin-top:12px"><button class="btn b2" id="ffSave">保存</button></div>';
+  box.innerHTML=html;
+  document.getElementById('gMo').classList.add('ac');
+  document.getElementById('ffSave').onclick=()=>{
+    const d={};
+    fields.forEach(([key,,type])=>{
+      const el=document.getElementById('ff_'+key);
+      if(!el)return;
+      d[key]=type==='number'?Number(el.value)||0:el.value;
+    });
+    onSave(d);
+  };
+}
+function renderField([key,label,type],data){
+  const val=data[key]||'';
+  if(type.startsWith('select:')){
+    const opts=type.substring(7).split(',');
+    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val==o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  }
+  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}">`;
+}
+
+ImportDropzone.init('import-dropzone-container','bom',function(){loadBom(1);loadDashboard();});
+if(dashCollapsed){document.getElementById('dashBd').classList.add('collapsed');document.getElementById('dashToggle').classList.add('collapsed');}
+// 仪表盘控件事件绑定
+document.getElementById('dashRange').addEventListener('change', onDashRangeChange);
+document.getElementById('dashCompare').addEventListener('change', loadDashboard);
+document.getElementById('dashStart').addEventListener('change', loadDashboard);
+document.getElementById('dashEnd').addEventListener('change', loadDashboard);
+loadBom(1);
+loadDashboard();
+</script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

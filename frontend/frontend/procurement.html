@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>采购管理</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:820px;max-width:95%;max-height:90vh;overflow:auto}
+.mb2{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-pending{background:#fff3cd;color:#856404}.st-in_order{background:#d1ecf1;color:#0c5460}
+.st-ordered{background:#cce5ff;color:#004085}.st-received{background:#d4edda;color:#155724}
+.st-cancelled{background:#f8d7da;color:#721c24}.st-draft{background:#e2e3e5;color:#383d41}
+.st-submitted{background:#d1ecf1;color:#0c5460}.st-closed{background:#d4edda;color:#155724}
+.tbl-wrap{overflow-x:auto;max-height:62vh;overflow-y:auto}
+td.ed{cursor:text;border:1px dashed transparent}
+td.ed:hover{border-color:#d0d7ff;background:#f8f9ff}
+td.ed input{width:100%;padding:5px 7px;border:none;font-size:13px;background:#fffaf0;outline:1px solid #667eea}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:12px}
+.dash-card{background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.dash-card h4{margin:0 0 8px;font-size:12px;color:#888;font-weight:600}
+.mini-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px dashed #f0f0f0}
+.mini-row:last-child{border-bottom:none}
+.mini-row b{color:#333}
+.supp-card{background:#fff;border:1px solid #eee;border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.toast{position:fixed;bottom:20px;right:20px;background:#333;color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;z-index:2000;opacity:0;transition:opacity .3s;max-width:380px}
+.toast.ac{opacity:1}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="procurement">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+<h2>采购管理</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<a class="btn bs" href="material.html" style="background:#eee;text-decoration:none">← 返回物料库</a>
+<button class="btn b1" onclick="runScan(false)">🔍 立即扫描到期</button>
+<button class="btn b2" onclick="generateOrders()">📦 生成采购单</button>
+<button class="btn b4" onclick="syncPurchaseOrdersFromExternal()">📥 从外部同步</button>
+</div>
+</div>
+
+<div class="dash-panel">
+<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>📊 采购即时仪表盘</span><span class="dash-arrow">▼</span></div>
+<div class="dash-body">
+<div class="sg" id="pStats"></div>
+<div class="dash-grid" id="pInsight"></div>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('req',this)">采购需求</button>
+<button onclick="swTab('order',this)">采购单</button>
+<button onclick="swTab('due',this)">到期预警</button>
+</div>
+
+<div class="tc ac" id="tab-req">
+<div class="sb">
+<input type="text" id="rKw" placeholder="搜索需求号/物料/供应商" style="width:220px" onkeydown="if(event.key==='Enter')loadRequests()">
+<select id="rStat"><option value="">全部状态</option>
+<option value="pending">待处理</option><option value="in_order">已纳入采购单</option>
+<option value="ordered">已下单</option><option value="received">已收货</option><option value="cancelled">已取消</option></select>
+<select id="rSupp"><option value="">全部供应商</option></select>
+<button class="btn b1" onclick="loadRequests()">搜索</button>
+<label style="font-size:12px;color:#666;display:flex;align-items:center;gap:4px"><input type="checkbox" id="rAll" onchange="toggleAllReq(this)"> 全选当页</label>
+<span style="margin-left:auto">已选 <b id="rSel">0</b> · 共 <b id="rTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table id="reqTable"><thead><tr>
+<th></th><th>需求号</th><th>物料代码</th><th>物料名称</th><th>供应商</th><th>数量</th><th>单位成本</th><th>金额</th><th>应到日期</th><th>状态</th><th>来源</th><th>操作</th>
+</tr></thead><tbody id="rTb"><tr><td colspan="12" class="em">暂无数据</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="tc" id="tab-order">
+<div class="sb">
+<input type="text" id="oKw" placeholder="搜索采购单号/供应商" style="width:220px" onkeydown="if(event.key==='Enter')loadOrders()">
+<select id="oStat"><option value="">全部状态</option>
+<option value="draft">草稿</option><option value="submitted">已提交</option><option value="ordered">已下单</option>
+<option value="received">已收货</option><option value="closed">已关闭</option><option value="cancelled">已取消</option></select>
+<button class="btn b1" onclick="loadOrders()">搜索</button>
+<span style="margin-left:auto">共 <b id="oTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>采购单号</th><th>供应商</th><th>物料数</th><th>总数量</th><th>总金额</th><th>状态</th><th>创建时间</th><th>操作</th>
+</tr></thead><tbody id="oTb"><tr><td colspan="8" class="em">暂无采购单</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="tc" id="tab-due">
+<div class="sb"><span style="color:#666">以下物料已到/超过采购周期，可点击「立即扫描到期」生成采购需求</span></div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>物料代码</th><th>物料名称</th><th>供应商</th><th>下次采购日</th><th>逾期天数</th><th>建议采购量</th><th>操作</th>
+</tr></thead><tbody id="dTb"><tr><td colspan="7" class="em">暂无到期物料</td></tr></tbody></table>
+</div>
+</div>
+</div>
+
+<div class="mo" id="dMo"><div class="mb2" id="dMoBox"></div></div>
+<div class="mo" id="oMo"><div class="mb" id="oMoBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API='/api/procurement';
+const STAT={'pending':'待处理','in_order':'已纳入采购单','ordered':'已下单','received':'已收货','cancelled':'已取消','draft':'草稿','submitted':'已提交','closed':'已关闭'};
+let selectedReq=new Set();
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('ac');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('ac'),3000)}
+
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='req')loadRequests();else if(name==='order')loadOrders();else loadDue();
+}
+
+async function loadDashboard(){
+  try{
+    const r=await fetch(API+'/dashboard');const d=await r.json();
+    document.getElementById('pStats').innerHTML=`
+      <div class="sc"><div class="n">${d.procurement_enabled||0}</div><div class="l">周期采购启用</div></div>
+      <div class="sc"><div class="n" style="color:#e74c3c">${d.due_count||0}</div><div class="l">到期待采购</div></div>
+      <div class="sc"><div class="n" style="color:#f39c12">${d.pending_requests||0}</div><div class="l">待处理需求</div></div>
+      <div class="sc"><div class="n" style="color:#856404">¥${(d.pending_amount||0).toLocaleString()}</div><div class="l">待处理金额</div></div>
+      <div class="sc"><div class="n" style="color:#667eea">${d.open_orders||0}</div><div class="l">进行中采购单</div></div>
+      <div class="sc"><div class="n" style="color:#16a085">¥${(d.open_orders_amount||0).toLocaleString()}</div><div class="l">进行中金额</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${d.received_requests||0}</div><div class="l">已收货需求</div></div>`;
+    const dueList=(d.due_items||[]).slice(0,6).map(m=>
+      `<div class="mini-row"><span>${esc(m.material_code)} ${esc((m.material_name||'').substring(0,10))}</span><b style="color:${m.overdue_days>0?'#e74c3c':'#856404'}">${m.overdue_days>0?'逾期'+m.overdue_days+'天':'今日到期'}</b></div>`).join('')||'<div class="mini-row" style="color:#999">暂无到期</div>';
+    const groups=(d.supplier_groups||[]).slice(0,6).map(g=>
+      `<div class="mini-row"><span>${esc(g.supplier)}</span><span style="color:#666">${g.items}项 / <b>¥${g.amount.toLocaleString()}</b></span></div>`).join('')||'<div class="mini-row" style="color:#999">暂无待处理需求</div>';
+    document.getElementById('pInsight').innerHTML=`
+      <div class="dash-card"><h4>⏰ 到期采购（即时）</h4>${dueList}</div>
+      <div class="dash-card"><h4>🏭 供应商待处理汇总（可生成采购单）</h4>${groups}</div>`;
+    // 同步供应商筛选下拉
+    const ss=document.getElementById('rSupp');
+    const cur=ss.value;
+    ss.innerHTML='<option value="">全部供应商</option>'+(d.supplier_groups||[]).map(g=>`<option value="${esc(g.supplier)}">${esc(g.supplier)}</option>`).join('');
+    ss.value=cur;
+  }catch(e){console.error(e)}
+}
+
+async function runScan(silent){
+  try{
+    const r=await fetch(API+'/scan',{method:'POST'});const d=await r.json();
+    if(!silent)toast(d.message||'扫描完成');
+    else if(d.generated>0)toast('已自动扫描生成 '+d.generated+' 条采购需求');
+    loadDashboard();loadRequests();loadDue();
+    return d;
+  }catch(e){if(!silent)alert('扫描失败: '+e.message)}
+}
+
+async function loadRequests(){
+  const p=new URLSearchParams({page:1,limit:200});
+  const kw=document.getElementById('rKw').value,st=document.getElementById('rStat').value,sup=document.getElementById('rSupp').value;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(sup)p.set('supplier',sup);
+  try{
+    const r=await fetch(API+'/requests?'+p);const d=await r.json();
+    const recs=d.data||[],tb=document.getElementById('rTb');
+    document.getElementById('rTc').textContent=d.total||0;
+    if(!recs.length){tb.innerHTML='<tr><td colspan="12" class="em">暂无采购需求</td></tr>';updateSelCount();return}
+    tb.innerHTML=recs.map(r=>{
+      const chk=selectedReq.has(r.id)?'checked':'';
+      const canEdit=r.status==='pending';
+      return`<tr>
+      <td><input type="checkbox" class="rchk" data-id="${r.id}" ${chk} ${canEdit?'':'disabled'} onchange="toggleReq(${r.id},this.checked)"></td>
+      <td><b>${esc(r.request_no)}</b></td>
+      <td>${esc(r.material_code)}</td>
+      <td>${esc((r.material_name||'').substring(0,16))}</td>
+      <td>${esc(r.supplier||'-')}</td>
+      <td class="${canEdit?'ed':''}" ${canEdit?`data-edit="qty" data-rid="${r.id}" data-num="${r.qty||0}"`:''}>${r.qty||0}</td>
+      <td>¥${Number(r.standard_cost||0).toFixed(2)}</td>
+      <td>¥${Number(r.amount||0).toLocaleString()}</td>
+      <td>${esc(r.due_date||'-')}</td>
+      <td><span class="badge st-${r.status}">${STAT[r.status]||r.status}</span></td>
+      <td>${r.source==='auto'?'自动':'手动'}</td>
+      <td style="white-space:nowrap">
+        ${canEdit?`<button class="btn bs b3" onclick="delReq(${r.id})">删除</button>`:`<button class="btn bs b1" onclick="viewReqOrder(${r.po_id})">查看单</button>`}
+      </td></tr>`}).join('');
+    attachReqEdits();updateSelCount();
+  }catch(e){console.error(e)}
+}
+
+function attachReqEdits(){
+  document.querySelectorAll('#rTb td.ed').forEach(td=>{
+    if(td.dataset.bound)return;td.dataset.bound='1';
+    td.addEventListener('dblclick',()=>startReqEdit(td));
+  });
+}
+function startReqEdit(td){
+  const rid=td.dataset.rid,cur=td.dataset.num;
+  td.innerHTML='';const inp=document.createElement('input');inp.type='number';inp.step='0.01';inp.value=cur;td.appendChild(inp);inp.focus();inp.select();
+  let done=false;
+  const save=async()=>{if(done)return;done=true;
+    try{await fetch(API+'/requests/'+rid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({qty:Number(inp.value)||0})});loadRequests();loadDashboard();}
+    catch(e){alert('保存失败');loadRequests();}
+  };
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();else if(e.key==='Escape')loadRequests();});
+}
+
+function toggleReq(id,on){if(on)selectedReq.add(id);else selectedReq.delete(id);updateSelCount();}
+function toggleAllReq(cb){
+  document.querySelectorAll('.rchk').forEach(c=>{if(!c.disabled){c.checked=cb.checked;if(cb.checked)selectedReq.add(Number(c.dataset.id));else selectedReq.delete(Number(c.dataset.id));}});
+  updateSelCount();
+}
+function updateSelCount(){document.getElementById('rSel').textContent=selectedReq.size;}
+
+async function delReq(id){
+  if(!confirm('确定删除此采购需求？'))return;
+  const r=await fetch(API+'/requests/'+id,{method:'DELETE'});const d=await r.json().catch(()=>({}));
+  if(!r.ok){alert(d.error||'删除失败');return}
+  selectedReq.delete(id);loadRequests();loadDashboard();
+}
+
+async function generateOrders(){
+  const ids=[...selectedReq];
+  if(ids.length===0){
+    if(!confirm('未勾选需求，将把全部「待处理」需求按供应商生成采购单，是否继续？'))return;
+  }
+  try{
+    const body=ids.length?{request_ids:ids}:{};
+    const r=await fetch(API+'/generate-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();if(!r.ok){alert(d.error||'生成失败');return}
+    toast(d.message||'生成成功');
+    selectedReq.clear();document.getElementById('rAll').checked=false;
+    loadDashboard();loadRequests();
+    swTab('order',document.querySelectorAll('#tabNav button')[1]);
+  }catch(e){alert('生成失败: '+e.message)}
+}
+
+async function syncPurchaseOrdersFromExternal(){
+  if(!confirm('从外部数据供给系统同步采购订单？\n\n明细行→采购需求，按采购单号(PO)汇总→采购订单。\n默认拉取8000行，耗时较长。'))return;
+  try{
+    const r=await fetch('/api/external-sync/sync-purchase-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({max_pages:40})});
+    const d=await r.json();
+    if(r.ok){alert(d.message||'同步完成');loadOrders();loadRequests();loadDashboard();}else{alert(d.error||'同步失败');}
+  }catch(e){alert('同步失败: '+e.message)}
+}
+
+async function loadOrders(){
+  const p=new URLSearchParams({page:1,limit:200});
+  const kw=document.getElementById('oKw').value,st=document.getElementById('oStat').value;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);
+  try{
+    const r=await fetch(API+'/orders?'+p);const d=await r.json();
+    const recs=d.data||[],tb=document.getElementById('oTb');
+    document.getElementById('oTc').textContent=d.total||0;
+    if(!recs.length){tb.innerHTML='<tr><td colspan="8" class="em">暂无采购单</td></tr>';return}
+    tb.innerHTML=recs.map(o=>`<tr>
+      <td><b>${esc(o.po_no)}</b></td>
+      <td>${esc(o.supplier)}</td>
+      <td>${o.total_items||0}</td>
+      <td>${o.total_qty||0}</td>
+      <td>¥${Number(o.total_amount||0).toLocaleString()}</td>
+      <td><span class="badge st-${o.status}">${STAT[o.status]||o.status}</span></td>
+      <td>${esc((o.created_at||'').substring(0,16))}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="viewOrder(${o.id})">详情</button>
+        ${o.status==='draft'?`<button class="btn bs b4" onclick="setOrderStatus(${o.id},'submitted')">提交</button>`:''}
+        ${o.status==='submitted'?`<button class="btn bs b4" onclick="setOrderStatus(${o.id},'ordered')">下单</button>`:''}
+        ${['submitted','ordered'].includes(o.status)?`<button class="btn bs b2" onclick="setOrderStatus(${o.id},'received')">收货</button>`:''}
+        ${['draft','submitted','ordered'].includes(o.status)?`<button class="btn bs b3" onclick="setOrderStatus(${o.id},'cancelled')">取消</button>`:''}
+      </td></tr>`).join('');
+  }catch(e){console.error(e)}
+}
+
+async function viewOrder(id){
+  try{
+    const r=await fetch(API+'/orders/'+id);const o=await r.json();
+    const itemsHtml=(o.items||[]).map(it=>`<tr>
+      <td>${esc(it.material_code)}</td><td>${esc(it.material_name)}</td>
+      <td>${it.qty||0} ${esc(it.unit||'')}</td><td>¥${Number(it.standard_cost||0).toFixed(2)}</td>
+      <td>¥${Number(it.amount||0).toLocaleString()}</td><td><span class="badge st-${it.status}">${STAT[it.status]||it.status}</span></td>
+    </tr>`).join('')||'<tr><td colspan="6" class="em">无明细</td></tr>';
+    document.getElementById('oMoBox').innerHTML=`
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>采购单 ${esc(o.po_no)}</h3>
+      <span onclick="document.getElementById('oMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+      <table style="width:100%;font-size:13px;margin-bottom:12px">
+        <tr><td style="color:#999;width:100px">供应商</td><td>${esc(o.supplier)}</td><td style="color:#999;width:100px">状态</td><td><span class="badge st-${o.status}">${STAT[o.status]||o.status}</span></td></tr>
+        <tr><td style="color:#999">创建时间</td><td>${esc(o.created_at)}</td><td style="color:#999">总金额</td><td><b>¥${Number(o.total_amount||0).toLocaleString()}</b></td></tr>
+      </table>
+      <table style="width:100%;font-size:12px"><thead><tr><th>物料代码</th><th>物料名称</th><th>数量</th><th>单价</th><th>金额</th><th>状态</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+      ${o.remarks?`<div style="margin-top:10px;font-size:12px;color:#666">备注：${esc(o.remarks)}</div>`:''}`;
+    document.getElementById('oMo').classList.add('ac');
+  }catch(e){alert('加载失败: '+e.message)}
+}
+async function viewReqOrder(poId){if(!poId){toast('该需求未关联采购单');return}viewOrder(poId);}
+
+async function setOrderStatus(id,status){
+  const labels={submitted:'提交',ordered:'下单',received:'收货',cancelled:'取消'};
+  if(status==='received'){if(!confirm('确认收货？将回写物料库存并推进下次采购日期。'))return;}
+  else{if(!confirm('确认'+labels[status]+'？'))return;}
+  try{
+    const r=await fetch(API+'/orders/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    const d=await r.json();if(!r.ok){alert(d.error||'操作失败');return}
+    toast('已'+(labels[status]||'更新'));
+    loadDashboard();loadOrders();
+    document.getElementById('oMo').classList.remove('ac');
+  }catch(e){alert('操作失败: '+e.message)}
+}
+
+async function loadDue(){
+  try{
+    const r=await fetch(API+'/dashboard');const d=await r.json();
+    const recs=d.due_items||[],tb=document.getElementById('dTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="7" class="em">暂无到期物料</td></tr>';return}
+    tb.innerHTML=recs.map(m=>`<tr>
+      <td><b>${esc(m.material_code)}</b></td><td>${esc((m.material_name||'').substring(0,18))}</td>
+      <td>${esc(m.supplier||'-')}</td><td>${esc(m.next_purchase_date)}</td>
+      <td style="color:${m.overdue_days>0?'#e74c3c':'#856404'}">${m.overdue_days>0?m.overdue_days+'天':'今日'}</td>
+      <td>${m.procurement_qty||0} ${esc(m.unit||'')}</td>
+      <td><button class="btn bs b1" onclick="goMaterial(${m.id})">去物料库设置</button></td></tr>`).join('');
+  }catch(e){console.error(e)}
+}
+function goMaterial(id){window.location.href='material.html#edit='+id;}
+
+// 打开页面时自动扫描到期（静默）
+runScan(true).then(()=>{
+  loadDashboard();loadRequests();
+});
+</script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

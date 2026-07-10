@@ -1,0 +1,1264 @@
+{
+  "records": [
+    {
+      "project_name": "高棚灯降本",
+      "project_id": 199,
+      "created_at": "2026-06-29 14:23:47",
+      "id": 196
+    },
+    {
+      "project_name": "150W 工作灯",
+      "project_id": 229,
+      "created_at": "2026-06-29 14:23:47",
+      "id": 226
+    },
+    {
+      "project_name": "JFS23（50W三角支架单灯/三灯）",
+      "project_id": 20,
+      "created_at": "2026-06-29 14:30:24",
+      "id": 701
+    },
+    {
+      "project_name": "星耀夹子灯，带磁铁双色温",
+      "project_id": 21,
+      "created_at": "2026-06-29 14:30:24",
+      "id": 702
+    },
+    {
+      "project_name": "夜行者手持工作灯",
+      "project_id": 227,
+      "created_at": "2026-06-29 14:30:24",
+      "id": 908
+    },
+    {
+      "project_name": "配件开发",
+      "project_id": 228,
+      "created_at": "2026-06-29 14:30:24",
+      "id": 909
+    },
+    {
+      "project_name": "400W工作灯",
+      "project_no": "HJ.25001.V1.256JY",
+      "project_id": 237,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 918
+    },
+    {
+      "project_name": "P系列改为太阳能方案-系列",
+      "project_no": "HJ.24014.R1.000",
+      "project_id": 239,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 920
+    },
+    {
+      "project_name": "P系列三头工作灯（058）",
+      "project_no": "HJ.25016.V1.585",
+      "project_id": 266,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 947
+    },
+    {
+      "project_name": "夹子/电池可拆卸",
+      "project_no": "HJ.24015.R1.000",
+      "project_id": 271,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 952
+    },
+    {
+      "project_name": "经济款充电灯",
+      "project_no": "HJ.24016.R1.000",
+      "project_id": 272,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 953
+    },
+    {
+      "project_name": "模组投光灯(211单）",
+      "project_no": "HJ.24012.V1.354",
+      "project_id": 274,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 955
+    },
+    {
+      "project_name": "JP05-B1WL100-003（B级能效）订单",
+      "project_no": "HJ.26001.R1.874（238单）",
+      "project_id": 319,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1000
+    },
+    {
+      "project_name": "S系列降本项目",
+      "project_no": "HJ.26004.R1.368",
+      "project_id": 324,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1005
+    },
+    {
+      "project_name": "刷墙灯",
+      "project_no": "HJ.26009.V1.925",
+      "project_id": 329,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1010,
+      "updated_at": "2026-07-10 08:41:03",
+      "other": "效果图4"
+    },
+    {
+      "project_name": "3M支架灯-铁道灯028单",
+      "project_no": "HJ.26011.R1.391",
+      "project_id": 331,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1012
+    },
+    {
+      "project_name": "S系列调光调色样品",
+      "project_no": "HJ.26013.R1.46",
+      "project_id": 333,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1014
+    },
+    {
+      "project_name": "P系列投光灯（曲面压框）",
+      "project_no": "HJ.26015.R1.52",
+      "project_id": 335,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1016
+    },
+    {
+      "project_name": "S系列100W工作灯-053单",
+      "project_no": "HJ.26016.R1.915",
+      "project_id": 336,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1017
+    },
+    {
+      "project_name": "P系列B级20W",
+      "project_no": "HJ.26019.V1.874",
+      "project_id": 339,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1020
+    },
+    {
+      "project_name": "368-太阳能投光灯（055单）",
+      "project_no": "HJ.26021.R1.368",
+      "project_id": 341,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1022
+    },
+    {
+      "project_name": "40W双灯-056单",
+      "project_no": "HJ.26022.R1.947",
+      "project_id": 342,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1023
+    },
+    {
+      "project_name": "S系列减薄款100W（064单）",
+      "project_no": "HJ.26024.R1.368",
+      "project_id": 344,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1025
+    },
+    {
+      "project_name": "S系列80W光感",
+      "project_no": "HJ.26025.R1.46",
+      "project_id": 345,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1026
+    },
+    {
+      "project_name": "卡通夜灯",
+      "project_no": "HJ.26030.V1.256JY",
+      "project_id": 350,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1031
+    },
+    {
+      "project_name": "新三头支架工作灯",
+      "project_no": "HJ.26031.M1.585-1",
+      "project_id": 351,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1032,
+      "updated_at": "2026-07-10 11:20:24",
+      "plan": "V",
+      "hand_sample": "2026-07-11",
+      "other": "外观7-9"
+    },
+    {
+      "project_name": "3头工作灯",
+      "project_no": "HJ.23027.V1.000",
+      "project_id": 385,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1066
+    },
+    {
+      "project_name": "39-756太阳能投光灯",
+      "project_no": "HJ.23039.V1.756",
+      "project_id": 388,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1069
+    },
+    {
+      "project_name": "S系列30W可拆卸结构",
+      "project_no": "HJ.23032.R1.685",
+      "project_id": 408,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1089
+    },
+    {
+      "project_name": "S系列2代升功率DOB方案",
+      "project_no": "HJ.23014.R1.000",
+      "project_id": 410,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1091
+    },
+    {
+      "project_name": "S系列2代60W平行支架无频闪工作灯",
+      "project_no": "HJ.23004.R1.585",
+      "project_id": 419,
+      "created_at": "2026-06-29 15:06:52",
+      "id": 1100
+    },
+    {
+      "project_name": "500W投光灯（208单）",
+      "project_no": "HJ.24017.Y1.256YL",
+      "project_id": 464,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1145,
+      "updated_at": "2026-06-29 15:30:30"
+    },
+    {
+      "project_name": "高棚灯100W",
+      "project_no": "HJ.25009.R1.841",
+      "project_id": 469,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1150,
+      "updated_at": "2026-06-29 15:30:30"
+    },
+    {
+      "project_name": "高棚灯",
+      "project_no": "",
+      "project_id": 481,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1162,
+      "updated_at": "2026-06-29 15:30:30"
+    },
+    {
+      "project_name": "高棚灯(211单）并表12项目",
+      "project_no": "HJ.24009.V1.354",
+      "project_id": 500,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1181,
+      "updated_at": "2026-06-29 15:30:30"
+    },
+    {
+      "project_name": "720太阳能壁灯",
+      "project_no": "HJ.24001.V1.720",
+      "project_id": 518,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1198,
+      "updated_at": "2026-06-29 15:30:30"
+    },
+    {
+      "project_name": "防水快接+弯头快接",
+      "project_no": "HJ.24002.V1.000",
+      "project_id": 522,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1203,
+      "updated_at": "2026-06-29 15:30:30"
+    },
+    {
+      "project_name": "星耀拓品（二头/四头）232单",
+      "project_no": "HJ.25027.R1.000",
+      "project_id": 544,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1225,
+      "updated_at": "2026-06-29 16:54:31",
+      "plan": "V",
+      "bom": "V",
+      "spec": "V",
+      "config": "V",
+      "mold_drawing": "V",
+      "mold_review": "V",
+      "hand_sample": "V",
+      "mold": "V",
+      "mold_sample": "V",
+      "packaging": "V",
+      "elec_trial": "V",
+      "rd_trial": "V",
+      "eng_trial": "V",
+      "prod_trial": "V",
+      "test_report": "V",
+      "tech_transfer": "V",
+      "shipment": "V",
+      "review": "2026-04-27"
+    },
+    {
+      "project_name": "宠物小夜灯-大象",
+      "project_no": "HJ.26028.V1.256JY",
+      "project_id": 572,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1253,
+      "updated_at": "2026-06-29 15:30:30"
+    },
+    {
+      "project_name": "60W工作灯",
+      "project_no": "HJ.26031.M1.585-2",
+      "project_id": 576,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1257,
+      "updated_at": "2026-07-10 11:21:05",
+      "plan": "V",
+      "hand_sample": "?",
+      "tech_transfer": "V",
+      "packaging": "2026-07-10"
+    },
+    {
+      "project_name": "100w星耀双灯",
+      "project_no": "HJ.23047.R1.720",
+      "project_id": 586,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1267,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "100w太阳能投光灯-719",
+      "project_no": "HJ.23045.V1.719",
+      "project_id": 603,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1276,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "30W混动工作灯",
+      "project_no": "HJ.23040.V1.532",
+      "project_id": 599,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1278,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "20W绕线工作灯-1",
+      "project_no": "HJ.23037.V1.532",
+      "project_id": 623,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1303,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "工作灯",
+      "project_no": "HJ.23003.V1.000",
+      "project_id": 642,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1323,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "4系列方案验证（改善）",
+      "project_no": "HJ.23007.R1.000 ",
+      "project_id": 645,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1326,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "345客户改善项目",
+      "project_no": "HJ.23019.R1.354",
+      "project_id": 661,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1342,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "储能",
+      "project_no": "HJ.23022.V1.000",
+      "project_id": 663,
+      "created_at": "2026-06-29 15:19:01",
+      "id": 1344,
+      "updated_at": "2026-06-29 15:30:31"
+    },
+    {
+      "project_name": "50W双灯-15单",
+      "project_no": "HJ.26003.V1.709",
+      "project_id": 546,
+      "created_at": "2026-06-29 15:21:17",
+      "id": 1451
+    },
+    {
+      "project_name": "辰光20W投光灯",
+      "project_no": "HJ.23029.V1.572",
+      "project_id": 670,
+      "created_at": "2026-06-29 15:22:31",
+      "id": 1799
+    },
+    {
+      "project_id": 457,
+      "plan": "2024-06-30",
+      "bom": "V",
+      "spec": "V",
+      "config": "V",
+      "mold_drawing": "V",
+      "mold_review": "V",
+      "hand_sample": "V",
+      "mold": "",
+      "mold_sample": "",
+      "packaging": "V",
+      "elec_trial": "",
+      "rd_trial": "V",
+      "eng_trial": "V",
+      "prod_trial": "",
+      "test_report": "",
+      "tech_transfer": "V",
+      "shipment": "",
+      "review": "",
+      "created_at": "2026-06-29 15:30:32",
+      "updated_at": "2026-07-10 09:02:21",
+      "id": 1810,
+      "other": " 验证7-10"
+    },
+    {
+      "project_name": "插拔式电池灯-LED模组电子",
+      "project_no": "HJ.24008.V1.610",
+      "project_id": 502,
+      "created_at": "2026-06-29 15:37:36",
+      "id": 2080
+    },
+    {
+      "project_name": "572客户太阳能灯（星空）",
+      "project_no": "HJ.23013.M1.572",
+      "project_id": 653,
+      "created_at": "2026-06-29 15:37:37",
+      "id": 2204
+    },
+    {
+      "project_name": "六边形插拔电池包工作灯",
+      "project_no": "HJ.24026.V1.256JY",
+      "project_id": 458,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2929
+    },
+    {
+      "project_name": "全发光投光灯20-50W",
+      "project_no": "HJ.23055.V1.685",
+      "project_id": 459,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2930
+    },
+    {
+      "project_name": "多平台-P系列",
+      "project_no": "HJ.23051.V1.000",
+      "project_id": 460,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2931,
+      "updated_at": "2026-07-10 08:32:53",
+      "plan": "V",
+      "bom": "V",
+      "spec": "V",
+      "config": "V",
+      "hand_sample": "2026-07-18"
+    },
+    {
+      "project_name": "补胎灯",
+      "project_no": "HJ.24025.V1.799",
+      "project_id": 462,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2933
+    },
+    {
+      "project_name": "夹子灯二代",
+      "project_no": "HJ.24019.V1.000",
+      "project_id": 465,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2936
+    },
+    {
+      "project_name": "野营灯",
+      "project_no": "HJ.24027.V1.610",
+      "project_id": 466,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2937
+    },
+    {
+      "project_name": "112单订单项目",
+      "project_no": "HJ.25012.R1.827",
+      "project_id": 467,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2938
+    },
+    {
+      "project_name": "BH工作灯招标（X2/X7/夹子2）",
+      "project_no": "HJ.25005.V1.354",
+      "project_id": 475,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2946
+    },
+    {
+      "project_name": "DALI模组灯（专业）",
+      "project_no": "HJ.25006.V1.354",
+      "project_id": 476,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2947
+    },
+    {
+      "project_name": "JFS22工作灯促销（S/ZJ1/ZJ2）",
+      "project_no": "HJ.25007.R1.354",
+      "project_id": 477,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2948
+    },
+    {
+      "project_name": "CCT投光灯",
+      "project_no": "HJ.25011.R1.391",
+      "project_id": 478,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2949
+    },
+    {
+      "project_name": "灵耀系列——方形工作灯订单号037",
+      "project_no": "HJ.25003.V1.000",
+      "project_id": 479,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2950,
+      "updated_at": "2026-07-10 09:35:49",
+      "mold_review": "V",
+      "mold": "？",
+      "packaging": "？",
+      "elec_trial": "V",
+      "eng_trial": "V",
+      "test_report": "V"
+    },
+    {
+      "project_name": "S系列CCT双头工作灯",
+      "project_no": "HJ.25002.R1.799",
+      "project_id": 480,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2951
+    },
+    {
+      "project_name": "户外壁灯",
+      "project_no": "",
+      "project_id": 482,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2953
+    },
+    {
+      "project_name": "星耀DC双灯5000lm",
+      "project_no": "HJ.24024.R1.719",
+      "project_id": 483,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2954
+    },
+    {
+      "project_name": "泳池灯",
+      "project_no": "HJ.25014.V1.256JY",
+      "project_id": 484,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2955,
+      "updated_at": "2026-07-10 08:34:29",
+      "bom": "V",
+      "plan": "V",
+      "spec": "V",
+      "config": "V",
+      "mold_drawing": "V",
+      "mold_review": "V",
+      "hand_sample": "V",
+      "mold": "2026-07-13",
+      "mold_sample": "2026-07-14",
+      "packaging": "V",
+      "elec_trial": "V",
+      "tech_transfer": "2026-07-18",
+      "rd_trial": "2026-07-15"
+    },
+    {
+      "project_name": "星耀混动-004单",
+      "project_no": "HJ.25015.R1.689",
+      "project_id": 485,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2956
+    },
+    {
+      "project_name": "X系列2代配快接",
+      "project_no": "HJ.24020.R1.491",
+      "project_id": 487,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2958
+    },
+    {
+      "project_name": "X系列7代30W花纹压框",
+      "project_no": "HJ.24021.R1.757",
+      "project_id": 488,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2959
+    },
+    {
+      "project_name": "S系列智能款",
+      "project_no": "HJ.24022.R1.391",
+      "project_id": 489,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2960
+    },
+    {
+      "project_name": "插拔电池包工作灯50W",
+      "project_no": "HJ.23020.R1.256JY -2",
+      "project_id": 491,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2962
+    },
+    {
+      "project_name": "三角支架（灵越）",
+      "project_no": "HJ.25017.V1.000",
+      "project_id": 492,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2963,
+      "updated_at": "2026-07-10 09:45:44",
+      "plan": "V",
+      "bom": "V",
+      "spec": "V",
+      "config": "V",
+      "mold_drawing": "V",
+      "mold_review": "V",
+      "mold_sample": "?",
+      "tech_transfer": "",
+      "test_report": "研发验证7-10",
+      "mold": "TI评审7-11"
+    },
+    {
+      "project_name": "太阳能壁灯",
+      "project_no": "HJ.25022.V1.000",
+      "project_id": 493,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2964,
+      "updated_at": "2026-07-10 08:51:22",
+      "plan": "V",
+      "bom": "V",
+      "spec": "V",
+      "config": "V",
+      "elec_trial": "V",
+      "eng_trial": "2026-07-25",
+      "test_report": "2026-07-09",
+      "tech_transfer": "2026-07-10"
+    },
+    {
+      "project_name": "星耀夹子灯（压框A)",
+      "project_no": "HJ.24018.R1.719",
+      "project_id": 494,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2965
+    },
+    {
+      "project_name": "P系列三头灯（195单）",
+      "project_no": "HJ.24013.R1.585",
+      "project_id": 497,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2968
+    },
+    {
+      "project_name": "X系列7代5V 2A",
+      "project_no": "HJ.24011.R1.000",
+      "project_id": 499,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2970
+    },
+    {
+      "project_name": "三角支架70cm横杆",
+      "project_no": "HJ.24010.V1.719",
+      "project_id": 501,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2972
+    },
+    {
+      "project_name": "DW插拔（混动）",
+      "project_no": "HJ.24007.R1.788",
+      "project_id": 503,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2974
+    },
+    {
+      "project_name": "钓鱼灯",
+      "project_no": "HJ.24006.R1.256YL",
+      "project_id": 505,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2976
+    },
+    {
+      "project_name": "JFF系列RGB-7W",
+      "project_no": "HJ.24004.R1.719",
+      "project_id": 507,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2978
+    },
+    {
+      "project_name": "插拔电池包工作灯30W（192单）",
+      "project_no": "HJ.23020.R1.256JY ",
+      "project_id": 508,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2979
+    },
+    {
+      "project_name": "10-100W高光效方案-DOB",
+      "project_no": "HJ.23049.V1.000",
+      "project_id": 510,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2981
+    },
+    {
+      "project_name": "三头灯",
+      "project_no": "HJ.24005.V1.000",
+      "project_id": 512,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2983
+    },
+    {
+      "project_name": "7代花纹压框C款",
+      "project_no": "HJ.23028.R1.256JY-1",
+      "project_id": 513,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2984
+    },
+    {
+      "project_name": "全发光太阳能投光灯（多平台）",
+      "project_no": "HJ.23051.V1.000-1",
+      "project_id": 515,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2986
+    },
+    {
+      "project_name": "雾面工作灯",
+      "project_no": "HJ.24003.R1.719",
+      "project_id": 516,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2987
+    },
+    {
+      "project_name": "插拔电池包工作灯30W",
+      "project_no": "HJ.23020.R1.256JY-1",
+      "project_id": 520,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2991
+    },
+    {
+      "project_name": "S系列RGB10/50/100W（172）",
+      "project_no": "HJ.25018.V1.391",
+      "project_id": 524,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2995
+    },
+    {
+      "project_name": "X7代73/74恒流方案（194）",
+      "project_no": "HJ.25020.R1.859",
+      "project_id": 525,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2996
+    },
+    {
+      "project_name": "S系列日标COB30/50W（165）",
+      "project_no": "HJ.25021.V1.827",
+      "project_id": 526,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2997
+    },
+    {
+      "project_name": "小壁灯(2款）",
+      "project_no": "HJ.25023.V1.887",
+      "project_id": 527,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2998
+    },
+    {
+      "project_name": "幻彩轻灯",
+      "project_no": "HJ.25024.V1.000",
+      "project_id": 528,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 2999
+    },
+    {
+      "project_name": "绿能工作灯6101",
+      "project_no": "HJ.25025.V1.000",
+      "project_id": 529,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3000,
+      "updated_at": "2026-07-10 09:49:24",
+      "plan": "V",
+      "bom": "V",
+      "mold": "2026-07-13",
+      "spec": "V",
+      "config": "V",
+      "mold_drawing": "V",
+      "mold_review": "V",
+      "packaging": "V",
+      "hand_sample": "V",
+      "other": "方案整改7-15",
+      "mold_sample": "2026-07-10",
+      "test_report": "2026-07-18"
+    },
+    {
+      "project_name": "拓界・智擎工作灯",
+      "project_no": "HJ.25026.V1.000",
+      "project_id": 530,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3001
+    },
+    {
+      "project_name": "X7修改模具--样品",
+      "project_no": "HJ.23057.R1.000",
+      "project_id": 536,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3007
+    },
+    {
+      "project_name": "带常亮DC红外感应器",
+      "project_no": "HJ.23058.R1.000",
+      "project_id": 537,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3008
+    },
+    {
+      "project_name": "换折叠支架",
+      "project_no": "HJ.23056.R1.354",
+      "project_id": 539,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3010
+    },
+    {
+      "project_name": "插拔感应器--前期",
+      "project_no": "HJ.23052.R1.000",
+      "project_id": 540,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3011
+    },
+    {
+      "project_name": "户外射灯",
+      "project_no": "HJ.23054.V1.701",
+      "project_id": 541,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3012
+    },
+    {
+      "project_name": "磷酸铁锂充电灯",
+      "project_no": "HJ.23050.R1.000",
+      "project_id": 542,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3013
+    },
+    {
+      "project_name": "JFS21花纹压框(029单）",
+      "project_no": "HJ.26002.M1.933",
+      "project_id": 545,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3016,
+      "updated_at": "2026-07-02 07:54:34",
+      "plan": "V",
+      "bom": "V",
+      "spec": "V",
+      "config": "V",
+      "mold_drawing": "V",
+      "mold_review": "V",
+      "hand_sample": "V",
+      "mold": "V",
+      "mold_sample": "V",
+      "packaging": "V",
+      "elec_trial": "V",
+      "rd_trial": "V",
+      "eng_trial": "V",
+      "prod_trial": "V",
+      "test_report": "V",
+      "tech_transfer": "V",
+      "shipment": "V",
+      "review": "V"
+    },
+    {
+      "project_name": "S系列50W RGB（44键遥控器）",
+      "project_no": "237单",
+      "project_id": 547,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3018
+    },
+    {
+      "project_name": "星耀可替换灯头设计方案",
+      "project_no": "HJ.26005.R1.7-16",
+      "project_id": 549,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3020,
+      "updated_at": "2026-07-10 10:00:17",
+      "plan": "V",
+      "other": "设计图7-11"
+    },
+    {
+      "project_name": "USB灯",
+      "project_no": "HJ.26006.V1.887",
+      "project_id": 550,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3021
+    },
+    {
+      "project_name": "DC支架工作灯",
+      "project_no": "HJ.26007.V1.879",
+      "project_id": 551,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3022
+    },
+    {
+      "project_name": "75W插拔工作灯",
+      "project_no": "HJ.26008.V1.879",
+      "project_id": 552,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3023
+    },
+    {
+      "project_name": "JFX82-25W插拔工作灯（东成）",
+      "project_no": "HJ.26010.R1.839",
+      "project_id": 554,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3025,
+      "updated_at": "2026-07-10 10:20:38",
+      "mold": "2026-07-13",
+      "plan": "V"
+    },
+    {
+      "project_name": "夹子2代5000lm",
+      "project_no": "HJ.26012.R1.859",
+      "project_id": 556,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3027
+    },
+    {
+      "project_name": "P系列红外插拔感应器（能亮款）027单",
+      "project_no": "HJ.26014.R1.347",
+      "project_id": 558,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3029
+    },
+    {
+      "project_name": "球场灯",
+      "project_no": "HJ.26018.V1.718",
+      "project_id": 562,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3033
+    },
+    {
+      "project_name": "JP04-B1WA50-874-004（B级能效059单",
+      "project_no": "HJ.26020.R1.874",
+      "project_id": 564,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3035
+    },
+    {
+      "project_name": "S系列内置微波",
+      "project_no": "HJ.26023.R1.941",
+      "project_id": 567,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3038
+    },
+    {
+      "project_name": "动物小夜灯-小鹿",
+      "project_no": "HJ.26026.V1.256JY",
+      "project_id": 570,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3041
+    },
+    {
+      "project_name": "蚂蚁款200W（064单）",
+      "project_no": "HJ.26027.R1.368",
+      "project_id": 571,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3042
+    },
+    {
+      "project_name": "星耀四头内置电池款",
+      "project_no": "HJ.26029.R1.910",
+      "project_id": 573,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3044,
+      "updated_at": "2026-07-10 08:54:13",
+      "plan": "V",
+      "bom": "？",
+      "spec": "？",
+      "config": "？"
+    },
+    {
+      "project_name": "太阳能壁灯",
+      "project_no": "HJ.26032.V1.354",
+      "project_id": 577,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3048,
+      "updated_at": "2026-07-10 08:54:38",
+      "other": "等立项"
+    },
+    {
+      "project_name": "星耀三头",
+      "project_no": "HJ.26034.V1.000",
+      "project_id": 578,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3049,
+      "updated_at": "2026-07-10 08:55:12",
+      "plan": "？"
+    },
+    {
+      "project_name": "XX电池包",
+      "project_no": "HJ.26035.V1.000",
+      "project_id": 579,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3050,
+      "updated_at": "2026-07-10 08:55:37",
+      "plan": "？"
+    },
+    {
+      "project_name": "762客户取暖器灯",
+      "project_no": "HJ.23041.V1.762",
+      "project_id": 582,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3053
+    },
+    {
+      "project_name": "花纹压框（S系列/X系列7代）",
+      "project_no": "HJ.23042.R1.000",
+      "project_id": 589,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3060
+    },
+    {
+      "project_name": "太阳能灯-187",
+      "project_no": "HJ.23046.R1.187",
+      "project_id": 601,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3072
+    },
+    {
+      "project_name": "微波感应投光灯",
+      "project_no": "HJ.23043.R1.187",
+      "project_id": 604,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3075
+    },
+    {
+      "project_name": "JFF感应系列降本",
+      "project_no": "HJ.23011.R1.000  ",
+      "project_id": 605,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3076
+    },
+    {
+      "project_name": "星耀迭代-电源线外接（对插）",
+      "project_no": "HJ.23016.R1.000-2",
+      "project_id": 606,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3077
+    },
+    {
+      "project_name": "星耀迭代-美线-10000lm",
+      "project_no": "HJ.23016.R1.000-3",
+      "project_id": 607,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3078
+    },
+    {
+      "project_name": "太阳能壁灯",
+      "project_no": "HJ.23035.V1.391",
+      "project_id": 610,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3081
+    },
+    {
+      "project_name": "X系列7代充电灯（花纹压框）-2",
+      "project_no": "HJ.23028.R1.256JY",
+      "project_id": 611,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3082
+    },
+    {
+      "project_name": "星耀迭代",
+      "project_no": "HJ.23016.R1.000",
+      "project_id": 624,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3095
+    },
+    {
+      "project_name": "远航系列10-200W--样品交付",
+      "project_no": "HJ.23033.M1.572",
+      "project_id": 633,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3104
+    },
+    {
+      "project_name": "方形绕线工作灯",
+      "project_no": "HJ.23025.V1.720",
+      "project_id": 636,
+      "created_at": "2026-06-29 16:24:49",
+      "id": 3107
+    },
+    {
+      "project_name": "S系列欧规60W调光工作灯 无频闪",
+      "project_no": "HJ.23006.R1.585",
+      "project_id": 637,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3108
+    },
+    {
+      "project_name": "去甲醛塑料",
+      "project_no": "预项目",
+      "project_id": 639,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3110
+    },
+    {
+      "project_name": "S系列40W平行支架工作灯（普通欧标、美标、无频闪欧标）",
+      "project_no": "HJ.23001.V1.585",
+      "project_id": 640,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3111
+    },
+    {
+      "project_name": "7代充电灯迭代降本",
+      "project_no": "HJ.23002.R1.000  ",
+      "project_id": 641,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3112
+    },
+    {
+      "project_name": "X系列2代 美标45W 双灯",
+      "project_no": "HJ.23005.M1.585",
+      "project_id": 644,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3115
+    },
+    {
+      "project_name": "微波感应高棚灯工程样机",
+      "project_no": "HJ.23008.V1.000",
+      "project_id": 646,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3117
+    },
+    {
+      "project_name": "星耀非隔离方案",
+      "project_no": "HJ.23009.R1.709",
+      "project_id": 650,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3121
+    },
+    {
+      "project_name": "S系列双色温（普通、红外）",
+      "project_no": "HJ.23012.R1.000  ",
+      "project_id": 652,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3123
+    },
+    {
+      "project_name": "星耀夹子太阳能灯",
+      "project_no": "HJ.23015.R1.000",
+      "project_id": 655,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3126
+    },
+    {
+      "project_name": "S系列双色温工作灯",
+      "project_no": "HJ.23017.R1.696",
+      "project_id": 657,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3128
+    },
+    {
+      "project_name": "星际100W\\200W\\300（太阳能投光灯）",
+      "project_no": "HJ.23018.M1.572",
+      "project_id": 660,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3131
+    },
+    {
+      "project_name": "S系列双色温（微波）",
+      "project_no": "HJ.23021.R1.000",
+      "project_id": 662,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3133
+    },
+    {
+      "project_name": "光亚展样品--S压框",
+      "project_no": "HJ.23023.R1.000",
+      "project_id": 665,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3136
+    },
+    {
+      "project_name": "美标高棚灯光感",
+      "project_no": "HJ.23024.R1.720",
+      "project_id": 667,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3137
+    },
+    {
+      "project_name": "星耀温升控制款",
+      "project_no": "HJ.23026.R1.685 ",
+      "project_id": 669,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3140,
+      "updated_at": "2026-07-03 08:24:33",
+      "plan": "V"
+    },
+    {
+      "project_name": "J款高棚灯",
+      "project_no": "HJ.23030.V1.556",
+      "project_id": 671,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3142,
+      "updated_at": "2026-07-03 08:24:16",
+      "plan": "V",
+      "bom": "V",
+      "spec": "V",
+      "config": "V",
+      "mold_drawing": "V",
+      "mold_review": "V",
+      "hand_sample": "V",
+      "mold": "V",
+      "mold_sample": "V",
+      "packaging": "V",
+      "elec_trial": "V",
+      "rd_trial": "V",
+      "eng_trial": "V",
+      "prod_trial": "V",
+      "test_report": "V",
+      "tech_transfer": "V",
+      "review": "V"
+    },
+    {
+      "project_name": "太阳能一体路灯",
+      "project_no": "HJ.23031.V1.187",
+      "project_id": 672,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3143
+    },
+    {
+      "project_name": "折叠太阳能壁灯",
+      "project_no": "HJ.23034.V1.256JY",
+      "project_id": 673,
+      "created_at": "2026-06-29 16:24:50",
+      "id": 3144,
+      "updated_at": "2026-07-01 17:38:14",
+      "plan": "V",
+      "bom": "V",
+      "spec": "V"
+    },
+    {
+      "project_id": 682,
+      "plan": "V",
+      "bom": "2026-07-16",
+      "spec": "2026-07-16",
+      "config": "2026-07-16",
+      "mold_drawing": "V",
+      "mold_review": "",
+      "hand_sample": "2026-07-17",
+      "mold": "",
+      "mold_sample": "",
+      "packaging": "",
+      "elec_trial": "",
+      "rd_trial": "",
+      "eng_trial": "",
+      "prod_trial": "",
+      "test_report": "",
+      "tech_transfer": "",
+      "shipment": "",
+      "review": "",
+      "other": "客户信息更新",
+      "created_at": "2026-07-03 09:48:44",
+      "updated_at": "2026-07-10 11:23:34",
+      "id": 3152
+    }
+  ],
+  "nextId": 3161
+}

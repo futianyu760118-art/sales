@@ -1,0 +1,4849 @@
+{
+  "records": [
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260704010 [quoted] 规则:报价库有价格，自动完成报价",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 570
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 报价库有价格，自动生成报价单",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 571
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 572
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 573
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 574
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 575
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 quoted 变更为 quoted",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 576
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 closed 变更为 closed",
+      "inquiry_id": 724,
+      "created_at": "2026-07-04 07:53:14",
+      "id": 577
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260703010 [quoted] 规则:报价库有价格，自动完成报价",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 562
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260703010 报价库有价格，自动生成报价单",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 563
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260703010 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 564
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260703010 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 565
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260703010 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 566
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260703010 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 567
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260703010 状态从 quoted 变更为 quoted",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 568
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260703010 状态从 closed 变更为 closed",
+      "inquiry_id": 718,
+      "created_at": "2026-07-03 19:38:43",
+      "id": 569
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260702009",
+      "inquiry_id": 706,
+      "created_at": "2026-07-03 19:01:49",
+      "id": 561
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260702009",
+      "inquiry_id": 706,
+      "created_at": "2026-07-02 18:53:55",
+      "id": 560
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202607026308 已生成",
+      "inquiry_id": 706,
+      "created_at": "2026-07-02 14:10:18",
+      "id": 559
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260702009-02 报价 ¥120000，已生成报价单",
+      "inquiry_id": 707,
+      "created_at": "2026-07-02 12:50:38",
+      "id": 558
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "批量创建询价单 JFX20260702009 [pending_pricing]",
+      "inquiry_id": 706,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 550
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "批量创建询价单 JFX20260702009-02 [pending_pricing]",
+      "inquiry_id": 707,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 551
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "批量创建询价单 JFX20260702009-03 [pending_pricing]",
+      "inquiry_id": 708,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 552
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "批量创建询价单 JFX20260702009-04 [pending_pricing]",
+      "inquiry_id": 709,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 553
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "批量创建询价单 JFX20260702009-05 [pending_pricing]",
+      "inquiry_id": 710,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 554
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "批量创建询价单 JFX20260702009-06 [pending_pricing]",
+      "inquiry_id": 711,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 555
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "批量创建询价单 JFX20260702009-07 [pending_pricing]",
+      "inquiry_id": 712,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 556
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "system",
+      "detail": "询价单 JFX20260702009 共 7 个产品 (自动报价:0, 待核价:7)",
+      "inquiry_id": null,
+      "created_at": "2026-07-02 10:14:34",
+      "id": 557
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606307120 已生成",
+      "inquiry_id": 620,
+      "created_at": "2026-06-30 18:44:49",
+      "id": 549
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260629009 [quoted] 规则:报价库有价格，自动完成报价",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 541
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260629009 报价库有价格，自动生成报价单",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 542
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260629009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 543
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260629009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 544
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260629009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 545
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260629009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 546
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260629009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 547
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260629009 状态从 closed 变更为 closed",
+      "inquiry_id": 705,
+      "created_at": "2026-06-29 11:35:13",
+      "id": 548
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260627009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 533
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260627009 报价库有价格，自动生成报价单",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 534
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260627009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 535
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260627009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 536
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260627009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 537
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260627009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 538
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260627009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 539
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260627009 状态从 closed 变更为 closed",
+      "inquiry_id": 699,
+      "created_at": "2026-06-27 16:00:39",
+      "id": 540
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 525
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 526
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 527
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 528
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 529
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 530
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 531
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 693,
+      "created_at": "2026-06-26 13:12:20",
+      "id": 532
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 517
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 518
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 519
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 520
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 521
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 522
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 523
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 687,
+      "created_at": "2026-06-26 13:12:19",
+      "id": 524
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 509
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 510
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 511
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 512
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 513
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 514
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 515
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 681,
+      "created_at": "2026-06-26 13:12:18",
+      "id": 516
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 501
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 502
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 503
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 504
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 505
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 506
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 507
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 675,
+      "created_at": "2026-06-26 13:06:17",
+      "id": 508
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 493
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 494
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 495
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 496
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 497
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 498
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 499
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 669,
+      "created_at": "2026-06-26 13:04:17",
+      "id": 500
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 485
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 486
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 487
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 488
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 489
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 490
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 491
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 663,
+      "created_at": "2026-06-26 12:56:27",
+      "id": 492
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 477
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 478
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 479
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 480
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 481
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 482
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 483
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 657,
+      "created_at": "2026-06-26 12:37:08",
+      "id": 484
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 469
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 470
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 471
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 472
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 473
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 474
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 475
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 651,
+      "created_at": "2026-06-26 11:55:48",
+      "id": 476
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 461
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 462
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 463
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 464
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 465
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 466
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 quoted 变更为 quoted",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 467
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 状态从 closed 变更为 closed",
+      "inquiry_id": 650,
+      "created_at": "2026-06-26 11:53:48",
+      "id": 468
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 649,
+      "created_at": "2026-06-26 11:51:44",
+      "id": 459
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 649,
+      "created_at": "2026-06-26 11:51:44",
+      "id": 460
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 648,
+      "created_at": "2026-06-26 11:51:30",
+      "id": 457
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库有价格，自动生成报价单",
+      "inquiry_id": 648,
+      "created_at": "2026-06-26 11:51:30",
+      "id": 458
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 647,
+      "created_at": "2026-06-26 11:49:30",
+      "id": 455
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库无价格，已提交核价库",
+      "inquiry_id": 647,
+      "created_at": "2026-06-26 11:49:30",
+      "id": 456
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260626009 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 646,
+      "created_at": "2026-06-26 11:47:35",
+      "id": 453
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260626009 报价库无价格，已提交核价库",
+      "inquiry_id": 646,
+      "created_at": "2026-06-26 11:47:35",
+      "id": 454
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260623009",
+      "inquiry_id": 624,
+      "created_at": "2026-06-23 16:00:38",
+      "id": 451
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260623009-02",
+      "inquiry_id": 625,
+      "created_at": "2026-06-23 16:00:38",
+      "id": 452
+    },
+    {
+      "action": "创建询价",
+      "operator": "贾余丽",
+      "detail": "批量创建询价单 JFX20260623009 [pending_pricing]",
+      "inquiry_id": 624,
+      "created_at": "2026-06-23 13:57:44",
+      "id": 448
+    },
+    {
+      "action": "创建询价",
+      "operator": "贾余丽",
+      "detail": "批量创建询价单 JFX20260623009-02 [pending_pricing]",
+      "inquiry_id": 625,
+      "created_at": "2026-06-23 13:57:44",
+      "id": 449
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "贾余丽",
+      "detail": "询价单 JFX20260623009 共 2 个产品 (自动报价:0, 待核价:2)",
+      "inquiry_id": null,
+      "created_at": "2026-06-23 13:57:44",
+      "id": 450
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥32632.5，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:56:20",
+      "id": 447
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥32632.5，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:56:17",
+      "id": 446
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥34350，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:55:46",
+      "id": 445
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥33800.4，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:55:44",
+      "id": 442
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥34075.2，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:55:44",
+      "id": 443
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥34350，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:55:44",
+      "id": 444
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥33250.8，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:55:43",
+      "id": 440
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥33525.6，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:55:43",
+      "id": 441
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260623007 报价 ¥32976，已生成报价单",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:55:36",
+      "id": 439
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606239275 已生成",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 12:54:28",
+      "id": 438
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260623008",
+      "inquiry_id": 620,
+      "created_at": "2026-06-23 12:42:54",
+      "id": 437
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260623007-04",
+      "inquiry_id": 619,
+      "created_at": "2026-06-23 11:17:46",
+      "id": 436
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260623008 [pending_pricing]",
+      "inquiry_id": 620,
+      "created_at": "2026-06-23 10:59:14",
+      "id": 431
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260623008-02 [pending_pricing]",
+      "inquiry_id": 621,
+      "created_at": "2026-06-23 10:59:14",
+      "id": 432
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260623008-03 [pending_pricing]",
+      "inquiry_id": 622,
+      "created_at": "2026-06-23 10:59:14",
+      "id": 433
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260623008-04 [pending_pricing]",
+      "inquiry_id": 623,
+      "created_at": "2026-06-23 10:59:14",
+      "id": 434
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260623008 共 4 个产品 (自动报价:0, 待核价:4)",
+      "inquiry_id": null,
+      "created_at": "2026-06-23 10:59:14",
+      "id": 435
+    },
+    {
+      "action": "创建询价",
+      "operator": "徐盼",
+      "detail": "批量创建询价单 JFX20260623007 [pending_pricing]",
+      "inquiry_id": 616,
+      "created_at": "2026-06-23 09:45:29",
+      "id": 426
+    },
+    {
+      "action": "创建询价",
+      "operator": "徐盼",
+      "detail": "批量创建询价单 JFX20260623007-02 [pending_pricing]",
+      "inquiry_id": 617,
+      "created_at": "2026-06-23 09:45:29",
+      "id": 427
+    },
+    {
+      "action": "创建询价",
+      "operator": "徐盼",
+      "detail": "批量创建询价单 JFX20260623007-03 [pending_pricing]",
+      "inquiry_id": 618,
+      "created_at": "2026-06-23 09:45:29",
+      "id": 428
+    },
+    {
+      "action": "创建询价",
+      "operator": "徐盼",
+      "detail": "批量创建询价单 JFX20260623007-04 [pending_pricing]",
+      "inquiry_id": 619,
+      "created_at": "2026-06-23 09:45:29",
+      "id": 429
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "徐盼",
+      "detail": "询价单 JFX20260623007 共 4 个产品 (自动报价:0, 待核价:4)",
+      "inquiry_id": null,
+      "created_at": "2026-06-23 09:45:29",
+      "id": 430
+    },
+    {
+      "action": "折扣审批通过",
+      "operator": "朱剑军",
+      "detail": "询价单 JFX20260621006 折扣率95%已审批通过",
+      "inquiry_id": 615,
+      "created_at": "2026-06-22 11:12:04",
+      "id": 425
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606228166 已生成",
+      "inquiry_id": 615,
+      "created_at": "2026-06-22 11:09:36",
+      "id": 424
+    },
+    {
+      "action": "折扣申请",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260621006 折扣率95%，需经理审批",
+      "inquiry_id": 615,
+      "created_at": "2026-06-22 11:09:27",
+      "id": 423
+    },
+    {
+      "action": "折扣审批通过",
+      "operator": "aaa",
+      "detail": "询价单 JFX20260621005 折扣率95%已审批通过",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 10:08:46",
+      "id": 422
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005-02 报价 ¥57222，已生成报价单",
+      "inquiry_id": 600,
+      "created_at": "2026-06-22 08:28:26",
+      "id": 421
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005-02 报价 ¥57222，已生成报价单",
+      "inquiry_id": 600,
+      "created_at": "2026-06-22 08:28:05",
+      "id": 420
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005-02 报价 ¥57222，已生成报价单",
+      "inquiry_id": 600,
+      "created_at": "2026-06-22 08:27:57",
+      "id": 419
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005-02 报价 ¥52020，已生成报价单",
+      "inquiry_id": 600,
+      "created_at": "2026-06-22 08:27:43",
+      "id": 418
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606223355 已生成",
+      "inquiry_id": 600,
+      "created_at": "2026-06-22 08:27:20",
+      "id": 417
+    },
+    {
+      "action": "折扣申请",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260621005 折扣率95%，需经理审批",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:26:05",
+      "id": 416
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥40937.4，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:25:43",
+      "id": 415
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥43522.92，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:25:38",
+      "id": 414
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥43092，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:25:34",
+      "id": 413
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥47401.2，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:37",
+      "id": 412
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥47401.2，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:35",
+      "id": 411
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥46108.44，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:34",
+      "id": 408
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥46539.36，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:34",
+      "id": 409
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥46970.28，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:34",
+      "id": 410
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥43953.84，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:33",
+      "id": 403
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥44384.76，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:33",
+      "id": 404
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥44815.68，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:33",
+      "id": 405
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥45246.6，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:33",
+      "id": 406
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥45677.52，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:33",
+      "id": 407
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥43522.92，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:31",
+      "id": 402
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621005 报价 ¥43092，已生成报价单",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:24:13",
+      "id": 401
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606223955 已生成",
+      "inquiry_id": 599,
+      "created_at": "2026-06-22 08:19:29",
+      "id": 400
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606213948 已生成",
+      "inquiry_id": 594,
+      "created_at": "2026-06-21 19:14:01",
+      "id": 399
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT20260621692 已生成",
+      "inquiry_id": 594,
+      "created_at": "2026-06-21 18:26:48",
+      "id": 398
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606211224 已生成",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:25:23",
+      "id": 397
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621003-05 报价 ¥62802，已生成报价单",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:15:16",
+      "id": 396
+    },
+    {
+      "action": "快速报价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621003-05 报价 ¥62802，已生成报价单",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:15:06",
+      "id": 395
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606211774 已生成",
+      "inquiry_id": 615,
+      "created_at": "2026-06-21 18:08:32",
+      "id": 394
+    },
+    {
+      "action": "创建询价",
+      "operator": "管丽艳",
+      "detail": "新建询价单 JFX20260621006 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 615,
+      "created_at": "2026-06-21 18:07:52",
+      "id": 392
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260621006 报价库有价格，自动生成报价单",
+      "inquiry_id": 615,
+      "created_at": "2026-06-21 18:07:52",
+      "id": 393
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606218723 已生成",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:06:15",
+      "id": 391
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606212320 已生成",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:05:16",
+      "id": 390
+    },
+    {
+      "action": "折扣申请",
+      "operator": "???",
+      "detail": "询价单 JFX20260621003-05 折扣率105%，无需审批",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:03:33",
+      "id": 389
+    },
+    {
+      "action": "折扣申请",
+      "operator": "?????",
+      "detail": "询价单 JFX20260621003-05 折扣率97%，需经理审批",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:03:22",
+      "id": 388
+    },
+    {
+      "action": "折扣审批通过",
+      "operator": "????",
+      "detail": "询价单 JFX20260621003-05 折扣率90%已审批通过",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:03:11",
+      "id": 387
+    },
+    {
+      "action": "折扣申请",
+      "operator": "?????",
+      "detail": "询价单 JFX20260621003-05 折扣率90%，需总监审批",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 18:03:00",
+      "id": 386
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606212480 已生成",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:51:08",
+      "id": 385
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT20260621949 已生成",
+      "inquiry_id": 594,
+      "created_at": "2026-06-21 17:50:47",
+      "id": 384
+    },
+    {
+      "action": "导出报价单",
+      "operator": "system",
+      "detail": "导出报价单 QT202606215561",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:49:38",
+      "id": 383
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606213623 已生成",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:49:03",
+      "id": 382
+    },
+    {
+      "action": "更新规格书",
+      "operator": "system",
+      "detail": "更新规格书 JWA21-B1WA50C-03",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:48:03",
+      "id": 381
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606215561 已生成",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:46:56",
+      "id": 380
+    },
+    {
+      "action": "变体检测",
+      "operator": "朱梦倩",
+      "detail": "型号 JWA21-B1WA50C 参数不同(input_voltage,color_temp,luminous_flux,light_source,main_body,lampshade,reflector,cable,waterproof)，生成变体 JWA21-B1WA50C-03",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 17:39:35",
+      "id": 376
+    },
+    {
+      "action": "创建变体",
+      "operator": "朱梦倩",
+      "detail": "型号 JWA21-B1WA50C → 变体 JWA21-B1WA50C-03",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:39:35",
+      "id": 377
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260621003-05 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:39:35",
+      "id": 378
+    },
+    {
+      "action": "提交核价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260621003-05 报价库无价格，已提交核价库",
+      "inquiry_id": 609,
+      "created_at": "2026-06-21 17:39:35",
+      "id": 379
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621003-06",
+      "inquiry_id": 608,
+      "created_at": "2026-06-21 17:38:20",
+      "id": 375
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260621003-06",
+      "inquiry_id": 608,
+      "created_at": "2026-06-21 17:36:44",
+      "id": 374
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606217013 已生成",
+      "inquiry_id": 608,
+      "created_at": "2026-06-21 17:35:13",
+      "id": 373
+    },
+    {
+      "action": "核价确认",
+      "operator": "system",
+      "detail": "询价单 JFX20260621003-06 核价完成，报价 ¥120000",
+      "inquiry_id": 608,
+      "created_at": "2026-06-21 17:34:48",
+      "id": 372
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621003-05，清理关联核价记录1条",
+      "inquiry_id": 607,
+      "created_at": "2026-06-21 17:33:35",
+      "id": 370
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621003，清理关联核价记录1条",
+      "inquiry_id": 593,
+      "created_at": "2026-06-21 17:33:35",
+      "id": 371
+    },
+    {
+      "action": "变体检测",
+      "operator": "朱梦倩",
+      "detail": "型号 JWA21-B1WA50C 参数不同(input_voltage,color_temp,luminous_flux,light_source,main_body,lampshade,reflector,cable,waterproof)，生成变体 JWA21-B1WA50C-02",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 17:26:49",
+      "id": 366
+    },
+    {
+      "action": "创建变体",
+      "operator": "朱梦倩",
+      "detail": "型号 JWA21-B1WA50C → 变体 JWA21-B1WA50C-02",
+      "inquiry_id": 608,
+      "created_at": "2026-06-21 17:26:49",
+      "id": 367
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260621003-06 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 608,
+      "created_at": "2026-06-21 17:26:49",
+      "id": 368
+    },
+    {
+      "action": "提交核价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260621003-06 报价库无价格，已提交核价库",
+      "inquiry_id": 608,
+      "created_at": "2026-06-21 17:26:49",
+      "id": 369
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606217773 已生成",
+      "inquiry_id": 607,
+      "created_at": "2026-06-21 17:19:00",
+      "id": 365
+    },
+    {
+      "action": "变体检测",
+      "operator": "朱梦倩",
+      "detail": "型号 JWA21-B1WA50C 参数不同(input_voltage,color_temp,luminous_flux,light_source,main_body,lampshade,reflector,cable,waterproof)，生成变体 JWA21-B1WA50C-01",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 17:18:25",
+      "id": 361
+    },
+    {
+      "action": "创建变体",
+      "operator": "朱梦倩",
+      "detail": "型号 JWA21-B1WA50C → 变体 JWA21-B1WA50C-01",
+      "inquiry_id": 607,
+      "created_at": "2026-06-21 17:18:25",
+      "id": 362
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260621003-05 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 607,
+      "created_at": "2026-06-21 17:18:25",
+      "id": 363
+    },
+    {
+      "action": "提交核价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260621003-05 报价库无价格，已提交核价库",
+      "inquiry_id": 607,
+      "created_at": "2026-06-21 17:18:25",
+      "id": 364
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260621003",
+      "inquiry_id": 593,
+      "created_at": "2026-06-21 17:06:03",
+      "id": 360
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260621003",
+      "inquiry_id": 593,
+      "created_at": "2026-06-21 16:07:17",
+      "id": 359
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260621003",
+      "inquiry_id": 593,
+      "created_at": "2026-06-21 15:59:25",
+      "id": 358
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621004-02，清理关联核价记录1条",
+      "inquiry_id": 598,
+      "created_at": "2026-06-21 15:42:08",
+      "id": 356
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621004，清理关联核价记录1条",
+      "inquiry_id": 597,
+      "created_at": "2026-06-21 15:42:08",
+      "id": 357
+    },
+    {
+      "action": "创建询价",
+      "operator": "蒋哲斌",
+      "detail": "批量创建询价单 JFX20260621005 [pending_pricing]",
+      "inquiry_id": 599,
+      "created_at": "2026-06-21 15:41:51",
+      "id": 352
+    },
+    {
+      "action": "创建询价",
+      "operator": "蒋哲斌",
+      "detail": "批量创建询价单 JFX20260621005-02 [pending_pricing]",
+      "inquiry_id": 600,
+      "created_at": "2026-06-21 15:41:51",
+      "id": 353
+    },
+    {
+      "action": "创建询价",
+      "operator": "蒋哲斌",
+      "detail": "批量创建询价单 JFX20260621005-03 [pending_pricing]",
+      "inquiry_id": 601,
+      "created_at": "2026-06-21 15:41:51",
+      "id": 354
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "蒋哲斌",
+      "detail": "询价单 JFX20260621005 共 3 个产品 (自动报价:0, 待核价:3)",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 15:41:51",
+      "id": 355
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260621003",
+      "inquiry_id": 593,
+      "created_at": "2026-06-21 15:30:41",
+      "id": 351
+    },
+    {
+      "action": "变体检测",
+      "operator": "system",
+      "detail": "型号 JFS03-B1WB30 参数不同(color_temp)，生成变体 JFS03-B1WB30-05",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 15:29:55",
+      "id": 347
+    },
+    {
+      "action": "创建变体",
+      "operator": "system",
+      "detail": "型号 JFS03-B1WB30 → 变体 JFS03-B1WB30-05",
+      "inquiry_id": 598,
+      "created_at": "2026-06-21 15:29:55",
+      "id": 348
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260621004-02 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 598,
+      "created_at": "2026-06-21 15:29:55",
+      "id": 349
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621004-02 报价库无价格，已提交核价库",
+      "inquiry_id": 598,
+      "created_at": "2026-06-21 15:29:55",
+      "id": 350
+    },
+    {
+      "action": "变体检测",
+      "operator": "system",
+      "detail": "型号 JFS03-B1WB30 参数不同(color_temp)，生成变体 JFS03-B1WB30-04",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 15:28:57",
+      "id": 343
+    },
+    {
+      "action": "创建变体",
+      "operator": "system",
+      "detail": "型号 JFS03-B1WB30 → 变体 JFS03-B1WB30-04",
+      "inquiry_id": 597,
+      "created_at": "2026-06-21 15:28:57",
+      "id": 344
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260621004 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 597,
+      "created_at": "2026-06-21 15:28:57",
+      "id": 345
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260621004 报价库无价格，已提交核价库",
+      "inquiry_id": 597,
+      "created_at": "2026-06-21 15:28:57",
+      "id": 346
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260621003",
+      "inquiry_id": 593,
+      "created_at": "2026-06-21 15:28:48",
+      "id": 342
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001",
+      "inquiry_id": 507,
+      "created_at": "2026-06-21 15:01:47",
+      "id": 340
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001-02",
+      "inquiry_id": 508,
+      "created_at": "2026-06-21 15:01:47",
+      "id": 341
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617008，清理关联核价记录1条",
+      "inquiry_id": 589,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 329
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617007，清理关联核价记录1条",
+      "inquiry_id": 588,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 330
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617005，清理关联核价记录2条",
+      "inquiry_id": 586,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 331
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617006，清理关联核价记录1条",
+      "inquiry_id": 587,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 332
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617004",
+      "inquiry_id": 585,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 333
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617003",
+      "inquiry_id": 584,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 334
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617002",
+      "inquiry_id": 583,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 335
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617001",
+      "inquiry_id": 575,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 336
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617001-02",
+      "inquiry_id": 576,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 337
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260617001-03",
+      "inquiry_id": 577,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 338
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530002",
+      "inquiry_id": 509,
+      "created_at": "2026-06-21 15:01:38",
+      "id": 339
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621001，清理关联核价记录1条",
+      "inquiry_id": 590,
+      "created_at": "2026-06-21 15:01:18",
+      "id": 327
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621001-02",
+      "inquiry_id": 591,
+      "created_at": "2026-06-21 15:01:18",
+      "id": 328
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260621002",
+      "inquiry_id": 592,
+      "created_at": "2026-06-21 14:55:42",
+      "id": 326
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260621003 [pending_pricing]",
+      "inquiry_id": 593,
+      "created_at": "2026-06-21 14:24:07",
+      "id": 321
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260621003-02 [pending_pricing]",
+      "inquiry_id": 594,
+      "created_at": "2026-06-21 14:24:07",
+      "id": 322
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260621003-03 [pending_pricing]",
+      "inquiry_id": 595,
+      "created_at": "2026-06-21 14:24:07",
+      "id": 323
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260621003-04 [pending_pricing]",
+      "inquiry_id": 596,
+      "created_at": "2026-06-21 14:24:07",
+      "id": 324
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260621003 共 4 个产品 (自动报价:0, 待核价:4)",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 14:24:07",
+      "id": 325
+    },
+    {
+      "action": "创建询价",
+      "operator": "sales01",
+      "detail": "新建询价单 JFX20260621002 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 592,
+      "created_at": "2026-06-21 09:28:39",
+      "id": 319
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260621002 报价库有价格，自动生成报价单",
+      "inquiry_id": 592,
+      "created_at": "2026-06-21 09:28:39",
+      "id": 320
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "批量创建询价单 JFX20260621001 [pending_pricing]",
+      "inquiry_id": 590,
+      "created_at": "2026-06-21 09:13:18",
+      "id": 316
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "批量创建询价单 JFX20260621001-02 [quoted]",
+      "inquiry_id": 591,
+      "created_at": "2026-06-21 09:13:18",
+      "id": 317
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "刘媛媛",
+      "detail": "询价单 JFX20260621001 共 2 个产品 (自动报价:1, 待核价:1)",
+      "inquiry_id": null,
+      "created_at": "2026-06-21 09:13:18",
+      "id": 318
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202606178968 已生成",
+      "inquiry_id": 589,
+      "created_at": "2026-06-17 17:36:53",
+      "id": 315
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "新建询价单 JFX20260617008 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 589,
+      "created_at": "2026-06-17 17:27:48",
+      "id": 313
+    },
+    {
+      "action": "提交核价",
+      "operator": "刘媛媛",
+      "detail": "询价单 JFX20260617008 报价库无价格，已提交核价库",
+      "inquiry_id": 589,
+      "created_at": "2026-06-17 17:27:48",
+      "id": 314
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "新建询价单 JFX20260617007 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 588,
+      "created_at": "2026-06-17 15:29:14",
+      "id": 311
+    },
+    {
+      "action": "提交核价",
+      "operator": "刘媛媛",
+      "detail": "询价单 JFX20260617007 报价库无价格，已提交核价库",
+      "inquiry_id": 588,
+      "created_at": "2026-06-17 15:29:14",
+      "id": 312
+    },
+    {
+      "action": "变体检测",
+      "operator": "sales01",
+      "detail": "型号 JFS03-B1WB30 参数不同(input_voltage,color_temp,luminous_flux,light_source,main_body,lampshade)，生成变体 JFS03-B1WB30-03",
+      "inquiry_id": null,
+      "created_at": "2026-06-17 15:19:00",
+      "id": 307
+    },
+    {
+      "action": "创建变体",
+      "operator": "sales01",
+      "detail": "型号 JFS03-B1WB30 → 变体 JFS03-B1WB30-03",
+      "inquiry_id": 587,
+      "created_at": "2026-06-17 15:19:00",
+      "id": 308
+    },
+    {
+      "action": "创建询价",
+      "operator": "sales01",
+      "detail": "新建询价单 JFX20260617006 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 587,
+      "created_at": "2026-06-17 15:19:00",
+      "id": 309
+    },
+    {
+      "action": "提交核价",
+      "operator": "sales01",
+      "detail": "询价单 JFX20260617006 报价库无价格，已提交核价库",
+      "inquiry_id": 587,
+      "created_at": "2026-06-17 15:19:00",
+      "id": 310
+    },
+    {
+      "action": "变体检测",
+      "operator": "sales01",
+      "detail": "型号 JFS03-B1WB30 参数不同(input_voltage,color_temp,luminous_flux,light_source,main_body,lampshade)，生成变体 JFS03-B1WB30-02",
+      "inquiry_id": null,
+      "created_at": "2026-06-17 15:12:19",
+      "id": 303
+    },
+    {
+      "action": "创建变体",
+      "operator": "sales01",
+      "detail": "型号 JFS03-B1WB30 → 变体 JFS03-B1WB30-02",
+      "inquiry_id": 586,
+      "created_at": "2026-06-17 15:12:19",
+      "id": 304
+    },
+    {
+      "action": "创建询价",
+      "operator": "sales01",
+      "detail": "新建询价单 JFX20260617005 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 586,
+      "created_at": "2026-06-17 15:12:19",
+      "id": 305
+    },
+    {
+      "action": "提交核价",
+      "operator": "sales01",
+      "detail": "询价单 JFX20260617005 报价库无价格，已提交核价库",
+      "inquiry_id": 586,
+      "created_at": "2026-06-17 15:12:19",
+      "id": 306
+    },
+    {
+      "action": "创建变体",
+      "operator": "sales01",
+      "detail": "型号 JFS03-B1WB30 参数不同(input_voltage,color_temp,luminous_flux,light_source,main_body,lampshade)，创建变体 JFS03-B1WB30-01",
+      "inquiry_id": 585,
+      "created_at": "2026-06-17 15:08:58",
+      "id": 300
+    },
+    {
+      "action": "创建询价",
+      "operator": "sales01",
+      "detail": "新建询价单 JFX20260617004 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 585,
+      "created_at": "2026-06-17 15:08:58",
+      "id": 301
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260617004 报价库有价格，自动生成报价单",
+      "inquiry_id": 585,
+      "created_at": "2026-06-17 15:08:58",
+      "id": 302
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "新建询价单 JFX20260617003 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 584,
+      "created_at": "2026-06-17 15:00:37",
+      "id": 298
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260617003 报价库有价格，自动生成报价单",
+      "inquiry_id": 584,
+      "created_at": "2026-06-17 15:00:37",
+      "id": 299
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "新建询价单 JFX20260617002 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 583,
+      "created_at": "2026-06-17 13:23:19",
+      "id": 296
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260617002 报价库有价格，自动生成报价单",
+      "inquiry_id": 583,
+      "created_at": "2026-06-17 13:23:19",
+      "id": 297
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260606909",
+      "inquiry_id": 562,
+      "created_at": "2026-06-17 11:56:50",
+      "id": 293
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260606374",
+      "inquiry_id": 563,
+      "created_at": "2026-06-17 11:56:50",
+      "id": 294
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260606014",
+      "inquiry_id": 564,
+      "created_at": "2026-06-17 11:56:50",
+      "id": 295
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "批量创建询价单 JFX20260617001 [quoted]",
+      "inquiry_id": 575,
+      "created_at": "2026-06-17 11:10:08",
+      "id": 289
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "批量创建询价单 JFX20260617001-02 [quoted]",
+      "inquiry_id": 576,
+      "created_at": "2026-06-17 11:10:08",
+      "id": 290
+    },
+    {
+      "action": "创建询价",
+      "operator": "刘媛媛",
+      "detail": "批量创建询价单 JFX20260617001-03 [quoted]",
+      "inquiry_id": 577,
+      "created_at": "2026-06-17 11:10:08",
+      "id": 291
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "刘媛媛",
+      "detail": "询价单 JFX20260617001 共 3 个产品 (自动报价:3, 待核价:0)",
+      "inquiry_id": null,
+      "created_at": "2026-06-17 11:10:08",
+      "id": 292
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260530002 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 509,
+      "created_at": "2026-05-30 18:51:35",
+      "id": 287
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260530002 报价库有价格，自动生成报价单",
+      "inquiry_id": 509,
+      "created_at": "2026-05-30 18:51:35",
+      "id": 288
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260530001 [quoted]",
+      "inquiry_id": 507,
+      "created_at": "2026-05-30 18:30:05",
+      "id": 284
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "批量创建询价单 JFX20260530001-02 [quoted]",
+      "inquiry_id": 508,
+      "created_at": "2026-05-30 18:30:05",
+      "id": 285
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260530001 共 2 个产品 (自动报价:2, 待核价:0)",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 18:30:05",
+      "id": 286
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530005",
+      "inquiry_id": 484,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 274
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530005-02",
+      "inquiry_id": 485,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 275
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530004",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 276
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530004-02",
+      "inquiry_id": 483,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 277
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530003",
+      "inquiry_id": 480,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 278
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530003-02",
+      "inquiry_id": 481,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 279
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530002",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 280
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530002-02",
+      "inquiry_id": 477,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 281
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001",
+      "inquiry_id": 471,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 282
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001-02",
+      "inquiry_id": 472,
+      "created_at": "2026-05-30 18:28:54",
+      "id": 283
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530006",
+      "inquiry_id": 486,
+      "created_at": "2026-05-30 17:37:19",
+      "id": 269
+    },
+    {
+      "action": "创建询价",
+      "operator": "张佳妮",
+      "detail": "新建询价单 JFX20260530006 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 486,
+      "created_at": "2026-05-30 16:31:53",
+      "id": 267
+    },
+    {
+      "action": "提交核价",
+      "operator": "张佳妮",
+      "detail": "询价单 JFX20260530006 报价库无价格，已提交核价库",
+      "inquiry_id": 486,
+      "created_at": "2026-05-30 16:31:53",
+      "id": 268
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260530005 共 2 个产品 (自动报价:2, 待核价:0)",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 16:28:00",
+      "id": 266
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "补录: 询价单 JFX20260530005-02 [quoted]",
+      "inquiry_id": 485,
+      "target_id": "JFX20260530005-02",
+      "created_at": "2026-05-30 16:28:00",
+      "id": 270
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "补录: 询价单 JFX20260530005 [quoted]",
+      "inquiry_id": 484,
+      "target_id": "JFX20260530005",
+      "created_at": "2026-05-30 16:28:00",
+      "id": 271
+    },
+    {
+      "action": "更新规格书",
+      "operator": "system",
+      "detail": "更新规格书 JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:50:10",
+      "id": 265
+    },
+    {
+      "action": "导出配置表",
+      "operator": "system",
+      "detail": "导出配置表 JFS24-B1WA100-Z-003",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 11:43:38",
+      "id": 263
+    },
+    {
+      "action": "导出配置表PDF",
+      "operator": "system",
+      "detail": "导出配置表PDF JFS24-B1WA100-Z-003",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 11:43:38",
+      "id": 264
+    },
+    {
+      "action": "导出规格书PDF",
+      "operator": "system",
+      "detail": "导出规格书PDF JFS24-B1WA100-Z-003",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 11:43:21",
+      "id": 262
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS24-B1WA100-Z-003",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 11:43:01",
+      "id": 261
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS24-B1WA100-Z-003",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 11:42:45",
+      "id": 260
+    },
+    {
+      "action": "更新规格书",
+      "operator": "system",
+      "detail": "更新规格书 JFS24-B1WA100-Z-003",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 11:42:23",
+      "id": 259
+    },
+    {
+      "action": "导出配置表PDF",
+      "operator": "system",
+      "detail": "导出配置表PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:23:48",
+      "id": 258
+    },
+    {
+      "action": "导出规格书PDF",
+      "operator": "system",
+      "detail": "导出规格书PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:23:20",
+      "id": 257
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:17:17",
+      "id": 255
+    },
+    {
+      "action": "导出配置表",
+      "operator": "system",
+      "detail": "导出配置表 JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:17:17",
+      "id": 256
+    },
+    {
+      "action": "导出规格书PDF",
+      "operator": "system",
+      "detail": "导出规格书PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:16:59",
+      "id": 253
+    },
+    {
+      "action": "导出配置表PDF",
+      "operator": "system",
+      "detail": "导出配置表PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:16:59",
+      "id": 254
+    },
+    {
+      "action": "导出规格书PDF",
+      "operator": "system",
+      "detail": "导出规格书PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:13:24",
+      "id": 251
+    },
+    {
+      "action": "导出配置表PDF",
+      "operator": "system",
+      "detail": "导出配置表PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:13:24",
+      "id": 252
+    },
+    {
+      "action": "导出规格书PDF",
+      "operator": "system",
+      "detail": "导出规格书PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:13:03",
+      "id": 249
+    },
+    {
+      "action": "导出配置表PDF",
+      "operator": "system",
+      "detail": "导出配置表PDF JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:13:03",
+      "id": 250
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:05:25",
+      "id": 248
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 11:00:01",
+      "id": 247
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS04-B1WB50",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 10:59:37",
+      "id": 246
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS01B-B1WA10",
+      "inquiry_id": 477,
+      "created_at": "2026-05-30 10:43:11",
+      "id": 245
+    },
+    {
+      "action": "导出配置表",
+      "operator": "system",
+      "detail": "导出配置表 JFS01B-B1WA10",
+      "inquiry_id": 477,
+      "created_at": "2026-05-30 10:42:39",
+      "id": 244
+    },
+    {
+      "action": "发送邮件",
+      "operator": "system",
+      "detail": "询价单 JFX20260530004 发送邮件至 cxsjwj@126.com 附件:quotation,config,spec",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 09:53:28",
+      "id": 243
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202605302677 已生成",
+      "inquiry_id": 482,
+      "created_at": "2026-05-30 09:41:15",
+      "id": 242
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "沈旭日",
+      "detail": "询价单 JFX20260530004 共 2 个产品 (自动报价:2, 待核价:0)",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 09:40:44",
+      "id": 241
+    },
+    {
+      "action": "创建询价",
+      "operator": "沈旭日",
+      "detail": "补录: 询价单 JFX20260530004-02 [quoted]",
+      "inquiry_id": 483,
+      "target_id": "JFX20260530004-02",
+      "created_at": "2026-05-30 09:40:44",
+      "id": 272
+    },
+    {
+      "action": "创建询价",
+      "operator": "沈旭日",
+      "detail": "补录: 询价单 JFX20260530004 [quoted]",
+      "inquiry_id": 482,
+      "target_id": "JFX20260530004",
+      "created_at": "2026-05-30 09:40:44",
+      "id": 273
+    },
+    {
+      "action": "发送邮件",
+      "operator": "system",
+      "detail": "询价单 JFX20260530003 发送邮件至 cxsjwj@126.com 附件:quotation,config,spec",
+      "inquiry_id": 480,
+      "created_at": "2026-05-30 09:38:46",
+      "id": 240
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260530003 共 2 个产品 (自动报价:2, 待核价:0)",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 09:37:33",
+      "id": 239
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530004",
+      "inquiry_id": 479,
+      "created_at": "2026-05-30 09:36:51",
+      "id": 237
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530003",
+      "inquiry_id": 478,
+      "created_at": "2026-05-30 09:36:51",
+      "id": 238
+    },
+    {
+      "action": "导出规格书",
+      "operator": "system",
+      "detail": "导出规格书 JFS99-NOEXIST2",
+      "inquiry_id": 479,
+      "created_at": "2026-05-30 09:35:19",
+      "id": 235
+    },
+    {
+      "action": "发送邮件",
+      "operator": "system",
+      "detail": "询价单 JFX20260530004 发送邮件至 test@example.com 附件:quotation,config,spec",
+      "inquiry_id": 479,
+      "created_at": "2026-05-30 09:35:19",
+      "id": 236
+    },
+    {
+      "action": "导出配置表",
+      "operator": "system",
+      "detail": "导出配置表 JFS99-NOEXIST2",
+      "inquiry_id": 479,
+      "created_at": "2026-05-30 09:35:09",
+      "id": 234
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260530004 [pending_pricing] 规则:核心准则[INQ_002]: 报价库无价格提交核价",
+      "inquiry_id": 479,
+      "created_at": "2026-05-30 09:29:30",
+      "id": 232
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260530004 报价库无价格，已提交核价库",
+      "inquiry_id": 479,
+      "created_at": "2026-05-30 09:29:30",
+      "id": 233
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260530003 [quoted] 规则:核心准则[INQ_001]: 报价库有价格自动完成",
+      "inquiry_id": 478,
+      "created_at": "2026-05-30 09:29:20",
+      "id": 230
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260530003 报价库有价格，自动生成报价单",
+      "inquiry_id": 478,
+      "created_at": "2026-05-30 09:29:20",
+      "id": 231
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202605306849 已生成",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 09:23:48",
+      "id": 229
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260530002 共 2 个产品 (自动报价:2, 待核价:0)",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 09:22:48",
+      "id": 228
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530004",
+      "inquiry_id": 475,
+      "created_at": "2026-05-30 09:22:00",
+      "id": 225
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530003",
+      "inquiry_id": 474,
+      "created_at": "2026-05-30 09:22:00",
+      "id": 226
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530002",
+      "inquiry_id": 473,
+      "created_at": "2026-05-30 09:22:00",
+      "id": 227
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260530004 [pending_pricing]",
+      "inquiry_id": 475,
+      "created_at": "2026-05-30 09:20:03",
+      "id": 223
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260530004 报价库无价格，已提交核价库",
+      "inquiry_id": 475,
+      "created_at": "2026-05-30 09:20:03",
+      "id": 224
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260530003 [quoted]",
+      "inquiry_id": 474,
+      "created_at": "2026-05-30 09:19:53",
+      "id": 221
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260530003 报价库有价格，自动生成报价单",
+      "inquiry_id": 474,
+      "created_at": "2026-05-30 09:19:53",
+      "id": 222
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260530002 [quoted]",
+      "inquiry_id": 473,
+      "created_at": "2026-05-30 09:19:45",
+      "id": 219
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260530002 报价库有价格，自动生成报价单",
+      "inquiry_id": 473,
+      "created_at": "2026-05-30 09:19:45",
+      "id": 220
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260530001 共 2 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 09:10:36",
+      "id": 218
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001",
+      "inquiry_id": 469,
+      "created_at": "2026-05-30 09:09:27",
+      "id": 216
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001-02",
+      "inquiry_id": 470,
+      "created_at": "2026-05-30 09:09:27",
+      "id": 217
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202605303588 已生成",
+      "inquiry_id": 469,
+      "created_at": "2026-05-30 09:07:43",
+      "id": 215
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260530001 已提交研发核价",
+      "inquiry_id": 469,
+      "created_at": "2026-05-30 09:06:15",
+      "id": 214
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260530001 配置表已生成",
+      "inquiry_id": 469,
+      "created_at": "2026-05-30 09:06:10",
+      "id": 213
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260530001 共 2 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 09:04:54",
+      "id": 212
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530002",
+      "inquiry_id": 461,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 197
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530003",
+      "inquiry_id": 462,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 198
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530004",
+      "inquiry_id": 463,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 199
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530005",
+      "inquiry_id": 464,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 200
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530006",
+      "inquiry_id": 465,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 201
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530007",
+      "inquiry_id": 466,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 202
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530008",
+      "inquiry_id": 467,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 203
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530009",
+      "inquiry_id": 468,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 204
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001",
+      "inquiry_id": 459,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 205
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260530001-02",
+      "inquiry_id": 460,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 206
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529004",
+      "inquiry_id": 481,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 207
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529003-02",
+      "inquiry_id": 480,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 208
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528002",
+      "inquiry_id": 479,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 209
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528001",
+      "inquiry_id": 478,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 210
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260526001",
+      "inquiry_id": 477,
+      "created_at": "2026-05-30 07:48:00",
+      "id": 211
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260525004",
+      "inquiry_id": 43,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 188
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240108001",
+      "inquiry_id": 476,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 189
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240107001",
+      "inquiry_id": 475,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 190
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240106001",
+      "inquiry_id": 474,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 191
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240105001",
+      "inquiry_id": 473,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 192
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240104001",
+      "inquiry_id": 472,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 193
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240103001",
+      "inquiry_id": 471,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 194
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240102001",
+      "inquiry_id": 470,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 195
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240101001",
+      "inquiry_id": 469,
+      "created_at": "2026-05-30 07:47:46",
+      "id": 196
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260530001 配置表已生成",
+      "inquiry_id": 459,
+      "created_at": "2026-05-30 07:37:40",
+      "id": 187
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260530001",
+      "inquiry_id": 459,
+      "created_at": "2026-05-30 07:37:35",
+      "id": 186
+    },
+    {
+      "action": "创建询价",
+      "operator": "张三",
+      "detail": "新建询价单 JFX20260530002",
+      "inquiry_id": 461,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 178
+    },
+    {
+      "action": "创建询价",
+      "operator": "李四",
+      "detail": "新建询价单 JFX20260530003",
+      "inquiry_id": 462,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 179
+    },
+    {
+      "action": "创建询价",
+      "operator": "张三",
+      "detail": "新建询价单 JFX20260530004",
+      "inquiry_id": 463,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 180
+    },
+    {
+      "action": "创建询价",
+      "operator": "李四",
+      "detail": "新建询价单 JFX20260530005",
+      "inquiry_id": 464,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 181
+    },
+    {
+      "action": "创建询价",
+      "operator": "张三",
+      "detail": "新建询价单 JFX20260530006",
+      "inquiry_id": 465,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 182
+    },
+    {
+      "action": "创建询价",
+      "operator": "李四",
+      "detail": "新建询价单 JFX20260530007",
+      "inquiry_id": 466,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 183
+    },
+    {
+      "action": "创建询价",
+      "operator": "张三",
+      "detail": "新建询价单 JFX20260530008",
+      "inquiry_id": 467,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 184
+    },
+    {
+      "action": "创建询价",
+      "operator": "李四",
+      "detail": "新建询价单 JFX20260530009",
+      "inquiry_id": 468,
+      "created_at": "2026-05-30 07:37:24",
+      "id": 185
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260530001 共 2 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-30 07:36:11",
+      "id": 177
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240108001",
+      "inquiry_id": 453,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 169
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240107001",
+      "inquiry_id": 452,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 170
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240106001",
+      "inquiry_id": 451,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 171
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240105001",
+      "inquiry_id": 450,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 172
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240104001",
+      "inquiry_id": 449,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 173
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240103001",
+      "inquiry_id": 448,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 174
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240102001",
+      "inquiry_id": 447,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 175
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240101001",
+      "inquiry_id": 446,
+      "created_at": "2026-05-30 07:35:04",
+      "id": 176
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529004",
+      "inquiry_id": 410,
+      "created_at": "2026-05-29 19:31:48",
+      "id": 163
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529003",
+      "inquiry_id": 403,
+      "created_at": "2026-05-29 19:31:48",
+      "id": 164
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529003-02",
+      "inquiry_id": 404,
+      "created_at": "2026-05-29 19:31:48",
+      "id": 165
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529002",
+      "inquiry_id": 370,
+      "created_at": "2026-05-29 19:31:48",
+      "id": 166
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529002-02",
+      "inquiry_id": 371,
+      "created_at": "2026-05-29 19:31:48",
+      "id": 167
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529002-03",
+      "inquiry_id": 372,
+      "created_at": "2026-05-29 19:31:48",
+      "id": 168
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260529004",
+      "inquiry_id": 410,
+      "created_at": "2026-05-29 17:51:01",
+      "id": 162
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260529003 配置表已生成",
+      "inquiry_id": 403,
+      "created_at": "2026-05-29 17:25:49",
+      "id": 161
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260529003",
+      "inquiry_id": 403,
+      "created_at": "2026-05-29 17:25:43",
+      "id": 160
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260529003 共 2 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-29 17:24:55",
+      "id": 159
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260529002-03 配置表已生成",
+      "inquiry_id": 372,
+      "created_at": "2026-05-29 16:35:52",
+      "id": 158
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260529002-02 配置表已生成",
+      "inquiry_id": 371,
+      "created_at": "2026-05-29 16:35:22",
+      "id": 157
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260529002 配置表已生成",
+      "inquiry_id": 370,
+      "created_at": "2026-05-29 16:34:42",
+      "id": 156
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529001",
+      "inquiry_id": 369,
+      "created_at": "2026-05-29 16:34:00",
+      "id": 155
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "朱梦倩",
+      "detail": "询价单 JFX20260529002 共 3 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-29 16:33:44",
+      "id": 154
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260529001 配置表已生成",
+      "inquiry_id": 369,
+      "created_at": "2026-05-29 16:14:40",
+      "id": 153
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260529001",
+      "inquiry_id": 369,
+      "created_at": "2026-05-29 16:13:48",
+      "id": 151
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260529001",
+      "inquiry_id": 369,
+      "created_at": "2026-05-29 16:13:48",
+      "id": 152
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529003",
+      "inquiry_id": 368,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 143
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529002",
+      "inquiry_id": 365,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 144
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529001",
+      "inquiry_id": 364,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 145
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528004",
+      "inquiry_id": 355,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 146
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528003",
+      "inquiry_id": 353,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 147
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528003-02",
+      "inquiry_id": 354,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 148
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528002",
+      "inquiry_id": 352,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 149
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528001",
+      "inquiry_id": 345,
+      "created_at": "2026-05-29 16:10:18",
+      "id": 150
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260529003",
+      "inquiry_id": 368,
+      "created_at": "2026-05-29 16:05:14",
+      "id": 141
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260529003",
+      "inquiry_id": 368,
+      "created_at": "2026-05-29 16:05:14",
+      "id": 142
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529004",
+      "inquiry_id": 367,
+      "created_at": "2026-05-29 15:29:50",
+      "id": 139
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260529003",
+      "inquiry_id": 366,
+      "created_at": "2026-05-29 15:29:50",
+      "id": 140
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260529004",
+      "inquiry_id": 367,
+      "created_at": "2026-05-29 15:25:51",
+      "id": 138
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260529003",
+      "inquiry_id": 366,
+      "created_at": "2026-05-29 15:24:00",
+      "id": 137
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260529002 配置表已生成",
+      "inquiry_id": 365,
+      "created_at": "2026-05-29 14:26:28",
+      "id": 136
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260529002",
+      "inquiry_id": 365,
+      "created_at": "2026-05-29 14:26:11",
+      "id": 134
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260529002",
+      "inquiry_id": 365,
+      "created_at": "2026-05-29 14:26:11",
+      "id": 135
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260529001 已提交研发核价",
+      "inquiry_id": 364,
+      "created_at": "2026-05-29 13:30:05",
+      "id": 133
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260529001 配置表已生成",
+      "inquiry_id": 364,
+      "created_at": "2026-05-29 13:29:50",
+      "id": 132
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260529001",
+      "inquiry_id": 364,
+      "created_at": "2026-05-29 13:28:03",
+      "id": 130
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260529001",
+      "inquiry_id": 364,
+      "created_at": "2026-05-29 13:28:03",
+      "id": 131
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260528682",
+      "inquiry_id": 357,
+      "created_at": "2026-05-29 12:00:39",
+      "id": 129
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260528181",
+      "inquiry_id": 356,
+      "created_at": "2026-05-29 12:00:34",
+      "id": 127
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260528918",
+      "inquiry_id": 358,
+      "created_at": "2026-05-29 12:00:34",
+      "id": 128
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260528003 状态从 closed 变更为 closed",
+      "inquiry_id": 353,
+      "created_at": "2026-05-28 10:07:06",
+      "id": 126
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202605282918 已生成",
+      "inquiry_id": 353,
+      "created_at": "2026-05-28 10:06:40",
+      "id": 125
+    },
+    {
+      "action": "创建询价",
+      "operator": "张佳妮",
+      "detail": "新建询价单 JFX20260528004",
+      "inquiry_id": 355,
+      "created_at": "2026-05-28 07:38:04",
+      "id": 124
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260528630",
+      "inquiry_id": 350,
+      "created_at": "2026-05-28 06:34:31",
+      "id": 119
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260528007",
+      "inquiry_id": 351,
+      "created_at": "2026-05-28 06:34:31",
+      "id": 120
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20260528660",
+      "inquiry_id": 349,
+      "created_at": "2026-05-28 06:34:31",
+      "id": 121
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260527001",
+      "inquiry_id": 335,
+      "created_at": "2026-05-28 06:34:31",
+      "id": 122
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260527002",
+      "inquiry_id": 336,
+      "created_at": "2026-05-28 06:34:31",
+      "id": 123
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "system",
+      "detail": "询价单 JFX20260528003 共 2 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-28 05:36:43",
+      "id": 118
+    },
+    {
+      "action": "创建询价",
+      "operator": "张佳妮",
+      "detail": "新建询价单 JFX20260528002",
+      "inquiry_id": 352,
+      "created_at": "2026-05-28 05:27:44",
+      "id": 116
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260528002",
+      "inquiry_id": 352,
+      "created_at": "2026-05-28 05:27:44",
+      "id": 117
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260527004",
+      "inquiry_id": 339,
+      "created_at": "2026-05-28 05:26:37",
+      "id": 114
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260527003",
+      "inquiry_id": 337,
+      "created_at": "2026-05-28 05:26:37",
+      "id": 115
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 XJ20260528660 已提交研发核价",
+      "inquiry_id": 349,
+      "created_at": "2026-05-28 04:49:49",
+      "id": 113
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 XJ20260528660",
+      "inquiry_id": 349,
+      "created_at": "2026-05-28 04:49:29",
+      "id": 112
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528002",
+      "inquiry_id": 348,
+      "created_at": "2026-05-28 04:15:49",
+      "id": 111
+    },
+    {
+      "action": "模板导入询价",
+      "operator": "system",
+      "detail": "询价单 JFX20260528002 共 1 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-28 04:15:22",
+      "id": 110
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528002",
+      "inquiry_id": 346,
+      "created_at": "2026-05-28 03:45:32",
+      "id": 108
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260528002-02",
+      "inquiry_id": 347,
+      "created_at": "2026-05-28 03:45:32",
+      "id": 109
+    },
+    {
+      "action": "批量创建询价",
+      "operator": "system",
+      "detail": "询价单 JFX20260528002 共 2 个产品",
+      "inquiry_id": null,
+      "created_at": "2026-05-28 03:44:41",
+      "id": 107
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260528001",
+      "inquiry_id": 345,
+      "created_at": "2026-05-28 01:51:01",
+      "id": 105
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260528001",
+      "inquiry_id": 345,
+      "created_at": "2026-05-28 01:51:01",
+      "id": 106
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260527004 配置表已生成",
+      "inquiry_id": 339,
+      "created_at": "2026-05-27 11:44:09",
+      "id": 104
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260527004",
+      "inquiry_id": 339,
+      "created_at": "2026-05-27 11:43:00",
+      "id": 102
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260527004",
+      "inquiry_id": 339,
+      "created_at": "2026-05-27 11:43:00",
+      "id": 103
+    },
+    {
+      "action": "批量修改",
+      "operator": "system",
+      "detail": "批量修改询价单 1 条",
+      "inquiry_id": null,
+      "created_at": "2026-05-27 11:41:09",
+      "id": 101
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260527004",
+      "inquiry_id": 338,
+      "created_at": "2026-05-27 11:40:31",
+      "id": 100
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260527004 已提交研发核价",
+      "inquiry_id": 338,
+      "created_at": "2026-05-27 11:33:11",
+      "id": 99
+    },
+    {
+      "action": "创建询价",
+      "operator": "张佳妮",
+      "detail": "新建询价单 JFX20260527004",
+      "inquiry_id": 338,
+      "created_at": "2026-05-27 11:32:03",
+      "id": 97
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260527004",
+      "inquiry_id": 338,
+      "created_at": "2026-05-27 11:32:03",
+      "id": 98
+    },
+    {
+      "action": "导出报价单",
+      "operator": "system",
+      "detail": "导出报价单 QT202605273579",
+      "inquiry_id": 337,
+      "created_at": "2026-05-27 11:09:47",
+      "id": 96
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202605273579 已生成",
+      "inquiry_id": 337,
+      "created_at": "2026-05-27 11:09:16",
+      "id": 95
+    },
+    {
+      "action": "核价确认",
+      "operator": "system",
+      "detail": "询价单 JFX20260527003 核价完成，报价 ¥120000",
+      "inquiry_id": 337,
+      "created_at": "2026-05-27 11:08:36",
+      "id": 94
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260527003 已提交研发核价",
+      "inquiry_id": 337,
+      "created_at": "2026-05-27 11:08:15",
+      "id": 93
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260527003 配置表已生成",
+      "inquiry_id": 337,
+      "created_at": "2026-05-27 11:06:55",
+      "id": 92
+    },
+    {
+      "action": "创建询价",
+      "operator": "张佳妮",
+      "detail": "新建询价单 JFX20260527003",
+      "inquiry_id": 337,
+      "created_at": "2026-05-27 11:06:22",
+      "id": 90
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260527003",
+      "inquiry_id": 337,
+      "created_at": "2026-05-27 11:06:22",
+      "id": 91
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260527002",
+      "inquiry_id": 336,
+      "created_at": "2026-05-27 09:07:52",
+      "id": 88
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260527002",
+      "inquiry_id": 336,
+      "created_at": "2026-05-27 09:07:52",
+      "id": 89
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260527001",
+      "inquiry_id": 335,
+      "created_at": "2026-05-27 06:40:20",
+      "id": 86
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260527001",
+      "inquiry_id": 335,
+      "created_at": "2026-05-27 06:40:20",
+      "id": 87
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260527001",
+      "inquiry_id": 334,
+      "created_at": "2026-05-27 06:39:28",
+      "id": 85
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260527001",
+      "inquiry_id": 334,
+      "created_at": "2026-05-27 06:27:06",
+      "id": 83
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260527001",
+      "inquiry_id": 334,
+      "created_at": "2026-05-27 06:27:06",
+      "id": 84
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240108001",
+      "inquiry_id": 333,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 75
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240107001",
+      "inquiry_id": 332,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 76
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240106001",
+      "inquiry_id": 331,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 77
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240105001",
+      "inquiry_id": 330,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 78
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240104001",
+      "inquiry_id": 329,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 79
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240103001",
+      "inquiry_id": 328,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 80
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240102001",
+      "inquiry_id": 327,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 81
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240101001",
+      "inquiry_id": 326,
+      "created_at": "2026-05-27 06:25:31",
+      "id": 82
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260527001",
+      "inquiry_id": 325,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 66
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240108001",
+      "inquiry_id": 324,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 67
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240107001",
+      "inquiry_id": 323,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 68
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240106001",
+      "inquiry_id": 322,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 69
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240105001",
+      "inquiry_id": 321,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 70
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240104001",
+      "inquiry_id": 320,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 71
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240103001",
+      "inquiry_id": 319,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 72
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240102001",
+      "inquiry_id": 318,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 73
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240101001",
+      "inquiry_id": 317,
+      "created_at": "2026-05-27 05:57:50",
+      "id": 74
+    },
+    {
+      "action": "创建询价",
+      "operator": "沈旭日",
+      "detail": "新建询价单 JFX20260527001",
+      "inquiry_id": 325,
+      "created_at": "2026-05-27 04:52:48",
+      "id": 64
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260527001",
+      "inquiry_id": 325,
+      "created_at": "2026-05-27 04:52:48",
+      "id": 65
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240108001",
+      "inquiry_id": 316,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 56
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240107001",
+      "inquiry_id": 315,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 57
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240106001",
+      "inquiry_id": 314,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 58
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240105001",
+      "inquiry_id": 313,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 59
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240104001",
+      "inquiry_id": 312,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 60
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240103001",
+      "inquiry_id": 311,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 61
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240102001",
+      "inquiry_id": 310,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 62
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240101001",
+      "inquiry_id": 309,
+      "created_at": "2026-05-27 04:43:56",
+      "id": 63
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240108001",
+      "inquiry_id": 308,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 48
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240107001",
+      "inquiry_id": 307,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 49
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240106001",
+      "inquiry_id": 306,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 50
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240105001",
+      "inquiry_id": 305,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 51
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240104001",
+      "inquiry_id": 304,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 52
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240103001",
+      "inquiry_id": 303,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 53
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240102001",
+      "inquiry_id": 302,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 54
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 XJ20240101001",
+      "inquiry_id": 301,
+      "created_at": "2026-05-26 23:51:06",
+      "id": 55
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260526001",
+      "inquiry_id": 300,
+      "created_at": "2026-05-26 11:13:44",
+      "id": 47
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260526001",
+      "inquiry_id": 300,
+      "created_at": "2026-05-26 10:07:28",
+      "id": 45
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260526001",
+      "inquiry_id": 300,
+      "created_at": "2026-05-26 10:07:28",
+      "id": 46
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260526002",
+      "inquiry_id": 299,
+      "created_at": "2026-05-26 10:06:32",
+      "id": 40
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260526001",
+      "inquiry_id": 298,
+      "created_at": "2026-05-26 10:06:32",
+      "id": 41
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260525008",
+      "inquiry_id": 48,
+      "created_at": "2026-05-26 10:06:32",
+      "id": 42
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260525006",
+      "inquiry_id": 46,
+      "created_at": "2026-05-26 10:06:32",
+      "id": 43
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260525004",
+      "inquiry_id": 43,
+      "created_at": "2026-05-26 10:06:32",
+      "id": 44
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260526002",
+      "inquiry_id": 299,
+      "created_at": "2026-05-26 10:00:28",
+      "id": 38
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260526002",
+      "inquiry_id": 299,
+      "created_at": "2026-05-26 10:00:28",
+      "id": 39
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260525004 状态从 closed 变更为 closed",
+      "inquiry_id": 43,
+      "created_at": "2026-05-26 09:57:27",
+      "id": 37
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202605263893 已生成",
+      "inquiry_id": 43,
+      "created_at": "2026-05-26 09:57:11",
+      "id": 36
+    },
+    {
+      "action": "生成报价单",
+      "operator": "system",
+      "detail": "报价单 QT202605261061 已生成",
+      "inquiry_id": 43,
+      "created_at": "2026-05-26 09:57:04",
+      "id": 35
+    },
+    {
+      "action": "核价确认",
+      "operator": "system",
+      "detail": "询价单 JFX20260525004 核价完成，报价 ¥1200000",
+      "inquiry_id": 43,
+      "created_at": "2026-05-26 09:56:52",
+      "id": 34
+    },
+    {
+      "action": "提交核价",
+      "operator": "system",
+      "detail": "询价单 JFX20260525004 已提交研发核价",
+      "inquiry_id": 43,
+      "created_at": "2026-05-26 09:56:42",
+      "id": 33
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260525004 配置表已生成",
+      "inquiry_id": 43,
+      "created_at": "2026-05-26 09:56:31",
+      "id": 32
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260514-123",
+      "inquiry_id": 22,
+      "created_at": "2026-05-26 09:50:22",
+      "id": 25
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260515-124",
+      "inquiry_id": 23,
+      "created_at": "2026-05-26 09:50:22",
+      "id": 26
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260519-125",
+      "inquiry_id": 24,
+      "created_at": "2026-05-26 09:50:22",
+      "id": 27
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260519-126",
+      "inquiry_id": 25,
+      "created_at": "2026-05-26 09:50:22",
+      "id": 28
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260519-127",
+      "inquiry_id": 26,
+      "created_at": "2026-05-26 09:50:22",
+      "id": 29
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260520-128",
+      "inquiry_id": 27,
+      "created_at": "2026-05-26 09:50:22",
+      "id": 30
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260513-122",
+      "inquiry_id": 21,
+      "created_at": "2026-05-26 09:50:22",
+      "id": 31
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260506-112",
+      "inquiry_id": 11,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 14
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260506-111",
+      "inquiry_id": 10,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 15
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260506-113",
+      "inquiry_id": 12,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 16
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260507-114",
+      "inquiry_id": 13,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 17
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260508-115",
+      "inquiry_id": 14,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 18
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260508-117",
+      "inquiry_id": 16,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 19
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260507-116",
+      "inquiry_id": 15,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 20
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260512-118",
+      "inquiry_id": 17,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 21
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260512-119",
+      "inquiry_id": 18,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 22
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260512-120",
+      "inquiry_id": 19,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 23
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260513-121",
+      "inquiry_id": 20,
+      "created_at": "2026-05-26 09:49:40",
+      "id": 24
+    },
+    {
+      "action": "生成配置表",
+      "operator": "system",
+      "detail": "询价单 JFX20260526001 配置表已生成",
+      "inquiry_id": 298,
+      "created_at": "2026-05-26 06:58:57",
+      "id": 13
+    },
+    {
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "detail": "新建询价单 JFX20260526001",
+      "inquiry_id": 298,
+      "created_at": "2026-05-26 06:56:33",
+      "id": 11
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260526001",
+      "inquiry_id": 298,
+      "created_at": "2026-05-26 06:56:33",
+      "id": 12
+    },
+    {
+      "action": "更新询价",
+      "operator": "system",
+      "detail": "更新询价单 JFX20260525006",
+      "inquiry_id": 46,
+      "created_at": "2026-05-26 06:41:29",
+      "id": 10
+    },
+    {
+      "action": "删除询价",
+      "operator": "system",
+      "detail": "删除询价单 JFX20260526001",
+      "inquiry_id": 249,
+      "created_at": "2026-05-26 05:03:20",
+      "id": 9
+    },
+    {
+      "action": "状态变更",
+      "operator": "张三",
+      "detail": "询价单 XJ20240103001 状态变更为 closed",
+      "inquiry_id": 3,
+      "created_at": "2024-02-10 10:00:00",
+      "id": 8
+    },
+    {
+      "action": "智能核价",
+      "operator": "张三",
+      "detail": "询价单 XJ20240103001 核价完成，报价 ¥12240",
+      "inquiry_id": 3,
+      "created_at": "2024-02-06 09:00:00",
+      "id": 7
+    },
+    {
+      "action": "创建询价",
+      "operator": "张三",
+      "detail": "新建询价单 XJ20240103001",
+      "inquiry_id": 3,
+      "created_at": "2024-02-05 14:00:00",
+      "id": 6
+    },
+    {
+      "action": "状态变更",
+      "operator": "李四",
+      "detail": "询价单 XJ20240102001 状态变更为 negotiating",
+      "inquiry_id": 2,
+      "created_at": "2024-01-22 16:00:00",
+      "id": 5
+    },
+    {
+      "action": "智能核价",
+      "operator": "李四",
+      "detail": "询价单 XJ20240102001 核价完成，报价 ¥6300",
+      "inquiry_id": 2,
+      "created_at": "2024-01-21 11:00:00",
+      "id": 4
+    },
+    {
+      "action": "创建询价",
+      "operator": "李四",
+      "detail": "新建询价单 XJ20240102001",
+      "inquiry_id": 2,
+      "created_at": "2024-01-20 10:00:00",
+      "id": 3
+    },
+    {
+      "action": "智能核价",
+      "operator": "张三",
+      "detail": "询价单 XJ20240101001 核价完成，报价 ¥9120",
+      "inquiry_id": 1,
+      "created_at": "2024-01-16 14:00:00",
+      "id": 2
+    },
+    {
+      "action": "创建询价",
+      "operator": "张三",
+      "detail": "新建询价单 XJ20240101001",
+      "inquiry_id": 1,
+      "created_at": "2024-01-15 09:30:00",
+      "id": 1
+    },
+    {
+      "id": 188,
+      "inquiry_id": 469,
+      "target_id": "XJ20240101001",
+      "action": "创建询价",
+      "operator": "张三",
+      "timestamp": "2024-01-15 09:30:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 189,
+      "inquiry_id": 470,
+      "target_id": "XJ20240102001",
+      "action": "创建询价",
+      "operator": "李四",
+      "timestamp": "2024-01-20 10:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 190,
+      "inquiry_id": 471,
+      "target_id": "XJ20240103001",
+      "action": "创建询价",
+      "operator": "张三",
+      "timestamp": "2024-02-05 14:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 191,
+      "inquiry_id": 472,
+      "target_id": "XJ20240104001",
+      "action": "创建询价",
+      "operator": "李四",
+      "timestamp": "2024-02-10 11:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 192,
+      "inquiry_id": 473,
+      "target_id": "XJ20240105001",
+      "action": "创建询价",
+      "operator": "张三",
+      "timestamp": "2024-03-01 16:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 193,
+      "inquiry_id": 474,
+      "target_id": "XJ20240106001",
+      "action": "创建询价",
+      "operator": "李四",
+      "timestamp": "2024-03-10 10:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 194,
+      "inquiry_id": 475,
+      "target_id": "XJ20240107001",
+      "action": "创建询价",
+      "operator": "张三",
+      "timestamp": "2024-03-15 11:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 195,
+      "inquiry_id": 476,
+      "target_id": "XJ20240108001",
+      "action": "创建询价",
+      "operator": "李四",
+      "timestamp": "2024-03-20 14:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 196,
+      "inquiry_id": 477,
+      "target_id": "JFX20260526001",
+      "action": "创建询价",
+      "operator": "system",
+      "timestamp": "2026-05-26 09:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 197,
+      "inquiry_id": 478,
+      "target_id": "JFX20260528001",
+      "action": "创建询价",
+      "operator": "system",
+      "timestamp": "2026-05-28 09:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 198,
+      "inquiry_id": 479,
+      "target_id": "JFX20260528002",
+      "action": "创建询价",
+      "operator": "system",
+      "timestamp": "2026-05-28 10:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 199,
+      "inquiry_id": 480,
+      "target_id": "JFX20260529003-02",
+      "action": "创建询价",
+      "operator": "system",
+      "timestamp": "2026-05-29 17:24:55",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 200,
+      "inquiry_id": 481,
+      "target_id": "JFX20260529004",
+      "action": "创建询价",
+      "operator": "system",
+      "timestamp": "2026-05-29 18:00:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 201,
+      "inquiry_id": 43,
+      "target_id": "JFX20260525004",
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "timestamp": "2026-05-25 06:30:00",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 202,
+      "inquiry_id": 459,
+      "target_id": 459,
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "timestamp": "2026-05-30 07:36:11",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "id": 203,
+      "inquiry_id": 460,
+      "target_id": 460,
+      "action": "创建询价",
+      "operator": "朱梦倩",
+      "timestamp": "2026-05-30 07:36:11",
+      "details": "补录创建操作日志",
+      "module": "询价管理"
+    },
+    {
+      "action": "创建询价",
+      "operator": "system",
+      "detail": "新建询价单 JFX20260704010 [quoted] 规则:报价库有价格，自动完成报价",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 578
+    },
+    {
+      "action": "自动生成报价单",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 报价库有价格，自动生成报价单",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 579
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 cert_configured 变更为 cert_configured",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 580
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 config_generated 变更为 config_generated",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 581
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 pending_pricing 变更为 pending_pricing",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 582
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 pending_quote 变更为 pending_quote",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 583
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 quoted 变更为 quoted",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 584
+    },
+    {
+      "action": "状态变更",
+      "operator": "system",
+      "detail": "询价单 JFX20260704010 状态从 closed 变更为 closed",
+      "inquiry_id": 730,
+      "created_at": "2026-07-04 18:04:53",
+      "id": 585
+    }
+  ],
+  "nextId": 586
+}

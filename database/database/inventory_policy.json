@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "_说明": "推荐最小库存 = ceil(月用量 × 供应月数 × 体积系数)，不低于下限。供应月数由(分类×货值)矩阵决定；体积越大系数越小。",
+  "value_tiers": [
+    { "name": "低货值", "max_cost": 5 },
+    { "name": "中货值", "max_cost": 100 },
+    { "name": "高货值", "max_cost": null }
+  ],
+  "strategy_months": {
+    "通用物料": { "低货值": 1.0, "中货值": 0.5, "高货值": 0.25 },
+    "常用物料": { "低货值": 1.0, "中货值": 0.5, "高货值": 0.25 },
+    "专用物料": { "低货值": 0.5, "中货值": 0.3, "高货值": 0.1 },
+    "定制物料": { "低货值": 0.3, "中货值": 0.2, "高货值": 0.1 }
+  },
+  "default_classification": "专用物料",
+  "fallback_months": 0.3,
+  "volume_tiers": [
+    { "name": "小体积", "max_volume": 0.002, "factor": 1.0 },
+    { "name": "中体积", "max_volume": 0.02, "factor": 0.8 },
+    { "name": "大体积", "max_volume": null, "factor": 0.6 }
+  ],
+  "volume_unit": "m³",
+  "apply_volume_when_unknown": false,
+  "min_floor": 1,
+  "key_part_floor": 5,
+  "round_up": true
+}

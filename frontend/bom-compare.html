@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - BOM对比与问题管理</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .tab-nav { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; gap: 0; }
+    .tab-nav button { padding: 10px 20px; border: none; background: none; cursor: pointer; font-size: 14px; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .tab-nav button.active { color: #667eea; border-bottom-color: #667eea; font-weight: 600; }
+    .tab-nav button:hover { color: #667eea; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .compare-config { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; padding: 15px; background: #f8f9fa; border-radius: 10px; margin-bottom: 15px; }
+    .compare-config .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .compare-config label { font-size: 12px; color: #666; font-weight: 500; }
+    .compare-config select, .compare-config input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; min-width: 150px; }
+    .compare-config select:focus, .compare-config input:focus { border-color: #667eea; outline: none; }
+
+    .bom-type-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .type-product_base { background: #e3f2fd; color: #1565c0; }
+    .type-order { background: #fff3e0; color: #f57c00; }
+    .type-production { background: #e8f5e9; color: #2e7d32; }
+
+    .compare-table-wrap { overflow-x: auto; }
+    .compare-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); font-size: 12px; }
+    .compare-table th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #e0e0e0; white-space: nowrap; position: sticky; top: 0; z-index: 2; }
+    .compare-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    .compare-table tr:hover { background: #f8f9ff; }
+    .compare-table .diff-cell { background: #fff3e0; font-weight: 600; }
+    .compare-table .diff-added { background: #e8f5e9; }
+    .compare-table .diff-removed { background: #ffebee; }
+    .compare-table .diff-quantity { color: #e74c3c; }
+    .compare-table .diff-price { color: #ff9800; }
+    .compare-table .diff-spec { color: #9c27b0; }
+
+    .diff-summary { display: flex; gap: 15px; padding: 12px 15px; background: #fff8e1; border-radius: 8px; margin-bottom: 15px; font-size: 13px; }
+    .diff-summary .diff-stat { display: flex; align-items: center; gap: 4px; }
+    .diff-summary .diff-stat .num { font-weight: 700; color: #e74c3c; }
+
+    .issue-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid #e74c3c; transition: all 0.2s; }
+    .issue-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .issue-card.severity-high { border-left-color: #e74c3c; }
+    .issue-card.severity-medium { border-left-color: #ff9800; }
+    .issue-card.severity-low { border-left-color: #4caf50; }
+    .issue-card .issue-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .issue-card .issue-title { font-size: 14px; font-weight: 600; color: #333; }
+    .issue-card .issue-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #888; }
+    .issue-card .issue-meta span { display: flex; align-items: center; gap: 3px; }
+
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .status-open { background: #ffebee; color: #c62828; }
+    .status-in_progress { background: #fff3e0; color: #f57c00; }
+    .status-resolved { background: #e8f5e9; color: #2e7d32; }
+    .status-closed { background: #e3f2fd; color: #1565c0; }
+    .status-rejected { background: #f5f5f5; color: #999; }
+
+    .severity-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .severity-high { background: #ffebee; color: #c62828; }
+    .severity-medium { background: #fff3e0; color: #f57c00; }
+    .severity-low { background: #e8f5e9; color: #2e7d32; }
+
+    .track-timeline { position: relative; padding-left: 20px; margin-top: 10px; }
+    .track-timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
+    .track-item { position: relative; padding: 6px 0 6px 16px; font-size: 12px; color: #555; }
+    .track-item::before { content: ''; position: absolute; left: -2px; top: 10px; width: 10px; height: 10px; border-radius: 50%; background: #667eea; border: 2px solid white; }
+    .track-item .track-time { color: #999; font-size: 11px; }
+    .track-item .track-action { font-weight: 500; color: #333; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .stat-card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: all 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .stat-card .num { font-size: 22px; font-weight: 700; color: #667eea; }
+    .stat-card .label { font-size: 11px; color: #888; margin-top: 3px; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .modal.show { display: flex; }
+    .modal-content { background: white; border-radius: 12px; padding: 20px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
+    .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #999; }
+    .close-btn:hover { color: #333; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; font-weight: 500; }
+    .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+    .form-control:focus { border-color: #667eea; outline: none; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    .filter-bar select, .filter-bar input { padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .filter-bar select:focus, .filter-bar input:focus { border-color: #667eea; outline: none; }
+
+    .prevention-card { background: #f0f4ff; border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 12px; }
+    .prevention-card .prev-measure { color: #333; font-weight: 500; }
+    .prevention-card .prev-type { color: #667eea; font-size: 11px; }
+
+    .empty-state { text-align: center; padding: 40px; color: #999; }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 12px; }
+    .pagination button { padding: 5px 10px; border: 1px solid #ddd; border-radius: 5px; background: white; cursor: pointer; font-size: 12px; }
+    .pagination button.active { background: #667eea; color: white; border-color: #667eea; }
+    .pagination button:disabled { opacity: 0.4; cursor: default; }
+
+    .type-check-group { display: flex; gap: 12px; align-items: center; }
+    .type-check-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content">
+    <div class="header">
+      <h2>BOM对比与问题管理</h2>
+    </div>
+
+    <div class="tab-nav">
+      <button class="active" onclick="switchTab('compare')">BOM对比</button>
+      <button onclick="switchTab('issues')">问题管理</button>
+      <button onclick="switchTab('analysis')">问题分析</button>
+    </div>
+
+    <div id="tabCompare" class="tab-content active">
+      <div class="compare-config">
+        <div class="form-group">
+          <label>选择产品</label>
+          <select id="compareProduct" onchange="loadBomTypes()"><option value="">请选择产品</option></select>
+        </div>
+        <div class="form-group">
+          <label>对比类型</label>
+          <div class="type-check-group">
+            <label><input type="checkbox" id="chkBase" checked disabled> 产品基础BOM</label>
+            <label><input type="checkbox" id="chkOrder"> 订单BOM</label>
+            <label><input type="checkbox" id="chkProduction"> 生产BOM</label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="runCompare()">执行对比</button>
+        <button class="btn btn-success" onclick="generateOrderBom()" id="btnGenOrder" style="display:none;">生成订单BOM</button>
+        <button class="btn btn-info" onclick="generateProductionBom()" id="btnGenProd" style="display:none;">生成生产BOM</button>
+      </div>
+
+      <div id="compareResult" style="display:none;">
+        <div class="diff-summary" id="diffSummary"></div>
+        <div class="compare-table-wrap" style="max-height:500px;overflow:auto;">
+          <table class="compare-table" id="compareTable">
+            <thead id="compareThead"></thead>
+            <tbody id="compareTbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;">
+          <button class="btn btn-warning" onclick="createIssuesFromDiff()">将差异创建为问题</button>
+        </div>
+      </div>
+
+      <div class="empty-state" id="compareEmpty">
+        <div class="icon">🔄</div>
+        <div>请选择产品并执行BOM对比</div>
+      </div>
+    </div>
+
+    <div id="tabIssues" class="tab-content">
+      <div class="stats-grid" id="issueStatsGrid"></div>
+
+      <div class="filter-bar">
+        <select id="issueStatusFilter" onchange="loadIssues()">
+          <option value="">全部状态</option>
+          <option value="open">待处理</option>
+          <option value="in_progress">处理中</option>
+          <option value="resolved">已解决</option>
+          <option value="closed">已关闭</option>
+        </select>
+        <select id="issueSeverityFilter" onchange="loadIssues()">
+          <option value="">全部严重度</option>
+          <option value="high">高</option>
+          <option value="medium">中</option>
+          <option value="low">低</option>
+        </select>
+        <input type="text" id="issueKeyword" placeholder="搜索问题..." onkeydown="if(event.key==='Enter')loadIssues()">
+        <button class="btn btn-sm btn-primary" onclick="loadIssues()">查询</button>
+        <button class="btn btn-sm" style="background:#f0f0f0;color:#555;" onclick="resetIssueFilter()">重置</button>
+        <div style="flex:1;"></div>
+        <button class="btn btn-sm btn-primary" onclick="showCreateIssueModal()">新建问题</button>
+      </div>
+
+      <div id="issueList"></div>
+      <div class="pagination" id="issuePagination"></div>
+    </div>
+
+    <div id="tabAnalysis" class="tab-content">
+      <div class="stats-grid" id="analysisStatsGrid"></div>
+      <h3 style="font-size:15px;color:#333;margin-bottom:12px;">🔁 重复问题分析</h3>
+      <div id="similarIssues"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="issueDetailModal">
+    <div class="modal-content" style="max-width:750px;">
+      <span class="close-btn" onclick="closeModal('issueDetailModal')">&times;</span>
+      <div id="issueDetailContent"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="createIssueModal">
+    <div class="modal-content" style="max-width:600px;">
+      <span class="close-btn" onclick="closeModal('createIssueModal')">&times;</span>
+      <h3>新建问题</h3>
+      <form onsubmit="event.preventDefault();createIssue();">
+        <div class="form-group"><label>问题标题 *</label><input type="text" id="ciTitle" class="form-control" required></div>
+        <div class="form-row">
+          <div class="form-group"><label>分类</label><select id="ciCategory" class="form-control">
+            <option value="BOM差异">BOM差异</option><option value="物料问题">物料问题</option>
+            <option value="工艺问题">工艺问题</option><option value="质量问题">质量问题</option>
+            <option value="其他">其他</option>
+          </select></div>
+          <div class="form-group"><label>严重度</label><select id="ciSeverity" class="form-control">
+            <option value="medium">中</option><option value="high">高</option><option value="low">低</option>
+          </select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>责任人</label><input type="text" id="ciAssignee" class="form-control"></div>
+          <div class="form-group"><label>截止日期</label><input type="date" id="ciDueDate" class="form-control"></div>
+        </div>
+        <div class="form-group"><label>问题描述</label><textarea id="ciDescription" class="form-control" rows="3"></textarea></div>
+        <div style="text-align:right;margin-top:12px;"><button type="submit" class="btn btn-primary">创建</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="assignModal">
+    <div class="modal-content" style="max-width:450px;">
+      <span class="close-btn" onclick="closeModal('assignModal')">&times;</span>
+      <h3>分配问题</h3>
+      <input type="hidden" id="assignIssueId">
+      <div class="form-group"><label>责任人 *</label><input type="text" id="assignTo" class="form-control" required></div>
+      <div class="form-group"><label>截止日期</label><input type="date" id="assignDueDate" class="form-control"></div>
+      <div style="text-align:right;margin-top:12px;"><button class="btn btn-primary" onclick="assignIssue()">确认分配</button></div>
+    </div>
+  </div>
+
+<script>
+const API = window.location.origin + '/api';
+let products = [];
+let compareData = null;
+let issuePage = 1;
+const issuePageSize = 15;
+
+async function loadProducts() {
+  const res = await fetch(`${API}/products?limit=9999`);
+  const data = await res.json();
+  products = data.data || data || [];
+  const sel = document.getElementById('compareProduct');
+  sel.innerHTML = '<option value="">请选择产品</option>';
+  products.forEach(p => {
+    sel.innerHTML += `<option value="${p.id}">${p.external_model} - ${p.category || ''} ${p.power || ''}</option>`;
+  });
+}
+
+async function loadBomTypes() {
+  const productId = document.getElementById('compareProduct').value;
+  if (!productId) return;
+  const res = await fetch(`${API}/products/bom-types/typed-bom?product_id=${productId}`);
+  const data = await res.json();
+  const hasOrder = (data.data || []).some(d => d.bom_type === 'order');
+  const hasProd = (data.data || []).some(d => d.bom_type === 'production');
+  document.getElementById('btnGenOrder').style.display = hasOrder ? 'none' : 'inline-block';
+  document.getElementById('btnGenProd').style.display = hasProd ? 'none' : 'inline-block';
+  document.getElementById('chkOrder').checked = hasOrder;
+  document.getElementById('chkProduction').checked = hasProd;
+}
+
+async function runCompare() {
+  const productId = document.getElementById('compareProduct').value;
+  if (!productId) { alert('请选择产品'); return; }
+  const types = ['product_base'];
+  if (document.getElementById('chkOrder').checked) types.push('order');
+  if (document.getElementById('chkProduction').checked) types.push('production');
+  if (types.length < 2) { alert('请至少选择两种BOM类型进行对比'); return; }
+
+  const res = await fetch(`${API}/products/bom-types/compare`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_id: Number(productId), types })
+  });
+  compareData = await res.json();
+  renderCompareResult(compareData);
+}
+
+function renderCompareResult(data) {
+  document.getElementById('compareEmpty').style.display = 'none';
+  document.getElementById('compareResult').style.display = '';
+
+  const summary = document.getElementById('diffSummary');
+  summary.innerHTML = `
+    <div class="diff-stat">物料总数: <span class="num">${data.total}</span></div>
+    <div class="diff-stat">差异数: <span class="num">${data.diff_count}</span></div>
+    <div class="diff-stat">对比类型: ${data.types.map(t => `<span class="bom-type-badge type-${t}">${t === 'product_base' ? '基础' : t === 'order' ? '订单' : '生产'}</span>`).join(' ')}</div>
+  `;
+
+  const thead = document.getElementById('compareThead');
+  const typeLabels = { product_base: '产品基础BOM', order: '订单BOM', production: '生产BOM' };
+  let headerHtml = '<tr><th>物料代码</th><th>物料名称</th>';
+  data.types.forEach(type => {
+    headerHtml += `<th>${typeLabels[type] || type} - 数量</th><th>${typeLabels[type] || type} - 单价</th><th>${typeLabels[type] || type} - 规格</th>`;
+  });
+  headerHtml += '<th>差异字段</th></tr>';
+  thead.innerHTML = headerHtml;
+
+  const tbody = document.getElementById('compareTbody');
+  let bodyHtml = '';
+  const allItems = data.data || [];
+  const differences = data.differences || [];
+  const diffCodes = new Set(differences.map(d => d.code));
+
+  allItems.forEach(item => {
+    const isDiff = diffCodes.has(item.code);
+    const rowClass = isDiff ? 'style="background:#fffde7;"' : '';
+    bodyHtml += `<tr ${rowClass}><td>${item.code}</td><td>${item.name}</td>`;
+    data.types.forEach(type => {
+      const d = item[type];
+      if (d) {
+        const qtyClass = isDiff ? 'diff-quantity' : '';
+        const priceClass = isDiff ? 'diff-price' : '';
+        const specClass = isDiff ? 'diff-spec' : '';
+        bodyHtml += `<td class="${qtyClass}">${d.quantity}</td><td class="${priceClass}">${Number(d.unit_price).toFixed(4)}</td><td class="${specClass}">${d.spec || '-'}</td>`;
+      } else {
+        bodyHtml += '<td colspan="3" style="color:#ccc;text-align:center;">-</td>';
+      }
+    });
+    const diffItem = differences.find(d => d.code === item.code);
+    bodyHtml += `<td>${diffItem ? diffItem.diff_fields.map(f => `<span class="bom-type-badge type-${f === '数量' ? 'production' : f === '单价' ? 'order' : 'product_base'}">${f}</span>`).join(' ') : '-'}</td></tr>`;
+  });
+  tbody.innerHTML = bodyHtml;
+}
+
+async function generateOrderBom() {
+  const productId = document.getElementById('compareProduct').value;
+  if (!productId) return;
+  const res = await fetch(`${API}/products/bom-types/typed-bom/generate`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_id: Number(productId), bom_type: 'order' })
+  });
+  const result = await res.json();
+  alert(result.message);
+  loadBomTypes();
+}
+
+async function generateProductionBom() {
+  const productId = document.getElementById('compareProduct').value;
+  if (!productId) return;
+  const res = await fetch(`${API}/products/bom-types/typed-bom/generate`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_id: Number(productId), bom_type: 'production' })
+  });
+  const result = await res.json();
+  alert(result.message);
+  loadBomTypes();
+}
+
+async function createIssuesFromDiff() {
+  if (!compareData || !compareData.differences || compareData.differences.length === 0) {
+    alert('没有差异可创建为问题'); return;
+  }
+  const productId = document.getElementById('compareProduct').value;
+  const product = products.find(p => p.id === Number(productId));
+  if (!confirm(`确定将 ${compareData.differences.length} 个差异创建为问题？`)) return;
+
+  const res = await fetch(`${API}/products/bom-issues/batch-from-compare`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      differences: compareData.differences,
+      product_id: Number(productId),
+      product_model: product ? product.external_model : '',
+      operator: 'system'
+    })
+  });
+  const result = await res.json();
+  alert(result.message);
+  loadIssues();
+}
+
+async function loadIssueStats() {
+  const res = await fetch(`${API}/products/bom-issues/stats`);
+  const stats = await res.json();
+  const grid = document.getElementById('issueStatsGrid');
+  grid.innerHTML = `
+    <div class="stat-card"><div class="num">${stats.total || 0}</div><div class="label">问题总数</div></div>
+    <div class="stat-card"><div class="num" style="color:#e74c3c;">${stats.openCount || 0}</div><div class="label">待处理</div></div>
+    <div class="stat-card"><div class="num" style="color:#ff9800;">${stats.inProgressCount || 0}</div><div class="label">处理中</div></div>
+    <div class="stat-card"><div class="num" style="color:#4caf50;">${stats.resolvedCount || 0}</div><div class="label">已解决</div></div>
+    <div class="stat-card"><div class="num" style="color:#1565c0;">${stats.closedCount || 0}</div><div class="label">已关闭</div></div>
+    <div class="stat-card"><div class="num" style="color:#c62828;">${stats.overdue || 0}</div><div class="label">已逾期</div></div>
+  `;
+}
+
+async function loadIssues() {
+  const status = document.getElementById('issueStatusFilter').value;
+  const severity = document.getElementById('issueSeverityFilter').value;
+  const keyword = document.getElementById('issueKeyword').value;
+  let url = `${API}/products/bom-issues?page=${issuePage}&limit=${issuePageSize}`;
+  if (status) url += `&status=${status}`;
+  if (severity) url += `&severity=${severity}`;
+  if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+  const issues = data.data || [];
+
+  const container = document.getElementById('issueList');
+  if (issues.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>暂无问题数据</div></div>';
+    document.getElementById('issuePagination').innerHTML = '';
+    return;
+  }
+
+  const statusLabels = { open: '待处理', in_progress: '处理中', resolved: '已解决', closed: '已关闭', rejected: '已驳回' };
+  const severityLabels = { high: '高', medium: '中', low: '低' };
+
+  container.innerHTML = issues.map(issue => `
+    <div class="issue-card severity-${issue.severity}" onclick="showIssueDetail(${issue.id})">
+      <div class="issue-header">
+        <div class="issue-title">${issue.title}</div>
+        <div>
+          <span class="status-badge status-${issue.status}">${statusLabels[issue.status] || issue.status}</span>
+          <span class="severity-badge severity-${issue.severity}">${severityLabels[issue.severity] || issue.severity}</span>
+        </div>
+      </div>
+      <div class="issue-meta">
+        ${issue.code ? `<span>编码: ${issue.code}</span>` : ''}
+        ${issue.product_model ? `<span>产品: ${issue.product_model}</span>` : ''}
+        ${issue.assignee ? `<span>责任人: ${issue.assignee}</span>` : ''}
+        ${issue.due_date ? `<span>截止: ${issue.due_date}</span>` : ''}
+        <span>创建: ${issue.created_at || ''}</span>
+      </div>
+    </div>
+  `).join('');
+
+  const total = data.total || 0;
+  const pages = Math.ceil(total / issuePageSize);
+  let pagHtml = '';
+  if (pages > 1) {
+    pagHtml += `<button ${issuePage <= 1 ? 'disabled' : ''} onclick="goIssuePage(${issuePage - 1})">上一页</button>`;
+    for (let i = 1; i <= pages; i++) {
+      if (i === 1 || i === pages || Math.abs(i - issuePage) <= 2) {
+        pagHtml += `<button class="${i === issuePage ? 'active' : ''}" onclick="goIssuePage(${i})">${i}</button>`;
+      }
+    }
+    pagHtml += `<button ${issuePage >= pages ? 'disabled' : ''} onclick="goIssuePage(${issuePage + 1})">下一页</button>`;
+  }
+  document.getElementById('issuePagination').innerHTML = pagHtml;
+  loadIssueStats();
+}
+
+function goIssuePage(p) { issuePage = p; loadIssues(); }
+
+function resetIssueFilter() {
+  document.getElementById('issueStatusFilter').value = '';
+  document.getElementById('issueSeverityFilter').value = '';
+  document.getElementById('issueKeyword').value = '';
+  loadIssues();
+}
+
+async function showIssueDetail(id) {
+  const res = await fetch(`${API}/products/bom-issues/${id}`);
+  const issue = await res.json();
+  const statusLabels = { open: '待处理', in_progress: '处理中', resolved: '已解决', closed: '已关闭', rejected: '已驳回' };
+  const severityLabels = { high: '高', medium: '中', low: '低' };
+
+  let html = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;">
+      <div>
+        <h3 style="margin:0 0 6px;">${issue.title}</h3>
+        <span class="status-badge status-${issue.status}">${statusLabels[issue.status]}</span>
+        <span class="severity-badge severity-${issue.severity}">${severityLabels[issue.severity]}</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        ${issue.status === 'open' ? `<button class="btn btn-sm btn-primary" onclick="showAssignModal(${issue.id})">分配</button>` : ''}
+        ${issue.status === 'in_progress' ? `<button class="btn btn-sm btn-success" onclick="updateIssueStatus(${issue.id},'resolved')">标记解决</button>` : ''}
+        ${issue.status === 'resolved' ? `<button class="btn btn-sm btn-info" onclick="updateIssueStatus(${issue.id},'closed')">关闭问题</button>` : ''}
+        <button class="btn btn-sm btn-danger" onclick="deleteIssue(${issue.id})">删除</button>
+      </div>
+    </div>
+    <div style="font-size:13px;color:#555;margin-bottom:12px;">
+      ${issue.code ? `<div><strong>物料编码:</strong> ${issue.code}</div>` : ''}
+      ${issue.product_model ? `<div><strong>产品型号:</strong> ${issue.product_model}</div>` : ''}
+      ${issue.assignee ? `<div><strong>责任人:</strong> ${issue.assignee}</div>` : ''}
+      ${issue.due_date ? `<div><strong>截止日期:</strong> ${issue.due_date}</div>` : ''}
+      ${issue.description ? `<div style="margin-top:8px;"><strong>描述:</strong> ${issue.description}</div>` : ''}
+    </div>
+  `;
+
+  if (issue.tracks && issue.tracks.length > 0) {
+    html += '<h4 style="font-size:13px;color:#333;margin:12px 0 6px;">处理记录</h4><div class="track-timeline">';
+    issue.tracks.forEach(t => {
+      html += `<div class="track-item"><span class="track-action">${t.action}</span> - ${t.comment} <span class="track-time">${t.created_at || ''}</span></div>`;
+    });
+    html += '</div>';
+  }
+
+  if (issue.preventions && issue.preventions.length > 0) {
+    html += '<h4 style="font-size:13px;color:#333;margin:12px 0 6px;">预防措施</h4>';
+    issue.preventions.forEach(p => {
+      html += `<div class="prevention-card"><div class="prev-measure">${p.prevention_measure}</div><div class="prev-type">类型: ${p.prevention_type} | 状态: ${p.status}</div></div>`;
+    });
+  }
+
+  html += `
+    <div style="margin-top:15px;border-top:1px solid #eee;padding-top:12px;">
+      <h4 style="font-size:13px;color:#333;margin-bottom:8px;">添加跟踪记录</h4>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="trackComment_${issue.id}" class="form-control" placeholder="输入处理说明..." style="flex:1;">
+        <button class="btn btn-sm btn-primary" onclick="addTrack(${issue.id})">添加</button>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <h4 style="font-size:13px;color:#333;margin-bottom:8px;">添加预防措施</h4>
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <div style="flex:1;"><input type="text" id="prevMeasure_${issue.id}" class="form-control" placeholder="输入预防措施..."></div>
+        <select id="prevType_${issue.id}" class="form-control" style="width:120px;">
+          <option value="process">流程优化</option><option value="system">系统改进</option><option value="training">培训</option><option value="standard">标准化</option>
+        </select>
+        <button class="btn btn-sm btn-info" onclick="addPrevention(${issue.id})">添加</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('issueDetailContent').innerHTML = html;
+  document.getElementById('issueDetailModal').classList.add('show');
+}
+
+async function updateIssueStatus(id, status) {
+  await fetch(`${API}/products/bom-issues/${id}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status, operator: 'system' })
+  });
+  closeModal('issueDetailModal');
+  loadIssues();
+}
+
+async function deleteIssue(id) {
+  if (!confirm('确定删除此问题？')) return;
+  await fetch(`${API}/products/bom-issues/${id}`, { method: 'DELETE' });
+  closeModal('issueDetailModal');
+  loadIssues();
+}
+
+function showAssignModal(id) {
+  document.getElementById('assignIssueId').value = id;
+  document.getElementById('assignTo').value = '';
+  document.getElementById('assignDueDate').value = '';
+  document.getElementById('assignModal').classList.add('show');
+}
+
+async function assignIssue() {
+  const id = document.getElementById('assignIssueId').value;
+  const assignee = document.getElementById('assignTo').value;
+  const dueDate = document.getElementById('assignDueDate').value;
+  if (!assignee) { alert('请输入责任人'); return; }
+  await fetch(`${API}/products/bom-issues/${id}/assign`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assignee, due_date: dueDate, operator: 'system' })
+  });
+  closeModal('assignModal');
+  closeModal('issueDetailModal');
+  loadIssues();
+}
+
+async function addTrack(issueId) {
+  const comment = document.getElementById(`trackComment_${issueId}`).value;
+  if (!comment) return;
+  await fetch(`${API}/products/bom-issues/${issueId}/track`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'comment', comment, operator: 'system' })
+  });
+  showIssueDetail(issueId);
+}
+
+async function addPrevention(issueId) {
+  const measure = document.getElementById(`prevMeasure_${issueId}`).value;
+  const type = document.getElementById(`prevType_${issueId}`).value;
+  if (!measure) return;
+  await fetch(`${API}/products/bom-issues/${issueId}/prevention`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prevention_measure: measure, prevention_type: type, operator: 'system' })
+  });
+  showIssueDetail(issueId);
+}
+
+function showCreateIssueModal() {
+  document.getElementById('ciTitle').value = '';
+  document.getElementById('ciDescription').value = '';
+  document.getElementById('ciAssignee').value = '';
+  document.getElementById('ciDueDate').value = '';
+  document.getElementById('createIssueModal').classList.add('show');
+}
+
+async function createIssue() {
+  const body = {
+    title: document.getElementById('ciTitle').value,
+    description: document.getElementById('ciDescription').value,
+    category: document.getElementById('ciCategory').value,
+    severity: document.getElementById('ciSeverity').value,
+    assignee: document.getElementById('ciAssignee').value,
+    due_date: document.getElementById('ciDueDate').value,
+    operator: 'system'
+  };
+  await fetch(`${API}/products/bom-issues`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  closeModal('createIssueModal');
+  loadIssues();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  const tabId = tab === 'compare' ? 'tabCompare' : tab === 'issues' ? 'tabIssues' : 'tabAnalysis';
+  document.getElementById(tabId).classList.add('active');
+  if (tab === 'issues') { loadIssues(); loadIssueStats(); }
+  if (tab === 'analysis') loadAnalysis();
+}
+
+async function loadAnalysis() {
+  const statsRes = await fetch(`${API}/products/bom-issues/stats`);
+  const stats = await statsRes.json();
+  document.getElementById('analysisStatsGrid').innerHTML = `
+    <div class="stat-card"><div class="num">${stats.total || 0}</div><div class="label">问题总数</div></div>
+    <div class="stat-card"><div class="num" style="color:#e74c3c;">${stats.overdue || 0}</div><div class="label">逾期问题</div></div>
+  `;
+
+  const res = await fetch(`${API}/products/bom-issues/analysis/similar`);
+  const data = await res.json();
+  const container = document.getElementById('similarIssues');
+  if (!data.data || data.data.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">✅</div><div>暂无重复问题</div></div>';
+    return;
+  }
+  container.innerHTML = data.data.map(g => `
+    <div class="issue-card" style="border-left-color:#9c27b0;">
+      <div class="issue-header">
+        <div class="issue-title">重复问题: ${g.code || '未知'} - ${g.field || g.category} (${g.count}次)</div>
+      </div>
+      <div style="font-size:12px;color:#888;">
+        ${g.issues.map(i => `<div style="padding:2px 0;">#${i.id} ${i.title} <span class="status-badge status-${i.status}">${i.status}</span></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+loadProducts();
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "records": [
+    {
+      "product_id": 1,
+      "cost_price": 80,
+      "min_price": 96,
+      "max_price": 120,
+      "profit_rate": 0.2,
+      "effective_date": "2024-01-01",
+      "id": 1
+    },
+    {
+      "product_id": 2,
+      "cost_price": 150,
+      "min_price": 180,
+      "max_price": 225,
+      "profit_rate": 0.2,
+      "effective_date": "2024-01-01",
+      "id": 2
+    },
+    {
+      "product_id": 3,
+      "cost_price": 120,
+      "min_price": 144,
+      "max_price": 180,
+      "profit_rate": 0.2,
+      "effective_date": "2024-01-01",
+      "id": 3
+    },
+    {
+      "product_id": 4,
+      "cost_price": 60,
+      "min_price": 72,
+      "max_price": 90,
+      "profit_rate": 0.2,
+      "effective_date": "2024-01-01",
+      "id": 4
+    },
+    {
+      "product_id": 5,
+      "cost_price": 90,
+      "min_price": 108,
+      "max_price": 135,
+      "profit_rate": 0.2,
+      "effective_date": "2024-01-01",
+      "id": 5
+    }
+  ],
+  "nextId": 6
+}

@@ -1,0 +1,2757 @@
+{
+  "records": [
+    {
+      "inquiry_id": 1,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2024-01-15 09:30:00",
+      "reason": "新建询价单",
+      "id": 1
+    },
+    {
+      "inquiry_id": 1,
+      "status": "quoted",
+      "changed_by": "张三",
+      "changed_at": "2024-01-16 14:00:00",
+      "reason": "自动核价完成",
+      "id": 2
+    },
+    {
+      "inquiry_id": 2,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2024-01-20 10:00:00",
+      "reason": "新建询价单",
+      "id": 3
+    },
+    {
+      "inquiry_id": 2,
+      "status": "quoted",
+      "changed_by": "李四",
+      "changed_at": "2024-01-21 11:00:00",
+      "reason": "自动核价完成",
+      "id": 4
+    },
+    {
+      "inquiry_id": 2,
+      "status": "negotiating",
+      "changed_by": "李四",
+      "changed_at": "2024-01-22 16:00:00",
+      "reason": "客户进入谈判阶段",
+      "id": 5
+    },
+    {
+      "inquiry_id": 3,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2024-02-05 14:00:00",
+      "reason": "新建询价单",
+      "id": 6
+    },
+    {
+      "inquiry_id": 3,
+      "status": "quoted",
+      "changed_by": "张三",
+      "changed_at": "2024-02-06 09:00:00",
+      "reason": "自动核价完成",
+      "id": 7
+    },
+    {
+      "inquiry_id": 3,
+      "status": "closed",
+      "changed_by": "张三",
+      "changed_at": "2024-02-10 10:00:00",
+      "reason": "客户签约",
+      "id": 8
+    },
+    {
+      "inquiry_id": 4,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2024-02-10 11:00:00",
+      "reason": "新建询价单",
+      "id": 9
+    },
+    {
+      "inquiry_id": 4,
+      "status": "quoted",
+      "changed_by": "李四",
+      "changed_at": "2024-02-11 10:00:00",
+      "reason": "自动核价完成",
+      "id": 10
+    },
+    {
+      "inquiry_id": 4,
+      "status": "lost",
+      "changed_by": "李四",
+      "changed_at": "2024-02-20 09:00:00",
+      "reason": "价格偏高，客户选择竞品",
+      "id": 11
+    },
+    {
+      "inquiry_id": 5,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2024-03-01 16:00:00",
+      "reason": "新建询价单",
+      "id": 12
+    },
+    {
+      "inquiry_id": 6,
+      "status": "new",
+      "changed_by": "1111",
+      "changed_at": "2026-05-20 09:14:52",
+      "reason": "新建询价单",
+      "id": 13
+    },
+    {
+      "inquiry_id": 6,
+      "status": "quoted",
+      "changed_by": "1111",
+      "changed_at": "2026-05-20 09:15:16",
+      "reason": "自动核价完成",
+      "id": 14
+    },
+    {
+      "inquiry_id": 5,
+      "status": "quoted",
+      "changed_by": "张三",
+      "changed_at": "2026-05-20 09:18:37",
+      "reason": "自动核价完成",
+      "id": 15
+    },
+    {
+      "inquiry_id": 7,
+      "status": "new",
+      "changed_by": "222",
+      "changed_at": "2026-05-20 09:21:07",
+      "reason": "新建询价单",
+      "id": 16
+    },
+    {
+      "inquiry_id": 17,
+      "status": "quoted",
+      "changed_by": "侯莉雅",
+      "changed_at": "2026-05-21 03:31:34",
+      "reason": "自动核价完成",
+      "id": 17
+    },
+    {
+      "inquiry_id": 10,
+      "status": "quoted",
+      "changed_by": "侯莉雅",
+      "changed_at": "2026-05-21 03:53:36",
+      "reason": "自动核价完成",
+      "id": 18
+    },
+    {
+      "inquiry_id": 11,
+      "status": "quoted",
+      "changed_by": "蒋哲斌",
+      "changed_at": "2026-05-21 08:52:30",
+      "reason": "自动核价完成",
+      "id": 19
+    },
+    {
+      "inquiry_id": 12,
+      "status": "quoted",
+      "changed_by": "管丽艳",
+      "changed_at": "2026-05-21 10:56:58",
+      "reason": "自动核价完成",
+      "id": 20
+    },
+    {
+      "inquiry_id": 28,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 11:17:59",
+      "reason": "销售提交研发核价",
+      "id": 24
+    },
+    {
+      "inquiry_id": 28,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 11:18:12",
+      "reason": "自动核价完成",
+      "id": 25
+    },
+    {
+      "inquiry_id": 30,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 11:19:25",
+      "reason": "新建询价单",
+      "id": 26
+    },
+    {
+      "inquiry_id": 30,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 11:19:44",
+      "reason": "销售提交研发核价",
+      "id": 27
+    },
+    {
+      "inquiry_id": 30,
+      "status": "pending_quote",
+      "changed_by": "engineer01",
+      "changed_at": "2026-05-21 11:19:55",
+      "reason": "研发核价确认",
+      "id": 28
+    },
+    {
+      "inquiry_id": 30,
+      "status": "quoted",
+      "changed_by": "engineer01",
+      "changed_at": "2026-05-21 11:20:08",
+      "reason": "报价单生成",
+      "id": 29
+    },
+    {
+      "inquiry_id": 31,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:48:55",
+      "reason": "新建询价单",
+      "id": 30
+    },
+    {
+      "inquiry_id": 31,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:49:00",
+      "reason": "状态变更",
+      "id": 31
+    },
+    {
+      "inquiry_id": 32,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:49:19",
+      "reason": "新建询价单",
+      "id": 32
+    },
+    {
+      "inquiry_id": 32,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:49:33",
+      "reason": "状态变更",
+      "id": 33
+    },
+    {
+      "inquiry_id": 32,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:49:33",
+      "reason": "产品配置表已生成",
+      "id": 34
+    },
+    {
+      "inquiry_id": 32,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:49:33",
+      "reason": "销售提交研发核价",
+      "id": 35
+    },
+    {
+      "inquiry_id": 32,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:49:33",
+      "reason": "研发核价确认",
+      "id": 36
+    },
+    {
+      "inquiry_id": 32,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:49:33",
+      "reason": "报价单生成",
+      "id": 37
+    },
+    {
+      "inquiry_id": 33,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:50:10",
+      "reason": "新建询价单",
+      "id": 38
+    },
+    {
+      "inquiry_id": 33,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:50:10",
+      "reason": "状态变更",
+      "id": 39
+    },
+    {
+      "inquiry_id": 33,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:50:10",
+      "reason": "产品配置表已生成",
+      "id": 40
+    },
+    {
+      "inquiry_id": 33,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:50:10",
+      "reason": "销售提交研发核价",
+      "id": 41
+    },
+    {
+      "inquiry_id": 33,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:50:10",
+      "reason": "研发核价确认",
+      "id": 42
+    },
+    {
+      "inquiry_id": 33,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:50:10",
+      "reason": "报价单生成",
+      "id": 43
+    },
+    {
+      "inquiry_id": 33,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-05-21 23:50:10",
+      "reason": "业务闭环完成",
+      "id": 44
+    },
+    {
+      "inquiry_id": 28,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-05-22 03:27:56",
+      "reason": "业务闭环完成",
+      "id": 46
+    },
+    {
+      "inquiry_id": 34,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 04:34:16",
+      "reason": "新建询价单",
+      "id": 47
+    },
+    {
+      "inquiry_id": 34,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 04:34:16",
+      "reason": "状态变更",
+      "id": 48
+    },
+    {
+      "inquiry_id": 35,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 05:33:50",
+      "reason": "新建询价单",
+      "id": 49
+    },
+    {
+      "inquiry_id": 35,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 05:33:50",
+      "reason": "状态变更",
+      "id": 50
+    },
+    {
+      "inquiry_id": 36,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 05:38:21",
+      "reason": "新建询价单",
+      "id": 51
+    },
+    {
+      "inquiry_id": 37,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 05:42:19",
+      "reason": "新建询价单",
+      "id": 52
+    },
+    {
+      "inquiry_id": 37,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 05:42:19",
+      "reason": "状态变更",
+      "id": 53
+    },
+    {
+      "inquiry_id": 37,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 05:56:35",
+      "reason": "产品配置表已生成",
+      "id": 54
+    },
+    {
+      "inquiry_id": 37,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 05:56:39",
+      "reason": "销售提交研发核价",
+      "id": 55
+    },
+    {
+      "inquiry_id": 38,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 05:58:42",
+      "reason": "新建询价单",
+      "id": 56
+    },
+    {
+      "inquiry_id": 38,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 05:58:42",
+      "reason": "状态变更",
+      "id": 57
+    },
+    {
+      "inquiry_id": 39,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 06:15:20",
+      "reason": "新建询价单",
+      "id": 58
+    },
+    {
+      "inquiry_id": 39,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 06:15:20",
+      "reason": "状态变更",
+      "id": 59
+    },
+    {
+      "inquiry_id": 40,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 06:22:00",
+      "reason": "新建询价单",
+      "id": 60
+    },
+    {
+      "inquiry_id": 41,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 06:26:29",
+      "reason": "新建询价单",
+      "id": 61
+    },
+    {
+      "inquiry_id": 41,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 06:26:29",
+      "reason": "状态变更",
+      "id": 62
+    },
+    {
+      "inquiry_id": 42,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 06:29:28",
+      "reason": "新建询价单",
+      "id": 63
+    },
+    {
+      "inquiry_id": 43,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 06:30:08",
+      "reason": "新建询价单",
+      "id": 64
+    },
+    {
+      "inquiry_id": 43,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 06:30:08",
+      "reason": "状态变更",
+      "id": 65
+    },
+    {
+      "inquiry_id": 44,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 06:34:48",
+      "reason": "新建询价单",
+      "id": 66
+    },
+    {
+      "inquiry_id": 45,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 07:02:19",
+      "reason": "新建询价单",
+      "id": 67
+    },
+    {
+      "inquiry_id": 45,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 07:02:19",
+      "reason": "状态变更",
+      "id": 68
+    },
+    {
+      "inquiry_id": 46,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 07:05:30",
+      "reason": "新建询价单",
+      "id": 69
+    },
+    {
+      "inquiry_id": 46,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 07:05:30",
+      "reason": "状态变更",
+      "id": 70
+    },
+    {
+      "inquiry_id": 47,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 07:23:42",
+      "reason": "新建询价单",
+      "id": 71
+    },
+    {
+      "inquiry_id": 47,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 07:23:42",
+      "reason": "状态变更",
+      "id": 72
+    },
+    {
+      "inquiry_id": 47,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 07:29:38",
+      "reason": "产品配置表已生成",
+      "id": 73
+    },
+    {
+      "inquiry_id": 47,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 07:29:43",
+      "reason": "销售提交研发核价",
+      "id": 74
+    },
+    {
+      "inquiry_id": 48,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 08:16:37",
+      "reason": "新建询价单",
+      "id": 75
+    },
+    {
+      "inquiry_id": 48,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 08:16:37",
+      "reason": "状态变更",
+      "id": 76
+    },
+    {
+      "inquiry_id": 48,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 08:17:14",
+      "reason": "销售提交研发核价",
+      "id": 77
+    },
+    {
+      "inquiry_id": 48,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 09:14:59",
+      "reason": "报价单生成",
+      "id": 78
+    },
+    {
+      "inquiry_id": 136,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2026-05-25 09:18:37",
+      "reason": "新建询价单",
+      "id": 79
+    },
+    {
+      "inquiry_id": 137,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2026-05-25 09:19:53",
+      "reason": "新建询价单",
+      "id": 80
+    },
+    {
+      "inquiry_id": 138,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2026-05-25 09:20:51",
+      "reason": "新建询价单",
+      "id": 81
+    },
+    {
+      "inquiry_id": 214,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 09:24:20",
+      "reason": "新建询价单",
+      "id": 82
+    },
+    {
+      "inquiry_id": 214,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 09:24:20",
+      "reason": "状态变更",
+      "id": 83
+    },
+    {
+      "inquiry_id": 215,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2026-05-25 10:28:30",
+      "reason": "新建询价单",
+      "id": 84
+    },
+    {
+      "inquiry_id": 215,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 10:28:30",
+      "reason": "状态变更",
+      "id": 85
+    },
+    {
+      "inquiry_id": 216,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2026-05-25 10:28:30",
+      "reason": "新建询价单",
+      "id": 86
+    },
+    {
+      "inquiry_id": 21,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 10:30:31",
+      "reason": "报价单生成",
+      "id": 88
+    },
+    {
+      "inquiry_id": 21,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 10:30:44",
+      "reason": "业务闭环完成",
+      "id": 89
+    },
+    {
+      "inquiry_id": 217,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 10:34:08",
+      "reason": "新建询价单",
+      "id": 90
+    },
+    {
+      "inquiry_id": 218,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-25 11:44:01",
+      "reason": "新建询价单",
+      "id": 91
+    },
+    {
+      "inquiry_id": 218,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 11:44:01",
+      "reason": "状态变更",
+      "id": 92
+    },
+    {
+      "inquiry_id": 215,
+      "status": "negotiating",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 23:52:21",
+      "reason": "测试",
+      "id": 93
+    },
+    {
+      "inquiry_id": 215,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-25 23:52:21",
+      "reason": "恢复",
+      "id": 94
+    },
+    {
+      "inquiry_id": 249,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-26 00:51:05",
+      "reason": "新建询价单",
+      "id": 95
+    },
+    {
+      "inquiry_id": 249,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 00:51:05",
+      "reason": "状态变更",
+      "id": 96
+    },
+    {
+      "inquiry_id": 249,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 01:03:25",
+      "reason": "产品配置表已生成",
+      "id": 97
+    },
+    {
+      "inquiry_id": 249,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 01:03:35",
+      "reason": "销售提交研发核价",
+      "id": 98
+    },
+    {
+      "inquiry_id": 249,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 01:03:49",
+      "reason": "研发核价确认",
+      "id": 99
+    },
+    {
+      "inquiry_id": 249,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 03:49:51",
+      "reason": "报价单生成",
+      "id": 100
+    },
+    {
+      "inquiry_id": 249,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 03:51:49",
+      "reason": "业务闭环完成",
+      "id": 101
+    },
+    {
+      "inquiry_id": 298,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-26 06:56:33",
+      "reason": "新建询价单",
+      "id": 102
+    },
+    {
+      "inquiry_id": 298,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 06:56:33",
+      "reason": "状态变更",
+      "id": 103
+    },
+    {
+      "inquiry_id": 298,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 06:58:57",
+      "reason": "产品配置表已生成",
+      "id": 104
+    },
+    {
+      "inquiry_id": 43,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 09:56:31",
+      "reason": "产品配置表已生成",
+      "id": 105
+    },
+    {
+      "inquiry_id": 43,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 09:56:42",
+      "reason": "销售提交研发核价",
+      "id": 106
+    },
+    {
+      "inquiry_id": 43,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 09:56:52",
+      "reason": "研发核价确认",
+      "id": 107
+    },
+    {
+      "inquiry_id": 43,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 09:57:04",
+      "reason": "报价单生成",
+      "id": 108
+    },
+    {
+      "inquiry_id": 43,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 09:57:27",
+      "reason": "业务闭环完成",
+      "id": 110
+    },
+    {
+      "inquiry_id": 299,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-26 10:00:28",
+      "reason": "新建询价单",
+      "id": 111
+    },
+    {
+      "inquiry_id": 299,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 10:00:28",
+      "reason": "状态变更",
+      "id": 112
+    },
+    {
+      "inquiry_id": 300,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-26 10:07:28",
+      "reason": "新建询价单",
+      "id": 113
+    },
+    {
+      "inquiry_id": 300,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-26 10:07:28",
+      "reason": "状态变更",
+      "id": 114
+    },
+    {
+      "inquiry_id": 325,
+      "status": "new",
+      "changed_by": "沈旭日",
+      "changed_at": "2026-05-27 04:52:48",
+      "reason": "新建询价单",
+      "id": 115
+    },
+    {
+      "inquiry_id": 325,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 04:52:48",
+      "reason": "状态变更",
+      "id": 116
+    },
+    {
+      "inquiry_id": 334,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-27 06:27:06",
+      "reason": "新建询价单",
+      "id": 117
+    },
+    {
+      "inquiry_id": 334,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 06:27:06",
+      "reason": "状态变更",
+      "id": 118
+    },
+    {
+      "inquiry_id": 335,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-27 06:40:20",
+      "reason": "新建询价单",
+      "id": 119
+    },
+    {
+      "inquiry_id": 335,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 06:40:20",
+      "reason": "状态变更",
+      "id": 120
+    },
+    {
+      "inquiry_id": 336,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-27 09:07:52",
+      "reason": "新建询价单",
+      "id": 121
+    },
+    {
+      "inquiry_id": 336,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 09:07:52",
+      "reason": "状态变更",
+      "id": 122
+    },
+    {
+      "inquiry_id": 337,
+      "status": "new",
+      "changed_by": "张佳妮",
+      "changed_at": "2026-05-27 11:06:22",
+      "reason": "新建询价单",
+      "id": 123
+    },
+    {
+      "inquiry_id": 337,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:06:22",
+      "reason": "状态变更",
+      "id": 124
+    },
+    {
+      "inquiry_id": 337,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:06:55",
+      "reason": "产品配置表已生成",
+      "id": 125
+    },
+    {
+      "inquiry_id": 337,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:08:15",
+      "reason": "销售提交研发核价",
+      "id": 126
+    },
+    {
+      "inquiry_id": 337,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:08:36",
+      "reason": "研发核价确认",
+      "id": 127
+    },
+    {
+      "inquiry_id": 337,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:09:16",
+      "reason": "报价单生成",
+      "id": 128
+    },
+    {
+      "inquiry_id": 338,
+      "status": "new",
+      "changed_by": "张佳妮",
+      "changed_at": "2026-05-27 11:32:03",
+      "reason": "新建询价单",
+      "id": 129
+    },
+    {
+      "inquiry_id": 338,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:32:03",
+      "reason": "状态变更",
+      "id": 130
+    },
+    {
+      "inquiry_id": 338,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:33:11",
+      "reason": "销售提交研发核价",
+      "id": 131
+    },
+    {
+      "inquiry_id": 339,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-27 11:43:00",
+      "reason": "新建询价单",
+      "id": 132
+    },
+    {
+      "inquiry_id": 339,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:43:00",
+      "reason": "状态变更",
+      "id": 133
+    },
+    {
+      "inquiry_id": 339,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-27 11:44:09",
+      "reason": "产品配置表已生成",
+      "id": 134
+    },
+    {
+      "inquiry_id": 345,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-28 01:51:01",
+      "reason": "新建询价单",
+      "id": 135
+    },
+    {
+      "inquiry_id": 345,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-28 01:51:01",
+      "reason": "状态变更",
+      "id": 136
+    },
+    {
+      "inquiry_id": 349,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-28 04:49:29",
+      "reason": "状态变更",
+      "id": 137
+    },
+    {
+      "inquiry_id": 349,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-28 04:49:49",
+      "reason": "销售提交研发核价",
+      "id": 138
+    },
+    {
+      "inquiry_id": 352,
+      "status": "new",
+      "changed_by": "张佳妮",
+      "changed_at": "2026-05-28 05:27:44",
+      "reason": "新建询价单",
+      "id": 139
+    },
+    {
+      "inquiry_id": 352,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-28 05:27:44",
+      "reason": "状态变更",
+      "id": 140
+    },
+    {
+      "inquiry_id": 355,
+      "status": "new",
+      "changed_by": "张佳妮",
+      "changed_at": "2026-05-28 07:38:04",
+      "reason": "新建询价单",
+      "id": 141
+    },
+    {
+      "inquiry_id": 353,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-28 10:06:40",
+      "reason": "报价单生成",
+      "id": 142
+    },
+    {
+      "inquiry_id": 353,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-05-28 10:07:06",
+      "reason": "业务闭环完成",
+      "id": 143
+    },
+    {
+      "inquiry_id": 364,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-29 13:28:03",
+      "reason": "新建询价单",
+      "id": 144
+    },
+    {
+      "inquiry_id": 364,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 13:28:03",
+      "reason": "状态变更",
+      "id": 145
+    },
+    {
+      "inquiry_id": 364,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 13:29:50",
+      "reason": "产品配置表已生成",
+      "id": 146
+    },
+    {
+      "inquiry_id": 364,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 13:30:05",
+      "reason": "销售提交研发核价",
+      "id": 147
+    },
+    {
+      "inquiry_id": 365,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-29 14:26:11",
+      "reason": "新建询价单",
+      "id": 148
+    },
+    {
+      "inquiry_id": 365,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 14:26:11",
+      "reason": "状态变更",
+      "id": 149
+    },
+    {
+      "inquiry_id": 365,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 14:26:28",
+      "reason": "产品配置表已生成",
+      "id": 150
+    },
+    {
+      "inquiry_id": 366,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-29 15:24:00",
+      "reason": "新建询价单",
+      "id": 151
+    },
+    {
+      "inquiry_id": 367,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-29 15:25:51",
+      "reason": "新建询价单",
+      "id": 152
+    },
+    {
+      "inquiry_id": 368,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-29 16:05:14",
+      "reason": "新建询价单",
+      "id": 153
+    },
+    {
+      "inquiry_id": 368,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 16:05:14",
+      "reason": "状态变更",
+      "id": 154
+    },
+    {
+      "inquiry_id": 369,
+      "status": "new",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-29 16:13:48",
+      "reason": "新建询价单",
+      "id": 155
+    },
+    {
+      "inquiry_id": 369,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 16:13:48",
+      "reason": "状态变更",
+      "id": 156
+    },
+    {
+      "inquiry_id": 369,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 16:14:40",
+      "reason": "产品配置表已生成",
+      "id": 157
+    },
+    {
+      "inquiry_id": 370,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 16:34:42",
+      "reason": "产品配置表已生成",
+      "id": 158
+    },
+    {
+      "inquiry_id": 371,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 16:35:22",
+      "reason": "产品配置表已生成",
+      "id": 159
+    },
+    {
+      "inquiry_id": 372,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 16:35:52",
+      "reason": "产品配置表已生成",
+      "id": 160
+    },
+    {
+      "inquiry_id": 403,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 17:25:43",
+      "reason": "状态变更",
+      "id": 161
+    },
+    {
+      "inquiry_id": 403,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 17:25:49",
+      "reason": "产品配置表已生成",
+      "id": 162
+    },
+    {
+      "inquiry_id": 410,
+      "status": "new",
+      "changed_by": "system",
+      "changed_at": "2026-05-29 17:51:01",
+      "reason": "新建询价单",
+      "id": 163
+    },
+    {
+      "inquiry_id": 461,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 164
+    },
+    {
+      "inquiry_id": 462,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 165
+    },
+    {
+      "inquiry_id": 463,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 166
+    },
+    {
+      "inquiry_id": 464,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 167
+    },
+    {
+      "inquiry_id": 465,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 168
+    },
+    {
+      "inquiry_id": 466,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 169
+    },
+    {
+      "inquiry_id": 467,
+      "status": "new",
+      "changed_by": "张三",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 170
+    },
+    {
+      "inquiry_id": 468,
+      "status": "new",
+      "changed_by": "李四",
+      "changed_at": "2026-05-30 07:37:24",
+      "reason": "新建询价单",
+      "id": 171
+    },
+    {
+      "inquiry_id": 459,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 07:37:35",
+      "reason": "状态变更",
+      "id": 172
+    },
+    {
+      "inquiry_id": 459,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 07:37:40",
+      "reason": "产品配置表已生成",
+      "id": 173
+    },
+    {
+      "inquiry_id": 469,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:06:10",
+      "reason": "产品配置表已生成",
+      "id": 174
+    },
+    {
+      "inquiry_id": 469,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:06:15",
+      "reason": "销售提交研发核价",
+      "id": 175
+    },
+    {
+      "inquiry_id": 469,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:07:43",
+      "reason": "报价单生成",
+      "id": 176
+    },
+    {
+      "inquiry_id": 473,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:19:45",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 177
+    },
+    {
+      "inquiry_id": 474,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:19:53",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 178
+    },
+    {
+      "inquiry_id": 475,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:20:03",
+      "reason": "报价库无价格，提交核价",
+      "id": 179
+    },
+    {
+      "inquiry_id": 476,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 09:22:48",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 180
+    },
+    {
+      "inquiry_id": 477,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 09:22:48",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 181
+    },
+    {
+      "inquiry_id": 478,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:29:20",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 183
+    },
+    {
+      "inquiry_id": 479,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-05-30 09:29:30",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 184
+    },
+    {
+      "inquiry_id": 480,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 09:37:33",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 185
+    },
+    {
+      "inquiry_id": 481,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 09:37:33",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 186
+    },
+    {
+      "inquiry_id": 482,
+      "status": "quoted",
+      "changed_by": "沈旭日",
+      "changed_at": "2026-05-30 09:40:44",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 187
+    },
+    {
+      "inquiry_id": 483,
+      "status": "quoted",
+      "changed_by": "沈旭日",
+      "changed_at": "2026-05-30 09:40:44",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 188
+    },
+    {
+      "inquiry_id": 484,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 16:28:00",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 190
+    },
+    {
+      "inquiry_id": 485,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 16:28:00",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 191
+    },
+    {
+      "inquiry_id": 486,
+      "status": "pending_pricing",
+      "changed_by": "张佳妮",
+      "changed_at": "2026-05-30 16:31:53",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 192
+    },
+    {
+      "inquiry_id": 507,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 18:30:05",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 193
+    },
+    {
+      "inquiry_id": 508,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 18:30:05",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 194
+    },
+    {
+      "inquiry_id": 509,
+      "status": "quoted",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-05-30 18:51:35",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 195
+    },
+    {
+      "inquiry_id": 575,
+      "status": "quoted",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-17 11:10:08",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 196
+    },
+    {
+      "inquiry_id": 576,
+      "status": "quoted",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-17 11:10:08",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 197
+    },
+    {
+      "inquiry_id": 577,
+      "status": "quoted",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-17 11:10:08",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 198
+    },
+    {
+      "inquiry_id": 583,
+      "status": "quoted",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-17 13:23:19",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 199
+    },
+    {
+      "inquiry_id": 584,
+      "status": "quoted",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-17 15:00:37",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 200
+    },
+    {
+      "inquiry_id": 585,
+      "status": "quoted",
+      "changed_by": "sales01",
+      "changed_at": "2026-06-17 15:08:58",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 201
+    },
+    {
+      "inquiry_id": 586,
+      "status": "pending_pricing",
+      "changed_by": "sales01",
+      "changed_at": "2026-06-17 15:12:19",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 202
+    },
+    {
+      "inquiry_id": 587,
+      "status": "pending_pricing",
+      "changed_by": "sales01",
+      "changed_at": "2026-06-17 15:19:00",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 203
+    },
+    {
+      "inquiry_id": 588,
+      "status": "pending_pricing",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-17 15:29:14",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 204
+    },
+    {
+      "inquiry_id": 589,
+      "status": "pending_pricing",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-17 17:27:48",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 205
+    },
+    {
+      "inquiry_id": 589,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-17 17:36:53",
+      "reason": "报价单生成",
+      "id": 206
+    },
+    {
+      "inquiry_id": 590,
+      "status": "pending_pricing",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-21 09:13:18",
+      "reason": "报价库无价格，提交核价",
+      "id": 207
+    },
+    {
+      "inquiry_id": 591,
+      "status": "quoted",
+      "changed_by": "刘媛媛",
+      "changed_at": "2026-06-21 09:13:18",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 208
+    },
+    {
+      "inquiry_id": 592,
+      "status": "quoted",
+      "changed_by": "sales01",
+      "changed_at": "2026-06-21 09:28:39",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 209
+    },
+    {
+      "inquiry_id": 593,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-21 14:24:07",
+      "reason": "报价库无价格，提交核价",
+      "id": 210
+    },
+    {
+      "inquiry_id": 594,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-21 14:24:07",
+      "reason": "报价库无价格，提交核价",
+      "id": 211
+    },
+    {
+      "inquiry_id": 595,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-21 14:24:07",
+      "reason": "报价库无价格，提交核价",
+      "id": 212
+    },
+    {
+      "inquiry_id": 596,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-21 14:24:07",
+      "reason": "报价库无价格，提交核价",
+      "id": 213
+    },
+    {
+      "inquiry_id": 597,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-21 15:28:57",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 214
+    },
+    {
+      "inquiry_id": 598,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-21 15:29:55",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 215
+    },
+    {
+      "inquiry_id": 599,
+      "status": "pending_pricing",
+      "changed_by": "蒋哲斌",
+      "changed_at": "2026-06-21 15:41:51",
+      "reason": "报价库无价格，提交核价",
+      "id": 216
+    },
+    {
+      "inquiry_id": 600,
+      "status": "pending_pricing",
+      "changed_by": "蒋哲斌",
+      "changed_at": "2026-06-21 15:41:51",
+      "reason": "报价库无价格，提交核价",
+      "id": 217
+    },
+    {
+      "inquiry_id": 601,
+      "status": "pending_pricing",
+      "changed_by": "蒋哲斌",
+      "changed_at": "2026-06-21 15:41:51",
+      "reason": "报价库无价格，提交核价",
+      "id": 218
+    },
+    {
+      "inquiry_id": 607,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-21 17:18:25",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 219
+    },
+    {
+      "inquiry_id": 607,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-21 17:19:00",
+      "reason": "报价单生成",
+      "id": 220
+    },
+    {
+      "inquiry_id": 608,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-21 17:26:49",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 221
+    },
+    {
+      "inquiry_id": 608,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-21 17:34:48",
+      "reason": "研发核价确认",
+      "id": 222
+    },
+    {
+      "inquiry_id": 608,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-21 17:35:13",
+      "reason": "报价单生成",
+      "id": 223
+    },
+    {
+      "inquiry_id": 609,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-21 17:39:35",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 224
+    },
+    {
+      "inquiry_id": 609,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-21 17:46:56",
+      "reason": "报价单生成",
+      "id": 225
+    },
+    {
+      "inquiry_id": 594,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-21 17:50:47",
+      "reason": "报价单生成",
+      "id": 227
+    },
+    {
+      "inquiry_id": 615,
+      "status": "quoted",
+      "changed_by": "管丽艳",
+      "changed_at": "2026-06-21 18:07:52",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 231
+    },
+    {
+      "inquiry_id": 599,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-22 08:19:29",
+      "reason": "报价单生成",
+      "id": 238
+    },
+    {
+      "inquiry_id": 600,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-22 08:27:20",
+      "reason": "报价单生成",
+      "id": 254
+    },
+    {
+      "inquiry_id": 616,
+      "status": "pending_pricing",
+      "changed_by": "徐盼",
+      "changed_at": "2026-06-23 09:45:29",
+      "reason": "报价库无价格，提交核价",
+      "id": 260
+    },
+    {
+      "inquiry_id": 617,
+      "status": "pending_pricing",
+      "changed_by": "徐盼",
+      "changed_at": "2026-06-23 09:45:29",
+      "reason": "报价库无价格，提交核价",
+      "id": 261
+    },
+    {
+      "inquiry_id": 618,
+      "status": "pending_pricing",
+      "changed_by": "徐盼",
+      "changed_at": "2026-06-23 09:45:29",
+      "reason": "报价库无价格，提交核价",
+      "id": 262
+    },
+    {
+      "inquiry_id": 619,
+      "status": "pending_pricing",
+      "changed_by": "徐盼",
+      "changed_at": "2026-06-23 09:45:29",
+      "reason": "报价库无价格，提交核价",
+      "id": 263
+    },
+    {
+      "inquiry_id": 620,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-23 10:59:14",
+      "reason": "报价库无价格，提交核价",
+      "id": 264
+    },
+    {
+      "inquiry_id": 621,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-23 10:59:14",
+      "reason": "报价库无价格，提交核价",
+      "id": 265
+    },
+    {
+      "inquiry_id": 622,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-23 10:59:14",
+      "reason": "报价库无价格，提交核价",
+      "id": 266
+    },
+    {
+      "inquiry_id": 623,
+      "status": "pending_pricing",
+      "changed_by": "朱梦倩",
+      "changed_at": "2026-06-23 10:59:14",
+      "reason": "报价库无价格，提交核价",
+      "id": 267
+    },
+    {
+      "inquiry_id": 616,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-23 12:54:28",
+      "reason": "报价单生成",
+      "id": 268
+    },
+    {
+      "inquiry_id": 624,
+      "status": "pending_pricing",
+      "changed_by": "贾余丽",
+      "changed_at": "2026-06-23 13:57:44",
+      "reason": "报价库无价格，提交核价",
+      "id": 278
+    },
+    {
+      "inquiry_id": 625,
+      "status": "pending_pricing",
+      "changed_by": "贾余丽",
+      "changed_at": "2026-06-23 13:57:44",
+      "reason": "报价库无价格，提交核价",
+      "id": 279
+    },
+    {
+      "inquiry_id": 646,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:47:35",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 280
+    },
+    {
+      "inquiry_id": 647,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:49:30",
+      "reason": "核心准则[INQ_002]: 报价库无价格提交核价",
+      "id": 281
+    },
+    {
+      "inquiry_id": 648,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:51:30",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 282
+    },
+    {
+      "inquiry_id": 649,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:51:44",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 283
+    },
+    {
+      "inquiry_id": 650,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:53:48",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 284
+    },
+    {
+      "inquiry_id": 650,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:53:48",
+      "reason": "状态变更",
+      "id": 285
+    },
+    {
+      "inquiry_id": 650,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:53:48",
+      "reason": "状态变更",
+      "id": 286
+    },
+    {
+      "inquiry_id": 650,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:53:48",
+      "reason": "状态变更",
+      "id": 287
+    },
+    {
+      "inquiry_id": 650,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:53:48",
+      "reason": "状态变更",
+      "id": 288
+    },
+    {
+      "inquiry_id": 650,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:53:48",
+      "reason": "状态变更",
+      "id": 289
+    },
+    {
+      "inquiry_id": 650,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:53:48",
+      "reason": "状态变更",
+      "id": 290
+    },
+    {
+      "inquiry_id": 651,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:55:48",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 291
+    },
+    {
+      "inquiry_id": 651,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:55:48",
+      "reason": "状态变更",
+      "id": 292
+    },
+    {
+      "inquiry_id": 651,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:55:48",
+      "reason": "状态变更",
+      "id": 293
+    },
+    {
+      "inquiry_id": 651,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:55:48",
+      "reason": "状态变更",
+      "id": 294
+    },
+    {
+      "inquiry_id": 651,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:55:48",
+      "reason": "状态变更",
+      "id": 295
+    },
+    {
+      "inquiry_id": 651,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:55:48",
+      "reason": "状态变更",
+      "id": 296
+    },
+    {
+      "inquiry_id": 651,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 11:55:48",
+      "reason": "状态变更",
+      "id": 297
+    },
+    {
+      "inquiry_id": 657,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:37:08",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 298
+    },
+    {
+      "inquiry_id": 657,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:37:08",
+      "reason": "状态变更",
+      "id": 299
+    },
+    {
+      "inquiry_id": 657,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:37:08",
+      "reason": "状态变更",
+      "id": 300
+    },
+    {
+      "inquiry_id": 657,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:37:08",
+      "reason": "状态变更",
+      "id": 301
+    },
+    {
+      "inquiry_id": 657,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:37:08",
+      "reason": "状态变更",
+      "id": 302
+    },
+    {
+      "inquiry_id": 657,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:37:08",
+      "reason": "状态变更",
+      "id": 303
+    },
+    {
+      "inquiry_id": 657,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:37:08",
+      "reason": "状态变更",
+      "id": 304
+    },
+    {
+      "inquiry_id": 663,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:56:27",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 305
+    },
+    {
+      "inquiry_id": 663,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:56:27",
+      "reason": "状态变更",
+      "id": 306
+    },
+    {
+      "inquiry_id": 663,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:56:27",
+      "reason": "状态变更",
+      "id": 307
+    },
+    {
+      "inquiry_id": 663,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:56:27",
+      "reason": "状态变更",
+      "id": 308
+    },
+    {
+      "inquiry_id": 663,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:56:27",
+      "reason": "状态变更",
+      "id": 309
+    },
+    {
+      "inquiry_id": 663,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:56:27",
+      "reason": "状态变更",
+      "id": 310
+    },
+    {
+      "inquiry_id": 663,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 12:56:27",
+      "reason": "状态变更",
+      "id": 311
+    },
+    {
+      "inquiry_id": 669,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:04:17",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 312
+    },
+    {
+      "inquiry_id": 669,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:04:17",
+      "reason": "状态变更",
+      "id": 313
+    },
+    {
+      "inquiry_id": 669,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:04:17",
+      "reason": "状态变更",
+      "id": 314
+    },
+    {
+      "inquiry_id": 669,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:04:17",
+      "reason": "状态变更",
+      "id": 315
+    },
+    {
+      "inquiry_id": 669,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:04:17",
+      "reason": "状态变更",
+      "id": 316
+    },
+    {
+      "inquiry_id": 669,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:04:17",
+      "reason": "状态变更",
+      "id": 317
+    },
+    {
+      "inquiry_id": 669,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:04:17",
+      "reason": "状态变更",
+      "id": 318
+    },
+    {
+      "inquiry_id": 675,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:06:17",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 319
+    },
+    {
+      "inquiry_id": 675,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:06:17",
+      "reason": "状态变更",
+      "id": 320
+    },
+    {
+      "inquiry_id": 675,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:06:17",
+      "reason": "状态变更",
+      "id": 321
+    },
+    {
+      "inquiry_id": 675,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:06:17",
+      "reason": "状态变更",
+      "id": 322
+    },
+    {
+      "inquiry_id": 675,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:06:17",
+      "reason": "状态变更",
+      "id": 323
+    },
+    {
+      "inquiry_id": 675,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:06:17",
+      "reason": "状态变更",
+      "id": 324
+    },
+    {
+      "inquiry_id": 675,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:06:17",
+      "reason": "状态变更",
+      "id": 325
+    },
+    {
+      "inquiry_id": 681,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:18",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 326
+    },
+    {
+      "inquiry_id": 681,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:18",
+      "reason": "状态变更",
+      "id": 327
+    },
+    {
+      "inquiry_id": 681,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:18",
+      "reason": "状态变更",
+      "id": 328
+    },
+    {
+      "inquiry_id": 681,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:18",
+      "reason": "状态变更",
+      "id": 329
+    },
+    {
+      "inquiry_id": 681,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:18",
+      "reason": "状态变更",
+      "id": 330
+    },
+    {
+      "inquiry_id": 681,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:18",
+      "reason": "状态变更",
+      "id": 331
+    },
+    {
+      "inquiry_id": 681,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:18",
+      "reason": "状态变更",
+      "id": 332
+    },
+    {
+      "inquiry_id": 687,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:19",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 333
+    },
+    {
+      "inquiry_id": 687,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:19",
+      "reason": "状态变更",
+      "id": 334
+    },
+    {
+      "inquiry_id": 687,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:19",
+      "reason": "状态变更",
+      "id": 335
+    },
+    {
+      "inquiry_id": 687,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:19",
+      "reason": "状态变更",
+      "id": 336
+    },
+    {
+      "inquiry_id": 687,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:19",
+      "reason": "状态变更",
+      "id": 337
+    },
+    {
+      "inquiry_id": 687,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:19",
+      "reason": "状态变更",
+      "id": 338
+    },
+    {
+      "inquiry_id": 687,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:19",
+      "reason": "状态变更",
+      "id": 339
+    },
+    {
+      "inquiry_id": 693,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:20",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 340
+    },
+    {
+      "inquiry_id": 693,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:20",
+      "reason": "状态变更",
+      "id": 341
+    },
+    {
+      "inquiry_id": 693,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:20",
+      "reason": "状态变更",
+      "id": 342
+    },
+    {
+      "inquiry_id": 693,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:20",
+      "reason": "状态变更",
+      "id": 343
+    },
+    {
+      "inquiry_id": 693,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:20",
+      "reason": "状态变更",
+      "id": 344
+    },
+    {
+      "inquiry_id": 693,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:20",
+      "reason": "状态变更",
+      "id": 345
+    },
+    {
+      "inquiry_id": 693,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-26 13:12:20",
+      "reason": "状态变更",
+      "id": 346
+    },
+    {
+      "inquiry_id": 699,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-27 16:00:39",
+      "reason": "核心准则[INQ_001]: 报价库有价格自动完成",
+      "id": 347
+    },
+    {
+      "inquiry_id": 699,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-27 16:00:39",
+      "reason": "状态变更",
+      "id": 348
+    },
+    {
+      "inquiry_id": 699,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-27 16:00:39",
+      "reason": "状态变更",
+      "id": 349
+    },
+    {
+      "inquiry_id": 699,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-27 16:00:39",
+      "reason": "状态变更",
+      "id": 350
+    },
+    {
+      "inquiry_id": 699,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-27 16:00:39",
+      "reason": "状态变更",
+      "id": 351
+    },
+    {
+      "inquiry_id": 699,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-27 16:00:39",
+      "reason": "状态变更",
+      "id": 352
+    },
+    {
+      "inquiry_id": 699,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-27 16:00:39",
+      "reason": "状态变更",
+      "id": 353
+    },
+    {
+      "inquiry_id": 705,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-29 11:35:13",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 354
+    },
+    {
+      "inquiry_id": 705,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-06-29 11:35:13",
+      "reason": "状态变更",
+      "id": 355
+    },
+    {
+      "inquiry_id": 705,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-06-29 11:35:13",
+      "reason": "状态变更",
+      "id": 356
+    },
+    {
+      "inquiry_id": 705,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-06-29 11:35:13",
+      "reason": "状态变更",
+      "id": 357
+    },
+    {
+      "inquiry_id": 705,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-06-29 11:35:13",
+      "reason": "状态变更",
+      "id": 358
+    },
+    {
+      "inquiry_id": 705,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-29 11:35:13",
+      "reason": "状态变更",
+      "id": 359
+    },
+    {
+      "inquiry_id": 705,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-06-29 11:35:13",
+      "reason": "状态变更",
+      "id": 360
+    },
+    {
+      "inquiry_id": 620,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-06-30 18:44:49",
+      "reason": "报价单生成",
+      "id": 361
+    },
+    {
+      "inquiry_id": 706,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 10:14:34",
+      "reason": "报价库无价格，提交核价",
+      "id": 362
+    },
+    {
+      "inquiry_id": 707,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 10:14:34",
+      "reason": "报价库无价格，提交核价",
+      "id": 363
+    },
+    {
+      "inquiry_id": 708,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 10:14:34",
+      "reason": "报价库无价格，提交核价",
+      "id": 364
+    },
+    {
+      "inquiry_id": 709,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 10:14:34",
+      "reason": "报价库无价格，提交核价",
+      "id": 365
+    },
+    {
+      "inquiry_id": 710,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 10:14:34",
+      "reason": "报价库无价格，提交核价",
+      "id": 366
+    },
+    {
+      "inquiry_id": 711,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 10:14:34",
+      "reason": "报价库无价格，提交核价",
+      "id": 367
+    },
+    {
+      "inquiry_id": 712,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 10:14:34",
+      "reason": "报价库无价格，提交核价",
+      "id": 368
+    },
+    {
+      "inquiry_id": 707,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 12:50:38",
+      "reason": "快速报价 ¥120000，已生成报价单",
+      "id": 369
+    },
+    {
+      "inquiry_id": 706,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-02 14:10:18",
+      "reason": "报价单生成",
+      "id": 370
+    },
+    {
+      "inquiry_id": 718,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-03 19:38:43",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 371
+    },
+    {
+      "inquiry_id": 718,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-07-03 19:38:43",
+      "reason": "状态变更",
+      "id": 372
+    },
+    {
+      "inquiry_id": 718,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-07-03 19:38:43",
+      "reason": "状态变更",
+      "id": 373
+    },
+    {
+      "inquiry_id": 718,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-03 19:38:43",
+      "reason": "状态变更",
+      "id": 374
+    },
+    {
+      "inquiry_id": 718,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-07-03 19:38:43",
+      "reason": "状态变更",
+      "id": 375
+    },
+    {
+      "inquiry_id": 718,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-03 19:38:43",
+      "reason": "状态变更",
+      "id": 376
+    },
+    {
+      "inquiry_id": 718,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-07-03 19:38:43",
+      "reason": "状态变更",
+      "id": 377
+    },
+    {
+      "inquiry_id": 724,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 07:53:14",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 378
+    },
+    {
+      "inquiry_id": 724,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 07:53:14",
+      "reason": "状态变更",
+      "id": 379
+    },
+    {
+      "inquiry_id": 724,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 07:53:14",
+      "reason": "状态变更",
+      "id": 380
+    },
+    {
+      "inquiry_id": 724,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 07:53:14",
+      "reason": "状态变更",
+      "id": 381
+    },
+    {
+      "inquiry_id": 724,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 07:53:14",
+      "reason": "状态变更",
+      "id": 382
+    },
+    {
+      "inquiry_id": 724,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 07:53:14",
+      "reason": "状态变更",
+      "id": 383
+    },
+    {
+      "inquiry_id": 724,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 07:53:14",
+      "reason": "状态变更",
+      "id": 384
+    },
+    {
+      "inquiry_id": 730,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 18:04:53",
+      "reason": "报价库有价格，自动完成报价",
+      "id": 385
+    },
+    {
+      "inquiry_id": 730,
+      "status": "cert_configured",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 18:04:53",
+      "reason": "状态变更",
+      "id": 386
+    },
+    {
+      "inquiry_id": 730,
+      "status": "config_generated",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 18:04:53",
+      "reason": "状态变更",
+      "id": 387
+    },
+    {
+      "inquiry_id": 730,
+      "status": "pending_pricing",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 18:04:53",
+      "reason": "状态变更",
+      "id": 388
+    },
+    {
+      "inquiry_id": 730,
+      "status": "pending_quote",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 18:04:53",
+      "reason": "状态变更",
+      "id": 389
+    },
+    {
+      "inquiry_id": 730,
+      "status": "quoted",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 18:04:53",
+      "reason": "状态变更",
+      "id": 390
+    },
+    {
+      "inquiry_id": 730,
+      "status": "closed",
+      "changed_by": "system",
+      "changed_at": "2026-07-04 18:04:53",
+      "reason": "状态变更",
+      "id": 391
+    }
+  ],
+  "nextId": 392
+}

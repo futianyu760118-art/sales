@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-06-26",
+  "default_unit": "PCS",
+  "desc": "离散元器件/结构件/包装材料统一PCS；液体辅料按g/ml；焊锡/粉状按kg；线材成品按PCS",
+  "category_rules": [
+    { "keywords": ["电子", "光源", "光学", "玻璃", "反光罩", "PCB", "驱动", "芯片", "电阻", "电容", "电池", "太阳能", "LED", "IC", "保险丝", "二极管", "桥堆", "电感"], "standard_unit": "PCS", "desc": "电子标准件/元器件统一为PCS" },
+    { "keywords": ["螺丝", "螺母", "垫片", "弹垫", "弹簧", "紧固", "自攻", "螺栓", "卡簧"], "standard_unit": "PCS", "desc": "紧固件统一为PCS" },
+    { "keywords": ["壳体", "支架", "手柄", "手杆", "结构件", "灯壳", "压框", "后盖", "把手"], "standard_unit": "PCS", "desc": "结构件统一为PCS" },
+    { "keywords": ["彩盒", "外箱", "标贴", "说明书", "包装", "珍珠棉", "塑料袋", "信封", "雪梨纸", "黄包", "白盒"], "standard_unit": "PCS", "desc": "包装材料统一为PCS" },
+    { "keywords": ["呼吸器", "防水接头", "接头", "密封"], "standard_unit": "PCS", "desc": "密封/接头件统一为PCS" },
+    { "keywords": ["电缆", "电源线", "导线", "对插线", "橡胶线", "线材"], "standard_unit": "PCS", "desc": "成品线材按条PCS（按长度另设米）" },
+    { "keywords": ["胶水", "硅胶", "胶", "导热硅脂", "环氧"], "standard_unit": "g", "desc": "胶水/液体类按克g" },
+    { "keywords": ["焊锡", "锡丝", "锡线"], "standard_unit": "kg", "desc": "焊锡丝按千克kg" },
+    { "keywords": ["塑粉", "色母", "粉"], "standard_unit": "kg", "desc": "粉状材料按千克kg" },
+    { "keywords": ["热缩管", "热熔胶"], "standard_unit": "PCS", "desc": "热缩管/热熔胶条按PCS" }
+  ],
+  "unit_unify": {
+    "pcs": "PCS", "PCS": "PCS", "Pcs": "PCS",
+    "个": "PCS", "颗": "PCS", "只": "PCS", "件": "PCS", "片": "PCS", "根": "PCS", "条": "PCS", "张": "PCS", "本": "PCS", "套": "PCS", "卷": "PCS",
+    "G": "g", "g": "g", "克": "g",
+    "kg": "kg", "KG": "kg", "千克": "kg", "吨": "t",
+    "ml": "ml", "ML": "ml", "升": "ml", "L": "ml",
+    "米": "m", "m": "m", "M": "m"
+  },
+  "standards": [
+    "离散件（电子/紧固/结构/包装）统一使用PCS",
+    "单位大小写统一（PCS非pcs，g非G）",
+    "胶水/液体类按g或ml，不混用PCS",
+    "焊锡丝/粉状按kg，不按颗或个",
+    "成品线材按PCS（整条），散装线材按m（米）",
+    "同品类物料单位必须一致，杜绝同类多单位"
+  ]
+}

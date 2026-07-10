@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>数据清洗</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;border-bottom:2px solid #eee;margin-bottom:16px}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}.b5{background:#3498db;color:#fff}.bs{padding:3px 8px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.bg-r{background:#f8d7da;color:#721c24}.bg-o{background:#fff3cd;color:#856404}.bg-g{background:#d4edda;color:#155724}.bg-b{background:#cce5ff;color:#004085}.bg-n{background:#e2e3e5;color:#383d41}
+.em{text-align:center;color:#999;padding:30px}
+.tbl-wrap{overflow-x:auto;max-height:60vh;overflow-y:auto}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:50px;font-family:monospace}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:600px;max-width:95%;max-height:90vh;overflow:auto}
+.pg{text-align:center;margin-top:12px}
+.tgl{width:40px;height:22px;background:#ccc;border-radius:11px;cursor:pointer;position:relative;display:inline-block;vertical-align:middle}
+.tgl.on{background:#27ae60}.tgl:after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .2s}
+.tgl.on:after{left:20px}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>数据清洗</h2>
+<div style="display:flex;gap:8px">
+<button class="btn b2" onclick="openAddRule()">新增规则</button>
+<button class="btn b5" onclick="smartScan()">智能扫描</button>
+<button class="btn b4" onclick="executeBatch()">批量执行</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('rules',this)">清洗规则</button>
+<button onclick="swTab('logs',this)">执行日志</button>
+</div>
+
+<div class="tc ac" id="tab-rules">
+<div class="sb">
+<select id="rTable" onchange="loadRules()"><option value="">全部表</option></select>
+<select id="rEnabled"><option value="">全部状态</option><option value="1">已启用</option><option value="0">已禁用</option></select>
+<button class="btn b1" onclick="loadRules()">搜索</button>
+<span style="margin-left:auto">共 <b id="rTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>名称</th><th>目标表</th><th>字段</th><th>规则类型</th><th>优先级</th><th>启用</th><th>描述</th><th>操作</th>
+</tr></thead><tbody id="rTb"><tr><td colspan="8" class="em">暂无规则</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="tc" id="tab-logs">
+<div class="sb">
+<button class="btn b5" onclick="loadLogs()">刷新</button>
+<span style="margin-left:auto">共 <b id="lTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>时间</th><th>规则</th><th>目标表</th><th>处理行数</th><th>影响行数</th><th>状态</th><th>详情</th>
+</tr></thead><tbody id="lTb"><tr><td colspan="7" class="em">暂无日志</td></tr></tbody></table>
+</div>
+<div class="pg" id="lPg"></div>
+</div>
+</div>
+
+<div class="mo" id="rMo"><div class="mb">
+<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+<h3 id="rMoTi">新增规则</h3><span onclick="document.getElementById('rMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span>
+</div>
+<div style="max-height:60vh;overflow-y:auto;padding-right:4px">
+<div class="fg"><label>规则名称*</label><input type="text" id="rf_name"></div>
+<div class="gr">
+<div class="fg"><label>目标表*</label><select id="rf_table"><option value="">请选择</option></select></div>
+<div class="fg"><label>字段</label><select id="rf_field"><option value="">请选择</option></select></div>
+</div>
+<div class="gr">
+<div class="fg"><label>规则类型*</label><select id="rf_type"><option value="">请选择</option></select></div>
+<div class="fg"><label>优先级</label><input type="number" id="rf_priority" value="0"></div>
+</div>
+<div class="fg"><label>参数 (JSON)</label><textarea id="rf_params" placeholder='{"key":"value"}'></textarea></div>
+<div class="fg"><label>描述</label><textarea id="rf_desc" placeholder="规则描述"></textarea></div>
+<div class="fg"><label>启用 <span class="tgl on" id="rf_tgl" onclick="this.classList.toggle('on')"></span></label></div>
+</div>
+<div style="text-align:right;margin-top:12px">
+<button class="btn b2" id="rfSave">保存</button>
+</div>
+</div></div>
+
+<script>
+const API='/api/data-clean';
+let editId=null;
+
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');
+  document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='rules')loadRules();
+  else if(name==='logs')loadLogs();
+}
+
+async function loadTables(){
+  try{
+    const r=await fetch(API+'/tables');const d=await r.json();
+    const tables=d.data||d||[];
+    const sel=document.getElementById('rTable'),rfs=document.getElementById('rf_table');
+    const opts='<option value="">全部表</option>'+tables.map(t=>`<option value="${t}">${t}</option>`).join('');
+    sel.innerHTML=opts;
+    rfs.innerHTML='<option value="">请选择</option>'+tables.map(t=>`<option value="${t}">${t}</option>`).join('');
+  }catch(e){}
+}
+
+async function loadRuleTypes(){
+  try{
+    const r=await fetch(API+'/rule-types');const d=await r.json();
+    const types=d.data||d||[];
+    document.getElementById('rf_type').innerHTML='<option value="">请选择</option>'+types.map(t=>`<option value="${t.key||t}">${t.name||t.label||t.key||t}</option>`).join('');
+  }catch(e){}
+}
+
+async function onTableChange(){
+  const table=document.getElementById('rf_table').value;
+  const sel=document.getElementById('rf_field');sel.innerHTML='<option value="">请选择</option>';
+  if(!table)return;
+  try{
+    const r=await fetch(API+'/table-fields/'+encodeURIComponent(table));const d=await r.json();
+    const fields=d.data||d||[];
+    sel.innerHTML='<option value="">请选择</option>'+fields.map(f=>`<option value="${f.name||f}">${f.name||f}</option>`).join('');
+  }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',()=>{document.getElementById('rf_table').addEventListener('change',onTableChange)});
+
+async function loadRules(){
+  const p=new URLSearchParams();
+  const tb=document.getElementById('rTable').value,en=document.getElementById('rEnabled').value;
+  if(tb)p.set('table_name',tb);if(en)p.set('enabled',en);
+  try{
+    const r=await fetch(API+'/rules?'+p);const d=await r.json();
+    const recs=d.data||d||[];document.getElementById('rTc').textContent=recs.length;
+    const tbody=document.getElementById('rTb');
+    if(!recs.length){tbody.innerHTML='<tr><td colspan="8" class="em">暂无规则</td></tr>';return}
+    tbody.innerHTML=recs.map(rl=>`<tr>
+      <td><b>${rl.name||'-'}</b></td>
+      <td>${rl.table_name||'-'}</td>
+      <td>${rl.field||'-'}</td>
+      <td>${rl.rule_type||'-'}</td>
+      <td>${rl.priority||0}</td>
+      <td><span class="tgl ${rl.enabled||rl.enabled===undefined?'on':''}" onclick="toggleRule(${rl.id},${!rl.enabled})"></span></td>
+      <td>${(rl.description||'').substring(0,25)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b5" onclick="previewRule(${rl.id})">预览</button>
+        <button class="btn bs b2" onclick="executeRule(${rl.id})">执行</button>
+        <button class="btn bs b4" onclick="openEditRule(${rl.id})">编辑</button>
+        <button class="btn bs b3" onclick="delRule(${rl.id})" data-perm="data-clean:delete">删除</button>
+      </td>
+    </tr>`).join('');
+  }catch(e){console.error(e)}
+}
+
+async function openAddRule(){editId=null;
+  document.getElementById('rMoTi').textContent='新增规则';
+  document.getElementById('rf_name').value='';
+  document.getElementById('rf_table').value='';
+  document.getElementById('rf_field').innerHTML='<option value="">请选择</option>';
+  document.getElementById('rf_type').value='';
+  document.getElementById('rf_priority').value=0;
+  document.getElementById('rf_params').value='';
+  document.getElementById('rf_desc').value='';
+  document.getElementById('rf_tgl').classList.add('on');
+  document.getElementById('rfSave').onclick=saveRule;
+  document.getElementById('rMo').classList.add('ac');
+}
+
+async function openEditRule(id){
+  editId=id;
+  try{
+    const r=await fetch(API+'/rules?limit=999');const d=await r.json();
+    const rl=(d.data||d||[]).find(x=>x.id===id);if(!rl)return;
+    document.getElementById('rMoTi').textContent='编辑规则';
+    document.getElementById('rf_name').value=rl.name||'';
+    document.getElementById('rf_table').value=rl.table_name||'';
+    onTableChange();
+    document.getElementById('rf_field').value=rl.field||'';
+    document.getElementById('rf_type').value=rl.rule_type||'';
+    document.getElementById('rf_priority').value=rl.priority||0;
+    document.getElementById('rf_params').value=typeof rl.params==='object'?JSON.stringify(rl.params,null,2):(rl.params||'');
+    document.getElementById('rf_desc').value=rl.description||'';
+    const tgl=document.getElementById('rf_tgl');
+    if(rl.enabled||rl.enabled===undefined)tgl.classList.add('on');else tgl.classList.remove('on');
+    document.getElementById('rfSave').onclick=saveRule;
+    document.getElementById('rMo').classList.add('ac');
+  }catch(e){alert('加载失败')}
+}
+
+async function saveRule(){
+  const data={
+    name:document.getElementById('rf_name').value,
+    table_name:document.getElementById('rf_table').value,
+    field:document.getElementById('rf_field').value,
+    rule_type:document.getElementById('rf_type').value,
+    priority:parseInt(document.getElementById('rf_priority').value)||0,
+    description:document.getElementById('rf_desc').value,
+    enabled:document.getElementById('rf_tgl').classList.contains('on')
+  };
+  let params={};
+  try{params=JSON.parse(document.getElementById('rf_params').value)}catch(e){}
+  data.params=params;
+  if(!data.name||!data.table_name){alert('名称和目标表必填');return}
+  try{
+    if(editId){
+      await fetch(API+'/rules/'+editId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    }else{
+      await fetch(API+'/rules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    }
+    document.getElementById('rMo').classList.remove('ac');loadRules();
+  }catch(e){alert('保存失败: '+e.message)}
+}
+
+async function delRule(id){if(!PermissionCheck.has('data-clean:delete')){alert('无删除权限');return;}if(!confirm('确定删除此规则？'))return;
+  await fetch(API+'/rules/'+id,{method:'DELETE'});loadRules();
+}
+
+async function toggleRule(id,enabled){
+  await fetch(API+'/rules/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled})});
+  loadRules();
+}
+
+async function previewRule(id){
+  try{
+    const r=await fetch(API+'/rules/preview/'+id,{method:'POST'});const d=await r.json();
+    alert(d.message||`预览完成，将影响 ${d.affected||d.count||0} 条记录`);
+  }catch(e){alert('预览失败: '+e.message)}
+}
+
+async function executeRule(id){
+  if(!confirm('确定执行此规则？'))return;
+  try{
+    const r=await fetch(API+'/rules/execute/'+id,{method:'POST'});const d=await r.json();
+    alert(d.message||`执行完成，影响 ${d.affected||d.count||0} 条记录`);
+    loadRules();loadLogs();
+  }catch(e){alert('执行失败: '+e.message)}
+}
+
+async function smartScan(){
+  if(!confirm('智能扫描将分析所有数据并创建清洗建议，确定继续？'))return;
+  try{
+    const r=await fetch(API+'/smart-scan',{method:'POST'});const d=await r.json();
+    alert(d.message||`扫描完成，发现 ${d.suggestions||d.count||0} 条建议`);
+    loadRules();
+  }catch(e){alert('扫描失败: '+e.message)}
+}
+
+async function executeBatch(){
+  if(!confirm('确定批量执行所有已启用的规则？'))return;
+  try{
+    const r=await fetch(API+'/execute-batch',{method:'POST'});const d=await r.json();
+    alert(d.message||`批量执行完成，总影响 ${d.total_affected||d.count||0} 条记录`);
+    loadLogs();
+  }catch(e){alert('执行失败: '+e.message)}
+}
+
+async function loadLogs(){
+  try{
+    const r=await fetch(API+'/logs');const d=await r.json();
+    const recs=d.data||d||[];document.getElementById('lTc').textContent=recs.length;
+    const tb=document.getElementById('lTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="7" class="em">暂无日志</td></tr>';return}
+    tb.innerHTML=recs.map(l=>`<tr>
+      <td>${l.executed_at||l.created_at||'-'}</td>
+      <td>${l.rule_name||'-'}</td>
+      <td>${l.table_name||'-'}</td>
+      <td>${l.processed_rows||'-'}</td>
+      <td>${l.affected_rows||'-'}</td>
+      <td><span class="badge ${l.status==='success'?'bg-g':l.status==='error'?'bg-r':'bg-o'}">${l.status||'-'}</span></td>
+      <td>${(l.detail||l.message||'').substring(0,30)}</td>
+    </tr>`).join('');
+  }catch(e){console.error(e)}
+}
+
+loadTables();loadRuleTypes();loadRules();
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body></html>

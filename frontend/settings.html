@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 系统设置</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+    .tab-nav button { padding: 12px 24px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.3s; }
+    .tab-nav button.active { color: #667eea; border-bottom-color: #667eea; }
+    .tab-nav button:hover { color: #667eea; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .module-card { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; transition: all 0.3s; }
+    .module-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .module-card h3 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .module-card h3 .icon { font-size: 20px; }
+    .module-card .desc { font-size: 12px; color: #888; margin-bottom: 12px; }
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row label { font-size: 13px; color: #555; }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 24px; transition: 0.3s; }
+    .toggle .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle input:checked + .slider { background: #667eea; }
+    .toggle input:checked + .slider:before { transform: translateX(20px); }
+    .config-section { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 16px; }
+    .config-section h3 { font-size: 15px; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+    .config-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+    .config-item { display: flex; flex-direction: column; gap: 4px; }
+    .config-item label { font-size: 12px; color: #666; font-weight: 500; }
+    .config-item input, .config-item select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .config-item input:focus, .config-item select:focus { border-color: #667eea; outline: none; }
+    .dict-grid { display: grid; grid-template-columns: 260px 1fr; gap: 16px; min-height: 500px; }
+    .dict-groups { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+    .dict-groups h3 { padding: 15px; font-size: 14px; border-bottom: 1px solid #eee; background: #f8f9fa; }
+    .dict-group-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+    .dict-group-item:hover { background: #f8f9ff; }
+    .dict-group-item.active { background: #eef0ff; border-left: 3px solid #667eea; }
+    .dict-group-item .name { font-size: 13px; color: #333; font-weight: 500; }
+    .dict-group-item .count { font-size: 11px; color: #999; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
+    .dict-items { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+    .dict-items-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; }
+    .dict-items-header h3 { font-size: 14px; }
+    .dict-items table { width: 100%; border-collapse: collapse; }
+    .dict-items th, .dict-items td { padding: 10px 15px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .dict-items th { background: #fafafa; font-weight: 600; color: #666; font-size: 12px; }
+    .dict-items tr:hover { background: #f8f9ff; }
+    .badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+    .badge-on { background: #e8f5e9; color: #388e3c; }
+    .badge-off { background: #ffebee; color: #c62828; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content">
+    <div class="header">
+      <h2>系统设置</h2>
+    </div>
+
+    <div class="tab-nav">
+      <button class="active" onclick="switchTab('modules')">模块管理</button>
+      <button onclick="switchTab('params')">参数配置</button>
+      <button onclick="switchTab('dictionary')">数据字典</button>
+      <button onclick="switchTab('organization')">组织模块</button>
+      <button onclick="switchTab('sync')">数据同步</button>
+    </div>
+
+    <!-- 模块管理 -->
+    <div id="tab-modules" class="tab-content active">
+      <div class="module-grid" id="moduleGrid"></div>
+    </div>
+
+    <!-- 参数配置 -->
+    <div id="tab-params" class="tab-content">
+      <div class="config-section">
+        <h3>报价参数</h3>
+        <div class="config-row">
+          <div class="config-item"><label>默认利润率 (%)</label><input type="number" id="cfg_profit_rate" value="20" step="1"></div>
+          <div class="config-item"><label>默认优惠率 (%)</label><input type="number" id="cfg_discount_rate" value="0" step="1"></div>
+          <div class="config-item"><label>默认损耗率 (%)</label><input type="number" id="cfg_loss_rate" value="5" step="1"></div>
+        </div>
+        <div class="config-row">
+          <div class="config-item"><label>汇率 (USD/RMB)</label><input type="number" id="cfg_exchange_rate" value="7.25" step="0.01"></div>
+          <div class="config-item"><label>报价有效期 (天)</label><input type="number" id="cfg_quote_validity" value="30"></div>
+          <div class="config-item"><label>核价超时 (小时)</label><input type="number" id="cfg_pricing_timeout" value="24"></div>
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>编号规则</h3>
+        <div class="config-row">
+          <div class="config-item"><label>询价单前缀</label><input type="text" id="cfg_inquiry_prefix" value="INQ"></div>
+          <div class="config-item"><label>报价单前缀</label><input type="text" id="cfg_quote_prefix" value="QT"></div>
+          <div class="config-item"><label>编号起始值</label><input type="number" id="cfg_serial_start" value="1"></div>
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>系统参数</h3>
+        <div class="config-row">
+          <div class="config-item"><label>系统名称</label><input type="text" id="cfg_system_name" value="销售快捷服务系统"></div>
+          <div class="config-item"><label>公司名称</label><input type="text" id="cfg_company_name" placeholder="公司名称"></div>
+          <div class="config-item"><label>每页显示条数</label><input type="number" id="cfg_page_size" value="15" min="5" max="100"></div>
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>AI助手接口配置</h3>
+        <div class="config-row">
+          <div class="config-item" style="flex:2"><label>API Base URL</label><input type="text" id="cfg_ai_api_base" value="https://api.openai.com/v1" placeholder="如 https://api.openai.com/v1"></div>
+          <div class="config-item"><label>模型</label><input type="text" id="cfg_ai_model" value="gpt-4o-mini" placeholder="如 gpt-4o-mini"></div>
+        </div>
+        <div class="config-row">
+          <div class="config-item" style="flex:2"><label>API Key</label><input type="password" id="cfg_ai_api_key" placeholder="sk-..."></div>
+          <div class="config-item"><label>测试连接</label><button class="btn btn-info" onclick="testAiConnection()" style="margin-top:22px;">测试</button></div>
+        </div>
+        <div id="aiTestResult" style="font-size:12px;margin-top:4px;"></div>
+      </div>
+      <div style="margin-top:16px;"><button class="btn btn-primary" onclick="saveConfig()">保存配置</button></div>
+    </div>
+
+    <!-- 数据字典 -->
+    <div id="tab-dictionary" class="tab-content">
+      <div class="dict-grid">
+        <div class="dict-groups">
+          <h3>字典分组</h3>
+          <div id="dictGroupList"></div>
+        </div>
+        <div class="dict-items">
+          <div class="dict-items-header">
+            <h3 id="dictItemsTitle">请选择分组</h3>
+            <div class="btn-group">
+              <button class="btn btn-primary btn-sm" onclick="showAddDictItem()">新增选项</button>
+              <button class="btn btn-warning btn-sm" onclick="initDictDefaults()">初始化默认字典</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>排序</th><th>编码</th><th>选项值</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
+            <tbody id="dictItemsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 组织模块入口 -->
+    <div id="tab-organization" class="tab-content">
+      <div class="config-section">
+        <h3>组织模块</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">管理部门、岗位与人员；为岗位配置默认权限与角色，并为人员提供个性化权限调整。组织模块的权限设置与"权限管理"中的角色权限互通，自动合并计算最终权限。</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-primary" onclick="window.open('organization.html','_blank')">进入组织模块</button>
+          <button class="btn btn-info" onclick="loadOrgStats()">查看统计</button>
+          <span id="orgStats" style="margin-left:auto;font-size:13px;color:#555;"></span>
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>权限计算规则说明</h3>
+        <ul style="font-size:13px;color:#555;line-height:1.9;padding-left:20px;">
+          <li>系统初始化权限（来自角色）：用户通过 <code>权限管理 → 用户管理</code> 分配角色后获得</li>
+          <li>岗位默认权限：在 <code>组织模块 → 岗位管理</code> 中为岗位勾选默认权限，岗位下所有人员自动获得</li>
+          <li>人员个性化调整：在 <code>组织模块 → 权限分配</code> 中，可对人员做"额外授予"或"撤销"操作</li>
+          <li>最终有效权限 = 角色权限 ∪ 岗位默认权限 ∪ 人员额外授权 - 人员撤销项</li>
+          <li>关联系统用户后，用户的角色权限与人员岗位权限自动合并</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 数据同步 -->
+    <div id="tab-sync" class="tab-content">
+      <div class="config-section">
+        <h3>外部系统连接设置</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">配置外部ERP/MES系统的接入地址与应用凭证，用于拉取组织、人员及业务数据。</p>
+        <div class="form-row">
+          <div class="form-group"><label>服务地址 (baseUrl)</label><input type="text" id="extBaseUrl" placeholder="https://192.168.0.127:18084"></div>
+          <div class="form-group"><label>超时(毫秒)</label><input type="number" id="extTimeout" value="30000"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>AppKey</label><input type="text" id="extAppKey" placeholder="应用Key"></div>
+          <div class="form-group"><label>AppSecret</label><input type="password" id="extAppSecret" placeholder="留空表示不修改"></div>
+        </div>
+        <div style="margin-top:8px;">
+          <button class="btn btn-primary" onclick="saveExternalConfig()">保存设置</button>
+          <button class="btn btn-info" onclick="testExternalConnection()">测试连接</button>
+          <button class="btn btn-success" onclick="syncAllExternal()">一键同步全部</button>
+        </div>
+        <div id="extConnResult" style="margin-top:12px;font-size:13px;"></div>
+      </div>
+      <div class="config-section">
+        <h3>外部组织与人员同步</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">从外部系统同步组织架构（部门）与人员信息，便于业务单据关联负责人与归属部门。</p>
+        <button class="btn btn-warning" onclick="syncOrganizations()">同步组织信息</button>
+        <button class="btn btn-warning" onclick="syncPositions()">同步岗位信息</button>
+        <button class="btn btn-warning" onclick="syncPersonnel()">同步人员信息</button>
+      </div>
+      <div class="config-section">
+        <h3>核价库 → 产品管理/客户管理 同步</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">将核价库中的型号同步为产品管理的内部型号，产品系列同步为品类，产品名称同步为产品名称，客户同步到客户管理。</p>
+        <button class="btn btn-warning" onclick="syncPricingData()">执行同步</button>
+      </div>
+      <div class="config-section">
+        <h3>询价管理 → 客户管理 同步</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">将询价单中的客户名称同步到客户管理，缺失的客户自动创建。</p>
+        <button class="btn btn-warning" onclick="syncInquiryCustomers()">执行同步</button>
+      </div>
+      <div class="config-section">
+        <h3>全量数据校验</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">检查各模块数据一致性，发现并修复关联缺失问题。</p>
+        <button class="btn btn-info" onclick="validateData()">执行校验</button>
+        <div id="validateResult" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增字典项弹窗 -->
+  <div class="modal" id="addDictModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('addDictModal')">&times;</span>
+      <h3>新增字典选项</h3>
+      <form id="addDictForm">
+        <input type="hidden" id="dictGroupCode">
+        <input type="hidden" id="dictGroupName">
+        <div class="form-row">
+          <div class="form-group"><label>选项编码</label><input type="text" id="dictItemCode" placeholder="如 product_category_1"></div>
+          <div class="form-group"><label>排序</label><input type="number" id="dictItemSort" value="0"></div>
+        </div>
+        <div class="form-group"><label>选项值 *</label><input type="text" id="dictItemValue" required placeholder="如 工作灯"></div>
+        <div class="form-group"><label>备注</label><input type="text" id="dictItemRemark" placeholder="备注说明"></div>
+        <div style="margin-top:12px;"><button type="submit" class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 编辑字典项弹窗 -->
+  <div class="modal" id="editDictModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('editDictModal')">&times;</span>
+      <h3>编辑字典选项</h3>
+      <form id="editDictForm">
+        <input type="hidden" id="editDictId">
+        <div class="form-row">
+          <div class="form-group"><label>选项编码</label><input type="text" id="editDictItemCode"></div>
+          <div class="form-group"><label>排序</label><input type="number" id="editDictItemSort"></div>
+        </div>
+        <div class="form-group"><label>选项值 *</label><input type="text" id="editDictItemValue" required></div>
+        <div class="form-group"><label>备注</label><input type="text" id="editDictItemRemark"></div>
+        <div style="margin-top:12px;"><button type="submit" class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+
+<script>
+const API = window.location.origin + '/api';
+let allGroups = [];
+let currentGroup = null;
+
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ===== 模块管理 =====
+const modules = [
+  { key: 'inquiry', name: '询价管理', icon: '📋', desc: '询价单创建、核价、报价全流程管理', features: ['批量导入', '台账视图', '快速报价', '报价单导出'] },
+  { key: 'customer', name: '客户管理', icon: '👥', desc: '客户信息管理、来源跟踪、关联查询', features: ['批量导入', '询价关联', '核价关联'] },
+  { key: 'product', name: '产品管理', icon: '📦', desc: '产品型号、参数、配置、核价状态管理', features: ['批量导入', '核价关联', '排序筛选'] },
+  { key: 'material', name: '物料库', icon: '🔧', desc: '物料BOM管理、成本核算、供应商管理', features: ['批量导入', '成本核算', '模板导出'] },
+  { key: 'pricing', name: '核价表', icon: '💰', desc: 'BOM核价、成本明细、报价管理', features: ['批量导入', '产品关联', '客户同步'] },
+  { key: 'report', name: '数据报表', icon: '📊', desc: '数据分析、趋势图表、台账汇总', features: ['月度趋势', '状态分布', '穿透下钻'] },
+  { key: 'permission', name: '权限管理', icon: '🔐', desc: '用户角色权限管理、访问控制', features: ['用户管理', '角色管理', '权限分配'] },
+  { key: 'feedback', name: '问题反馈', icon: '💬', desc: '问题反馈、处理跟踪、指派管理', features: ['反馈提交', '状态跟踪', '处理指派'] },
+];
+
+async function loadModules() {
+  const config = await (await fetch(`${API}/settings/config`)).json();
+  const moduleConfig = config.modules || {};
+  const grid = document.getElementById('moduleGrid');
+  grid.innerHTML = '';
+  modules.forEach(m => {
+    const enabled = moduleConfig[m.key] !== false;
+    grid.innerHTML += `
+      <div class="module-card">
+        <h3><span class="icon">${m.icon}</span>${m.name}
+          <label class="toggle" style="margin-left:auto;"><input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleModule('${m.key}', this.checked)"><span class="slider"></span></label>
+        </h3>
+        <div class="desc">${m.desc}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">${m.features.map(f => `<span style="background:#e8eaf6;color:#3949ab;padding:2px 8px;border-radius:4px;font-size:11px;">${f}</span>`).join('')}</div>
+      </div>`;
+  });
+}
+
+async function toggleModule(key, enabled) {
+  const config = await (await fetch(`${API}/settings/config`)).json();
+  const modules = config.modules || {};
+  modules[key] = enabled;
+  await fetch(`${API}/settings/config`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modules }) });
+}
+
+// ===== 参数配置 =====
+async function loadConfig() {
+  try {
+    const config = await (await fetch(`${API}/settings/config`)).json();
+    const fields = ['profit_rate','discount_rate','loss_rate','exchange_rate','quote_validity','pricing_timeout',
+      'inquiry_prefix','quote_prefix','serial_start','system_name','company_name','page_size'];
+    fields.forEach(f => {
+      const el = document.getElementById('cfg_' + f);
+      if (el && config[f] !== undefined) el.value = config[f];
+    });
+  } catch(e) { console.error(e); }
+}
+
+async function saveConfig() {
+  const fields = ['profit_rate','discount_rate','loss_rate','exchange_rate','quote_validity','pricing_timeout',
+    'inquiry_prefix','quote_prefix','serial_start','system_name','company_name','page_size'];
+  const data = {};
+  fields.forEach(f => {
+    const el = document.getElementById('cfg_' + f);
+    if (el) data[f] = el.type === 'number' ? Number(el.value) : el.value;
+  });
+  try {
+    await fetch(`${API}/settings/config`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  } catch(e) {}
+
+  const aiBase = document.getElementById('cfg_ai_api_base').value.trim();
+  const aiModel = document.getElementById('cfg_ai_model').value.trim();
+  const aiKey = document.getElementById('cfg_ai_api_key').value.trim();
+  if (aiBase || aiKey) {
+    try {
+      await fetch(`${API}/settings/config`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ai_api_config: JSON.stringify({ apiBase: aiBase, model: aiModel, apiKey: aiKey }) })
+      });
+    } catch(e) {}
+  }
+  alert('配置保存成功');
+}
+
+async function loadAiConfig() {
+  try {
+    const res = await fetch(`${API}/settings/config`);
+    const cfg = await res.json();
+    if (cfg.ai_api_config) {
+      const ai = JSON.parse(cfg.ai_api_config);
+      document.getElementById('cfg_ai_api_base').value = ai.apiBase || 'https://api.openai.com/v1';
+      document.getElementById('cfg_ai_model').value = ai.model || 'gpt-4o-mini';
+      document.getElementById('cfg_ai_api_key').value = ai.apiKey || '';
+    }
+  } catch(e) {}
+}
+
+async function testAiConnection() {
+  const resultDiv = document.getElementById('aiTestResult');
+  resultDiv.innerHTML = '<span style="color:#667eea;">测试中...</span>';
+  try {
+    const res = await fetch(`${API}/chat/ai-chat`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: '你好', user: 'test' })
+    });
+    const data = await res.json();
+    if (data.model === 'local' || data.model === 'fallback') {
+      resultDiv.innerHTML = '<span style="color:#f39c12;">⚠️ 未配置API Key，使用本地模式</span>';
+    } else {
+      resultDiv.innerHTML = `<span style="color:#27ae60;">✅ 连接成功，模型: ${data.model}</span>`;
+    }
+  } catch(e) {
+    resultDiv.innerHTML = '<span style="color:#e74c3c;">❌ 连接失败: ' + e.message + '</span>';
+  }
+}
+
+// ===== 数据字典 =====
+async function loadDictionary() {
+  try {
+    allGroups = await (await fetch(`${API}/settings/dictionary/groups`)).json();
+    renderGroupList();
+  } catch(e) { console.error(e); }
+}
+
+function renderGroupList() {
+  const list = document.getElementById('dictGroupList');
+  list.innerHTML = '';
+  allGroups.forEach(g => {
+    const active = currentGroup && currentGroup.code === g.code ? 'active' : '';
+    list.innerHTML += `<div class="dict-group-item ${active}" onclick="selectGroup('${g.code}')">
+      <span class="name">${g.name}</span><span class="count">${g.items.length}</span></div>`;
+  });
+}
+
+function selectGroup(code) {
+  currentGroup = allGroups.find(g => g.code === code);
+  renderGroupList();
+  renderDictItems();
+}
+
+function renderDictItems() {
+  if (!currentGroup) return;
+  document.getElementById('dictItemsTitle').textContent = currentGroup.name;
+  const tbody = document.getElementById('dictItemsTable');
+  tbody.innerHTML = '';
+  currentGroup.items.forEach(item => {
+    tbody.innerHTML += `<tr>
+      <td>${item.sort}</td>
+      <td><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:11px;">${item.code}</code></td>
+      <td style="font-weight:500;">${item.value}</td>
+      <td><span class="badge ${item.enabled ? 'badge-on' : 'badge-off'}">${item.enabled ? '启用' : '禁用'}</span></td>
+      <td style="color:#999;font-size:12px;">${item.remark || '-'}</td>
+      <td>
+        <button class="btn btn-sm ${item.enabled ? 'btn-warning' : 'btn-success'}" onclick="toggleDictItem(${item.id}, ${!item.enabled})">${item.enabled ? '禁用' : '启用'}</button>
+        <button class="btn btn-info btn-sm" onclick="showEditDictItem(${item.id})">编辑</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDictItem(${item.id})">删除</button>
+      </td></tr>`;
+  });
+}
+
+function showAddDictItem() {
+  if (!currentGroup) { alert('请先选择分组'); return; }
+  document.getElementById('dictGroupCode').value = currentGroup.code;
+  document.getElementById('dictGroupName').value = currentGroup.name;
+  document.getElementById('dictItemCode').value = `${currentGroup.code}_${currentGroup.items.length + 1}`;
+  document.getElementById('dictItemSort').value = currentGroup.items.length + 1;
+  document.getElementById('dictItemValue').value = '';
+  document.getElementById('dictItemRemark').value = '';
+  document.getElementById('addDictModal').style.display = 'flex';
+}
+
+document.getElementById('addDictForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const data = {
+    group_code: document.getElementById('dictGroupCode').value,
+    group_name: document.getElementById('dictGroupName').value,
+    item_code: document.getElementById('dictItemCode').value,
+    item_value: document.getElementById('dictItemValue').value,
+    sort: Number(document.getElementById('dictItemSort').value),
+    remark: document.getElementById('dictItemRemark').value
+  };
+  if (!data.item_value) { alert('选项值为必填'); return; }
+  try {
+    await fetch(`${API}/settings/dictionary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    closeModal('addDictModal');
+    await loadDictionary();
+    if (currentGroup) selectGroup(currentGroup.code);
+  } catch(e) { alert('创建失败'); }
+});
+
+function showEditDictItem(id) {
+  const item = currentGroup.items.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('editDictId').value = id;
+  document.getElementById('editDictItemCode').value = item.code;
+  document.getElementById('editDictItemSort').value = item.sort;
+  document.getElementById('editDictItemValue').value = item.value;
+  document.getElementById('editDictItemRemark').value = item.remark;
+  document.getElementById('editDictModal').style.display = 'flex';
+}
+
+document.getElementById('editDictForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const id = document.getElementById('editDictId').value;
+  const data = {
+    item_code: document.getElementById('editDictItemCode').value,
+    item_value: document.getElementById('editDictItemValue').value,
+    sort: Number(document.getElementById('editDictItemSort').value),
+    remark: document.getElementById('editDictItemRemark').value
+  };
+  try {
+    await fetch(`${API}/settings/dictionary/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    closeModal('editDictModal');
+    await loadDictionary();
+    if (currentGroup) selectGroup(currentGroup.code);
+  } catch(e) { alert('更新失败'); }
+});
+
+async function toggleDictItem(id, enabled) {
+  try {
+    await fetch(`${API}/settings/dictionary/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+    await loadDictionary();
+    if (currentGroup) selectGroup(currentGroup.code);
+  } catch(e) { alert('操作失败'); }
+}
+
+async function deleteDictItem(id) {
+  if (!confirm('确定删除此选项？')) return;
+  try {
+    await fetch(`${API}/settings/dictionary/${id}`, { method: 'DELETE' });
+    await loadDictionary();
+    if (currentGroup) selectGroup(currentGroup.code);
+  } catch(e) { alert('删除失败'); }
+}
+
+async function initDictDefaults() {
+  if (!confirm('将初始化所有默认字典数据，已有选项不会重复添加。确认？')) return;
+  try {
+    const res = await fetch(`${API}/settings/dictionary/init-defaults`, { method: 'POST' });
+    const data = await res.json();
+    alert(`${data.message}\n新增 ${data.added} 条`);
+    await loadDictionary();
+  } catch(e) { alert('初始化失败'); }
+}
+
+// ===== 外部系统同步 =====
+// 统一请求：安全解析响应，遇非JSON(如404 HTML页面)给出明确提示
+async function apiCall(url, options) {
+  const res = await fetch(url, options);
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+  if (!data) {
+    const hint = res.status === 404 ? '接口不存在，请重启后端服务以加载新接口 (404)'
+               : res.status === 403 ? '无权限执行此操作 (403)'
+               : `服务异常 (${res.status})`;
+    throw new Error(hint);
+  }
+  if (!res.ok) throw new Error(data.error || data.message || `请求失败 (${res.status})`);
+  return data;
+}
+
+async function loadExternalConfig() {
+  try {
+    const data = await apiCall(`${API}/external-sync/config`);
+    document.getElementById('extBaseUrl').value = data.baseUrl || '';
+    document.getElementById('extAppKey').value = data.appKey || '';
+    document.getElementById('extAppSecret').value = '';
+    document.getElementById('extAppSecret').placeholder = data.appSecretSet ? (data.appSecret + '（留空不修改）') : '请输入AppSecret';
+    document.getElementById('extTimeout').value = data.timeout || 30000;
+  } catch (e) { console.error('加载外部同步设置失败', e); }
+}
+
+async function saveExternalConfig() {
+  const payload = {
+    baseUrl: document.getElementById('extBaseUrl').value.trim(),
+    appKey: document.getElementById('extAppKey').value.trim(),
+    timeout: Number(document.getElementById('extTimeout').value) || 30000
+  };
+  const secret = document.getElementById('extAppSecret').value;
+  if (secret) payload.appSecret = secret.trim();
+  try {
+    const data = await apiCall(`${API}/external-sync/config`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    alert(data.message || '保存成功'); loadExternalConfig();
+  } catch (e) { alert('保存失败: ' + e.message); }
+}
+
+async function testExternalConnection() {
+  const box = document.getElementById('extConnResult');
+  box.innerHTML = '<span style="color:#1976d2;">正在测试连接...</span>';
+  try {
+    const data = await apiCall(`${API}/external-sync/test-connection`, { method: 'POST' });
+    const rows = Object.entries(data.results || {}).map(([k, v]) =>
+      `<div style="color:${v.ok ? '#2e7d32' : '#c62828'};">${v.ok ? '✓' : '✗'} ${k}${v.ok ? ' (' + (v.total || 0) + ')' : ' ' + (v.error || '')}</div>`
+    ).join('');
+    box.innerHTML = `<div style="font-weight:600;margin-bottom:4px;">${data.message}</div>${rows}`;
+  } catch (e) { box.innerHTML = '<span style="color:#c62828;">测试失败: ' + e.message + '</span>'; }
+}
+
+async function syncOrganizations() {
+  if (!confirm('确认从外部系统同步组织信息？')) return;
+  try {
+    const data = await apiCall(`${API}/external-sync/sync-organizations`, { method: 'POST' });
+    alert(data.message || '同步完成');
+  } catch (e) { alert('同步失败: ' + e.message); }
+}
+
+async function syncPositions() {
+  if (!confirm('确认从外部系统同步岗位信息？\n\n岗位需先关联到已有组织（按 org_code 匹配），未匹配部门的岗位仍会创建但需手动调整。')) return;
+  try {
+    const data = await apiCall(`${API}/external-sync/sync-positions`, { method: 'POST' });
+    alert(data.message || '同步完成');
+  } catch (e) { alert('同步失败: ' + e.message); }
+}
+
+async function syncPersonnel() {
+  if (!confirm('确认从外部系统同步人员信息？')) return;
+  try {
+    const data = await apiCall(`${API}/external-sync/sync-personnel`, { method: 'POST' });
+    alert(data.message || '同步完成');
+  } catch (e) { alert('同步失败: ' + e.message); }
+}
+
+async function syncAllExternal() {
+  if (!confirm('确认一键同步全部外部数据？\n（客户、供应商、订单、产品、物料、组织、岗位、人员、BOM、采购单）\n耗时较长，请耐心等待。')) return;
+  const box = document.getElementById('extConnResult');
+  box.innerHTML = '<span style="color:#1976d2;">正在同步，请勿关闭页面...</span>';
+  try {
+    const data = await apiCall(`${API}/external-sync/sync-all`, { method: 'POST' });
+    box.innerHTML = `<div style="color:#2e7d32;font-weight:600;">${data.message || '同步完成'}</div>`;
+    alert(data.message || '同步完成');
+  } catch (e) { box.innerHTML = '<span style="color:#c62828;">同步失败: ' + e.message + '</span>'; alert('同步失败: ' + e.message); }
+}
+
+// ===== 数据同步 =====
+async function syncPricingData() {
+  if (!confirm('确认将核价库数据同步到产品管理和客户管理？')) return;
+  try {
+    const res = await fetch(`${API}/pricing/sync-all`, { method: 'POST' });
+    const data = await res.json();
+    alert(`同步完成！\n新建产品: ${data.synced_products}\n更新产品: ${data.updated_products}\n新建客户: ${data.synced_customers}\n已存在客户: ${data.existing_customers}`);
+  } catch(e) { alert('同步失败'); }
+}
+
+async function syncInquiryCustomers() {
+  if (!confirm('确认将询价单中的客户同步到客户管理？')) return;
+  try {
+    const inqRes = await fetch(`${API}/inquiries?limit=999`);
+    const inqData = await inqRes.json();
+    const inquiries = inqData.data || [];
+    const custRes = await fetch(`${API}/customers?limit=999`);
+    const custData = await custRes.json();
+    const existingNames = (custData.data || []).map(c => c.name);
+    let added = 0;
+    const newNames = [...new Set(inquiries.map(i => i.customer_name).filter(Boolean))];
+    for (const name of newNames) {
+      if (!existingNames.includes(name)) {
+        await fetch(`${API}/customers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, source: '询价导入' }) });
+        added++;
+      }
+    }
+    alert(`同步完成！\n询价客户: ${newNames.length}\n新建客户: ${added}\n已存在: ${newNames.length - added}`);
+  } catch(e) { alert('同步失败'); }
+}
+
+async function validateData() {
+  const el = document.getElementById('validateResult');
+  el.innerHTML = '<div style="color:#667eea;">校验中...</div>';
+  try {
+    const [inqRes, prodRes, custRes, pricingRes] = await Promise.all([
+      fetch(`${API}/inquiries?limit=999`), fetch(`${API}/products?limit=999`),
+      fetch(`${API}/customers?limit=999`), fetch(`${API}/pricing?limit=999`)
+    ]);
+    const inquiries = (await inqRes.json()).data || [];
+    const products = (await prodRes.json()).data || [];
+    const customers = (await custRes.json()).data || [];
+    const pricingRecords = (await pricingRes.json()).data || [];
+
+    let issues = [];
+    // 检查询价单中客户是否在客户管理中
+    const custNames = customers.map(c => c.name);
+    const inqCustMissing = [...new Set(inquiries.filter(i => i.customer_name && !custNames.includes(i.customer_name)).map(i => i.customer_name))];
+    if (inqCustMissing.length > 0) issues.push(`询价单中有 ${inqCustMissing.length} 个客户不在客户管理中: ${inqCustMissing.slice(0, 5).join(', ')}${inqCustMissing.length > 5 ? '...' : ''}`);
+
+    // 检查核价记录中客户是否在客户管理中
+    const pricingCustMissing = [...new Set(pricingRecords.filter(p => p.customer && !custNames.includes(p.customer)).map(p => p.customer))];
+    if (pricingCustMissing.length > 0) issues.push(`核价记录中有 ${pricingCustMissing.length} 个客户不在客户管理中: ${pricingCustMissing.slice(0, 5).join(', ')}`);
+
+    // 检查核价记录中型号是否在产品管理中
+    const prodModels = products.flatMap(p => [p.external_model, p.internal_model].filter(Boolean));
+    const pricingModelMissing = [...new Set(pricingRecords.filter(p => p.model && !prodModels.includes(p.model)).map(p => p.model))];
+    if (pricingModelMissing.length > 0) issues.push(`核价记录中有 ${pricingModelMissing.length} 个型号不在产品管理中: ${pricingModelMissing.slice(0, 5).join(', ')}`);
+
+    // 检查询价单中产品型号是否在产品管理中
+    const inqModelMissing = [...new Set(inquiries.filter(i => i.external_model && !prodModels.includes(i.external_model)).map(i => i.external_model))];
+    if (inqModelMissing.length > 0) issues.push(`询价单中有 ${inqModelMissing.length} 个型号不在产品管理中: ${inqModelMissing.slice(0, 5).join(', ')}`);
+
+    if (issues.length === 0) {
+      el.innerHTML = '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#388e3c;">数据校验通过，所有关联数据一致。</div>';
+    } else {
+      el.innerHTML = `<div style="background:#fff3e0;padding:12px;border-radius:8px;"><div style="color:#f57c00;font-weight:600;margin-bottom:8px;">发现 ${issues.length} 个问题：</div>${issues.map(i => `<div style="font-size:13px;color:#666;margin:4px 0;">• ${i}</div>`).join('')}<div style="margin-top:8px;font-size:12px;color:#999;">建议使用上方同步功能修复关联缺失问题</div></div>`;
+    }
+  } catch(e) { el.innerHTML = '<div style="color:#e74c3c;">校验失败</div>'; }
+}
+
+  // 初始化
+  async function init() {
+    await Promise.all([loadModules(), loadConfig(), loadDictionary()]);
+    loadAiConfig();
+    loadExternalConfig();
+  }
+  init();
+
+  async function loadOrgStats() {
+    try {
+      const res = await fetch(`${API}/organization/stats/summary`);
+      const data = await res.json();
+      const el = document.getElementById('orgStats');
+      el.innerHTML = `部门：<b>${data.active_departments}/${data.total_departments}</b>　岗位：<b>${data.active_positions}/${data.total_positions}</b>　人员：<b>${data.active_personnel}/${data.total_personnel}</b>`;
+    } catch (e) {
+      document.getElementById('orgStats').innerHTML = '<span style="color:#e74c3c;">加载失败</span>';
+    }
+  }
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body>
+</html>

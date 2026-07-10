@@ -1,0 +1,35 @@
+{
+  "records": [
+    {
+      "code": "product_base",
+      "name": "产品基础BOM",
+      "description": "存储标准产品结构信息",
+      "sort_order": 1,
+      "enabled": 1,
+      "created_at": "2026-06-23 17:03:48",
+      "updated_at": "2026-06-23 17:03:48",
+      "id": 1
+    },
+    {
+      "code": "order",
+      "name": "订单BOM",
+      "description": "根据客户订单需求生成的定制化BOM",
+      "sort_order": 2,
+      "enabled": 1,
+      "created_at": "2026-06-23 17:03:48",
+      "updated_at": "2026-06-23 17:03:48",
+      "id": 2
+    },
+    {
+      "code": "production",
+      "name": "生产BOM",
+      "description": "实际生产过程中使用的BOM",
+      "sort_order": 3,
+      "enabled": 1,
+      "created_at": "2026-06-23 17:03:48",
+      "updated_at": "2026-06-23 17:03:48",
+      "id": 3
+    }
+  ],
+  "nextId": 4
+}

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 数据报表</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; position: relative; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .card h3 { color: #888; font-size: 13px; margin-bottom: 8px; }
+    .card p { font-size: 26px; font-weight: 700; }
+    .card .sub { font-size: 11px; color: #999; margin-top: 4px; }
+    .card.new p { color: #3498db; }
+    .card.pending p { color: #f39c12; }
+    .card.quoted p { color: #27ae60; }
+    .card.lost p { color: #e74c3c; }
+    .card.closed p { color: #9b59b6; }
+    .card.amount p { color: #27ae60; }
+    .card.rate p { color: #667eea; }
+
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .chart-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .chart-box h3 { margin-bottom: 15px; color: #333; font-size: 15px; }
+
+    .mini-chart { height: 200px; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px 0 0; }
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .bar-wrap:hover .bar { opacity: 0.8; }
+    .bar { width: 36px; background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); border-radius: 6px 6px 0 0; transition: all 0.3s; }
+    .bar-label { font-size: 11px; color: #999; margin-top: 6px; }
+    .bar-value { font-size: 11px; color: #666; margin-bottom: 4px; font-weight: 600; }
+
+    .pie-chart { width: 180px; height: 180px; border-radius: 50%; margin: 0 auto; position: relative; }
+    .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .pie-center span { font-size: 13px; color: #666; }
+    .legend { margin-top: 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; }
+    .legend-color { width: 10px; height: 10px; border-radius: 3px; }
+
+    .table-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .table-section h3 { margin-bottom: 15px; color: #333; font-size: 15px; }
+    .table-section table { width: 100%; border-collapse: collapse; }
+    .table-section th, .table-section td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+    .table-section th { background: #f8f9fa; font-weight: 600; color: #666; }
+    .table-section tr:hover td { background: #f8f9ff; }
+
+    .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+    .badge-success { background: #e8f5e9; color: #388e3c; }
+    .badge-warning { background: #fff3e0; color: #f57c00; }
+    .badge-danger { background: #ffebee; color: #c62828; }
+    .badge-info { background: #e3f2fd; color: #1976d2; }
+
+    .filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .filter-bar input[type="month"] { padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+
+    .reason-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .reason-label { min-width: 80px; font-size: 12px; color: #555; text-align: right; }
+    .reason-track { flex: 1; height: 24px; background: #f0f0f0; border-radius: 12px; position: relative; overflow: hidden; }
+    .reason-fill { height: 100%; border-radius: 12px; display: flex; align-items: center; padding-left: 10px; font-size: 11px; color: #fff; font-weight: 600; }
+    .reason-count { font-size: 12px; color: #999; min-width: 30px; }
+
+    .horizontal-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+    .h-bar-label { min-width: 60px; text-align: right; color: #666; }
+    .h-bar-track { flex: 1; height: 20px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
+    .h-bar-fill { height: 100%; border-radius: 10px; }
+    .h-bar-val { min-width: 30px; color: #999; }
+
+    .ledger-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 15px; }
+    .ledger-stat { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+    .ledger-stat .val { font-size: 22px; font-weight: 700; color: #667eea; }
+    .ledger-stat .lbl { font-size: 11px; color: #999; margin-top: 4px; }
+
+    @media (max-width: 768px) {
+      .charts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content">
+    <div class="header">
+      <h2>数据报表</h2>
+      <div class="btn-group">
+        <button class="btn btn-success" onclick="exportReport()">导出报表</button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <label style="font-size:13px;color:#666;">时间范围:</label>
+      <input type="month" id="startMonth" onchange="loadAllReports()">
+      <span style="color:#999;">至</span>
+      <input type="month" id="endMonth" onchange="loadAllReports()">
+      <button class="btn btn-primary btn-sm" onclick="loadAllReports()">查询</button>
+      <button class="btn btn-sm" style="background:#eee;" onclick="resetDateFilter()">重置</button>
+    </div>
+
+    <!-- KPI卡片 -->
+    <div class="cards" id="kpiCards">
+      <div class="card new">
+        <h3>本月新增询价</h3>
+        <p id="kpNew">0</p>
+        <div class="sub">月环比 <span id="kpNewTrend">-</span></div>
+      </div>
+      <div class="card pending">
+        <h3>待处理询价</h3>
+        <p id="kpPending">0</p>
+        <div class="sub">超时 <span id="kpOverdue" style="color:#e74c3c;">0</span> 条</div>
+      </div>
+      <div class="card quoted">
+        <h3>已报价</h3>
+        <p id="kpQuoted">0</p>
+        <div class="sub">待跟进 <span id="kpFollowUp">0</span> 条</div>
+      </div>
+      <div class="card closed">
+        <h3>已成交</h3>
+        <p id="kpClosed">0</p>
+        <div class="sub" id="kpClosedSub"></div>
+      </div>
+      <div class="card amount">
+        <h3>成交金额</h3>
+        <p id="kpAmount">¥0</p>
+        <div class="sub" id="kpAmountSub"></div>
+      </div>
+      <div class="card rate">
+        <h3>转化率</h3>
+        <p id="kpRate">0%</p>
+        <div class="sub" id="kpRateSub"></div>
+      </div>
+      <div class="card lost">
+        <h3>已流失</h3>
+        <p id="kpLost">0</p>
+        <div class="sub" id="kpLostSub"></div>
+      </div>
+      <div class="card" style="border-top:3px solid #e67e22;">
+        <h3>平均报价额</h3>
+        <p id="kpAvgQuote" style="color:#e67e22;">¥0</p>
+        <div class="sub" id="kpAvgQuoteSub"></div>
+      </div>
+    </div>
+
+    <!-- 图表区 -->
+    <div class="charts">
+      <div class="chart-box">
+        <h3>月度询价趋势</h3>
+        <div class="mini-chart" id="monthlyChart"></div>
+      </div>
+      <div class="chart-box">
+        <h3>客户来源分布</h3>
+        <div id="sourceChart" style="padding:10px;"></div>
+      </div>
+    </div>
+
+    <div class="charts">
+      <div class="chart-box">
+        <h3>产品品类分布</h3>
+        <div id="categoryChart" style="padding:10px;"></div>
+      </div>
+      <div class="chart-box">
+        <h3>销售绩效</h3>
+        <div id="salesChart" style="padding:10px;"></div>
+      </div>
+    </div>
+
+    <!-- 销售绩效表格 -->
+    <div class="table-section">
+      <h3>销售绩效排名</h3>
+      <table>
+        <thead>
+          <tr><th>排名</th><th>销售人员</th><th>新询价数</th><th>报价数</th><th>成交数</th><th>成交金额</th><th>转化率</th><th>流失数</th></tr>
+        </thead>
+        <tbody id="performanceTable"></tbody>
+      </table>
+    </div>
+
+    <!-- 流失原因分析 -->
+    <div class="table-section">
+      <h3>流失原因分析</h3>
+      <div id="lostReasonsChart" style="margin-bottom:15px;"></div>
+    </div>
+
+    <!-- 台账汇总 -->
+    <div class="table-section">
+      <h3>台账汇总</h3>
+      <div class="ledger-stats" id="ledgerSummary"></div>
+    </div>
+
+    <!-- 绩效评估 -->
+    <div class="table-section" id="performanceAssessment" style="display:none;">
+      <h3>绩效评估</h3>
+      <div id="perfAssessmentContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin + '/api';
+    let summaryData = null;
+    let monthlyTrendData = [];
+    let salesPerformanceData = [];
+    let customerSourceData = [];
+    let productCategoryData = [];
+    let lostReasonsData = [];
+    let ledgerSummaryData = [];
+
+    function getDateParams() {
+      const s = document.getElementById('startMonth').value;
+      const e = document.getElementById('endMonth').value;
+      const params = new URLSearchParams();
+      if (s) params.set('start', s + '-01');
+      else params.set('start', new Date().getFullYear() + '-01-01');
+      if (e) params.set('end', e + '-01');
+      else params.set('end', new Date().toISOString().substring(0, 10));
+      return params;
+    }
+
+    function resetDateFilter() {
+      document.getElementById('startMonth').value = '';
+      document.getElementById('endMonth').value = '';
+      loadAllReports();
+    }
+
+    async function loadAllReports() {
+      const params = getDateParams();
+      try {
+        const [summaryRes, trendRes, perfRes, sourceRes, catRes, lostRes, ledgerRes, assessRes] = await Promise.all([
+          fetch(`${API}/reports/summary?${params}`),
+          fetch(`${API}/reports/monthly-trend?${params}`),
+          fetch(`${API}/reports/sales-performance?${params}`),
+          fetch(`${API}/reports/customer-source?${params}`),
+          fetch(`${API}/reports/product-category?${params}`),
+          fetch(`${API}/reports/lost-reasons?${params}`),
+          fetch(`${API}/reports/ledger-summary?${params}`),
+          fetch(`${API}/reports/performance-assessment?${params}`).catch(() => null)
+        ]);
+
+        const summary = await summaryRes.json();
+        summaryData = summary;
+        const trendJson = await trendRes.json();
+        monthlyTrendData = trendJson.data || trendJson || [];
+        const perfJson = await perfRes.json();
+        salesPerformanceData = perfJson.data || perfJson || [];
+        const sourceJson = await sourceRes.json();
+        customerSourceData = sourceJson.data || sourceJson || [];
+        const catJson = await catRes.json();
+        productCategoryData = catJson.data || catJson || [];
+        const lostJson = await lostRes.json();
+        lostReasonsData = lostJson.data || lostJson || [];
+        const ledgerJson = await ledgerRes.json();
+        ledgerSummaryData = ledgerJson.data || ledgerJson || ledgerSummaryData;
+
+        renderKPIs(summary);
+        renderMonthlyChart();
+        renderSourceChart();
+        renderCategoryChart();
+        renderSalesChart();
+        renderPerformanceTable();
+        renderLostReasons();
+        renderLedgerSummary();
+        if (assessRes) {
+          const assessData = await assessRes.json();
+          renderPerformanceAssessment(assessData.data || assessData);
+        }
+      } catch(e) {
+        console.error('加载报表数据失败', e);
+      }
+    }
+
+    // ===== KPI卡片 =====
+    function renderKPIs(summary) {
+      const newC = summary.new_count || 0;
+      const pendingC = (summary.pending_pricing_count || 0) + (summary.pending_quote_count || 0);
+      const quotedC = summary.quoted_count || 0;
+      const closedC = summary.closed_count || 0;
+      const lostC = summary.lost_count || 0;
+      const totalC = newC + pendingC + quotedC + closedC + lostC + (summary.negotiating_count || 0) + (summary.sample_count || 0) + (summary.project_count || 0);
+      const convRate = totalC > 0 ? Math.round(closedC / totalC * 100) : 0;
+      const closedAmount = summary.closed_amount || 0;
+      const avgQuote = quotedC > 0 ? Math.round((summary.quoted_amount || 0) / quotedC) : 0;
+
+      document.getElementById('kpNew').textContent = newC;
+      document.getElementById('kpPending').textContent = pendingC;
+      document.getElementById('kpQuoted').textContent = quotedC;
+      document.getElementById('kpClosed').textContent = closedC;
+      document.getElementById('kpAmount').textContent = '¥' + closedAmount.toLocaleString();
+      document.getElementById('kpRate').textContent = convRate + '%';
+      document.getElementById('kpLost').textContent = lostC;
+      document.getElementById('kpAvgQuote').textContent = '¥' + (avgQuote || 0).toLocaleString();
+
+      const prevNew = summary.prev_new_count || 0;
+      const trend = prevNew > 0 ? Math.round((newC - prevNew) / prevNew * 100) : (newC > 0 ? 100 : 0);
+      const trendEl = document.getElementById('kpNewTrend');
+      if (trend >= 0) trendEl.innerHTML = '<span style="color:#27ae60;">+' + trend + '%</span>';
+      else trendEl.innerHTML = '<span style="color:#e74c3c;">' + trend + '%</span>';
+
+      document.getElementById('kpOverdue').textContent = summary.overdue_count || 0;
+      document.getElementById('kpFollowUp').textContent = quotedC;
+      document.getElementById('kpClosedSub').textContent = '累计 ' + (summary.total_closed_count || closedC) + ' 单';
+      document.getElementById('kpAmountSub').textContent = '平均' + (closedC > 0 ? '¥' + Math.round(closedAmount / closedC).toLocaleString() : '¥0') + '/单';
+      document.getElementById('kpRateSub').textContent = '目标 30%';
+      document.getElementById('kpLostSub').textContent = '流失率 ' + (totalC > 0 ? Math.round(lostC / totalC * 100) : 0) + '%';
+      document.getElementById('kpAvgQuoteSub').textContent = '已报价 ' + quotedC + ' 单';
+    }
+
+    // ===== 月度趋势图 =====
+    function renderMonthlyChart() {
+      const chart = document.getElementById('monthlyChart');
+      chart.innerHTML = '';
+      if (!monthlyTrendData || monthlyTrendData.length === 0) {
+        chart.innerHTML = '<div style="text-align:center;width:100%;color:#999;padding-top:60px;">暂无数据</div>';
+        return;
+      }
+      const maxCount = Math.max(...monthlyTrendData.map(t => t.inquiry_count || t.count || 0), 1);
+      monthlyTrendData.forEach(t => {
+        const cnt = t.inquiry_count || t.count || 0;
+        const month = t.month || t._id || '';
+        const wrap = document.createElement('div');
+        wrap.className = 'bar-wrap';
+        wrap.innerHTML = `<div class="bar-value">${cnt}</div><div class="bar" style="height:${Math.max((cnt / maxCount) * 150, 8)}px;"></div><div class="bar-label">${month}</div>`;
+        chart.appendChild(wrap);
+      });
+    }
+
+    // ===== 客户来源分布 =====
+    function renderSourceChart() {
+      const container = document.getElementById('sourceChart');
+      if (!customerSourceData || customerSourceData.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#999;padding:30px;">暂无数据</div>';
+        return;
+      }
+      const maxVal = Math.max(...customerSourceData.map(s => s.count || 0), 1);
+      const colors = ['#667eea','#3498db','#27ae60','#e67e22','#9b59b6','#e74c3c','#1abc9c','#f39c12'];
+      let html = '';
+      customerSourceData.forEach((s, idx) => {
+        const pct = Math.round(((s.count || 0) / maxVal) * 100);
+        html += `<div class="horizontal-bar">
+          <span class="h-bar-label">${s.source || s._id || '-'}</span>
+          <div class="h-bar-track"><div class="h-bar-fill" style="width:${pct}%;background:${colors[idx % colors.length]};"></div></div>
+          <span class="h-bar-val">${s.count || 0}</span>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    // ===== 产品品类分布 =====
+    function renderCategoryChart() {
+      const container = document.getElementById('categoryChart');
+      if (!productCategoryData || productCategoryData.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#999;padding:30px;">暂无数据</div>';
+        return;
+      }
+      const maxVal = Math.max(...productCategoryData.map(c => c.count || 0), 1);
+      const colors = ['#667eea','#764ba2','#3498db','#27ae60','#e67e22','#9b59b6','#e74c3c','#1abc9c'];
+      let html = '';
+      productCategoryData.forEach((c, idx) => {
+        const pct = Math.round(((c.count || 0) / maxVal) * 100);
+        html += `<div class="horizontal-bar">
+          <span class="h-bar-label">${c.category || c._id || '-'}</span>
+          <div class="h-bar-track"><div class="h-bar-fill" style="width:${pct}%;background:${colors[idx % colors.length]};"></div></div>
+          <span class="h-bar-val">${c.count || 0}</span>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    // ===== 销售绩效 =====
+    function renderSalesChart() {
+      const container = document.getElementById('salesChart');
+      if (!salesPerformanceData || salesPerformanceData.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#999;padding:30px;">暂无数据</div>';
+        return;
+      }
+      const topSales = salesPerformanceData.slice(0, 8);
+      const maxAmount = Math.max(...topSales.map(s => s.closed_amount || s.amount || 0), 1);
+      const colors = ['#667eea','#3498db','#27ae60','#e67e22','#9b59b6','#e74c3c','#1abc9c','#f39c12'];
+      let html = '';
+      topSales.forEach((s, idx) => {
+        const amount = s.closed_amount || s.amount || 0;
+        const pct = Math.round((amount / maxAmount) * 100);
+        html += `<div class="horizontal-bar">
+          <span class="h-bar-label">${s.sales_person || s.name || '-'}</span>
+          <div class="h-bar-track"><div class="h-bar-fill" style="width:${pct}%;background:${colors[idx % colors.length]};"></div></div>
+          <span class="h-bar-val">¥${amount.toLocaleString()}</span>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    // ===== 销售绩效排名表格 =====
+    function renderPerformanceTable() {
+      const tbody = document.getElementById('performanceTable');
+      tbody.innerHTML = '';
+      if (!salesPerformanceData || salesPerformanceData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#999;">暂无数据</td></tr>';
+        return;
+      }
+      salesPerformanceData.forEach((s, idx) => {
+        const totalInquiries = (s.new_count || 0) + (s.quoted_count || 0) + (s.closed_count || 0) + (s.lost_count || 0);
+        const rate = totalInquiries > 0 ? Math.round((s.closed_count || 0) / totalInquiries * 100) : 0;
+        const tr = document.createElement('tr');
+        let rankHtml = idx + 1;
+        if (idx === 0) rankHtml = '🥇 1';
+        else if (idx === 1) rankHtml = '🥈 2';
+        else if (idx === 2) rankHtml = '🥉 3';
+        tr.innerHTML = `
+          <td style="font-weight:600;">${rankHtml}</td>
+          <td>${s.sales_person || s.name || '-'}</td>
+          <td>${s.new_count || 0}</td>
+          <td>${s.quoted_count || 0}</td>
+          <td><span class="badge badge-success">${s.closed_count || 0}</span></td>
+          <td>¥${(s.closed_amount || s.amount || 0).toLocaleString()}</td>
+          <td>${rate}%</td>
+          <td><span class="badge badge-danger">${s.lost_count || 0}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ===== 流失原因分析 =====
+    function renderLostReasons() {
+      const container = document.getElementById('lostReasonsChart');
+      if (!lostReasonsData || lostReasonsData.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">暂无流失数据</div>';
+        return;
+      }
+      const maxCount = Math.max(...lostReasonsData.map(r => r.count || 0), 1);
+      const colors = ['#e74c3c','#e67e22','#f1c40f','#95a5a6','#c0392b','#d35400','#f39c12','#bdc3c7'];
+      let html = '';
+      lostReasonsData.forEach((r, idx) => {
+        const pct = Math.round(((r.count || 0) / maxCount) * 100);
+        html += `<div class="reason-bar">
+          <span class="reason-label">${r.reason || r._id || '-'}</span>
+          <div class="reason-track"><div class="reason-fill" style="width:${pct}%;background:${colors[idx % colors.length]};">${pct}%</div></div>
+          <span class="reason-count">${r.count || 0}条</span>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    // ===== 台账汇总 =====
+    function renderLedgerSummary() {
+      const container = document.getElementById('ledgerSummary');
+      let html = '';
+      if (ledgerSummaryData && Object.keys(ledgerSummaryData).length > 0) {
+        const items = [
+          { label: '总询价数', value: ledgerSummaryData.total_inquiries || 0 },
+          { label: '总报价额', value: '¥' + (ledgerSummaryData.total_quoted_amount || 0).toLocaleString() },
+          { label: '总成交额', value: '¥' + (ledgerSummaryData.total_closed_amount || 0).toLocaleString() },
+          { label: '平均利润率', value: (ledgerSummaryData.avg_profit_rate || 0) + '%' },
+          { label: '总成本', value: '¥' + (ledgerSummaryData.total_cost || 0).toLocaleString() },
+          { label: '总利润', value: '¥' + (ledgerSummaryData.total_profit || 0).toLocaleString() },
+          { label: '平均优惠率', value: (ledgerSummaryData.avg_discount_rate || 0) + '%' },
+          { label: '成交单数', value: ledgerSummaryData.total_closed_count || 0 }
+        ];
+        html = items.map(i => `<div class="ledger-stat"><div class="val">${i.value}</div><div class="lbl">${i.label}</div></div>`).join('');
+      } else {
+        html = '<div style="text-align:center;color:#999;grid-column:1/-1;padding:20px;">暂无台账数据</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    // ===== 绩效评估 =====
+    function renderPerformanceAssessment(data) {
+      const section = document.getElementById('performanceAssessment');
+      const content = document.getElementById('perfAssessmentContent');
+      if (!data || data.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      section.style.display = 'block';
+      let html = '<table><thead><tr><th>评估项</th><th>目标值</th><th>实际值</th><th>达成率</th><th>评价</th></tr></thead><tbody>';
+      data.forEach(item => {
+        const rate = item.target > 0 ? Math.round(item.actual / item.target * 100) : 0;
+        const badgeCls = rate >= 100 ? 'badge-success' : rate >= 80 ? 'badge-info' : rate >= 60 ? 'badge-warning' : 'badge-danger';
+        html += `<tr>
+          <td>${item.name || '-'}</td>
+          <td>${item.target || '-'}</td>
+          <td>${item.actual || 0}</td>
+          <td><span class="badge ${badgeCls}">${rate}%</span></td>
+          <td>${item.comment || '-'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      content.innerHTML = html;
+    }
+
+    // ===== 导出报表 =====
+    function exportReport() {
+      const params = getDateParams();
+      let csv = '\uFEFF';
+      csv += '数据报表\n';
+      csv += `生成时间: ${new Date().toISOString().substring(0, 10)}\n\n`;
+
+      csv += '--- KPI概览 ---\n';
+      csv += '指标,值\n';
+      csv += `本月新增询价,${document.getElementById('kpNew').textContent}\n`;
+      csv += `待处理询价,${document.getElementById('kpPending').textContent}\n`;
+      csv += `已报价,${document.getElementById('kpQuoted').textContent}\n`;
+      csv += `已成交,${document.getElementById('kpClosed').textContent}\n`;
+      csv += `成交金额,${document.getElementById('kpAmount').textContent}\n`;
+      csv += `转化率,${document.getElementById('kpRate').textContent}\n`;
+      csv += `已流失,${document.getElementById('kpLost').textContent}\n`;
+      csv += `平均报价额,${document.getElementById('kpAvgQuote').textContent}\n\n`;
+
+      csv += '--- 月度趋势 ---\n';
+      csv += '月份,询价数\n';
+      monthlyTrendData.forEach(t => {
+        csv += `${t.month || t._id || ''},${t.inquiry_count || t.count || 0}\n`;
+      });
+      csv += '\n';
+
+      csv += '--- 销售绩效排名 ---\n';
+      csv += '排名,销售人员,新询价数,报价数,成交数,成交金额,转化率,流失数\n';
+      salesPerformanceData.forEach((s, idx) => {
+        const totalInq = (s.new_count || 0) + (s.quoted_count || 0) + (s.closed_count || 0) + (s.lost_count || 0);
+        const rate = totalInq > 0 ? Math.round((s.closed_count || 0) / totalInq * 100) : 0;
+        csv += `${idx + 1},${s.sales_person || s.name || '-'},${s.new_count || 0},${s.quoted_count || 0},${s.closed_count || 0},"¥${(s.closed_amount || s.amount || 0).toLocaleString()}",${rate}%,${s.lost_count || 0}\n`;
+      });
+      csv += '\n';
+
+      csv += '--- 流失原因分析 ---\n';
+      csv += '原因,数量\n';
+      lostReasonsData.forEach(r => {
+        csv += `${r.reason || r._id || '-'},${r.count || 0}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `数据报表_${new Date().toISOString().substring(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // 设置默认月份
+    const now = new Date();
+    document.getElementById('endMonth').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    document.getElementById('startMonth').value = now.getFullYear() + '-01';
+
+    loadAllReports();
+  </script>
+  <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body>
+</html>

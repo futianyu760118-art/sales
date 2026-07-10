@@ -1,0 +1,61 @@
+{
+  "records": [
+    {
+      "name": "去除询价单客户名空白",
+      "table_name": "inquiries",
+      "field": "customer_name",
+      "rule_type": "trim",
+      "params": {},
+      "enabled": true,
+      "priority": 30,
+      "description": "去除客户名首尾空白字符",
+      "created_at": "2026-05-30 18:44:31",
+      "updated_at": "2026-05-30 18:44:31",
+      "id": 1
+    },
+    {
+      "name": "填充询价单空来源",
+      "table_name": "inquiries",
+      "field": "customer_source",
+      "rule_type": "fill_default",
+      "params": {
+        "default_value": "未指定"
+      },
+      "enabled": true,
+      "priority": 30,
+      "description": "",
+      "created_at": "2026-05-30 18:47:50",
+      "updated_at": "2026-05-30 18:47:50",
+      "id": 2
+    },
+    {
+      "name": "修正询价单状态枚举",
+      "table_name": "inquiries",
+      "field": "status",
+      "rule_type": "enum_fix",
+      "params": {
+        "allowed_values": [
+          "new",
+          "cert_configured",
+          "config_generated",
+          "pending_pricing",
+          "pending_quote",
+          "quoted",
+          "negotiating",
+          "sample",
+          "project",
+          "closed",
+          "lost"
+        ],
+        "default_value": "new"
+      },
+      "enabled": true,
+      "priority": 20,
+      "description": "",
+      "created_at": "2026-05-30 18:47:50",
+      "updated_at": "2026-05-30 18:47:50",
+      "id": 3
+    }
+  ],
+  "nextId": 4
+}

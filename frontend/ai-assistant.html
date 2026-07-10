@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能助手 - 销售快捷服务系统</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .tabs { display: flex; gap: 0; margin-bottom: 20px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .tab { flex: 1; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 14px; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s; }
+    .tab:hover { background: #f8f9ff; color: #667eea; }
+    .tab.active { color: #667eea; border-bottom-color: #667eea; background: #f0f2ff; font-weight: 600; }
+    .tab-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+    .stat-card .num { font-size: 28px; font-weight: 700; color: #667eea; }
+    .stat-card .label { font-size: 12px; color: #999; margin-top: 4px; }
+    .stat-card.warn .num { color: #f39c12; }
+    .stat-card.danger .num { color: #e74c3c; }
+    .stat-card.success .num { color: #27ae60; }
+
+    .content-box { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .content-box h3 { margin-bottom: 15px; color: #333; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+
+    .learn-item { padding: 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; transition: all 0.2s; }
+    .learn-item:hover { border-color: #667eea; box-shadow: 0 2px 8px rgba(102,126,234,0.1); }
+    .learn-q { font-weight: 600; color: #333; margin-bottom: 6px; }
+    .learn-a { color: #666; font-size: 13px; }
+    .learn-meta { display: flex; gap: 12px; margin-top: 8px; font-size: 11px; color: #999; }
+    .learn-hit { background: #667eea; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+
+    .plan-card { border: 1px solid #eee; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+    .plan-card.active-plan { border-left: 4px solid #667eea; }
+    .plan-card.completed-plan { border-left: 4px solid #27ae60; opacity: 0.8; }
+    .plan-title { font-weight: 600; font-size: 15px; color: #333; margin-bottom: 8px; }
+    .plan-progress { height: 6px; background: #eee; border-radius: 3px; margin: 10px 0; }
+    .plan-progress-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 3px; transition: width 0.3s; }
+    .plan-meta { display: flex; gap: 12px; font-size: 12px; color: #999; }
+
+    .review-card { border: 1px solid #eee; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+    .review-card .finding { padding: 8px 12px; border-radius: 6px; margin: 6px 0; font-size: 13px; }
+    .finding.risk { background: #ffeaea; color: #c0392b; }
+    .finding.warning { background: #fff8e1; color: #f39c12; }
+    .finding.success { background: #e8f5e9; color: #27ae60; }
+    .finding.insight { background: #e3f2fd; color: #2980b9; }
+    .finding.performance { background: #f3e5f5; color: #8e44ad; }
+
+    .solution-card { border: 1px solid #eee; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+    .step-list { list-style: none; padding: 0; margin: 10px 0; }
+    .step-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 13px; }
+    .step-num { background: #667eea; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+    .step-owner { background: #f0f2ff; color: #667eea; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+
+    .action-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 8px; }
+    .action-item:hover { border-color: #667eea; }
+    .action-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .action-check:hover { border-color: #667eea; }
+    .action-check.done { background: #27ae60; border-color: #27ae60; color: white; }
+    .action-content { flex: 1; }
+    .action-content.completed { text-decoration: line-through; color: #999; }
+    .priority-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .priority-tag.high { background: #ffeaea; color: #e74c3c; }
+    .priority-tag.medium { background: #fff8e1; color: #f39c12; }
+    .priority-tag.low { background: #e8f5e9; color: #27ae60; }
+
+    .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s; }
+    .btn-primary-sm { background: #667eea; color: white; }
+    .btn-primary-sm:hover { background: #5a6fd6; }
+    .btn-danger-sm { background: #e74c3c; color: white; }
+    .btn-danger-sm:hover { background: #c0392b; }
+    .btn-success-sm { background: #27ae60; color: white; }
+    .btn-success-sm:hover { background: #219a52; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: flex-start; z-index: 1000; padding-top: 40px; }
+    .modal-content { background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+    .modal-content h3 { margin-bottom: 20px; color: #333; }
+    .close-btn { float: right; cursor: pointer; font-size: 24px; color: #999; }
+    .close-btn:hover { color: #333; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: #555; font-weight: 500; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+
+    .insight-list { list-style: none; padding: 0; }
+    .insight-item { padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+    .insight-item.warning { background: #fff8e1; }
+    .insight-item.risk { background: #ffeaea; }
+    .insight-item.success { background: #e8f5e9; }
+    .insight-icon { font-size: 18px; }
+
+    .empty-state { text-align: center; padding: 40px; color: #999; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
+
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    .filter-bar select, .filter-bar input { padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main-content">
+    <div class="page-header">
+      <h2>🤖 智能助手</h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-primary" onclick="runAutoEngine()" id="autoRunBtn" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;padding:8px 20px;">🚀 一键自动运行</button>
+        <span id="autoRunStatus" style="font-size:12px;color:#999;"></span>
+      </div>
+    </div>
+
+    <div class="stat-cards" id="dashboardStats"></div>
+
+    <div class="content-box" id="autoResultPanel" style="display:none;border:2px solid #667eea;background:linear-gradient(135deg,#f8f9ff,#f0f2ff);">
+      <h3 style="color:#667eea;">🚀 自动化运行结果 <span id="autoRunTime" style="font-size:12px;color:#999;font-weight:normal;"></span></h3>
+      <div id="autoResultContent"></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('learn')"><span class="tab-icon">📚</span>自我学习</div>
+      <div class="tab" onclick="switchTab('summary')"><span class="tab-icon">📊</span>总结</div>
+      <div class="tab" onclick="switchTab('plan')"><span class="tab-icon">📋</span>计划</div>
+      <div class="tab" onclick="switchTab('review')"><span class="tab-icon">🔍</span>复盘分析</div>
+      <div class="tab" onclick="switchTab('solution')"><span class="tab-icon">💡</span>方案</div>
+      <div class="tab" onclick="switchTab('action')"><span class="tab-icon">🎯</span>行动</div>
+    </div>
+
+    <!-- 自我学习 -->
+    <div class="panel active" id="panel-learn">
+      <div class="content-box">
+        <h3>📚 学习记录 <button class="btn-sm btn-primary-sm" onclick="showLearnModal()">+ 新增</button></h3>
+        <div class="filter-bar">
+          <input type="text" id="learnSearch" placeholder="搜索问题..." oninput="loadLearns()">
+          <select id="learnCategory" onchange="loadLearns()">
+            <option value="">全部分类</option>
+            <option value="inquiry">询价</option>
+            <option value="pricing">核价</option>
+            <option value="customer">客户</option>
+            <option value="product">产品</option>
+            <option value="process">流程</option>
+            <option value="general">通用</option>
+          </select>
+        </div>
+        <div id="learnList"></div>
+      </div>
+    </div>
+
+    <!-- 总结 -->
+    <div class="panel" id="panel-summary">
+      <div class="content-box">
+        <h3>📊 业务总结 <button class="btn-sm btn-primary-sm" onclick="generateSummary()">⚡ 自动生成</button> <button class="btn-sm btn-success-sm" onclick="showSummaryModal()">+ 手动新增</button></h3>
+        <div class="filter-bar">
+          <select id="summaryType" onchange="loadSummaries()">
+            <option value="">全部类型</option>
+            <option value="daily">日报</option>
+            <option value="weekly">周报</option>
+            <option value="monthly">月报</option>
+            <option value="custom">自定义</option>
+          </select>
+          <input type="date" id="summaryStart" onchange="loadSummaries()">
+          <input type="date" id="summaryEnd" onchange="loadSummaries()">
+        </div>
+        <div id="summaryList"></div>
+      </div>
+    </div>
+
+    <!-- 计划 -->
+    <div class="panel" id="panel-plan">
+      <div class="content-box">
+        <h3>📋 工作计划 <button class="btn-sm btn-primary-sm" onclick="showPlanModal()">+ 新增计划</button></h3>
+        <div class="filter-bar">
+          <select id="planType" onchange="loadPlans()">
+            <option value="">全部类型</option>
+            <option value="daily">日计划</option>
+            <option value="weekly">周计划</option>
+            <option value="monthly">月计划</option>
+            <option value="project">项目计划</option>
+          </select>
+          <select id="planStatus" onchange="loadPlans()">
+            <option value="">全部状态</option>
+            <option value="active">进行中</option>
+            <option value="completed">已完成</option>
+            <option value="paused">暂停</option>
+          </select>
+        </div>
+        <div id="planList"></div>
+      </div>
+    </div>
+
+    <!-- 复盘分析 -->
+    <div class="panel" id="panel-review">
+      <div class="content-box">
+        <h3>🔍 复盘分析 <button class="btn-sm btn-primary-sm" onclick="autoReview()">⚡ 自动复盘</button> <button class="btn-sm btn-success-sm" onclick="showReviewModal()">+ 手动复盘</button></h3>
+        <div class="filter-bar">
+          <select id="reviewType" onchange="loadReviews()">
+            <option value="">全部类型</option>
+            <option value="project">项目复盘</option>
+            <option value="period">周期复盘</option>
+            <option value="incident">事件复盘</option>
+            <option value="customer">客户复盘</option>
+          </select>
+          <select id="reviewStatus" onchange="loadReviews()">
+            <option value="">全部状态</option>
+            <option value="open">进行中</option>
+            <option value="closed">已关闭</option>
+          </select>
+        </div>
+        <div id="reviewList"></div>
+      </div>
+    </div>
+
+    <!-- 方案 -->
+    <div class="panel" id="panel-solution">
+      <div class="content-box">
+        <h3>💡 解决方案 <button class="btn-sm btn-primary-sm" onclick="autoSolution()">⚡ 智能生成</button> <button class="btn-sm btn-success-sm" onclick="showSolutionModal()">+ 手动新增</button></h3>
+        <div class="filter-bar">
+          <select id="solutionStatus" onchange="loadSolutions()">
+            <option value="">全部状态</option>
+            <option value="draft">草稿</option>
+            <option value="approved">已审批</option>
+            <option value="executing">执行中</option>
+            <option value="completed">已完成</option>
+          </select>
+          <select id="solutionPriority" onchange="loadSolutions()">
+            <option value="">全部优先级</option>
+            <option value="high">高</option>
+            <option value="medium">中</option>
+            <option value="low">低</option>
+          </select>
+        </div>
+        <div id="solutionList"></div>
+      </div>
+    </div>
+
+    <!-- 行动 -->
+    <div class="panel" id="panel-action">
+      <div class="content-box">
+        <h3>🎯 行动清单 <button class="btn-sm btn-primary-sm" onclick="showActionModal()">+ 新增行动</button></h3>
+        <div class="filter-bar">
+          <select id="actionStatus" onchange="loadActions()">
+            <option value="">全部状态</option>
+            <option value="pending">待办</option>
+            <option value="in_progress">进行中</option>
+            <option value="completed">已完成</option>
+          </select>
+          <select id="actionPriority" onchange="loadActions()">
+            <option value="">全部优先级</option>
+            <option value="high">高</option>
+            <option value="medium">中</option>
+            <option value="low">低</option>
+          </select>
+        </div>
+        <div id="actionList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 学习记录弹窗 -->
+  <div class="modal" id="learnModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('learnModal')">&times;</span>
+      <h3>新增学习记录</h3>
+      <div class="form-group"><label>问题 *</label><input type="text" id="learnQuestion" placeholder="输入问题"></div>
+      <div class="form-group"><label>答案/经验</label><textarea id="learnAnswer" placeholder="输入答案或经验总结"></textarea></div>
+      <div class="form-group"><label>分类</label><select id="learnCat"><option value="general">通用</option><option value="inquiry">询价</option><option value="pricing">核价</option><option value="customer">客户</option><option value="product">产品</option><option value="process">流程</option></select></div>
+      <div class="form-group"><label>标签(逗号分隔)</label><input type="text" id="learnTags" placeholder="如: 报价,外销,LED"></div>
+      <button class="btn btn-primary" onclick="saveLearn()">保存</button>
+    </div>
+  </div>
+
+  <!-- 总结弹窗 -->
+  <div class="modal" id="summaryModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('summaryModal')">&times;</span>
+      <h3>新增总结</h3>
+      <div class="form-group"><label>标题</label><input type="text" id="summaryTitle" placeholder="总结标题"></div>
+      <div class="form-group"><label>类型</label><select id="summaryFormType"><option value="daily">日报</option><option value="weekly">周报</option><option value="monthly">月报</option><option value="custom">自定义</option></select></div>
+      <div class="form-group"><label>日期范围</label><div style="display:flex;gap:8px;"><input type="date" id="summaryFormStart"><input type="date" id="summaryFormEnd"></div></div>
+      <div class="form-group"><label>内容 *</label><textarea id="summaryContent" rows="6" placeholder="总结内容"></textarea></div>
+      <button class="btn btn-primary" onclick="saveSummary()">保存</button>
+    </div>
+  </div>
+
+  <!-- 计划弹窗 -->
+  <div class="modal" id="planModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('planModal')">&times;</span>
+      <h3>新增计划</h3>
+      <div class="form-group"><label>标题 *</label><input type="text" id="planTitle" placeholder="计划标题"></div>
+      <div class="form-group"><label>类型</label><select id="planFormType"><option value="daily">日计划</option><option value="weekly">周计划</option><option value="monthly">月计划</option><option value="project">项目计划</option></select></div>
+      <div class="form-group"><label>优先级</label><select id="planPriority"><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select></div>
+      <div class="form-group"><label>日期范围</label><div style="display:flex;gap:8px;"><input type="date" id="planStart"><input type="date" id="planEnd"></div></div>
+      <div class="form-group"><label>目标(每行一个)</label><textarea id="planGoals" placeholder="每行一个目标"></textarea></div>
+      <div class="form-group"><label>详细内容</label><textarea id="planContent" rows="4" placeholder="计划详细内容"></textarea></div>
+      <button class="btn btn-primary" onclick="savePlan()">保存</button>
+    </div>
+  </div>
+
+  <!-- 复盘弹窗 -->
+  <div class="modal" id="reviewModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('reviewModal')">&times;</span>
+      <h3>新增复盘</h3>
+      <div class="form-group"><label>标题 *</label><input type="text" id="reviewTitle" placeholder="复盘标题"></div>
+      <div class="form-group"><label>类型</label><select id="reviewFormType"><option value="project">项目复盘</option><option value="period">周期复盘</option><option value="incident">事件复盘</option><option value="customer">客户复盘</option></select></div>
+      <div class="form-group"><label>发现(每行一个)</label><textarea id="reviewFindings" placeholder="每行一个发现"></textarea></div>
+      <div class="form-group"><label>根因(每行一个)</label><textarea id="reviewRootCauses" placeholder="每行一个根因"></textarea></div>
+      <div class="form-group"><label>经验教训(每行一个)</label><textarea id="reviewLessons" placeholder="每行一个经验教训"></textarea></div>
+      <div class="form-group"><label>改进措施(每行一个)</label><textarea id="reviewImprovements" placeholder="每行一个改进措施"></textarea></div>
+      <button class="btn btn-primary" onclick="saveReview()">保存</button>
+    </div>
+  </div>
+
+  <!-- 方案弹窗 -->
+  <div class="modal" id="solutionModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('solutionModal')">&times;</span>
+      <h3>新增方案</h3>
+      <div class="form-group"><label>标题 *</label><input type="text" id="solutionTitle" placeholder="方案标题"></div>
+      <div class="form-group"><label>优先级</label><select id="solutionFormPriority"><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select></div>
+      <div class="form-group"><label>问题描述</label><textarea id="solutionProblem" placeholder="要解决的问题"></textarea></div>
+      <div class="form-group"><label>分析</label><textarea id="solutionAnalysis" placeholder="问题分析"></textarea></div>
+      <div class="form-group"><label>解决方案</label><textarea id="solutionText" rows="4" placeholder="解决方案描述"></textarea></div>
+      <div class="form-group"><label>步骤(每行一个: 步骤|负责人|期限)</label><textarea id="solutionSteps" placeholder="如: 优化核价流程|采购|2周内"></textarea></div>
+      <div class="form-group"><label>预期成果</label><input type="text" id="solutionOutcome" placeholder="预期成果"></div>
+      <button class="btn btn-primary" onclick="saveSolution()">保存</button>
+    </div>
+  </div>
+
+  <!-- 行动弹窗 -->
+  <div class="modal" id="actionModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('actionModal')">&times;</span>
+      <h3>新增行动</h3>
+      <div class="form-group"><label>行动内容 *</label><textarea id="actionContent" placeholder="行动内容描述"></textarea></div>
+      <div class="form-group"><label>负责人</label><input type="text" id="actionAssignee" placeholder="负责人"></div>
+      <div class="form-group"><label>优先级</label><select id="actionFormPriority"><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select></div>
+      <div class="form-group"><label>截止日期</label><input type="date" id="actionDeadline"></div>
+      <button class="btn btn-primary" onclick="saveAction()">保存</button>
+    </div>
+  </div>
+
+<script>
+const API = window.API_BASE || '';
+const user = localStorage.getItem('username') || 'guest';
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+
+function showLearnModal() { showModal('learnModal'); }
+function showSummaryModal() { showModal('summaryModal'); }
+function showPlanModal() { showModal('planModal'); }
+function showReviewModal() { showModal('reviewModal'); }
+function showSolutionModal() { showModal('solutionModal'); }
+function showActionModal() { showModal('actionModal'); }
+
+function showQuickAction() { showActionModal(); }
+
+// ===== Dashboard =====
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${API}/api/ai-assistant/dashboard?user=${user}`);
+    const data = await res.json();
+    const stats = document.getElementById('dashboardStats');
+    const as = data.action_stats || {};
+    const ps = data.plan_stats || {};
+    const rs = data.review_stats || {};
+    const ls = data.learning_stats || {};
+    stats.innerHTML = `
+      <div class="stat-card"><div class="num">${ls.total || 0}</div><div class="label">学习记录</div></div>
+      <div class="stat-card"><div class="num">${ps.active || 0}</div><div class="label">进行中计划</div></div>
+      <div class="stat-card"><div class="num">${rs.open || 0}</div><div class="label">待关闭复盘</div></div>
+      <div class="stat-card warn"><div class="num">${as.pending || 0}</div><div class="label">待办行动</div></div>
+      <div class="stat-card danger"><div class="num">${as.overdue || 0}</div><div class="label">逾期行动</div></div>
+      <div class="stat-card success"><div class="num">${as.completed || 0}</div><div class="label">已完成行动</div></div>
+    `;
+  } catch(e) { console.error(e); }
+}
+
+// ===== Learn =====
+async function loadLearns() {
+  const keyword = document.getElementById('learnSearch').value;
+  const category = document.getElementById('learnCategory').value;
+  let url = `${API}/api/ai-assistant/learn?limit=50`;
+  if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+  if (category) url += `&category=${category}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('learnList');
+    if (data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📚</div>暂无学习记录</div>';
+      return;
+    }
+    list.innerHTML = data.map(r => `
+      <div class="learn-item">
+        <div class="learn-q">${r.question}</div>
+        <div class="learn-a">${r.answer || '暂无答案'}</div>
+        <div class="learn-meta">
+          <span class="learn-hit">${r.hit_count || 0}次</span>
+          <span>${r.category || '通用'}</span>
+          <span>${r.tags || ''}</span>
+          <span>${r.user || ''}</span>
+          <span>${(r.created_at || '').substring(0, 10)}</span>
+          <button class="btn-sm btn-danger-sm" onclick="deleteLearn(${r.id})" data-perm="ai:delete">删除</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function saveLearn() {
+  const data = {
+    user,
+    question: document.getElementById('learnQuestion').value.trim(),
+    answer: document.getElementById('learnAnswer').value.trim(),
+    category: document.getElementById('learnCat').value,
+    tags: document.getElementById('learnTags').value.trim()
+  };
+  if (!data.question) { alert('问题不能为空'); return; }
+  await fetch(`${API}/api/ai-assistant/learn`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  closeModal('learnModal');
+  document.getElementById('learnQuestion').value = '';
+  document.getElementById('learnAnswer').value = '';
+  document.getElementById('learnTags').value = '';
+  loadLearns();
+  loadDashboard();
+}
+
+async function deleteLearn(id) {
+  if(!PermissionCheck.has('ai:delete')){alert('无删除权限');return;}
+  if (!confirm('确定删除？')) return;
+  await fetch(`${API}/api/ai-assistant/learn/${id}`, { method: 'DELETE' });
+  loadLearns();
+  loadDashboard();
+}
+
+// ===== Summary =====
+async function loadSummaries() {
+  const type = document.getElementById('summaryType').value;
+  const start = document.getElementById('summaryStart').value;
+  const end = document.getElementById('summaryEnd').value;
+  let url = `${API}/api/ai-assistant/summary?`;
+  if (type) url += `summary_type=${type}&`;
+  if (start) url += `start=${start}&`;
+  if (end) url += `end=${end}&`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('summaryList');
+    if (data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📊</div>暂无总结，点击"自动生成"快速创建</div>';
+      return;
+    }
+    list.innerHTML = data.map(s => `
+      <div class="review-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="plan-title">${s.title || '业务总结'}</div>
+          <span class="priority-tag medium">${s.summary_type === 'daily' ? '日报' : s.summary_type === 'weekly' ? '周报' : s.summary_type === 'monthly' ? '月报' : '自定义'}</span>
+        </div>
+        <div style="font-size:12px;color:#999;margin:6px 0;">${s.date_range_start || ''} ~ ${s.date_range_end || ''}</div>
+        <div style="font-size:13px;color:#555;white-space:pre-wrap;">${s.content}</div>
+        <div style="font-size:11px;color:#999;margin-top:8px;">${s.user} · ${(s.created_at || '').substring(0, 16)}</div>
+      </div>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function generateSummary() {
+  const today = new Date().toISOString().substring(0, 10);
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().substring(0, 10);
+  try {
+    const res = await fetch(`${API}/api/ai-assistant/summary/generate?type=weekly&start_date=${weekAgo}&end_date=${today}&user=${user}`);
+    const data = await res.json();
+    let content = '';
+    (data.sections || []).forEach(s => {
+      content += `【${s.title}】\n`;
+      const d = s.data || {};
+      Object.entries(d).forEach(([k, v]) => {
+        if (typeof v === 'object') {
+          content += `  ${k}: ${JSON.stringify(v)}\n`;
+        } else {
+          content += `  ${k}: ${v}\n`;
+        }
+      });
+      content += '\n';
+    });
+    document.getElementById('summaryTitle').value = `业务周报 ${weekAgo} ~ ${today}`;
+    document.getElementById('summaryFormType').value = 'weekly';
+    document.getElementById('summaryFormStart').value = weekAgo;
+    document.getElementById('summaryFormEnd').value = today;
+    document.getElementById('summaryContent').value = content;
+    showModal('summaryModal');
+  } catch(e) { alert('生成失败: ' + e.message); }
+}
+
+async function saveSummary() {
+  const data = {
+    user,
+    title: document.getElementById('summaryTitle').value.trim(),
+    content: document.getElementById('summaryContent').value.trim(),
+    summary_type: document.getElementById('summaryFormType').value,
+    date_range_start: document.getElementById('summaryFormStart').value,
+    date_range_end: document.getElementById('summaryFormEnd').value
+  };
+  if (!data.content) { alert('内容不能为空'); return; }
+  await fetch(`${API}/api/ai-assistant/summary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  closeModal('summaryModal');
+  loadSummaries();
+  loadDashboard();
+}
+
+// ===== Plan =====
+async function loadPlans() {
+  const type = document.getElementById('planType').value;
+  const status = document.getElementById('planStatus').value;
+  let url = `${API}/api/ai-assistant/plan?user=${user}`;
+  if (type) url += `&plan_type=${type}`;
+  if (status) url += `&status=${status}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('planList');
+    if (data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📋</div>暂无计划</div>';
+      return;
+    }
+    list.innerHTML = data.map(p => {
+      const goals = p.goals ? (typeof p.goals === 'string' ? JSON.parse(p.goals) : p.goals) : [];
+      const progress = p.progress || 0;
+      const statusClass = p.status === 'completed' ? 'completed-plan' : 'active-plan';
+      const statusText = p.status === 'active' ? '进行中' : p.status === 'completed' ? '已完成' : p.status === 'paused' ? '暂停' : p.status;
+      return `
+        <div class="plan-card ${statusClass}">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="plan-title">${p.title}</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span class="priority-tag ${p.priority}">${p.priority === 'high' ? '高' : p.priority === 'medium' ? '中' : '低'}</span>
+              <span style="font-size:12px;color:#999;">${statusText}</span>
+            </div>
+          </div>
+          ${p.content ? `<div style="font-size:13px;color:#666;margin:6px 0;">${p.content}</div>` : ''}
+          ${goals.length > 0 ? `<div style="font-size:13px;margin:6px 0;"><strong>目标:</strong><ul style="margin:4px 0 0 16px;">${goals.map(g => `<li>${g}</li>`).join('')}</ul></div>` : ''}
+          <div class="plan-progress"><div class="plan-progress-bar" style="width:${progress}%"></div></div>
+          <div class="plan-meta">
+            <span>${p.start_date || ''} ~ ${p.end_date || ''}</span>
+            <span>进度: ${progress}%</span>
+            <span>${(p.created_at || '').substring(0, 10)}</span>
+            ${p.status !== 'completed' ? `<button class="btn-sm btn-success-sm" onclick="updatePlanProgress(${p.id}, ${Math.min(progress + 25, 100)})">+25%</button>` : ''}
+            ${p.status === 'active' ? `<button class="btn-sm btn-primary-sm" onclick="completePlan(${p.id})">完成</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function savePlan() {
+  const goalsText = document.getElementById('planGoals').value.trim();
+  const goals = goalsText ? goalsText.split('\n').filter(g => g.trim()) : [];
+  const data = {
+    user,
+    title: document.getElementById('planTitle').value.trim(),
+    plan_type: document.getElementById('planFormType').value,
+    priority: document.getElementById('planPriority').value,
+    start_date: document.getElementById('planStart').value,
+    end_date: document.getElementById('planEnd').value,
+    content: document.getElementById('planContent').value.trim(),
+    goals
+  };
+  if (!data.title) { alert('标题不能为空'); return; }
+  await fetch(`${API}/api/ai-assistant/plan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  closeModal('planModal');
+  document.getElementById('planTitle').value = '';
+  document.getElementById('planGoals').value = '';
+  document.getElementById('planContent').value = '';
+  loadPlans();
+  loadDashboard();
+}
+
+async function updatePlanProgress(id, progress) {
+  await fetch(`${API}/api/ai-assistant/plan/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ progress }) });
+  loadPlans();
+}
+
+async function completePlan(id) {
+  await fetch(`${API}/api/ai-assistant/plan/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'completed', progress: 100 }) });
+  loadPlans();
+  loadDashboard();
+}
+
+// ===== Review =====
+async function loadReviews() {
+  const type = document.getElementById('reviewType').value;
+  const status = document.getElementById('reviewStatus').value;
+  let url = `${API}/api/ai-assistant/review?user=${user}`;
+  if (type) url += `&review_type=${type}`;
+  if (status) url += `&status=${status}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('reviewList');
+    if (data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div>暂无复盘，点击"自动复盘"快速分析</div>';
+      return;
+    }
+    list.innerHTML = data.map(r => {
+      const findings = r.findings ? (typeof r.findings === 'string' ? JSON.parse(r.findings) : r.findings) : [];
+      const rootCauses = r.root_causes ? (typeof r.root_causes === 'string' ? JSON.parse(r.root_causes) : r.root_causes) : [];
+      const lessons = r.lessons ? (typeof r.lessons === 'string' ? JSON.parse(r.lessons) : r.lessons) : [];
+      const improvements = r.improvements ? (typeof r.improvements === 'string' ? JSON.parse(r.improvements) : r.improvements) : [];
+      return `
+        <div class="review-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="plan-title">${r.title}</div>
+            <div style="display:flex;gap:6px;">
+              <span class="priority-tag medium">${r.review_type === 'project' ? '项目' : r.review_type === 'period' ? '周期' : r.review_type === 'incident' ? '事件' : '客户'}</span>
+              ${r.status === 'open' ? `<button class="btn-sm btn-success-sm" onclick="closeReview(${r.id})">关闭</button>` : '<span style="color:#27ae60;font-size:12px;">已关闭</span>'}
+            </div>
+          </div>
+          ${r.content ? `<div style="font-size:13px;color:#666;margin:8px 0;">${r.content}</div>` : ''}
+          ${findings.length > 0 ? `<div style="margin:8px 0;"><strong style="font-size:13px;">发现:</strong>${findings.map(f => `<div class="finding ${f.type || 'insight'}">${typeof f === 'string' ? f : f.content}${f.detail && f.detail.length > 0 ? `<div style="font-size:11px;margin-top:4px;">${f.detail.slice(0,3).join('<br>')}</div>` : ''}</div>`).join('')}</div>` : ''}
+          ${rootCauses.length > 0 ? `<div style="margin:8px 0;"><strong style="font-size:13px;">根因:</strong>${rootCauses.map(c => `<div style="font-size:13px;color:#c0392b;padding:4px 8px;">${typeof c === 'string' ? c : c.content}</div>`).join('')}</div>` : ''}
+          ${lessons.length > 0 ? `<div style="margin:8px 0;"><strong style="font-size:13px;">经验:</strong>${lessons.map(l => `<div style="font-size:13px;color:#2980b9;padding:4px 8px;">${typeof l === 'string' ? l : l.content}</div>`).join('')}</div>` : ''}
+          ${improvements.length > 0 ? `<div style="margin:8px 0;"><strong style="font-size:13px;">改进:</strong>${improvements.map(i => `<div style="font-size:13px;color:#27ae60;padding:4px 8px;">${typeof i === 'string' ? i : i.content}</div>`).join('')}</div>` : ''}
+          <div style="font-size:11px;color:#999;margin-top:8px;">${r.user} · ${(r.created_at || '').substring(0, 16)}</div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function autoReview() {
+  const today = new Date().toISOString().substring(0, 10);
+  const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().substring(0, 10);
+  try {
+    const res = await fetch(`${API}/api/ai-assistant/review/analyze?type=period&start_date=${monthAgo}&end_date=${today}`);
+    const data = await res.json();
+    document.getElementById('reviewTitle').value = data.title || `周期复盘 ${monthAgo} ~ ${today}`;
+    document.getElementById('reviewFormType').value = 'period';
+    document.getElementById('reviewFindings').value = (data.findings || []).map(f => typeof f === 'string' ? f : f.content).join('\n');
+    document.getElementById('reviewRootCauses').value = (data.root_causes || []).map(c => typeof c === 'string' ? c : c.content).join('\n');
+    document.getElementById('reviewLessons').value = (data.lessons || []).map(l => typeof l === 'string' ? l : l.content).join('\n');
+    document.getElementById('reviewImprovements').value = (data.improvements || []).map(i => typeof i === 'string' ? i : i.content).join('\n');
+    showModal('reviewModal');
+  } catch(e) { alert('分析失败: ' + e.message); }
+}
+
+async function saveReview() {
+  const parseLines = (text) => text.trim() ? text.trim().split('\n').filter(l => l.trim()) : [];
+  const data = {
+    user,
+    title: document.getElementById('reviewTitle').value.trim(),
+    review_type: document.getElementById('reviewFormType').value,
+    findings: parseLines(document.getElementById('reviewFindings').value),
+    root_causes: parseLines(document.getElementById('reviewRootCauses').value),
+    lessons: parseLines(document.getElementById('reviewLessons').value),
+    improvements: parseLines(document.getElementById('reviewImprovements').value)
+  };
+  if (!data.title) { alert('标题不能为空'); return; }
+  await fetch(`${API}/api/ai-assistant/review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  closeModal('reviewModal');
+  loadReviews();
+  loadDashboard();
+}
+
+async function closeReview(id) {
+  await fetch(`${API}/api/ai-assistant/review/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'closed' }) });
+  loadReviews();
+  loadDashboard();
+}
+
+// ===== Solution =====
+async function loadSolutions() {
+  const status = document.getElementById('solutionStatus').value;
+  const priority = document.getElementById('solutionPriority').value;
+  let url = `${API}/api/ai-assistant/solution?user=${user}`;
+  if (status) url += `&status=${status}`;
+  if (priority) url += `&priority=${priority}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('solutionList');
+    if (data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">💡</div>暂无方案，点击"智能生成"快速创建</div>';
+      return;
+    }
+    list.innerHTML = data.map(s => {
+      const steps = s.steps ? (typeof s.steps === 'string' ? JSON.parse(s.steps) : s.steps) : [];
+      const statusMap = { draft: '草稿', approved: '已审批', executing: '执行中', completed: '已完成' };
+      return `
+        <div class="solution-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="plan-title">${s.title}</div>
+            <div style="display:flex;gap:6px;">
+              <span class="priority-tag ${s.priority}">${s.priority === 'high' ? '高' : s.priority === 'medium' ? '中' : '低'}</span>
+              <span style="font-size:12px;color:#999;">${statusMap[s.status] || s.status}</span>
+            </div>
+          </div>
+          ${s.problem ? `<div style="font-size:13px;color:#c0392b;margin:6px 0;"><strong>问题:</strong> ${s.problem}</div>` : ''}
+          ${s.analysis ? `<div style="font-size:13px;color:#2980b9;margin:6px 0;"><strong>分析:</strong> ${s.analysis}</div>` : ''}
+          ${s.solution ? `<div style="font-size:13px;color:#27ae60;margin:6px 0;"><strong>方案:</strong> ${s.solution}</div>` : ''}
+          ${steps.length > 0 ? `<ol class="step-list">${steps.map(st => `<li class="step-item"><span class="step-num">${st.step || 1}</span><div><div>${st.action || st}</div>${st.owner ? `<span class="step-owner">${st.owner}</span>` : ''}${st.deadline ? `<span style="font-size:11px;color:#999;margin-left:8px;">${st.deadline}</span>` : ''}</div></li>`).join('')}</ol>` : ''}
+          ${s.expected_outcome ? `<div style="font-size:13px;color:#667eea;margin:6px 0;"><strong>预期成果:</strong> ${s.expected_outcome}</div>` : ''}
+          <div style="display:flex;gap:6px;margin-top:10px;">
+            ${s.status === 'draft' ? `<button class="btn-sm btn-primary-sm" onclick="updateSolutionStatus(${s.id}, 'executing')">开始执行</button>` : ''}
+            ${s.status === 'executing' ? `<button class="btn-sm btn-success-sm" onclick="updateSolutionStatus(${s.id}, 'completed')">完成</button>` : ''}
+          </div>
+          <div style="font-size:11px;color:#999;margin-top:8px;">${s.user} · ${(s.created_at || '').substring(0, 16)}</div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function autoSolution() {
+  try {
+    const res = await fetch(`${API}/api/ai-assistant/solution/generate?problem_type=low_conversion`);
+    const data = await res.json();
+    document.getElementById('solutionTitle').value = data.title || '';
+    document.getElementById('solutionProblem').value = data.problem || '';
+    document.getElementById('solutionAnalysis').value = data.analysis || '';
+    document.getElementById('solutionText').value = data.solution || '';
+    document.getElementById('solutionSteps').value = (data.steps || []).map(s => `${s.action}|${s.owner}|${s.deadline}`).join('\n');
+    document.getElementById('solutionOutcome').value = data.expected_outcome || '';
+    showModal('solutionModal');
+  } catch(e) { alert('生成失败: ' + e.message); }
+}
+
+async function saveSolution() {
+  const stepsText = document.getElementById('solutionSteps').value.trim();
+  const steps = stepsText ? stepsText.split('\n').filter(l => l.trim()).map((l, i) => {
+    const parts = l.split('|');
+    return { step: i + 1, action: parts[0]?.trim() || l, owner: parts[1]?.trim() || '', deadline: parts[2]?.trim() || '' };
+  }) : [];
+  const data = {
+    user,
+    title: document.getElementById('solutionTitle').value.trim(),
+    priority: document.getElementById('solutionFormPriority').value,
+    problem: document.getElementById('solutionProblem').value.trim(),
+    analysis: document.getElementById('solutionAnalysis').value.trim(),
+    solution: document.getElementById('solutionText').value.trim(),
+    steps,
+    expected_outcome: document.getElementById('solutionOutcome').value.trim()
+  };
+  if (!data.title) { alert('标题不能为空'); return; }
+  await fetch(`${API}/api/ai-assistant/solution`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  closeModal('solutionModal');
+
+  if (steps.length > 0) {
+    for (const s of steps) {
+      await fetch(`${API}/api/ai-assistant/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user, content: s.action, assignee: s.owner, priority: s.step <= 2 ? 'high' : 'medium', deadline: s.deadline, source_type: 'solution' })
+      });
+    }
+  }
+
+  loadSolutions();
+  loadActions();
+  loadDashboard();
+}
+
+async function updateSolutionStatus(id, status) {
+  await fetch(`${API}/api/ai-assistant/solution/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+  loadSolutions();
+  loadDashboard();
+}
+
+// ===== Action =====
+async function loadActions() {
+  const status = document.getElementById('actionStatus').value;
+  const priority = document.getElementById('actionPriority').value;
+  let url = `${API}/api/ai-assistant/action?user=${user}`;
+  if (status) url += `&status=${status}`;
+  if (priority) url += `&priority=${priority}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('actionList');
+    if (data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">🎯</div>暂无行动</div>';
+      return;
+    }
+    list.innerHTML = data.map(a => {
+      const isDone = a.status === 'completed';
+      const isOverdue = !isDone && a.deadline && a.deadline < new Date().toISOString().substring(0, 10);
+      return `
+        <div class="action-item" style="${isOverdue ? 'border-color:#e74c3c;' : ''}">
+          <div class="action-check ${isDone ? 'done' : ''}" onclick="toggleAction(${a.id}, '${a.status}')">${isDone ? '✓' : ''}</div>
+          <div class="action-content ${isDone ? 'completed' : ''}">
+            <div style="font-size:14px;">${a.content}</div>
+            <div style="display:flex;gap:8px;margin-top:4px;font-size:12px;color:#999;">
+              ${a.assignee ? `<span>👤 ${a.assignee}</span>` : ''}
+              ${a.deadline ? `<span style="${isOverdue ? 'color:#e74c3c;' : ''}">📅 ${a.deadline}</span>` : ''}
+              <span>${(a.created_at || '').substring(0, 10)}</span>
+            </div>
+          </div>
+          <span class="priority-tag ${a.priority}">${a.priority === 'high' ? '高' : a.priority === 'medium' ? '中' : '低'}</span>
+          ${!isDone ? `<button class="btn-sm btn-danger-sm" onclick="deleteAction(${a.id})" data-perm="ai:delete" style="margin-left:4px;">✕</button>` : ''}
+        </div>
+      `;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function saveAction() {
+  const data = {
+    user,
+    content: document.getElementById('actionContent').value.trim(),
+    assignee: document.getElementById('actionAssignee').value.trim(),
+    priority: document.getElementById('actionFormPriority').value,
+    deadline: document.getElementById('actionDeadline').value,
+    source_type: 'manual'
+  };
+  if (!data.content) { alert('内容不能为空'); return; }
+  await fetch(`${API}/api/ai-assistant/action`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  closeModal('actionModal');
+  document.getElementById('actionContent').value = '';
+  document.getElementById('actionAssignee').value = '';
+  loadActions();
+  loadDashboard();
+}
+
+async function toggleAction(id, currentStatus) {
+  const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+  await fetch(`${API}/api/ai-assistant/action/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
+  loadActions();
+  loadDashboard();
+}
+
+async function deleteAction(id) {
+  if(!PermissionCheck.has('ai:delete')){alert('无删除权限');return;}
+  if (!confirm('确定删除？')) return;
+  await fetch(`${API}/api/ai-assistant/action/${id}`, { method: 'DELETE' });
+  loadActions();
+  loadDashboard();
+}
+
+// ===== Auto Engine =====
+let autoRunRunning = false;
+
+async function runAutoEngine() {
+  if (autoRunRunning) return;
+  autoRunRunning = true;
+  const btn = document.getElementById('autoRunBtn');
+  const statusEl = document.getElementById('autoRunStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ 运行中...';
+  statusEl.textContent = '正在扫描问题、自我学习、总结归纳、生成计划、输出行动...';
+
+  try {
+    const res = await fetch(`${API}/api/ai-assistant/auto-run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user })
+    });
+    const data = await res.json();
+    showAutoResult(data);
+    statusEl.textContent = `✅ 运行完成`;
+  } catch(e) {
+    statusEl.textContent = `❌ 运行失败: ${e.message}`;
+  } finally {
+    autoRunRunning = false;
+    btn.disabled = false;
+    btn.textContent = '🚀 一键自动运行';
+    loadDashboard();
+    loadLearns();
+    loadSummaries();
+    loadPlans();
+    loadActions();
+  }
+}
+
+function showAutoResult(data) {
+  const panel = document.getElementById('autoResultPanel');
+  const content = document.getElementById('autoResultContent');
+  const timeEl = document.getElementById('autoRunTime');
+  panel.style.display = 'block';
+  timeEl.textContent = data.timestamp ? new Date(data.timestamp).toLocaleString('zh-CN') : '';
+
+  let html = '';
+
+  if (data.scan && data.scan.length > 0) {
+    html += `<div style="margin-bottom:16px;">
+      <h4 style="color:#e74c3c;margin-bottom:8px;">🔍 发现 ${data.scan.length} 个问题</h4>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
+      ${data.scan.map(p => {
+        const severityColor = p.severity === 'high' ? '#e74c3c' : p.severity === 'medium' ? '#f39c12' : '#2980b9';
+        const severityBg = p.severity === 'high' ? '#ffeaea' : p.severity === 'medium' ? '#fff8e1' : '#e3f2fd';
+        const severityText = p.severity === 'high' ? '紧急' : p.severity === 'medium' ? '警告' : '洞察';
+        return `<div style="padding:10px 14px;border-radius:8px;background:${severityBg};border-left:3px solid ${severityColor};">
+          <div style="font-size:13px;font-weight:600;color:${severityColor};">${severityText}: ${p.title}</div>
+          ${p.detail && p.detail.length > 0 ? `<div style="font-size:12px;color:#666;margin-top:4px;">${p.detail.slice(0,3).join('<br>')}</div>` : ''}
+        </div>`;
+      }).join('')}
+      </div>
+    </div>`;
+  } else {
+    html += `<div style="padding:12px;background:#e8f5e9;border-radius:8px;color:#27ae60;margin-bottom:16px;">✅ 未发现新问题，系统运行良好</div>`;
+  }
+
+  if (data.learned && data.learned.length > 0) {
+    const created = data.learned.filter(l => l.status === 'created').length;
+    const updated = data.learned.filter(l => l.status === 'updated').length;
+    html += `<div style="margin-bottom:16px;">
+      <h4 style="color:#667eea;margin-bottom:8px;">📚 自我学习: 新增${created}条, 更新${updated}条</h4>
+      <div style="font-size:12px;color:#666;">${data.learned.slice(0, 5).map(l => `<div style="padding:4px 0;">• ${l.question} ${l.status === 'created' ? '(新)' : `(命中${l.hit_count}次)`}</div>`).join('')}</div>
+    </div>`;
+  }
+
+  if (data.summary) {
+    html += `<div style="margin-bottom:16px;">
+      <h4 style="color:#27ae60;margin-bottom:8px;">📊 自动总结: ${data.summary.status === 'created' ? '已生成' : '今日已存在'}</h4>
+      ${data.summary.title ? `<div style="font-size:13px;color:#555;">${data.summary.title}</div>` : ''}
+    </div>`;
+  }
+
+  if (data.plans && data.plans.length > 0) {
+    html += `<div style="margin-bottom:16px;">
+      <h4 style="color:#f39c12;margin-bottom:8px;">📋 自动计划: ${data.plans.filter(p => p.status === 'created').length}个新计划</h4>
+      ${data.plans.map(p => `<div style="font-size:13px;color:#555;">• ${p.title} ${p.status === 'created' ? '(新)' : '(已存在)'}</div>`).join('')}
+    </div>`;
+  }
+
+  if (data.actions && data.actions.length > 0) {
+    const created = data.actions.filter(a => a.status === 'created').length;
+    html += `<div style="margin-bottom:16px;">
+      <h4 style="color:#8e44ad;margin-bottom:8px;">🎯 自动行动: 新增${created}条行动</h4>
+      <div style="font-size:12px;color:#666;">${data.actions.filter(a => a.status === 'created').slice(0, 5).map(a => `<div style="padding:4px 0;">• ${a.content} [${a.priority}]</div>`).join('')}</div>
+    </div>`;
+  }
+
+  if (data.error) {
+    html += `<div style="padding:12px;background:#ffeaea;border-radius:8px;color:#e74c3c;">❌ 错误: ${data.error}</div>`;
+  }
+
+  content.innerHTML = html;
+  panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function loadAutoRunStatus() {
+  try {
+    const res = await fetch(`${API}/api/ai-assistant/auto-run/status`);
+    const data = await res.json();
+    const statusEl = document.getElementById('autoRunStatus');
+    if (data.last_auto_run) {
+      const lastTime = new Date(data.last_auto_run).toLocaleString('zh-CN');
+      statusEl.textContent = `上次自动运行: ${lastTime} | 今日自动行动: ${data.auto_actions_today}条`;
+    }
+  } catch(e) {}
+}
+
+// ===== Init =====
+async function init() {
+  await loadDashboard();
+  loadLearns();
+  loadSummaries();
+  loadPlans();
+  loadReviews();
+  loadSolutions();
+  loadActions();
+  loadAutoRunStatus();
+}
+
+init();
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body>
+</html>

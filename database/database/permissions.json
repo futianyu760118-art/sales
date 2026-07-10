@@ -1,0 +1,1049 @@
+{
+  "records": [
+    {
+      "name": "查看询价",
+      "code": "inquiry:view",
+      "module": "询价管理",
+      "description": "查看询价列表和详情",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 1
+    },
+    {
+      "name": "创建询价",
+      "code": "inquiry:create",
+      "module": "询价管理",
+      "description": "新建询价单",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 2
+    },
+    {
+      "name": "编辑询价",
+      "code": "inquiry:edit",
+      "module": "询价管理",
+      "description": "修改询价信息",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 3
+    },
+    {
+      "name": "删除询价",
+      "code": "inquiry:delete",
+      "module": "询价管理",
+      "description": "删除询价单",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 4
+    },
+    {
+      "name": "核价报价",
+      "code": "inquiry:price",
+      "module": "询价管理",
+      "description": "对询价单进行核价和报价",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 5
+    },
+    {
+      "name": "变更状态",
+      "code": "inquiry:status",
+      "module": "询价管理",
+      "description": "变更询价单状态",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 6
+    },
+    {
+      "name": "批量导入",
+      "code": "inquiry:import",
+      "module": "询价管理",
+      "description": "批量导入询价单",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 7
+    },
+    {
+      "name": "批量导出",
+      "code": "inquiry:export",
+      "module": "询价管理",
+      "description": "批量导出询价单",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 8
+    },
+    {
+      "name": "查看产品",
+      "code": "product:view",
+      "module": "产品管理",
+      "description": "查看产品列表和详情",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 9
+    },
+    {
+      "name": "创建产品",
+      "code": "product:create",
+      "module": "产品管理",
+      "description": "新增产品",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 10
+    },
+    {
+      "name": "编辑产品",
+      "code": "product:edit",
+      "module": "产品管理",
+      "description": "修改产品信息",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 11
+    },
+    {
+      "name": "删除产品",
+      "code": "product:delete",
+      "module": "产品管理",
+      "description": "删除产品",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 12
+    },
+    {
+      "name": "查看客户",
+      "code": "customer:view",
+      "module": "客户管理",
+      "description": "查看客户列表和详情",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 13
+    },
+    {
+      "name": "创建客户",
+      "code": "customer:create",
+      "module": "客户管理",
+      "description": "新增客户",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 14
+    },
+    {
+      "name": "编辑客户",
+      "code": "customer:edit",
+      "module": "客户管理",
+      "description": "修改客户信息",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 15
+    },
+    {
+      "name": "删除客户",
+      "code": "customer:delete",
+      "module": "客户管理",
+      "description": "删除客户",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 16
+    },
+    {
+      "name": "查看物料",
+      "code": "material:view",
+      "module": "物料管理",
+      "description": "查看物料BOM列表",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 17
+    },
+    {
+      "name": "创建物料",
+      "code": "material:create",
+      "module": "物料管理",
+      "description": "新增物料",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 18
+    },
+    {
+      "name": "编辑物料",
+      "code": "material:edit",
+      "module": "物料管理",
+      "description": "修改物料信息",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 19
+    },
+    {
+      "name": "删除物料",
+      "code": "material:delete",
+      "module": "物料管理",
+      "description": "删除物料",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 20
+    },
+    {
+      "name": "查看核价",
+      "code": "pricing:view",
+      "module": "核价管理",
+      "description": "查看核价表和详情",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 21
+    },
+    {
+      "name": "创建核价",
+      "code": "pricing:create",
+      "module": "核价管理",
+      "description": "新增核价记录",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 22
+    },
+    {
+      "name": "编辑核价",
+      "code": "pricing:edit",
+      "module": "核价管理",
+      "description": "修改核价信息",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 23
+    },
+    {
+      "name": "删除核价",
+      "code": "pricing:delete",
+      "module": "核价管理",
+      "description": "删除核价记录",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 24
+    },
+    {
+      "name": "查看报表",
+      "code": "report:view",
+      "module": "数据报表",
+      "description": "查看数据报表和统计",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 25
+    },
+    {
+      "name": "权限管理",
+      "code": "system:permission",
+      "module": "系统管理",
+      "description": "管理角色和权限",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 26
+    },
+    {
+      "name": "用户管理",
+      "code": "system:user",
+      "module": "系统管理",
+      "description": "管理系统用户",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 27
+    },
+    {
+      "name": "系统配置",
+      "code": "system:config",
+      "module": "系统管理",
+      "description": "修改系统配置",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 28
+    },
+    {
+      "name": "提交反馈",
+      "code": "feedback:create",
+      "module": "问题反馈",
+      "description": "提交问题反馈",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 29
+    },
+    {
+      "name": "处理反馈",
+      "code": "feedback:handle",
+      "module": "问题反馈",
+      "description": "处理和关闭反馈",
+      "created_at": "2026-05-26 00:23:53",
+      "id": 30
+    },
+    {
+      "role": "admin",
+      "permission": "inquiry:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 66
+    },
+    {
+      "role": "admin",
+      "permission": "inquiry:create",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 67
+    },
+    {
+      "role": "admin",
+      "permission": "inquiry:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 68
+    },
+    {
+      "role": "admin",
+      "permission": "inquiry:delete",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 69
+    },
+    {
+      "role": "admin",
+      "permission": "inquiry:price",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 70
+    },
+    {
+      "role": "admin",
+      "permission": "product:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 71
+    },
+    {
+      "role": "admin",
+      "permission": "product:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 72
+    },
+    {
+      "role": "admin",
+      "permission": "pricing:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 73
+    },
+    {
+      "role": "admin",
+      "permission": "pricing:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 74
+    },
+    {
+      "role": "admin",
+      "permission": "customer:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 75
+    },
+    {
+      "role": "admin",
+      "permission": "customer:create",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 76
+    },
+    {
+      "role": "admin",
+      "permission": "customer:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 77
+    },
+    {
+      "role": "admin",
+      "permission": "customer:delete",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 78
+    },
+    {
+      "role": "admin",
+      "permission": "material:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 79
+    },
+    {
+      "role": "admin",
+      "permission": "material:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 80
+    },
+    {
+      "role": "admin",
+      "permission": "permission:manage",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 81
+    },
+    {
+      "role": "admin",
+      "permission": "settings:manage",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 82
+    },
+    {
+      "role": "admin",
+      "permission": "feedback:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 83
+    },
+    {
+      "role": "admin",
+      "permission": "feedback:create",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 84
+    },
+    {
+      "role": "sales",
+      "permission": "inquiry:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 85
+    },
+    {
+      "role": "sales",
+      "permission": "inquiry:create",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 86
+    },
+    {
+      "role": "sales",
+      "permission": "inquiry:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 87
+    },
+    {
+      "role": "sales",
+      "permission": "inquiry:price",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 88
+    },
+    {
+      "role": "sales",
+      "permission": "product:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 89
+    },
+    {
+      "role": "sales",
+      "permission": "customer:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 90
+    },
+    {
+      "role": "sales",
+      "permission": "customer:create",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 91
+    },
+    {
+      "role": "sales",
+      "permission": "material:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 92
+    },
+    {
+      "role": "sales",
+      "permission": "feedback:create",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 93
+    },
+    {
+      "role": "engineer",
+      "permission": "inquiry:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 94
+    },
+    {
+      "role": "engineer",
+      "permission": "pricing:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 95
+    },
+    {
+      "role": "engineer",
+      "permission": "pricing:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 96
+    },
+    {
+      "role": "engineer",
+      "permission": "product:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 97
+    },
+    {
+      "role": "engineer",
+      "permission": "material:view",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 98
+    },
+    {
+      "role": "engineer",
+      "permission": "material:edit",
+      "created_at": "2026-05-29 17:32:19",
+      "id": 99
+    },
+    {
+      "name": "图纸预览",
+      "code": "drawing:preview",
+      "module": "物料管理",
+      "description": "图纸预览",
+      "created_at": "2026-06-24 11:13:58",
+      "id": 100
+    },
+    {
+      "name": "图纸上传",
+      "code": "drawing:upload",
+      "module": "物料管理",
+      "description": "图纸上传",
+      "created_at": "2026-06-24 11:13:58",
+      "id": 101
+    },
+    {
+      "name": "图纸审批",
+      "code": "drawing:approve",
+      "module": "物料管理",
+      "description": "图纸审批",
+      "created_at": "2026-06-24 11:13:58",
+      "id": 102
+    },
+    {
+      "name": "图纸删除",
+      "code": "drawing:delete",
+      "module": "物料管理",
+      "description": "图纸删除",
+      "created_at": "2026-06-24 11:13:58",
+      "id": 103
+    },
+    {
+      "name": "查看仪表盘",
+      "code": "dashboard",
+      "module": "仪表盘",
+      "description": "查看首页仪表盘",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 104
+    },
+    {
+      "name": "查看供应商",
+      "code": "supplier:view",
+      "module": "供应商管理",
+      "description": "查看供应商列表和详情",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 105
+    },
+    {
+      "name": "创建供应商",
+      "code": "supplier:create",
+      "module": "供应商管理",
+      "description": "新增供应商",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 106
+    },
+    {
+      "name": "编辑供应商",
+      "code": "supplier:edit",
+      "module": "供应商管理",
+      "description": "修改供应商信息",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 107
+    },
+    {
+      "name": "删除供应商",
+      "code": "supplier:delete",
+      "module": "供应商管理",
+      "description": "删除供应商",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 108
+    },
+    {
+      "name": "查看BOM",
+      "code": "bom:view",
+      "module": "BOM管理",
+      "description": "查看BOM列表和详情",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 109
+    },
+    {
+      "name": "创建BOM",
+      "code": "bom:create",
+      "module": "BOM管理",
+      "description": "新增BOM",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 110
+    },
+    {
+      "name": "编辑BOM",
+      "code": "bom:edit",
+      "module": "BOM管理",
+      "description": "修改BOM信息",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 111
+    },
+    {
+      "name": "删除BOM",
+      "code": "bom:delete",
+      "module": "BOM管理",
+      "description": "删除BOM",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 112
+    },
+    {
+      "name": "查看订单",
+      "code": "order:view",
+      "module": "订单管理",
+      "description": "查看订单列表和详情",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 113
+    },
+    {
+      "name": "创建订单",
+      "code": "order:create",
+      "module": "订单管理",
+      "description": "新增订单",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 114
+    },
+    {
+      "name": "编辑订单",
+      "code": "order:edit",
+      "module": "订单管理",
+      "description": "修改订单信息",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 115
+    },
+    {
+      "name": "删除订单",
+      "code": "order:delete",
+      "module": "订单管理",
+      "description": "删除订单",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 116
+    },
+    {
+      "name": "查看样品",
+      "code": "sample:view",
+      "module": "样品管理",
+      "description": "查看样品列表和详情",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 117
+    },
+    {
+      "name": "创建样品",
+      "code": "sample:create",
+      "module": "样品管理",
+      "description": "新增样品",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 118
+    },
+    {
+      "name": "编辑样品",
+      "code": "sample:edit",
+      "module": "样品管理",
+      "description": "修改样品信息",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 119
+    },
+    {
+      "name": "删除样品",
+      "code": "sample:delete",
+      "module": "样品管理",
+      "description": "删除样品",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 120
+    },
+    {
+      "name": "查看项目",
+      "code": "project:view",
+      "module": "项目管理",
+      "description": "查看项目列表和详情",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 121
+    },
+    {
+      "name": "创建项目",
+      "code": "project:create",
+      "module": "项目管理",
+      "description": "新增项目",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 122
+    },
+    {
+      "name": "编辑项目",
+      "code": "project:edit",
+      "module": "项目管理",
+      "description": "修改项目信息",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 123
+    },
+    {
+      "name": "删除项目",
+      "code": "project:delete",
+      "module": "项目管理",
+      "description": "删除项目",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 124
+    },
+    {
+      "name": "查看BOM对比",
+      "code": "bom-compare:view",
+      "module": "BOM对比",
+      "description": "查看BOM对比分析",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 125
+    },
+    {
+      "name": "查看报价库",
+      "code": "quote:view",
+      "module": "报价库",
+      "description": "查看报价库列表",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 126
+    },
+    {
+      "name": "管理报价库",
+      "code": "quote:manage",
+      "module": "报价库",
+      "description": "管理报价库（创建/编辑/删除）",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 127
+    },
+    {
+      "name": "查看配置表",
+      "code": "config:view",
+      "module": "产品配置表",
+      "description": "查看配置表列表和详情",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 128
+    },
+    {
+      "name": "创建配置表",
+      "code": "config:create",
+      "module": "产品配置表",
+      "description": "新增配置表",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 129
+    },
+    {
+      "name": "编辑配置表",
+      "code": "config:edit",
+      "module": "产品配置表",
+      "description": "修改配置表",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 130
+    },
+    {
+      "name": "删除配置表",
+      "code": "config:delete",
+      "module": "产品配置表",
+      "description": "删除配置表",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 131
+    },
+    {
+      "name": "查看规格书",
+      "code": "spec:view",
+      "module": "规格书库",
+      "description": "查看规格书列表",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 132
+    },
+    {
+      "name": "管理规格书",
+      "code": "spec:manage",
+      "module": "规格书库",
+      "description": "管理规格书（创建/编辑/删除）",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 133
+    },
+    {
+      "name": "查看配置表库",
+      "code": "config-lib:view",
+      "module": "配置表库",
+      "description": "查看配置表库",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 134
+    },
+    {
+      "name": "管理配置表库",
+      "code": "config-lib:manage",
+      "module": "配置表库",
+      "description": "管理配置表库",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 135
+    },
+    {
+      "name": "使用智能助手",
+      "code": "ai:view",
+      "module": "智能助手",
+      "description": "使用智能助手功能",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 136
+    },
+    {
+      "name": "查看流程规则",
+      "code": "rules:view",
+      "module": "流程规则",
+      "description": "查看业务流程规则",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 137
+    },
+    {
+      "name": "管理流程规则",
+      "code": "rules:manage",
+      "module": "流程规则",
+      "description": "管理业务流程规则",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 138
+    },
+    {
+      "name": "查看合规自检",
+      "code": "compliance:view",
+      "module": "合规自检",
+      "description": "查看合规自检结果",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 139
+    },
+    {
+      "name": "运行合规自检",
+      "code": "compliance:run",
+      "module": "合规自检",
+      "description": "运行合规检查",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 140
+    },
+    {
+      "name": "查看数据清洗",
+      "code": "data-clean:view",
+      "module": "数据清洗",
+      "description": "查看数据清洗功能",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 141
+    },
+    {
+      "name": "执行数据清洗",
+      "code": "data-clean:execute",
+      "module": "数据清洗",
+      "description": "执行数据清洗操作",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 142
+    },
+    {
+      "name": "查看自动测试",
+      "code": "test:view",
+      "module": "自动测试",
+      "description": "查看自动测试功能",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 143
+    },
+    {
+      "name": "运行自动测试",
+      "code": "test:run",
+      "module": "自动测试",
+      "description": "运行自动测试",
+      "created_at": "2026-06-30 09:13:19",
+      "id": 144
+    },
+    {
+      "name": "删除报价库",
+      "code": "quote:delete",
+      "module": "报价库",
+      "description": "删除报价库记录",
+      "created_at": "2026-07-03 01:38:36",
+      "id": 145
+    },
+    {
+      "name": "删除规格书",
+      "code": "spec:delete",
+      "module": "规格书库",
+      "description": "删除规格书",
+      "created_at": "2026-07-03 01:38:36",
+      "id": 146
+    },
+    {
+      "name": "删除配置表库",
+      "code": "config-lib:delete",
+      "module": "配置表库",
+      "description": "删除配置表库记录",
+      "created_at": "2026-07-03 01:38:36",
+      "id": 147
+    },
+    {
+      "name": "删除助手数据",
+      "code": "ai:delete",
+      "module": "智能助手",
+      "description": "删除学习记录、计划、方案、行动",
+      "created_at": "2026-07-03 01:38:36",
+      "id": 148
+    },
+    {
+      "name": "删除流程规则",
+      "code": "rules:delete",
+      "module": "流程规则",
+      "description": "删除业务流程规则",
+      "created_at": "2026-07-03 01:38:36",
+      "id": 149
+    },
+    {
+      "name": "删除清洗规则",
+      "code": "data-clean:delete",
+      "module": "数据清洗",
+      "description": "删除数据清洗规则",
+      "created_at": "2026-07-03 01:38:36",
+      "id": 150
+    },
+    {
+      "name": "删除反馈",
+      "code": "feedback:delete",
+      "module": "问题反馈",
+      "description": "删除问题反馈记录",
+      "created_at": "2026-07-03 01:38:36",
+      "id": 151
+    },
+    {
+      "name": "查看技转资料",
+      "code": "tech:view",
+      "module": "项目技转",
+      "description": "查看通用技术资料与技转记录",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 152
+    },
+    {
+      "name": "上传技转资料",
+      "code": "tech:create",
+      "module": "项目技转",
+      "description": "上传/创建技术资料",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 153
+    },
+    {
+      "name": "编辑技转资料",
+      "code": "tech:edit",
+      "module": "项目技转",
+      "description": "编辑/迭代技术资料",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 154
+    },
+    {
+      "name": "删除技转资料",
+      "code": "tech:delete",
+      "module": "项目技转",
+      "description": "删除/作废技术资料",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 155
+    },
+    {
+      "name": "资料归档审核",
+      "code": "tech:audit",
+      "module": "项目技转",
+      "description": "审核资料归档/作废状态",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 156
+    },
+    {
+      "name": "下载核心资料",
+      "code": "tech:download",
+      "module": "项目技转",
+      "description": "下载核心技术资料",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 157
+    },
+    {
+      "name": "下载涉密资料",
+      "code": "tech:download:secret",
+      "module": "项目技转",
+      "description": "下载涉密技术资料（仅超管）",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 158
+    },
+    {
+      "name": "预览核心资料",
+      "code": "tech:preview:core",
+      "module": "项目技转",
+      "description": "预览核心/涉密技术资料",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 159
+    },
+    {
+      "name": "转发技转资料",
+      "code": "tech:forward",
+      "module": "项目技转",
+      "description": "转发技术资料给他人",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 160
+    },
+    {
+      "name": "复用技转资料",
+      "code": "tech:reuse",
+      "module": "项目技转",
+      "description": "复用历史资料至新项目",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 161
+    },
+    {
+      "name": "管理技转流转",
+      "code": "tech:transfer",
+      "module": "项目技转",
+      "description": "管理四段式技转交底与流转",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 162
+    },
+    {
+      "name": "管理技术变更",
+      "code": "tech:change",
+      "module": "项目技转",
+      "description": "发起/审核/执行技术变更",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 163
+    },
+    {
+      "name": "管理技术复盘",
+      "code": "tech:review",
+      "module": "项目技转",
+      "description": "管理技术复盘记录",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 164
+    },
+    {
+      "name": "管理技术案例库",
+      "code": "tech:case:manage",
+      "module": "项目技转",
+      "description": "管理技术案例库沉淀",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 165
+    },
+    {
+      "name": "技转模块全域管控",
+      "code": "tech:admin",
+      "module": "项目技转",
+      "description": "分级标准/权限矩阵/审计日志管控",
+      "created_at": "2026-07-03 04:04:26",
+      "id": 166
+    },
+    {
+      "name": "部门经理审核",
+      "code": "tech:approve:dept",
+      "module": "项目技转",
+      "description": "部门经理审核技术资料（一级）",
+      "created_at": "2026-07-03 06:50:09",
+      "id": 167
+    },
+    {
+      "name": "总经理批准",
+      "code": "tech:approve:gm",
+      "module": "项目技转",
+      "description": "总经理批准技术资料并署名（二级终审）",
+      "created_at": "2026-07-03 06:50:09",
+      "id": 168
+    },
+    {
+      "name": "查看组织",
+      "code": "org:view",
+      "module": "组织模块",
+      "description": "查看部门、岗位、人员及权限",
+      "created_at": "2026-07-09 05:51:49",
+      "id": 169
+    },
+    {
+      "name": "创建部门",
+      "code": "org:create",
+      "module": "组织模块",
+      "description": "新增组织部门",
+      "created_at": "2026-07-09 05:51:49",
+      "id": 170
+    },
+    {
+      "name": "编辑部门",
+      "code": "org:edit",
+      "module": "组织模块",
+      "description": "修改组织部门",
+      "created_at": "2026-07-09 05:51:49",
+      "id": 171
+    },
+    {
+      "name": "删除部门",
+      "code": "org:delete",
+      "module": "组织模块",
+      "description": "删除组织部门",
+      "created_at": "2026-07-09 05:51:49",
+      "id": 172
+    },
+    {
+      "name": "岗位管理",
+      "code": "org:position:manage",
+      "module": "组织模块",
+      "description": "管理岗位及其默认权限/角色",
+      "created_at": "2026-07-09 05:51:49",
+      "id": 173
+    },
+    {
+      "name": "人员管理",
+      "code": "org:personnel:manage",
+      "module": "组织模块",
+      "description": "管理组织人员及权限个性化调整",
+      "created_at": "2026-07-09 05:51:49",
+      "id": 174
+    }
+  ],
+  "nextId": 175
+}

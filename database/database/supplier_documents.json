@@ -1,0 +1,16 @@
+{
+  "records": [
+    {
+      "supplier_id": null,
+      "file_name": "7.æ¾³å°æ®æ¯-ç»å-åé¢.pdf",
+      "file_path": "C:\\Users\\colorful\\Downloads\\sales-service-system\\uploads\\suppliers\\1782519913008_7.____________-______-______.pdf",
+      "file_type": ".pdf",
+      "doc_type": "PDF文档",
+      "description": "7.澳尔普斯-画册-单面.pdf",
+      "file_size": 70414969,
+      "created_at": "2026-06-27 08:25:13",
+      "id": 7
+    }
+  ],
+  "nextId": 8
+}

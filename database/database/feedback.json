@@ -1,0 +1,65 @@
+{
+  "records": [
+    {
+      "title": "批量导入功能CSV编码问题",
+      "description": "导入CSV文件时中文乱码，需要支持UTF-8 BOM编码",
+      "type": "bug",
+      "priority": "high",
+      "module": "询价管理",
+      "submitter": "张三",
+      "assignee": "王工",
+      "status": "resolved",
+      "resolution": "已修复，添加BOM头自动检测",
+      "resolved_at": "2026-05-21 04:02:15",
+      "created_at": "2026-05-21 04:02:15",
+      "updated_at": "2026-05-21 04:02:15",
+      "id": 1
+    },
+    {
+      "title": "希望增加报价单PDF导出",
+      "description": "当前只能导出TXT，希望能直接生成PDF格式报价单",
+      "type": "feature",
+      "priority": "medium",
+      "module": "询价管理",
+      "submitter": "李四",
+      "assignee": "",
+      "status": "open",
+      "resolution": "",
+      "resolved_at": null,
+      "created_at": "2026-05-21 04:02:15",
+      "updated_at": "2026-05-21 04:02:15",
+      "id": 2
+    },
+    {
+      "title": "产品列表搜索不够精确",
+      "description": "搜索产品型号时只能精确匹配，希望支持模糊搜索",
+      "type": "improvement",
+      "priority": "medium",
+      "module": "产品管理",
+      "submitter": "张三",
+      "assignee": "王工",
+      "status": "processing",
+      "resolution": "",
+      "resolved_at": null,
+      "created_at": "2026-05-21 04:02:15",
+      "updated_at": "2026-05-21 04:02:15",
+      "id": 3
+    },
+    {
+      "title": "如何设置批量修改状态？",
+      "description": "不清楚批量修改状态的操作流程",
+      "type": "question",
+      "priority": "low",
+      "module": "询价管理",
+      "submitter": "赵采购",
+      "assignee": "张三",
+      "status": "closed",
+      "resolution": "已提供操作指南",
+      "resolved_at": "2026-05-21 04:02:15",
+      "created_at": "2026-05-21 04:02:15",
+      "updated_at": "2026-05-21 04:02:15",
+      "id": 4
+    }
+  ],
+  "nextId": 5
+}

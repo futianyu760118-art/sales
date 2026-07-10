@@ -1,0 +1,689 @@
+{
+  "records": [
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "?????????",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\"}",
+      "created_at": "2026-05-28 07:04:21",
+      "id": 1
+    },
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "????",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\"}",
+      "created_at": "2026-05-28 07:04:34",
+      "id": 2
+    },
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "????",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\"}",
+      "created_at": "2026-05-28 07:06:54",
+      "id": 3
+    },
+    {
+      "channel_id": 1,
+      "sender": "guest",
+      "content": "能收到吗",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-28 07:10:27",
+      "id": 4
+    },
+    {
+      "channel_id": 2,
+      "sender": "guest",
+      "content": "能收到吗",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-28 07:21:24",
+      "id": 5
+    },
+    {
+      "channel_id": 2,
+      "sender": "guest",
+      "content": "能收到",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-28 07:22:07",
+      "id": 6
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "查询询价",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - cert_configured: 2条\\n  - new: 2条\\n\\n总计 4 条询价单\\n\\n⚠️ 有 2 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:22:38",
+      "id": 7
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "JFX20260528002",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:23:08",
+      "id": 8
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "JFX20260528002",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:23:11",
+      "id": 9
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "JFX20260528002这个订单帮我查一下",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:23:32",
+      "id": 10
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "今天天气怎么样",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:23:39",
+      "id": 11
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "帮助",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我是销售快捷服务系统AI助手，可以帮你：\\n\\n📋 数据查询 - 查询询价、核价、客户、产品等业务数据\\n📊 数据分析 - 分析业务趋势、状态分布、关键指标\\n💡 策略建议 - 提供报价策略、客户跟进建议\\n⚠️ 风险预警 - 识别逾期、滞留等问题\\n📝 待办生成 - 自动提取行动项到待办列表\\n\\n你可以问我：\\n- \\\"询价情况\\\"\\n- \\\"核价进展\\\"\\n- \\\"客户分析\\\"\\n- \\\"产品统计\\\"\\n- \\\"帮助\\\"\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:23:43",
+      "id": 12
+    },
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "????",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\"}",
+      "created_at": "2026-05-28 07:23:49",
+      "id": 13
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "5月询价有几个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 新建: 2条\\n\\n总计 4 条询价单\\n近7天新增: 4条\\n\\n⚠️ 有 2 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:24:06",
+      "id": 14
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "直接连接到询价单",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 新建: 2条\\n\\n总计 4 条询价单\\n近7天新增: 4条\\n\\n⚠️ 有 2 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:25:19",
+      "id": 15
+    },
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "询价状态",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 新建: 2条\\n\\n总计 4 条询价单\\n近7天新增: 4条\\n\\n⚠️ 有 2 条询价单待处理\\n【行动】@admin 高 优先处理待处理询价单\"}",
+      "created_at": "2026-05-28 07:25:22",
+      "id": 16
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "去",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:25:32",
+      "id": 17
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "版主",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:25:48",
+      "id": 18
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "帮助",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我是销售快捷服务系统AI助手，可以帮你：\\n\\n📋 数据查询 - 查询询价、核价、客户、产品等业务数据\\n📊 数据分析 - 分析业务趋势、状态分布、关键指标\\n💡 策略建议 - 提供报价策略、客户跟进建议\\n⚠️ 风险预警 - 识别逾期、滞留等问题\\n📝 待办生成 - 自动提取行动项到待办列表\\n\\n你可以问我：\\n- \\\"询价情况\\\"\\n- \\\"核价进展\\\"\\n- \\\"客户分析\\\"\\n- \\\"产品统计\\\"\\n- \\\"帮助\\\"\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:25:57",
+      "id": 19
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "客户有多少个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 942\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 4条询价\\n\\n💡 有 941 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:26:23",
+      "id": 20
+    },
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "核价进展",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"核价数据分析：\\n\\n📊 核价统计：\\n  - 总计: 84条\\n  - 已完成: 81条\\n  - 待核价: 3条\\n\\n⚠️ 有 3 条核价待完成\\n待核价型号: JFS22-B1WA30-ZJ2-013-001, JFS03-B1WB20, JFS22-B1WB10\\n【行动】@采购 高 尽快完成待核价项目\"}",
+      "created_at": "2026-05-28 07:29:55",
+      "id": 21
+    },
+    {
+      "channel_id": 3,
+      "sender": "admin",
+      "content": "大家好！",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-28 07:30:39",
+      "id": 22
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "电线价格多少",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:40:25",
+      "id": 23
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "客户有多少个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 942\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 4条询价\\n  2. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 940 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:40:40",
+      "id": 24
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "今天询价几个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 待报价: 3条\\n  - 新建: 3条\\n\\n总计 8 条询价单\\n近7天新增: 8条\\n\\n⚠️ 有 6 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:40:52",
+      "id": 25
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "焊锡丝价格是多少",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 07:41:48",
+      "id": 26
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "客户有多少个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 943\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 4条询价\\n  2. 972: 3条询价\\n  3. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 940 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:13:33",
+      "id": 27
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "那个客户有询价",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 待报价: 3条\\n  - 新建: 3条\\n\\n总计 8 条询价单\\n近7天新增: 8条\\n\\n⚠️ 有 6 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:14:18",
+      "id": 28
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "哦噢询价是什么产品",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 待报价: 3条\\n  - 新建: 3条\\n\\n总计 8 条询价单\\n近7天新增: 8条\\n\\n⚠️ 有 6 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:14:54",
+      "id": 29
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "004询价有什么产品",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 待报价: 3条\\n  - 新建: 3条\\n\\n总计 8 条询价单\\n近7天新增: 8条\\n\\n⚠️ 有 6 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:15:14",
+      "id": 30
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "有多少客户",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 944\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 4条询价\\n  2. 972: 3条询价\\n  3. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 941 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:16:31",
+      "id": 31
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "现在客户有多少个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 944\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 4条询价\\n  2. 972: 3条询价\\n  3. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 941 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:16:58",
+      "id": 32
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "你为什么能这么快，用的是什么",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:17:36",
+      "id": 33
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "产品有多少个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"产品数据分析：\\n\\n📊 产品总数: 13\\n  - 工作灯: 3个\\n  - 未分类: 3个\\n  - 投光灯: 1个\\n  - S系列: 6个\\n\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 09:18:04",
+      "id": 34
+    },
+    {
+      "channel_id": 4,
+      "sender": "admin",
+      "content": "111",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-28 09:43:20",
+      "id": 35
+    },
+    {
+      "channel_id": 5,
+      "sender": "admin",
+      "content": "1111",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-28 09:57:13",
+      "id": 36
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "这个询价应该如何跟进",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 证书已选型: 2条\\n  - 待报价: 3条\\n  - 新建: 3条\\n\\n总计 8 条询价单\\n近7天新增: 8条\\n\\n⚠️ 有 6 条询价单待处理\\n【行动】@guest 高 优先处理待处理询价单\",\"context_type\":\"inquiry\",\"context_id\":345}",
+      "created_at": "2026-05-28 09:57:38",
+      "id": 37
+    },
+    {
+      "channel_id": 5,
+      "sender": "admin",
+      "content": "这条询价计划怎么跟进",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-28 09:58:09",
+      "id": 38
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "修改物料库第1行",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-28 10:43:36",
+      "id": 39
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "JFS21-B1WA10-ZP价格多少",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-29 09:56:01",
+      "id": 40
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "JFS04B-B1WA100-ZJ2-020-001价格多少",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-29 09:56:32",
+      "id": 41
+    },
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "JFS04B-B1WA100-ZJ2-020-001????",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"📊 报价库中找到 1 条匹配记录：\\n\\n1. 型号: JFS04B-B1WA100-ZJ2-020-001\\n   产品: S系列工作灯减薄款  \\n   功率: 100*2\\n   💰 单价(RMB): ¥144.19\\n   💲 单价(USD): $21.2\\n   有效期: 30天\\n   创建人: 包跃\\n\\n📋 核价库中找到 1 条匹配记录：\\n\\n1. 型号: JFS04B-B1WA100-ZJ2-020-001\\n   客户: 534\\n   总成本: ¥115.35\\n   💰 核价(RMB): ¥144.1875\\n   💲 核价(USD): $21.2040441176471\\n   核价人: 包跃\\n\\n\"}",
+      "created_at": "2026-05-29 10:12:31",
+      "id": 42
+    },
+    {
+      "channel_id": 0,
+      "sender": "admin",
+      "content": "JFS21-B1WA10-ZJ2???",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"📊 报价库中找到 3 条匹配记录：\\n\\n1. 型号: JFS21-B1WA10-ZJ2\\n   产品: S系列工作灯\\n   功率: 10\\n   💰 单价(RMB): ¥102.89\\n   💲 单价(USD): $15.13\\n   有效期: 30天\\n\\n2. 型号: JFS21-B1WA10-ZJ2-013-001\\n   产品: S系列工作灯\\n   功率: 10*2\\n   💰 单价(RMB): ¥88.98\\n   💲 单价(USD): $13.09\\n   有效期: 30天\\n   创建人: 包跃\\n\\n3. 型号: JFS21-B1WA10-ZJ2-03-001\\n   产品: S系列工作灯\\n   功率: 10*2\\n   💰 单价(RMB): ¥76.05\\n   💲 单价(USD): $11.18\\n   有效期: 30天\\n   创建人: 包跃\\n\\n📋 核价库中找到 5 条匹配记录：\\n\\n1. 型号: JFS21-B1WA10-ZJ2\\n   客户: 556\\n   总成本: ¥82.31\\n   💰 核价(RMB): ¥102.8875\\n   💲 核价(USD): $15.1305147058824\\n\\n2. 型号: JFS21-B1WA10-ZJ2-013-001\\n   客户: 256YL\\n   总成本: ¥71.185\\n   💰 核价(RMB): ¥88.98125\\n   💲 核价(USD): $13.0854779411765\\n   核价人: 包跃\\n\\n3. 型号: JFS21-B1WA10-ZJ2-03-001\\n   客户: 354\\n   总成本: ¥73.37\\n   💰 核价(RMB): ¥91.7125\\n   💲 核价(USD): $13.4871323529412\\n   核价人: 虞周峰\\n\\n4. 型号: JFS21-B1WA10-ZJ2-03-001\\n   客户: 713\\n   总成本: ¥56.26\\n   💰 核价(RMB): ¥70.325\\n   💲 核价(USD): $10.3419117647059\\n   核价人: 包跃\\n\\n5. 型号: JFS21-B1WA10-ZJ2-03-001\\n   客户: 556\\n   总成本: ¥60.84\\n   💰 核价(RMB): ¥76.05\\n   💲 核价(USD): $11.1838235294118\\n   核价人: 包跃\\n\\n\"}",
+      "created_at": "2026-05-29 10:12:47",
+      "id": 43
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "JFS04B-B1WA100-ZJ2-020-001价格多少",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"📊 报价库中找到 1 条匹配记录：\\n\\n1. 型号: JFS04B-B1WA100-ZJ2-020-001\\n   产品: S系列工作灯减薄款  \\n   功率: 100*2\\n   💰 单价(RMB): ¥144.19\\n   💲 单价(USD): $21.2\\n   有效期: 30天\\n   创建人: 包跃\\n\\n📋 核价库中找到 1 条匹配记录：\\n\\n1. 型号: JFS04B-B1WA100-ZJ2-020-001\\n   客户: 534\\n   总成本: ¥115.35\\n   💰 核价(RMB): ¥144.1875\\n   💲 核价(USD): $21.2040441176471\\n   核价人: 包跃\\n\\n\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-29 11:19:14",
+      "id": 44
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "JFS01B-B1WA10价格多少",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"📊 报价库中找到 4 条匹配记录：\\n\\n1. 型号: JFS01B-B1WA10\\n   产品: S系列（DOB宽压）\\n   功率: 10W\\n   证书: 国标\\n   💰 单价(RMB): ¥19.63\\n   💲 单价(USD): $2.89\\n   有效期: 30天\\n   创建人: 孙周杰\\n\\n2. 型号: JFS01B-B1WA10\\n   产品: S系列（DOB宽压）\\n   功率: 10\\n   💰 单价(RMB): ¥19.63\\n   💲 单价(USD): $2.89\\n   有效期: 30天\\n   创建人: 孙周杰\\n\\n3. 型号: JFS01B-B1WA10-ZJ2-013-002\\n   产品: S系列工作灯\\n   功率: 20*2\\n   证书: 国标\\n   💰 单价(RMB): ¥105.81\\n   💲 单价(USD): $15.5\\n   有效期: 30天\\n   创建人: 虞周峰\\n\\n4. 型号: JFS01B-B1WA10\\n   产品: S系列（DOB宽压）\\n   功率: 10W\\n   证书: CE\\n   💰 单价(RMB): ¥19.63\\n   💲 单价(USD): $2.89\\n   有效期: 30天\\n   创建人: 管理员\\n\\n📋 核价库中找到 5 条匹配记录：\\n\\n1. 型号: JFS01B-B1WA10\\n   客户: 957\\n   总成本: ¥15.7\\n   💰 核价(RMB): ¥19.625\\n   💲 核价(USD): $2.88602941176471\\n   核价人: 孙周杰\\n\\n2. 型号: JFS01B-B1WA10-ZJ2-013-002\\n   客户: 256\\n   总成本: ¥84.65\\n   💰 核价(RMB): ¥105.81\\n   💲 核价(USD): $15.5\\n   核价人: 虞周峰\\n\\n3. 型号: JFS01B-B1WA10\\n   客户: VMMS ELECTRICAL.LTD\\n   总成本: ¥15.7\\n   💰 核价(RMB): ¥19.62\\n   💲 核价(USD): $2.88\\n   核价人: 孙周杰\\n\\n4. 型号: JFS01B-B1WA10\\n   客户: 深圳市诗凡国际光电有限公司\\n   总成本: ¥15.7\\n   💰 核价(RMB): ¥19.625\\n   💲 核价(USD): $2.88602941176471\\n   核价人: 孙周杰\\n\\n5. 型号: JFS01B-B1WA10\\n   客户: 深圳市诗凡国际光电有限公司\\n   总成本: ¥15.7\\n   💰 核价(RMB): ¥19.625\\n   💲 核价(USD): $2.88602941176471\\n   核价人: 孙周杰\\n\\n\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-29 11:20:49",
+      "id": 45
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "这个询价有那些需要完善的",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 配置表已生成: 1条\\n\\n总计 1 条询价单\\n近7天新增: 1条\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-05-29 16:26:04",
+      "id": 46
+    },
+    {
+      "channel_id": 9,
+      "sender": "admin",
+      "content": "旭日",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-30 09:41:41",
+      "id": 47
+    },
+    {
+      "channel_id": 10,
+      "sender": "admin",
+      "content": "1111",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-05-30 16:29:59",
+      "id": 48
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "你需要自我学习，思考",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-01 15:17:19",
+      "id": 49
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "目前有多少客户",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 939\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 2条询价\\n  2. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 937 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 11:33:20",
+      "id": 50
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "这一周新建了多少客户",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 939\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 2条询价\\n  2. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 937 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 11:33:35",
+      "id": 51
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "对没有联系的客户给我制定行动计划",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 939\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 2条询价\\n  2. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 937 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 11:34:13",
+      "id": 52
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "询价单一共有几个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 已报价: 3条\\n\\n总计 3 条询价单\\n近7天新增: 3条\\n\\n💡 有 3 条已报价/洽谈中，建议及时跟进\\n【行动】@guest 中 跟进已报价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 12:00:29",
+      "id": 53
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "分析客户管理内容，找出问题，制定行动计划",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"客户数据分析：\\n\\n📊 客户总数: 939\\n\\n🏆 询价最多的客户：\\n  1. 深圳市诗凡国际光电有限公司: 2条询价\\n  2. 宁波佳和照明科技有限公司: 1条询价\\n\\n💡 有 937 个客户暂无询价记录，建议主动跟进\\n【行动】@guest 中 主动联系无询价客户\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 12:01:03",
+      "id": 54
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "发发发",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 12:01:13",
+      "id": 55
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "你怎么学习",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 12:01:36",
+      "id": 56
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "ff",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 12:02:07",
+      "id": 57
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "@11",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-02 12:02:18",
+      "id": 58
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "有多少个订单还没有交付",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"你好！我是销售快捷服务系统AI助手。\\n\\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\\n\\n输入\\\"帮助\\\"查看我能做什么。\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-29 14:28:56",
+      "id": 59
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "??????",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我已了解当前业务上下文。\\n\\n关于你的问题\\\"??????\\\"：\\n\\n基于当前数据分析，建议你：\\n1. 检查相关业务数据的完整性\\n2. 关注关键时间节点\\n3. 及时跟进待处理事项\\n\\n如需更详细的分析，请提供更具体的问题描述。\\n\\n【行动】@test 中 跟进当前业务事项\"}",
+      "created_at": "2026-06-29 15:14:31",
+      "id": 60
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "????",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我已了解当前业务上下文。\\n\\n关于你的问题\\\"????\\\"：\\n\\n基于当前数据分析，建议你：\\n1. 检查相关业务数据的完整性\\n2. 关注关键时间节点\\n3. 及时跟进待处理事项\\n\\n如需更详细的分析，请提供更具体的问题描述。\\n\\n【行动】@test 中 跟进当前业务事项\"}",
+      "created_at": "2026-06-29 15:15:18",
+      "id": 61
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "??",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我已了解当前业务上下文。\\n\\n关于你的问题\\\"??\\\"：\\n\\n基于当前数据分析，建议你：\\n1. 检查相关业务数据的完整性\\n2. 关注关键时间节点\\n3. 及时跟进待处理事项\\n\\n如需更详细的分析，请提供更具体的问题描述。\\n\\n【行动】@test 中 跟进当前业务事项\"}",
+      "created_at": "2026-06-29 15:16:05",
+      "id": 62
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "总览",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"系统数据总览：\\n\\n  询价单: 16条\\n  客户: 1175条\\n  产品: 82条\\n  物料: 795条\\n  供应商: 1726条\\n  订单: 134条\\n  样品: 172条\\n  研发项目: 671条\\n  核价记录: 86条\\n  报价记录: 90条\\n  问题反馈: 4条\\n  待办行动: 4条\\n\\n💡 输入具体模块名称获取详细分析（如\\\"项目\\\"\\\"订单\\\"\\\"物料\\\"等）\"}",
+      "created_at": "2026-06-29 15:16:30",
+      "id": 63
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "项目进度",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"研发项目分析：\\n\\n📊 项目总数: 671个\\n  - 预项目: 670个\\n  - 进行中: 1个\\n\\n🔄 进行中项目 (1个):\\n  RD2026-001 测试项目A [手样] 负责人:张三\\n\\n⚠️ 未闭环品质异常: 1个\"}",
+      "created_at": "2026-06-29 15:16:37",
+      "id": 64
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "订单情况",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"订单分析：\\n\\n📊 订单总数: 134条\\n  - completed: 14条\\n  - open: 120条\\n\\n⚠️ 待处理: 120条\\n【行动】@销售 高 处理待确认订单\\n💰 订单总额: ¥21,860,828\"}",
+      "created_at": "2026-06-29 15:16:37",
+      "id": 65
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "物料库存",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"物料分析：\\n\\n📊 物料总数: 795种\\n  - normal: 795种\\n\\n⚠️ 库存预警: 618种低于最低库存\\n  191系列30W 壳体(塑料、黑色)封样号：FY-19130-001: 库存10/10\\n  191系列30W壳体免拆手杆 毛坯  图号：ZJ-19130-001: 库存2/8\\n  星耀系列夹子款 充电灯吸塑反光罩  图纸号：JWA02-02-01 版本A: 库存0/0\\n  星耀系列 透明PC罩 材质:PC 颜色：透明  图纸号：JWA02-03-01 版本A: 库存0/0\\n  PC    颜色：透明   牌号：乐天1100: 库存0/0\\n【行动】@采购 高 补充库存不足物料\"}",
+      "created_at": "2026-06-29 15:16:37",
+      "id": 66
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "询价",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"根据系统数据分析：\\n\\n📊 询价单状态分布：\\n  - 已报价: 13条\\n  - 待报价: 3条\\n\\n总计 16 条询价单\\n近7天新增: 8条\\n\\n⚠️ 有 3 条询价单待处理\\n【行动】@test 高 优先处理待处理询价单\\n\\n💡 有 13 条已报价/洽谈中，建议及时跟进\\n【行动】@test 中 跟进已报价客户\"}",
+      "created_at": "2026-06-29 15:16:37",
+      "id": 67
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "目前还有多少订单没有做",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"订单分析：\\n\\n📊 订单总数: 134条\\n  - completed: 14条\\n  - open: 120条\\n\\n⚠️ 待处理: 120条\\n【行动】@销售 高 处理待确认订单\\n💰 订单总额: ¥21,860,828\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-29 15:17:37",
+      "id": 68
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "项目一共有多少个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"研发项目分析：\\n\\n📊 项目总数: 671个\\n  - 预项目: 670个\\n  - 进行中: 1个\\n\\n🔄 进行中项目 (1个):\\n  RD2026-001 测试项目A [手样] 负责人:张三\\n\\n⚠️ 未闭环品质异常: 1个\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-29 15:18:08",
+      "id": 69
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "你好",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我已了解当前业务上下文。\\n\\n关于你的问题\\\"你好\\\"：\\n\\n基于当前数据分析，建议你：\\n1. 检查相关业务数据的完整性\\n2. 关注关键时间节点\\n3. 及时跟进待处理事项\\n\\n如需更详细的分析，请提供更具体的问题描述。\\n\\n【行动】@test 中 跟进当前业务事项\"}",
+      "created_at": "2026-06-29 16:01:12",
+      "id": 70
+    },
+    {
+      "channel_id": 0,
+      "sender": "test",
+      "content": "你好",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我已了解当前业务上下文。\\n\\n关于你的问题\\\"你好\\\"：\\n\\n基于当前数据分析，建议你：\\n1. 检查相关业务数据的完整性\\n2. 关注关键时间节点\\n3. 及时跟进待处理事项\\n\\n如需更详细的分析，请提供更具体的问题描述。\\n\\n【行动】@test 中 跟进当前业务事项\"}",
+      "created_at": "2026-06-29 18:10:43",
+      "id": 71
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "7月出货订单有哪几个",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"订单分析：\\n\\n📊 订单总数: 308条\\n  - open: 307条\\n  - confirmed: 1条\\n\\n⚠️ 待处理: 308条\\n【行动】@销售 高 处理待确认订单\\n💰 订单总额: ¥22,151,858\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-29 19:21:49",
+      "id": 72
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "图纸",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我已了解当前业务上下文。\\n\\n关于你的问题\\\"图纸\\\"：\\n\\n基于当前数据分析，建议你：\\n1. 检查相关业务数据的完整性\\n2. 关注关键时间节点\\n3. 及时跟进待处理事项\\n\\n如需更详细的分析，请提供更具体的问题描述。\\n\\n【行动】@guest 中 跟进当前业务事项\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-30 18:18:31",
+      "id": 73
+    },
+    {
+      "channel_id": 0,
+      "sender": "guest",
+      "content": "圆头螺丝 M3*16 304不锈",
+      "msg_type": "ai_chat",
+      "metadata": "{\"ai_reply\":\"我已了解当前业务上下文。\\n\\n关于你的问题\\\"圆头螺丝 M3*16 304不锈\\\"：\\n\\n基于当前数据分析，建议你：\\n1. 检查相关业务数据的完整性\\n2. 关注关键时间节点\\n3. 及时跟进待处理事项\\n\\n如需更详细的分析，请提供更具体的问题描述。\\n\\n【行动】@guest 中 跟进当前业务事项\",\"context_type\":\"\",\"context_id\":null}",
+      "created_at": "2026-06-30 18:18:56",
+      "id": 74
+    },
+    {
+      "channel_id": 16,
+      "sender": "admin",
+      "content": "这把不是不是",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-06-30 18:45:20",
+      "id": 75
+    },
+    {
+      "channel_id": 17,
+      "sender": "admin",
+      "content": "111",
+      "msg_type": "text",
+      "metadata": "",
+      "created_at": "2026-07-02 14:11:01",
+      "id": 76
+    }
+  ],
+  "nextId": 77
+}

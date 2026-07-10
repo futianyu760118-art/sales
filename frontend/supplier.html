@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 供应商管理</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
+    .level-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .level-A { background: #ffe0b2; color: #e65100; }
+    .level-B { background: #e1f5fe; color: #0277bd; }
+    .level-C { background: #f3e5f5; color: #7b1fa2; }
+    .level-D { background: #f5f5f5; color: #616161; }
+    .lifecycle-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .lc-audit { background: #fff3e0; color: #ef6c00; }
+    .lc-approved { background: #e3f2fd; color: #1565c0; }
+    .lc-cooperating { background: #e8f5e9; color: #2e7d32; }
+    .lc-suspended { background: #fce4ec; color: #c62828; }
+    .lc-blacklist { background: #212121; color: #fff; }
+    .risk-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .risk-low { background: #e8f5e9; color: #2e7d32; }
+    .risk-medium { background: #fff3e0; color: #ef6c00; }
+    .risk-high { background: #fce4ec; color: #c62828; }
+    .score-good { color: #27ae60; font-weight: 700; }
+    .score-ok { color: #f39c12; font-weight: 700; }
+    .score-bad { color: #e74c3c; font-weight: 700; }
+    .detail-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 15px; }
+    .detail-tabs button { padding: 8px 18px; border: none; background: none; cursor: pointer; font-size: 13px; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .detail-tabs button.active { color: #667eea; border-bottom-color: #667eea; font-weight: 600; }
+    .detail-tab-content { display: none; }
+    .detail-tab-content.active { display: block; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .star-rating { color: #f39c12; font-size: 14px; }
+    .eval-card { background: #f8f9fa; border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .eval-card .eval-date { color: #999; font-size: 12px; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .stat-item { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; }
+    .stat-item .stat-num { font-size: 22px; font-weight: 700; color: #667eea; }
+    .stat-item .stat-label { font-size: 11px; color: #999; margin-top: 4px; }
+    .cell-link { color: #667eea; font-weight: 500; cursor: pointer; }
+    .cell-link:hover { text-decoration: underline; }
+    /* 内联编辑 */
+    td.ed { cursor: text; border: 1px dashed transparent; }
+    td.ed:hover { border-color: #d0d7ff; background: #f8f9ff; }
+    td.ed.ing { padding: 0; background: #fffaf0; border: 1px solid #667eea; }
+    td.ed input, td.ed select { width: 100%; padding: 6px 8px; border: none; font-size: 13px; background: transparent; outline: none; }
+    .ed-tip { font-size: 11px; color: #bbb; margin-left: 10px; }
+    /* 合作分析仪表盘 */
+    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 12px; }
+    .dash-card { background: #fff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 2px 6px rgba(0,0,0,.06); border: 1px solid #f0f0f0; }
+    .dash-card h4 { margin: 0 0 8px; font-size: 12px; color: #888; font-weight: 600; }
+    .mini-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 3px 0; border-bottom: 1px dashed #f0f0f0; gap: 8px; }
+    .mini-row:last-child { border-bottom: none; }
+    .mini-row b { color: #333; }
+    .mini-row .lbl { color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-wrap { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+    .bar-fill { height: 100%; background: #667eea; border-radius: 3px; }
+    .dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .dim-cell { background: #f8f9fa; border-radius: 6px; padding: 6px 8px; text-align: center; }
+    .dim-cell .dv { font-size: 16px; font-weight: 700; color: #667eea; }
+    .dim-cell .dl { font-size: 11px; color: #999; }
+  </style>
+  <script src="import-dropzone.js"></script>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+
+  <div class="main-content" data-module="supplier">
+    <!-- 主Tab导航 -->
+    <div class="tab-nav" id="mainTabs">
+      <button class="active" onclick="switchTab('list')">供应商列表</button>
+      <button id="tabDetailBtn" onclick="switchTab('detail')" style="display:none;">供应商详情</button>
+    </div>
+
+    <!-- Tab: 供应商列表 -->
+    <div class="tab-content active" id="tab-list">
+      <div class="header">
+        <h2>供应商管理</h2>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="showAddModal()" data-perm="supplier:create" data-feature="inline_edit">新增供应商</button>
+          <button class="btn btn-warning" onclick="extractFromMaterials()" data-perm="supplier:create" data-feature="import">从物料提取</button>
+          <button class="btn btn-info" onclick="ImportDropzone.open()" data-perm="supplier:create" data-feature="import">批量导入</button>
+          <button class="btn" style="background:#9b59b6;color:#fff;" onclick="openDedupe()" data-perm="supplier:edit" data-feature="inline_edit">名称去重</button>
+          <button class="btn btn-success" onclick="exportSuppliers()" data-perm="supplier:view" data-feature="export">导出数据</button>
+        </div>
+      </div>
+
+      <div class="dash-panel" data-feature="dashboard">
+        <div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>📊 供应商统计与合作分析</span><span class="dash-arrow">▼</span></div>
+        <div class="dash-body">
+          <div id="statsOverview" class="stats-row"></div>
+          <div id="coopAnalysis" class="dash-grid"></div>
+        </div>
+      </div>
+
+      <div class="search-bar" data-feature="filter" style="align-items:center;">
+        <input type="text" id="searchInput" placeholder="搜索供应商名称/编码/联系人..." style="min-width:200px;">
+        <select id="levelFilter">
+          <option value="">全部等级</option>
+          <option value="A级（战略）">A级（战略）</option>
+          <option value="B级（优选）">B级（优选）</option>
+          <option value="C级（合格）">C级（合格）</option>
+          <option value="D级（试用）">D级（试用）</option>
+        </select>
+        <select id="lifecycleFilter">
+          <option value="">全部状态</option>
+          <option value="待审">待审</option>
+          <option value="已准入">已准入</option>
+          <option value="合作中">合作中</option>
+          <option value="暂停">暂停</option>
+          <option value="黑名单">黑名单</option>
+        </select>
+        <select id="riskFilter">
+          <option value="">全部风险</option>
+          <option value="低">低</option>
+          <option value="中">中</option>
+          <option value="高">高</option>
+        </select>
+        <select id="categoryFilter">
+          <option value="">全部类别</option>
+        </select>
+        <button class="btn btn-primary" onclick="searchSuppliers()">查询</button>
+        <span class="ed-tip">提示：双击单元格可直接编辑 · 点击表头排序</span>
+      </div>
+
+      <div class="table-container">
+        <table id="supplierTableEl">
+          <thead>
+            <tr>
+              <th class="seq-col">#</th>
+              <th data-sort="code">供应商编码</th>
+              <th data-sort="name">供应商名称</th>
+              <th data-sort="contact">联系人</th>
+              <th data-sort="phone">电话</th>
+              <th data-sort="category">类别</th>
+              <th data-sort="level">等级</th>
+              <th data-sort="lifecycle_status">生命周期</th>
+              <th data-sort="risk_level">风险等级</th>
+              <th data-sort="overall_score">综合评分</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="supplierTable"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Tab: 供应商详情 -->
+    <div class="tab-content" id="tab-detail">
+      <div class="header">
+        <h2 id="detailHeader">供应商详情</h2>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="detailEditBtn" data-perm="supplier:edit" data-feature="inline_edit">编辑</button>
+          <button class="btn btn-danger" id="detailDeleteBtn" data-perm="supplier:delete" data-feature="inline_edit">删除</button>
+          <button class="btn" style="background:#eee;" onclick="switchTab('list')">返回列表</button>
+        </div>
+      </div>
+
+      <div class="detail-tabs" id="detailSubTabs">
+        <button class="active" onclick="switchDetailSubTab('basic')">基本信息</button>
+        <button onclick="switchDetailSubTab('products')">供应产品</button>
+        <button onclick="switchDetailSubTab('evaluations')">评估记录</button>
+      </div>
+
+      <div class="detail-tab-content active" id="detail-basic">
+        <div id="detailBasicContent"></div>
+      </div>
+
+      <div class="detail-tab-content" id="detail-products">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button class="btn btn-primary btn-sm" onclick="showAddProductModal()" data-perm="supplier:edit">添加产品</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th class="seq-col">#</th><th>产品名称</th><th>产品型号</th><th>单价</th><th>单位</th><th>备注</th><th>操作</th></tr>
+            </thead>
+            <tbody id="detailProductsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="detail-tab-content" id="detail-evaluations">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button class="btn btn-primary btn-sm" onclick="showAddEvalModal()" data-perm="supplier:edit">添加评估</button>
+        </div>
+        <div id="detailEvalContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增/编辑供应商弹窗 -->
+  <div class="modal" id="supplierModal">
+    <div class="modal-content" style="max-width:800px;">
+      <span class="close-btn" onclick="closeModal('supplierModal')">&times;</span>
+      <h3 id="modalTitle">新增供应商</h3>
+      <form id="supplierForm">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <div class="form-group"><label>供应商编码</label><input type="text" id="fCode" placeholder="自动生成或手动输入"></div>
+          <div class="form-group"><label>供应商名称 *</label><input type="text" id="fName" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>联系人</label><input type="text" id="fContact"></div>
+          <div class="form-group"><label>电话</label><input type="text" id="fPhone"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>邮箱</label><input type="text" id="fEmail"></div>
+          <div class="form-group"><label>地址</label><input type="text" id="fAddress"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>类别</label><input type="text" id="fCategory" placeholder="如：电子元器件、结构件"></div>
+          <div class="form-group"><label>等级</label>
+            <select id="fLevel">
+              <option value="">请选择</option>
+              <option value="A级（战略）">A级（战略）</option>
+              <option value="B级（优选）">B级（优选）</option>
+              <option value="C级（合格）">C级（合格）</option>
+              <option value="D级（试用）">D级（试用）</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>生命周期</label>
+            <select id="fLifecycleStatus">
+              <option value="待审">待审</option>
+              <option value="已准入">已准入</option>
+              <option value="合作中">合作中</option>
+              <option value="暂停">暂停</option>
+              <option value="黑名单">黑名单</option>
+            </select>
+          </div>
+          <div class="form-group"><label>风险等级</label>
+            <select id="fRiskLevel">
+              <option value="低">低</option>
+              <option value="中">中</option>
+              <option value="高">高</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>供应物料</label>
+          <textarea id="fSupplyMaterials" rows="2" placeholder="供应物料清单，用逗号分隔"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+          <button type="button" class="btn" style="background:#eee;" onclick="closeModal('supplierModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 添加供应产品弹窗 -->
+  <div class="modal" id="productModal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close-btn" onclick="closeModal('productModal')">&times;</span>
+      <h3>添加供应产品</h3>
+      <form id="productForm">
+        <input type="hidden" id="pEditId">
+        <div class="form-group"><label>产品名称 *</label><input type="text" id="pName" required></div>
+        <div class="form-group"><label>产品型号</label><input type="text" id="pModel"></div>
+        <div class="form-row">
+          <div class="form-group"><label>单价</label><input type="number" id="pPrice" step="0.01"></div>
+          <div class="form-group"><label>单位</label><input type="text" id="pUnit" placeholder="如：个、kg、m"></div>
+        </div>
+        <div class="form-group"><label>备注</label><textarea id="pRemark" rows="2"></textarea></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+          <button type="button" class="btn" style="background:#eee;" onclick="closeModal('productModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 添加评估记录弹窗 -->
+  <div class="modal" id="evalModal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close-btn" onclick="closeModal('evalModal')">&times;</span>
+      <h3>添加评估记录</h3>
+      <form id="evalForm">
+        <input type="hidden" id="eEditId">
+        <div class="form-row">
+          <div class="form-group"><label>质量评分 (1-100)</label><input type="number" id="eQualityScore" min="0" max="100"></div>
+          <div class="form-group"><label>交付评分 (1-100)</label><input type="number" id="eDeliveryScore" min="0" max="100"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>价格评分 (1-100)</label><input type="number" id="ePriceScore" min="0" max="100"></div>
+          <div class="form-group"><label>服务评分 (1-100)</label><input type="number" id="eServiceScore" min="0" max="100"></div>
+        </div>
+        <div class="form-group"><label>综合评价</label><textarea id="eRemark" rows="3" placeholder="综合评价说明..."></textarea></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+          <button type="button" class="btn" style="background:#eee;" onclick="closeModal('evalModal')">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 从物料提取弹窗 -->
+  <div class="modal" id="extractModal">
+    <div class="modal-content" style="max-width:700px;">
+      <span class="close-btn" onclick="closeModal('extractModal')">&times;</span>
+      <h3>从物料库提取供应商</h3>
+      <div id="extractStatus" style="text-align:center;padding:20px;color:#666;">正在扫描物料库中的供应商信息...</div>
+      <div id="extractResults" style="display:none;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+        <button type="button" class="btn" style="background:#eee;" onclick="closeModal('extractModal')">取消</button>
+        <button type="button" class="btn btn-primary" id="extractImportBtn" onclick="doExtractImport()" style="display:none;">导入选中</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 供应商名称去重弹窗 -->
+  <div class="modal" id="dedupeModal">
+    <div class="modal-content" style="max-width:760px;">
+      <span class="close-btn" onclick="closeModal('dedupeModal')">&times;</span>
+      <h3>供应商名称去重</h3>
+      <div id="dedupeStatus" style="text-align:center;padding:24px;color:#666;">正在扫描重复供应商...</div>
+      <div id="dedupeResults" style="display:none;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:15px;">
+        <button type="button" class="btn" style="background:#eee;" onclick="closeModal('dedupeModal')">关闭</button>
+        <button type="button" class="btn btn-danger" id="dedupeApplyBtn" onclick="applyDedupe()" style="display:none;">确认去重</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin + '/api';
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentSupplierId = null;
+    let suppliersData = [];
+    let extractedSuppliers = [];
+
+    function getLevelClass(level) {
+      if (!level) return '';
+      if (level.includes('A')) return 'level-A';
+      if (level.includes('B')) return 'level-B';
+      if (level.includes('C')) return 'level-C';
+      return 'level-D';
+    }
+
+    function escAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+    function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+    function getLifecycleClass(lc) {
+      const m = { '待审': 'lc-audit', '已准入': 'lc-approved', '合作中': 'lc-cooperating', '暂停': 'lc-suspended', '黑名单': 'lc-blacklist' };
+      return m[lc] || '';
+    }
+
+    function getRiskClass(risk) {
+      const m = { '低': 'risk-low', '中': 'risk-medium', '高': 'risk-high' };
+      return m[risk] || '';
+    }
+
+    function getScoreClass(score) {
+      if (!score && score !== 0) return '';
+      const v = parseFloat(score);
+      if (v >= 80) return 'score-good';
+      if (v >= 60) return 'score-ok';
+      return 'score-bad';
+    }
+
+    function stars(n) {
+      const v = Math.round((parseFloat(n) || 0) / 20);
+      return '★'.repeat(v) + '☆'.repeat(5 - v);
+    }
+
+    // ===== Tab切换 =====
+    function switchTab(tab) {
+      document.querySelectorAll('#mainTabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      if (tab === 'list') {
+        document.querySelector('#mainTabs button:first-child').classList.add('active');
+        document.getElementById('tab-list').classList.add('active');
+        document.getElementById('tabDetailBtn').style.display = 'none';
+        currentSupplierId = null;
+      } else if (tab === 'detail') {
+        document.getElementById('tabDetailBtn').classList.add('active');
+        document.getElementById('tab-detail').classList.add('active');
+      }
+    }
+
+    function switchDetailSubTab(sub) {
+      document.querySelectorAll('#detailSubTabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.detail-tab-content').forEach(c => c.classList.remove('active'));
+      const btn = document.querySelector(`#detailSubTabs button[onclick*="${sub}"]`);
+      if (btn) btn.classList.add('active');
+      const content = document.getElementById('detail-' + sub);
+      if (content) content.classList.add('active');
+    }
+
+    // ===== 加载统计概览 =====
+    async function loadStatsOverview() {
+      try {
+        const res = await fetch(`${API}/suppliers/stats/overview`);
+        const stats = await res.json();
+        const container = document.getElementById('statsOverview');
+        container.innerHTML = `
+          <div class="stat-item"><div class="stat-num">${stats.total || 0}</div><div class="stat-label">供应商总数</div></div>
+          <div class="stat-item"><div class="stat-num">${stats.by_lifecycle ? (stats.by_lifecycle.cooperating || 0) : 0}</div><div class="stat-label">合作中</div></div>
+          <div class="stat-item"><div class="stat-num">${stats.by_lifecycle ? (stats.by_lifecycle.approved || 0) : 0}</div><div class="stat-label">已准入</div></div>
+          <div class="stat-item"><div class="stat-num">${stats.by_lifecycle ? (stats.by_lifecycle.reviewing || 0) : 0}</div><div class="stat-label">待审核</div></div>
+          <div class="stat-item"><div class="stat-num">${stats.by_risk ? (stats.by_risk.high || 0) : 0}</div><div class="stat-label" style="color:#e74c3c;">高风险</div></div>
+        `;
+        renderCoopAnalysis(stats);
+      } catch(e) { console.error('加载统计失败', e); }
+    }
+
+    // ===== 供应商合作分析面板 =====
+    function renderCoopAnalysis(stats) {
+      const c = stats.cooperation || {};
+      const el = document.getElementById('coopAnalysis');
+      if (!el) return;
+      const coopRate = c.cooperation_rate != null ? c.cooperation_rate : 0;
+      const total = stats.total || 0;
+      const coopCount = c.cooperating_count || 0;
+      const lvl = c.level_distribution || { A: 0, B: 0, C: 0, D: 0 };
+      const lvlMax = Math.max(1, lvl.A || 0, lvl.B || 0, lvl.C || 0, lvl.D || 0);
+      const lvlColor = { A: '#e65100', B: '#0277bd', C: '#7b1fa2', D: '#616161' };
+      const lvlRows = ['A', 'B', 'C', 'D'].map(k => `
+        <div class="mini-row">
+          <span class="lbl"><span class="level-badge ${getLevelClass(k)}" style="background:${lvlColor[k]}22;color:${lvlColor[k]};">${k}级</span></span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="width:50px;"><div class="bar-wrap"><div class="bar-fill" style="width:${Math.round((lvl[k]||0)/lvlMax*100)}%;background:${lvlColor[k]};"></div></div></span>
+            <b>${lvl[k] || 0}</b>
+          </span>
+        </div>`).join('');
+
+      const topCats = (c.by_category_top || []).map(it => `
+        <div class="mini-row">
+          <span class="lbl" title="${escAttr(it.name)}">${escHtml(it.name)}</span><b>${it.value}</b>
+        </div>`).join('') || '<div class="mini-row" style="color:#999;">暂无类别数据</div>';
+
+      const topSups = (stats.top_suppliers || []).slice(0, 6).map(s => `
+        <div class="mini-row">
+          <span class="lbl" title="${escAttr(s.name)}">${(escHtml(s.name)||'-').length>14?(escHtml(s.name)||'-').substring(0,14)+'…':(escHtml(s.name)||'-')}</span>
+          <b class="${getScoreClass(s.score)}">${s.score != null ? s.score : '-'}分</b>
+        </div>`).join('') || '<div class="mini-row" style="color:#999;">暂无评分供应商</div>';
+
+      const dimGrid = `
+        <div class="dim-grid">
+          <div class="dim-cell"><div class="dv">${c.avg_quality ?? '-'}</div><div class="dl">质量</div></div>
+          <div class="dim-cell"><div class="dv">${c.avg_delivery ?? '-'}</div><div class="dl">交付</div></div>
+          <div class="dim-cell"><div class="dv">${c.avg_price ?? '-'}</div><div class="dl">价格</div></div>
+          <div class="dim-cell"><div class="dv">${c.avg_service ?? '-'}</div><div class="dl">服务</div></div>
+        </div>`;
+
+      el.innerHTML = `
+        <div class="dash-card">
+          <h4>🤝 合作概况</h4>
+          <div class="mini-row"><span class="lbl">合作率</span><b style="color:#27ae60;">${coopRate}%</b></div>
+          <div class="mini-row"><span class="lbl">合作中</span><b>${coopCount} / ${total}</b></div>
+          <div class="mini-row"><span class="lbl">已评估供应商</span><b>${c.evaluated_count || 0}</b></div>
+          <div class="mini-row"><span class="lbl">评估次数</span><b>${c.evaluation_times || 0}</b></div>
+          <div class="mini-row"><span class="lbl">供应产品数</span><b>${c.product_count || 0}</b></div>
+        </div>
+        <div class="dash-card">
+          <h4>⭐ 等级分布</h4>
+          ${lvlRows}
+        </div>
+        <div class="dash-card">
+          <h4>📈 平均评分（维度）</h4>
+          ${dimGrid}
+          <div class="mini-row" style="margin-top:8px;"><span class="lbl">综合均分</span><b class="${getScoreClass(stats.avg_score)}" style="font-size:15px;">${stats.avg_score ?? '-'}</b></div>
+        </div>
+        <div class="dash-card">
+          <h4>🏆 优秀供应商 TOP</h4>
+          ${topSups}
+        </div>
+        <div class="dash-card">
+          <h4>📦 类别构成 TOP</h4>
+          ${topCats}
+        </div>`;
+    }
+
+    // ===== 加载供应商列表 =====
+    async function loadSuppliers(page = 1) {
+      currentPage = page;
+      const keyword = document.getElementById('searchInput').value.trim();
+      const level = document.getElementById('levelFilter').value;
+      const lifecycle = document.getElementById('lifecycleFilter').value;
+      const risk = document.getElementById('riskFilter').value;
+      const category = document.getElementById('categoryFilter').value;
+
+      const params = new URLSearchParams({ page, limit: 20 });
+      if (keyword) params.set('keyword', keyword);
+      if (level) params.set('level', level);
+      if (lifecycle) params.set('lifecycle_status', lifecycle);
+      if (risk) params.set('risk_level', risk);
+      if (category) params.set('category', category);
+
+      const res = await fetch(`${API}/suppliers?${params}`);
+      const data = await res.json();
+      suppliersData = data.data || [];
+      renderTable();
+      totalPages = Math.ceil(data.total / 20);
+      renderPagination(page);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('supplierTable');
+      tbody.innerHTML = '';
+      if (suppliersData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:#999;">暂无供应商数据</td></tr>';
+        return;
+      }
+      suppliersData.forEach((item, idx) => {
+        const seqNum = (currentPage - 1) * 20 + idx + 1;
+        const tr = document.createElement('tr');
+        const lcVal = item.lifecycle_status || '';
+        const riskVal = item.risk_level || '';
+        const levelVal = item.level || '';
+        tr.innerHTML = `
+          <td class="seq-col">${seqNum}</td>
+          <td>${escHtml(item.code) || '-'}</td>
+          <td><span class="cell-link" onclick="showSupplierDetail(${item.id})">${escHtml(item.name) || '-'}</span></td>
+          <td class="ed" data-edit="contact" data-sid="${item.id}" data-val="${escAttr(item.contact)}">${escHtml(item.contact) || '-'}</td>
+          <td class="ed" data-edit="phone" data-sid="${item.id}" data-val="${escAttr(item.phone)}">${escHtml(item.phone) || '-'}</td>
+          <td class="ed" data-edit="category" data-sid="${item.id}" data-val="${escAttr(item.category)}">${escHtml(item.category) || '-'}</td>
+          <td class="ed" data-edit="level" data-sid="${item.id}" data-val="${escAttr(levelVal)}"><span class="level-badge ${getLevelClass(item.level)}">${escHtml(item.level) || '-'}</span></td>
+          <td class="ed" data-edit="lifecycle_status" data-sid="${item.id}" data-val="${escAttr(lcVal)}"><span class="lifecycle-badge ${getLifecycleClass(item.lifecycle_status)}">${escHtml(item.lifecycle_status) || '-'}</span></td>
+          <td class="ed" data-edit="risk_level" data-sid="${item.id}" data-val="${escAttr(riskVal)}"><span class="risk-badge ${getRiskClass(item.risk_level)}">${escHtml(item.risk_level) || '-'}</span></td>
+          <td data-num="${item.overall_score || 0}"><span class="${getScoreClass(item.overall_score)}">${item.overall_score != null ? stars(item.overall_score) + ' ' + item.overall_score : '-'}</span></td>
+          <td>
+            <button class="btn btn-info btn-sm" onclick="showSupplierDetail(${item.id})">详情</button>
+            <button class="btn btn-primary btn-sm" onclick="showEditModal(${item.id})">编辑</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${item.id})">删除</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      attachInlineEdits();
+      initTableSortFilter();
+    }
+
+    function renderPagination(page) {
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+      if (totalPages <= 1) return;
+      if (page > 1) pagination.innerHTML += `<button onclick="loadSuppliers(${page - 1})">上一页</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && Math.abs(i - page) > 2 && i !== 1 && i !== totalPages) {
+          if (i === page - 3 || i === page + 3) pagination.innerHTML += '<button disabled>...</button>';
+          continue;
+        }
+        pagination.innerHTML += `<button ${i === page ? 'class="active"' : ''} onclick="loadSuppliers(${i})">${i}</button>`;
+      }
+      if (page < totalPages) pagination.innerHTML += `<button onclick="loadSuppliers(${page + 1})">下一页</button>`;
+    }
+
+    function searchSuppliers() { loadSuppliers(1); }
+
+    // ===== 表格排序/筛选（复用通用组件） =====
+    function initTableSortFilter() {
+      if (!window.TableSortFilter) return;
+      if (TableSortFilter.instances['supplierTableEl']) {
+        TableSortFilter.refresh('supplierTableEl');
+      } else {
+        TableSortFilter.init('supplierTableEl', {
+          sortFields: { 1: 'code', 2: 'name', 3: 'contact', 4: 'phone', 5: 'category', 6: 'level', 7: 'lifecycle_status', 8: 'risk_level', 9: 'overall_score' },
+          filterFields: { 5: 'category', 6: 'level', 7: 'lifecycle_status', 8: 'risk_level' }
+        });
+      }
+    }
+
+    // ===== 单元格内联编辑（双击修改） =====
+    const ED_SELECT = {
+      level: ['A级（战略）', 'B级（优选）', 'C级（合格）', 'D级（试用）', 'A', 'B', 'C', 'D'],
+      lifecycle_status: ['reserve', 'reviewing', 'approved', 'cooperating', 'observing', 'exited', '待审', '已准入', '合作中', '暂停', '黑名单'],
+      risk_level: ['低', '中', '高', 'low', 'medium', 'high']
+    };
+    function attachInlineEdits() {
+      document.querySelectorAll('#supplierTable td.ed').forEach(td => {
+        if (td.dataset.bound) return;
+        td.dataset.bound = '1';
+        td.addEventListener('dblclick', () => startInlineEdit(td));
+      });
+    }
+    function startInlineEdit(td) {
+      const field = td.dataset.edit;
+      const sid = td.dataset.sid;
+      const cur = td.dataset.val !== undefined ? td.dataset.val : td.textContent.trim();
+      td.classList.add('ing');
+      let input;
+      const opts = ED_SELECT[field];
+      if (opts) {
+        input = document.createElement('select');
+        input.innerHTML = `<option value="">(空)</option>` + opts.map(o => `<option value="${o}" ${String(o) === String(cur) ? 'selected' : ''}>${o}</option>`).join('');
+        if (cur && !opts.includes(cur)) input.innerHTML += `<option value="${cur}" selected>${cur}</option>`;
+      } else {
+        input = document.createElement('input');
+        input.type = (field === 'phone') ? 'text' : 'text';
+        input.value = cur;
+      }
+      td.innerHTML = '';
+      td.appendChild(input);
+      input.focus();
+      if (input.select) input.select();
+      let done = false;
+      const save = async () => {
+        if (done) return; done = true;
+        const val = input.value;
+        if (String(val) === String(cur)) { loadSuppliers(currentPage); return; }
+        try {
+          const rr = await fetch(`${API}/suppliers/${sid}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [field]: val }) });
+          if (!rr.ok) { const e = await rr.json().catch(() => ({})); alert('保存失败: ' + (e.error || rr.status)); }
+        } catch (e) { alert('保存失败: ' + e.message); }
+        loadSuppliers(currentPage);
+        loadStatsOverview();
+      };
+      const cancel = () => { if (!done) { done = true; loadSuppliers(currentPage); } };
+      input.addEventListener('blur', save);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+      });
+    }
+
+    // ===== 供应商名称去重 =====
+    async function openDedupe() {
+      document.getElementById('dedupeModal').style.display = 'flex';
+      document.getElementById('dedupeStatus').style.display = 'block';
+      document.getElementById('dedupeStatus').textContent = '正在扫描重复供应商...';
+      document.getElementById('dedupeResults').style.display = 'none';
+      document.getElementById('dedupeApplyBtn').style.display = 'none';
+      try {
+        const res = await fetch(`${API}/suppliers/dedupe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apply: false }) });
+        const data = await res.json();
+        renderDedupeResults(data, false);
+      } catch (e) {
+        document.getElementById('dedupeStatus').textContent = '扫描失败: ' + e.message;
+      }
+    }
+
+    function renderDedupeResults(data, applied) {
+      const status = document.getElementById('dedupeStatus');
+      const results = document.getElementById('dedupeResults');
+      const applyBtn = document.getElementById('dedupeApplyBtn');
+      const dups = data.duplicates || [];
+      status.style.display = 'none';
+      results.style.display = 'block';
+      if (dups.length === 0) {
+        results.innerHTML = `<div style="text-align:center;padding:30px;color:#27ae60;">✓ 未发现重复供应商${applied ? '，数据已清理完毕' : ''}</div>`;
+        applyBtn.style.display = 'none';
+        return;
+      }
+      let html = `<div style="margin-bottom:10px;font-size:13px;color:#666;">发现 <b style="color:#e74c3c;">${dups.length}</b> 组重复（将保留信息更完整的一条，其余合并删除）：</div>`;
+      html += '<div style="max-height:340px;overflow-y:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="background:#f5f6fa;"><th style="padding:6px 8px;text-align:left;">保留（名称）</th><th style="padding:6px 8px;text-align:left;">保留编码</th><th style="padding:6px 8px;text-align:left;">删除（名称）</th><th style="padding:6px 8px;text-align:left;">删除编码</th></tr></thead><tbody>';
+      dups.forEach(d => {
+        html += `<tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:6px 8px;color:#27ae60;">${escHtml(d.kept_name) || '-'}</td>
+          <td style="padding:6px 8px;">${escHtml(d.kept_code) || '-'}</td>
+          <td style="padding:6px 8px;color:#e74c3c;text-decoration:line-through;">${escHtml(d.removed_name) || '-'}</td>
+          <td style="padding:6px 8px;">${escHtml(d.removed_code) || '-'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+      results.innerHTML = html;
+      applyBtn.style.display = applied ? 'none' : 'inline-block';
+      applyBtn.textContent = `确认去重（删除 ${dups.length} 条）`;
+    }
+
+    async function applyDedupe() {
+      if (!confirm('确认执行去重？将保留信息更完整的记录，被删供应商的关联产品/评估/资料会迁移到保留记录。')) return;
+      document.getElementById('dedupeApplyBtn').disabled = true;
+      try {
+        const res = await fetch(`${API}/suppliers/dedupe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apply: true }) });
+        const data = await res.json();
+        alert(data.message);
+        renderDedupeResults({ duplicates: [] }, true);
+        document.getElementById('dedupeResults').innerHTML = `<div style="text-align:center;padding:30px;color:#27ae60;">✓ ${data.message}</div>`;
+        loadSuppliers(currentPage);
+        loadStatsOverview();
+      } catch (e) {
+        alert('去重失败: ' + e.message);
+      } finally {
+        document.getElementById('dedupeApplyBtn').disabled = false;
+      }
+    }
+
+    // ===== 供应商详情 =====
+    async function showSupplierDetail(id) {
+      currentSupplierId = id;
+      try {
+        const res = await fetch(`${API}/suppliers/${id}`);
+        const item = await res.json();
+        document.getElementById('detailHeader').textContent = item.name + ' - 供应商详情';
+        document.getElementById('tabDetailBtn').style.display = 'inline-block';
+        switchTab('detail');
+        document.getElementById('detailEditBtn').onclick = () => showEditModal(id);
+        document.getElementById('detailDeleteBtn').onclick = () => { if(confirm('确定删除该供应商吗？')) deleteSupplier(id).then(() => switchTab('list')); };
+        renderDetailBasic(item);
+        loadSupplierProducts(id);
+        loadSupplierEvaluations(id);
+        switchDetailSubTab('basic');
+      } catch(e) { alert('加载详情失败: ' + e.message); }
+    }
+
+    function renderDetailBasic(item) {
+      let html = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+          <div>
+            <h4 style="color:#667eea;margin-bottom:10px;font-size:14px;">基本信息</h4>
+            <div class="detail-row"><span class="detail-label">供应商编码</span><span class="detail-value">${item.code || '-'}</span></div>
+            <div class="detail-row"><span class="detail-label">供应商名称</span><span class="detail-value">${item.name || '-'}</span></div>
+            <div class="detail-row"><span class="detail-label">联系人</span><span class="detail-value">${item.contact || '-'}</span></div>
+            <div class="detail-row"><span class="detail-label">电话</span><span class="detail-value">${item.phone || '-'}</span></div>
+            <div class="detail-row"><span class="detail-label">邮箱</span><span class="detail-value">${item.email ? '<a href="mailto:'+item.email+'" style="color:#667eea;">'+item.email+'</a>' : '-'}</span></div>
+            <div class="detail-row"><span class="detail-label">地址</span><span class="detail-value">${item.address || '-'}</span></div>
+            <div class="detail-row"><span class="detail-label">类别</span><span class="detail-value">${item.category || '-'}</span></div>
+          </div>
+          <div>
+            <h4 style="color:#667eea;margin-bottom:10px;font-size:14px;">评级信息</h4>
+            <div class="detail-row"><span class="detail-label">等级</span><span class="detail-value"><span class="level-badge ${getLevelClass(item.level)}">${item.level || '-'}</span></span></div>
+            <div class="detail-row"><span class="detail-label">生命周期</span><span class="detail-value"><span class="lifecycle-badge ${getLifecycleClass(item.lifecycle_status)}">${item.lifecycle_status || '-'}</span></span></div>
+            <div class="detail-row"><span class="detail-label">风险等级</span><span class="detail-value"><span class="risk-badge ${getRiskClass(item.risk_level)}">${item.risk_level || '-'}</span></span></div>
+            <div class="detail-row"><span class="detail-label">质量评分</span><span class="detail-value"><span class="${getScoreClass(item.quality_score)}">${item.quality_score != null ? stars(item.quality_score) + ' ' + item.quality_score : '-'}</span></span></div>
+            <div class="detail-row"><span class="detail-label">交付评分</span><span class="detail-value"><span class="${getScoreClass(item.delivery_score)}">${item.delivery_score != null ? stars(item.delivery_score) + ' ' + item.delivery_score : '-'}</span></span></div>
+            <div class="detail-row"><span class="detail-label">价格评分</span><span class="detail-value"><span class="${getScoreClass(item.price_score)}">${item.price_score != null ? stars(item.price_score) + ' ' + item.price_score : '-'}</span></span></div>
+            <div class="detail-row"><span class="detail-label">服务评分</span><span class="detail-value"><span class="${getScoreClass(item.service_score)}">${item.service_score != null ? stars(item.service_score) + ' ' + item.service_score : '-'}</span></span></div>
+            <div class="detail-row"><span class="detail-label">综合评分</span><span class="detail-value"><span class="${getScoreClass(item.overall_score)}" style="font-size:16px;">${item.overall_score != null ? stars(item.overall_score) + ' ' + item.overall_score : '-'}</span></span></div>
+          </div>
+        </div>
+      `;
+      if (item.supply_materials) {
+        html += `<div style="margin-top:15px;"><h4 style="color:#667eea;margin-bottom:8px;font-size:14px;">供应物料</h4><div style="background:#f8f9fa;padding:10px;border-radius:6px;font-size:13px;">${item.supply_materials}</div></div>`;
+      }
+      document.getElementById('detailBasicContent').innerHTML = html;
+    }
+
+    // ===== 供应产品 =====
+    async function loadSupplierProducts(id) {
+      id = id || currentSupplierId;
+      if (!id) return;
+      try {
+        const res = await fetch(`${API}/suppliers/${id}/products`);
+        const products = await res.json();
+        const data = products.data || products;
+        const tbody = document.getElementById('detailProductsTable');
+        tbody.innerHTML = '';
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">暂无供应产品</td></tr>';
+          return;
+        }
+        data.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="seq-col">${idx + 1}</td>
+            <td>${p.name || '-'}</td>
+            <td>${p.model || '-'}</td>
+            <td>${p.price != null ? '¥' + p.price : '-'}</td>
+            <td>${p.unit || '-'}</td>
+            <td>${p.remark || '-'}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="editProduct(${id}, ${p.id})">编辑</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteProduct(${id}, ${p.id})">删除</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch(e) { console.error('加载产品失败', e); }
+    }
+
+    function showAddProductModal() {
+      document.getElementById('pEditId').value = '';
+      document.getElementById('productForm').reset();
+      document.getElementById('productModal').style.display = 'flex';
+    }
+
+    async function editProduct(supplierId, productId) {
+      const res = await fetch(`${API}/suppliers/${supplierId}/products`);
+      const products = await res.json();
+      const data = products.data || products;
+      const item = data.find(p => p.id === productId);
+      if (!item) return;
+      document.getElementById('pEditId').value = item.id;
+      document.getElementById('pName').value = item.name || '';
+      document.getElementById('pModel').value = item.model || '';
+      document.getElementById('pPrice').value = item.price || '';
+      document.getElementById('pUnit').value = item.unit || '';
+      document.getElementById('pRemark').value = item.remark || '';
+      document.getElementById('productModal').style.display = 'flex';
+    }
+
+    document.getElementById('productForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const editId = document.getElementById('pEditId').value;
+      const data = {
+        name: document.getElementById('pName').value.trim(),
+        model: document.getElementById('pModel').value.trim(),
+        price: parseFloat(document.getElementById('pPrice').value) || null,
+        unit: document.getElementById('pUnit').value.trim(),
+        remark: document.getElementById('pRemark').value.trim()
+      };
+      if (!data.name) { alert('请输入产品名称'); return; }
+
+      let url = `${API}/suppliers/${currentSupplierId}/products`;
+      let method = 'POST';
+      if (editId) { url += '/' + editId; method = 'PUT'; }
+      try {
+        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        if (res.ok) { closeModal('productModal'); loadSupplierProducts(); }
+        else { const err = await res.json(); alert(err.error || '操作失败'); }
+      } catch(e) { alert('操作失败: ' + e.message); }
+    });
+
+    async function deleteProduct(supplierId, productId) {
+      if (!confirm('确定删除该产品吗？')) return;
+      try {
+        const res = await fetch(`${API}/suppliers/${supplierId}/products/${productId}`, { method: 'DELETE' });
+        if (res.ok) { loadSupplierProducts(); }
+        else { alert('删除失败'); }
+      } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
+    // ===== 评估记录 =====
+    async function loadSupplierEvaluations(id) {
+      id = id || currentSupplierId;
+      if (!id) return;
+      try {
+        const res = await fetch(`${API}/suppliers/${id}/evaluations`);
+        const evals = await res.json();
+        const data = evals.data || evals;
+        const container = document.getElementById('detailEvalContent');
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">暂无评估记录</div>';
+          return;
+        }
+        let html = '';
+        data.forEach(ev => {
+          html += `<div class="eval-card">
+            <div class="eval-date">${ev.created_at || ev.eval_date || '-'}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;font-size:13px;">
+              <div>质量: <span class="${getScoreClass(ev.quality_score)}">${ev.quality_score != null ? stars(ev.quality_score) + ' ' + ev.quality_score : '-'}</span></div>
+              <div>交付: <span class="${getScoreClass(ev.delivery_score)}">${ev.delivery_score != null ? stars(ev.delivery_score) + ' ' + ev.delivery_score : '-'}</span></div>
+              <div>价格: <span class="${getScoreClass(ev.price_score)}">${ev.price_score != null ? stars(ev.price_score) + ' ' + ev.price_score : '-'}</span></div>
+              <div>服务: <span class="${getScoreClass(ev.service_score)}">${ev.service_score != null ? stars(ev.service_score) + ' ' + ev.service_score : '-'}</span></div>
+            </div>
+            ${ev.remark ? '<div style="font-size:13px;color:#555;">' + ev.remark + '</div>' : ''}
+            <div style="text-align:right;margin-top:6px;">
+              <button class="btn btn-danger btn-sm" onclick="deleteEval(${id}, ${ev.id})">删除</button>
+            </div>
+          </div>`;
+        });
+        container.innerHTML = html;
+      } catch(e) { console.error('加载评估失败', e); }
+    }
+
+    function showAddEvalModal() {
+      document.getElementById('eEditId').value = '';
+      document.getElementById('evalForm').reset();
+      document.getElementById('evalModal').style.display = 'flex';
+    }
+
+    document.getElementById('evalForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = {
+        quality_score: parseFloat(document.getElementById('eQualityScore').value) || null,
+        delivery_score: parseFloat(document.getElementById('eDeliveryScore').value) || null,
+        price_score: parseFloat(document.getElementById('ePriceScore').value) || null,
+        service_score: parseFloat(document.getElementById('eServiceScore').value) || null,
+        remark: document.getElementById('eRemark').value.trim()
+      };
+      try {
+        const res = await fetch(`${API}/suppliers/${currentSupplierId}/evaluations`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+        if (res.ok) { closeModal('evalModal'); loadSupplierEvaluations(); loadSuppliers(currentPage); }
+        else { const err = await res.json(); alert(err.error || '添加失败'); }
+      } catch(e) { alert('添加失败: ' + e.message); }
+    });
+
+    async function deleteEval(supplierId, evalId) {
+      if (!confirm('确定删除该评估记录吗？')) return;
+      try {
+        const res = await fetch(`${API}/suppliers/${supplierId}/evaluations/${evalId}`, { method: 'DELETE' });
+        if (res.ok) loadSupplierEvaluations();
+        else alert('删除失败');
+      } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
+    // ===== 新增/编辑供应商 =====
+    function showAddModal() {
+      document.getElementById('modalTitle').textContent = '新增供应商';
+      document.getElementById('editId').value = '';
+      document.getElementById('supplierForm').reset();
+      document.getElementById('fLifecycleStatus').value = '待审';
+      document.getElementById('fRiskLevel').value = '低';
+      document.getElementById('supplierModal').style.display = 'flex';
+    }
+
+    async function showEditModal(id) {
+      try {
+        const res = await fetch(`${API}/suppliers/${id}`);
+        const item = await res.json();
+        document.getElementById('modalTitle').textContent = '编辑供应商';
+        document.getElementById('editId').value = item.id;
+        document.getElementById('fCode').value = item.code || '';
+        document.getElementById('fName').value = item.name || '';
+        document.getElementById('fContact').value = item.contact || '';
+        document.getElementById('fPhone').value = item.phone || '';
+        document.getElementById('fEmail').value = item.email || '';
+        document.getElementById('fAddress').value = item.address || '';
+        document.getElementById('fCategory').value = item.category || '';
+        document.getElementById('fLevel').value = item.level || '';
+        document.getElementById('fLifecycleStatus').value = item.lifecycle_status || '待审';
+        document.getElementById('fRiskLevel').value = item.risk_level || '低';
+        document.getElementById('fSupplyMaterials').value = item.supply_materials || '';
+        document.getElementById('supplierModal').style.display = 'flex';
+      } catch(e) { alert('加载失败: ' + e.message); }
+    }
+
+    document.getElementById('supplierForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const data = {
+        code: document.getElementById('fCode').value.trim(),
+        name: document.getElementById('fName').value.trim(),
+        contact: document.getElementById('fContact').value.trim(),
+        phone: document.getElementById('fPhone').value.trim(),
+        email: document.getElementById('fEmail').value.trim(),
+        address: document.getElementById('fAddress').value.trim(),
+        category: document.getElementById('fCategory').value.trim(),
+        level: document.getElementById('fLevel').value,
+        lifecycle_status: document.getElementById('fLifecycleStatus').value,
+        risk_level: document.getElementById('fRiskLevel').value,
+        supply_materials: document.getElementById('fSupplyMaterials').value.trim()
+      };
+      if (!data.name) { alert('请输入供应商名称'); return; }
+
+      const url = id ? `${API}/suppliers/${id}` : `${API}/suppliers`;
+      const method = id ? 'PUT' : 'POST';
+      try {
+        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        if (res.ok) {
+          alert(id ? '更新成功' : '创建成功');
+          closeModal('supplierModal');
+          loadSuppliers(currentPage);
+          if (currentSupplierId === parseInt(id)) showSupplierDetail(id);
+        } else {
+          const err = await res.json();
+          alert(err.error || '操作失败');
+        }
+      } catch(e) { alert('操作失败: ' + e.message); }
+    });
+
+    async function deleteSupplier(id) {
+      if (!confirm('确定要删除该供应商吗？')) return;
+      try {
+        const res = await fetch(`${API}/suppliers/${id}`, { method: 'DELETE' });
+        if (res.ok) { loadSuppliers(currentPage); }
+        else { const err = await res.json(); alert(err.error || '删除失败'); }
+      } catch(e) { alert('删除失败: ' + e.message); }
+    }
+
+    // ===== 从物料提取供应商 =====
+    async function extractFromMaterials() {
+      document.getElementById('extractModal').style.display = 'flex';
+      document.getElementById('extractStatus').style.display = 'block';
+      document.getElementById('extractStatus').textContent = '正在扫描物料库中的供应商信息...';
+      document.getElementById('extractResults').style.display = 'none';
+      document.getElementById('extractImportBtn').style.display = 'none';
+      extractedSuppliers = [];
+
+      try {
+        const res = await fetch(`${API}/suppliers/extract-from-materials`, { method: 'POST' });
+        const data = await res.json();
+        extractedSuppliers = data.suppliers || data || [];
+        document.getElementById('extractStatus').style.display = 'none';
+        document.getElementById('extractResults').style.display = 'block';
+        if (extractedSuppliers.length === 0) {
+          document.getElementById('extractResults').innerHTML = '<div style="text-align:center;padding:20px;color:#999;">未发现新的供应商信息</div>';
+          return;
+        }
+        document.getElementById('extractImportBtn').style.display = 'inline-block';
+        let html = `<div style="margin-bottom:10px;font-size:13px;color:#666;">发现 <b>${extractedSuppliers.length}</b> 个可提取的供应商</div>`;
+        html += '<div style="max-height:300px;overflow-y:auto;"><table style="width:100%;font-size:12px;"><thead><tr style="background:#f5f6fa;"><th style="padding:6px 8px;"><input type="checkbox" id="extractCheckAll" onchange="toggleExtractCheckAll(this)" checked></th><th style="padding:6px 8px;">名称</th><th style="padding:6px 8px;">联系人</th><th style="padding:6px 8px;">物料来源</th></tr></thead><tbody>';
+        extractedSuppliers.forEach((s, idx) => {
+          html += `<tr>
+            <td style="padding:6px 8px;"><input type="checkbox" class="extract-check" data-idx="${idx}" checked></td>
+            <td style="padding:6px 8px;">${s.name || '-'}</td>
+            <td style="padding:6px 8px;">${s.contact || '-'}</td>
+            <td style="padding:6px 8px;">${s.material_source || '-'}</td>
+          </tr>`;
+        });
+        html += '</tbody></table></div>';
+        document.getElementById('extractResults').innerHTML = html;
+      } catch(e) {
+        document.getElementById('extractStatus').textContent = '提取失败: ' + e.message;
+      }
+    }
+
+    function toggleExtractCheckAll(cb) {
+      document.querySelectorAll('.extract-check').forEach(c => c.checked = cb.checked);
+    }
+
+    async function doExtractImport() {
+      const selected = [];
+      document.querySelectorAll('.extract-check:checked').forEach(cb => {
+        const idx = parseInt(cb.dataset.idx);
+        if (extractedSuppliers[idx]) selected.push(extractedSuppliers[idx]);
+      });
+      if (selected.length === 0) { alert('请至少选择一个供应商'); return; }
+
+      try {
+        let success = 0;
+        for (const s of selected) {
+          const res = await fetch(`${API}/suppliers`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: s.name, contact: s.contact, phone: s.phone || '', email: s.email || '',
+              supply_materials: s.material_source || '', lifecycle_status: '待审', risk_level: '低'
+            })
+          });
+          if (res.ok) success++;
+        }
+        alert(`成功导入 ${success} 个供应商`);
+        closeModal('extractModal');
+        loadSuppliers();
+        loadStatsOverview();
+      } catch(e) { alert('导入失败: ' + e.message); }
+    }
+
+    // ===== 导出 =====
+    function exportSuppliers() {
+      const keyword = document.getElementById('searchInput').value.trim();
+      let url = `${API}/suppliers/export?`;
+      if (keyword) url += `keyword=${encodeURIComponent(keyword)}`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `供应商导出_${new Date().toISOString().substring(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.addEventListener('click', function(e) {
+      if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+    });
+
+    loadStatsOverview();
+    loadSuppliers();
+  </script>
+  <div id="importDropzoneContainer"></div>
+  <script>
+    ImportDropzone.init('importDropzoneContainer', 'suppliers', () => { loadSuppliers(); loadStatsOverview(); });
+  </script>
+  <script src="permission-check.js"></script>
+  <script>PermissionCheck.init();</script>
+  <script src="table-sort-filter.js"></script>
+  <script src="chat-widget.js"></script>
+  <script src="feature-gate.js"></script>
+  <script>FeatureGate.init();</script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>问题反馈</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:720px;max-width:95%;max-height:90vh;overflow:auto}
+.mb2{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:50px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-open{background:#d4edda;color:#155724}.st-proc{background:#cce5ff;color:#004085}.st-resolved{background:#fff3cd;color:#856404}.st-closed{background:#e2e3e5;color:#383d41}
+.p-high{background:#f8d7da;color:#721c24}.p-medium{background:#fff3cd;color:#856404}.p-low{background:#d1ecf1;color:#0c5460}.p-urgent{background:#f5c6cb;color:#721c24;font-weight:700}
+.tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>问题反馈</h2>
+<button class="btn b2" onclick="openAdd()">新增反馈</button>
+</div>
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('list',this)">反馈列表</button>
+<button onclick="swTab('stats',this)">统计分析</button>
+</div>
+
+<!-- 反馈列表 -->
+<div class="tc ac" id="tab-list">
+<div class="sb">
+<input type="text" id="fKw" placeholder="搜索标题/提交人" style="width:200px" onkeydown="if(event.key==='Enter')loadList(1)">
+<select id="fStatus"><option value="">全部状态</option><option value="open">待处理</option><option value="processing">处理中</option><option value="resolved">已解决</option><option value="closed">已关闭</option></select>
+<select id="fType"><option value="">全部类型</option><option value="bug">缺陷</option><option value="feature">功能需求</option><option value="improvement">改进建议</option><option value="question">问题咨询</option></select>
+<select id="fPriority"><option value="">全部优先级</option><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="urgent">紧急</option></select>
+<button class="btn b1" onclick="loadList(1)">搜索</button>
+<span style="margin-left:auto">共 <b id="fTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>标题</th><th>类型</th><th>优先级</th><th>模块</th><th>提交人</th><th>处理人</th><th>状态</th><th>提交时间</th><th>操作</th>
+</tr></thead><tbody id="fTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+</div>
+<div id="fPg" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- 统计分析 -->
+<div class="tc" id="tab-stats">
+<div class="sg" id="stStats"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+<div id="stByStatus"></div>
+<div id="stByType"></div>
+</div>
+</div>
+</div>
+
+<!-- 新增/编辑弹窗 -->
+<div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
+
+<script>
+const API='/api/feedback';
+const typeMap={bug:'缺陷',feature:'功能需求',improvement:'改进建议',question:'问题咨询'};
+const priorityMap={low:'低',medium:'中',high:'高',urgent:'紧急'};
+const statusMap={open:'待处理',processing:'处理中',resolved:'已解决',closed:'已关闭'};
+const priorityCls={low:'p-low',medium:'p-medium',high:'p-high',urgent:'p-urgent'};
+const statusCls={open:'st-open',processing:'st-proc',resolved:'st-resolved',closed:'st-closed'};
+
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');
+  document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='list')loadList(1);
+  else if(name==='stats')loadStats();
+}
+
+let fPage=1;
+async function loadList(page){
+  fPage=page||1;
+  const p=new URLSearchParams({page:fPage,limit:50});
+  const kw=document.getElementById('fKw').value,st=document.getElementById('fStatus').value,tp=document.getElementById('fType').value,pr=document.getElementById('fPriority').value;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(tp)p.set('type',tp);if(pr)p.set('priority',pr);
+  try{
+    const r=await fetch(API+'?'+p);const d=await r.json();
+    const total=d.total||0;document.getElementById('fTc').textContent=total;
+    const recs=d.data||[],tb=document.getElementById('fTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无数据</td></tr>';renderPg('fPg',total,fPage,loadList);return}
+    tb.innerHTML=recs.map(f=>`<tr>
+      <td><b>${(f.title||'').substring(0,24)}</b></td>
+      <td><span class="badge" style="background:#e8eaf6;color:#3949ab">${typeMap[f.type]||f.type||'-'}</span></td>
+      <td><span class="badge ${priorityCls[f.priority]||''}">${priorityMap[f.priority]||f.priority||'-'}</span></td>
+      <td>${f.module||'-'}</td>
+      <td>${f.submitter||'-'}</td>
+      <td>${f.assignee||'-'}</td>
+      <td><span class="badge ${statusCls[f.status]||''}">${statusMap[f.status]||f.status||'-'}</span></td>
+      <td>${(f.created_at||'').substring(0,10)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="openEdit(${f.id})">编辑</button>
+        <button class="btn bs b3" onclick="delItem(${f.id})" data-perm="feedback:delete">删除</button>
+      </td>
+    </tr>`).join('');
+    renderPg('fPg',total,fPage,loadList);
+  }catch(e){console.error(e)}
+}
+
+function renderPg(elId,total,page,fn){
+  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  if(pages<=1){el.innerHTML='';return}
+  let h='';
+  if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
+  for(let i=Math.max(1,page-2);i<=Math.min(pages,page+2);i++)h+=`<button class="btn bs ${i===page?'b1':''}" onclick="${fn.name}(${i})">${i}</button> `;
+  if(page<pages)h+=`<button class="btn bs" onclick="${fn.name}(${page+1})">下一页</button>`;
+  el.innerHTML=h;
+}
+
+function openAdd(){
+  const fields=[
+    ['title','标题*','text'],['type','类型','select:bug,feature,improvement,question'],['priority','优先级','select:low,medium,high,urgent'],
+    ['module','模块','text'],['submitter','提交人','text'],['assignee','处理人','text'],
+    ['status','状态','select:open,processing,resolved,closed'],['description','描述','textarea'],
+    ['screenshots','截图链接','text'],['resolution','解决方案','textarea'],['resolved_at','解决时间','date']
+  ];
+  openForm('新增反馈',fields,{status:'open'},async(data)=>{
+    if(!data.title){alert('标题必填');return}
+    await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');
+    loadList(1);
+  });
+}
+
+async function openEdit(id){
+  try{
+    const r=await fetch(API+'/'+id);const f=await r.json();
+    const fields=[
+      ['title','标题*','text'],['type','类型','select:bug,feature,improvement,question'],['priority','优先级','select:low,medium,high,urgent'],
+      ['module','模块','text'],['submitter','提交人','text'],['assignee','处理人','text'],
+      ['status','状态','select:open,processing,resolved,closed'],['description','描述','textarea'],
+      ['screenshots','截图链接','text'],['resolution','解决方案','textarea'],['resolved_at','解决时间','date']
+    ];
+    openForm('编辑反馈',fields,f,async(data)=>{
+      if(!data.title){alert('标题必填');return}
+      await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');
+      loadList(fPage);
+    });
+  }catch(e){alert('加载失败')}
+}
+
+async function delItem(id){
+  if(!PermissionCheck.has('feedback:delete')){alert('无删除权限');return;}
+  if(!confirm('确定删除此反馈？'))return;
+  await fetch(API+'/'+id,{method:'DELETE'});
+  loadList(fPage);
+}
+
+async function loadStats(){
+  try{
+    const r=await fetch(API+'/stats/summary');const d=await r.json();
+    document.getElementById('stStats').innerHTML=`
+      <div class="sc"><div class="n">${d.total||0}</div><div class="l">反馈总数</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${d.by_status?.open||0}</div><div class="l">待处理</div></div>
+      <div class="sc"><div class="n" style="color:#e67e22">${d.by_status?.processing||0}</div><div class="l">处理中</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${d.by_status?.resolved||0}</div><div class="l">已解决</div></div>
+      <div class="sc"><div class="n" style="color:#999">${d.by_status?.closed||0}</div><div class="l">已关闭</div></div>
+    `;
+    const bs=d.by_status||{};
+    document.getElementById('stByStatus').innerHTML=`<h4 style="margin:0 0 8px;color:#555">按状态分布</h4>${renderDist(bs,statusMap)}`;
+    const bt=d.by_type||{};
+    document.getElementById('stByType').innerHTML=`<h4 style="margin:0 0 8px;color:#555">按类型分布</h4>${renderDist(bt,typeMap)}`;
+  }catch(e){console.error(e)}
+}
+
+function renderDist(data,labelMap){
+  const entries=Object.entries(data||{});
+  if(!entries.length)return '<div class="em">暂无数据</div>';
+  const maxVal=Math.max(...entries.map(([,v])=>v),1);
+  return entries.map(([k,v])=>{
+    const pct=Math.round(v/maxVal*100);
+    return `<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>${labelMap[k]||k}</span><span style="color:#667eea;font-weight:600">${v}</span></div><div style="background:#eee;border-radius:4px;height:8px"><div style="background:#667eea;border-radius:4px;height:8px;width:${pct}%"></div></div></div>`;
+  }).join('');
+}
+
+function openForm(title,fields,data,onSave){
+  const box=document.getElementById('gMoBox');
+  let html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${title}</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">×</span></div>`;
+  html+='<div style="max-height:60vh;overflow-y:auto;padding-right:6px">';
+  let i=0;
+  while(i<fields.length){
+    const [key,label,type]=fields[i];
+    if(type==='textarea'){
+      html+=`<div class="fg"><label>${label}</label><textarea id="ff_${key}">${data[key]||''}</textarea></div>`;
+      i++;
+    }else{
+      const next=fields[i+1];
+      if(next&&next[2]!=='textarea'){
+        html+='<div class="gr">';
+        html+=renderField(fields[i],data);
+        html+=renderField(next,data);
+        html+='</div>';
+        i+=2;
+      }else{
+        html+='<div class="gr">';
+        html+=renderField(fields[i],data);
+        html+='</div>';
+        i++;
+      }
+    }
+  }
+  html+='</div>';
+  html+='<div style="text-align:right;margin-top:12px"><button class="btn b2" id="ffSave">保存</button></div>';
+  box.innerHTML=html;
+  document.getElementById('gMo').classList.add('ac');
+  document.getElementById('ffSave').onclick=()=>{
+    const d={};
+    fields.forEach(([key,,type])=>{
+      const el=document.getElementById('ff_'+key);
+      if(!el)return;
+      d[key]=type==='number'?Number(el.value)||0:el.value;
+    });
+    onSave(d);
+  };
+}
+
+function renderField([key,label,type],data){
+  const val=data[key]||'';
+  if(type.startsWith('select:')){
+    const opts=type.substring(7).split(',');
+    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  }
+  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}"></div>`;
+}
+
+loadList(1);
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body></html>

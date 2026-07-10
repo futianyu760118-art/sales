@@ -1,0 +1,1240 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>销售快捷服务系统 - 核价表</title>
+  <link rel="stylesheet" href="common.css">
+  <style>
+    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
+    .table-container td.left { text-align: left; }
+    .table-container th.left { text-align: left; }
+    .bom-header { background: #e8eaf6 !important; color: #3949ab; }
+    .price-header { background: #e8f5e9 !important; color: #2e7d32; }
+    .total-cell { font-weight: 700; color: #e74c3c; }
+    .price-cell { font-weight: 600; color: #27ae60; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+    .form-row-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .section-title { font-size: 14px; font-weight: 600; color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 4px; margin: 12px 0 8px; }
+    .section-title.price { color: #27ae60; border-color: #27ae60; }
+    .cost-input { text-align: right; }
+    .auto-calc { background: #f0f7ff; padding: 8px 12px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
+    .auto-calc strong { color: #e74c3c; font-size: 16px; }
+    .product-link { color: #667eea; cursor: pointer; text-decoration: underline; }
+    .badge-linked { background: #e8f5e9; color: #388e3c; }
+    .badge-unlinked { background: #ffebee; color: #c62828; }
+    .expand-icon { cursor: pointer; color: #667eea; font-size: 14px; user-select: none; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; transition: all 0.2s; }
+    .expand-icon:hover { background: #e8eaf6; }
+    .expand-icon.expanded { transform: rotate(90deg); }
+    .group-row { background: #f0f4ff !important; font-weight: 500; }
+    .group-row:hover { background: #e8edff !important; }
+    .group-row td { border-bottom: 2px solid #c5cae9 !important; }
+    .sub-row { display: none; }
+    .sub-row.visible { display: table-row; }
+    .sub-row td:first-child { padding-left: 28px; }
+    .sub-count { background: #667eea; color: white; border-radius: 10px; padding: 1px 7px; font-size: 11px; margin-left: 4px; }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main-content" data-module="pricing">
+    <div class="header">
+      <h2>BOM核价表</h2>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showAddModal()" data-perm="pricing:create" data-feature="inline_edit">新增核价</button>
+        <button class="btn btn-success" onclick="ImportDropzone.open()" data-perm="pricing:create" data-feature="import">批量导入</button>
+        <button class="btn btn-warning" onclick="syncAllData()" data-perm="pricing:edit" data-feature="sync">同步到产品和客户</button>
+        <button class="btn btn-info" onclick="exportPricing()" data-perm="pricing:view" data-feature="export">导出数据</button>
+      </div>
+    </div>
+    <div class="stats-grid" id="statsGrid" data-feature="dashboard"></div>
+    <div class="search-bar" data-feature="filter">
+      <input type="text" id="keywordInput" placeholder="搜索型号/客户/核价人..." style="width:200px;">
+      <input type="text" id="customerInput" placeholder="客户编号">
+      <input type="text" id="inquiryInput" placeholder="询价单号">
+      <input type="text" id="modelInput" placeholder="产品型号">
+      <button class="btn btn-primary" onclick="searchPricing()">查询</button>
+      <button class="btn btn-warning" onclick="resetSearch()">重置</button>
+    </div>
+    <div class="batch-bar" id="batchBar" style="display:none;"><span id="batchCount">已选 0 条</span><button class="btn btn-danger" onclick="batchDeletePricing()" data-feature="batch">批量删除</button><button class="btn btn-default" onclick="clearPricingSelection()">取消选择</button></div>
+    <div class="table-container"><table id="pricingTableEl"><thead><tr>
+      <th class="checkbox-col"><input type="checkbox" id="selectAllPricing" onchange="toggleSelectAllPricing()"></th><th class="seq-col">#</th><th>ID</th><th class="left" data-sort="customer_name">客户<span class="sort-icon">&#8593;&#8595;</span></th><th class="left" data-sort="inquiry_no">询价单<span class="sort-icon">&#8593;&#8595;</span></th><th class="left" data-sort="external_model">型号<span class="sort-icon">&#8593;&#8595;</span></th><th class="left">产品名称</th><th data-sort="power">功率<span class="sort-icon">&#8593;&#8595;</span></th><th>证书</th><th>等级</th>
+      <th class="bom-header">套件</th><th class="bom-header">电缆线</th><th class="bom-header">光源</th><th class="bom-header">驱动</th><th class="bom-header">电池</th><th class="bom-header">支架</th><th class="bom-header">开关</th><th class="bom-header">太阳能板</th><th class="bom-header">插座</th><th class="bom-header">盒子</th><th class="bom-header">说明书</th><th class="bom-header">包装</th><th class="bom-header">配件</th><th class="bom-header">人工</th>
+      <th class="price-header">合计</th><th class="price-header">人工费</th><th class="price-header">工艺费</th><th class="price-header">损耗</th><th class="price-header">最低限价</th><th class="price-header">核价人</th><th class="price-header">报价(RMB)</th><th class="price-header">报价(USD)</th><th class="price-header">版本</th><th>关联产品</th><th>操作</th>
+    </tr></thead><tbody id="pricingTable"></tbody></table></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- 新增/编辑核价 -->
+  <div class="modal" id="addModal"><div class="modal-content"><span class="close-btn" onclick="closeModal('addModal')">&times;</span><h3 id="modalTitle">新增核价</h3><form id="addForm">
+    <div class="section-title">基本信息 <button type="button" class="btn btn-warning btn-sm" onclick="showInquirySearchModal()" style="margin-left:10px;font-size:11px;">从询价单拉取</button></div>
+    <div id="inquiryPullInfo" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;"></div>
+    <div class="form-row">
+      <div class="form-group"><label>客户</label><select id="fCustomerSelect" onchange="onCustomerSelected()"><option value="">选择客户</option></select><input type="text" id="fCustomer" placeholder="或手动输入编号" style="margin-top:4px;"></div>
+      <div class="form-group"><label>询价单号</label><select id="fInquirySelect" onchange="onInquirySelected()" style="width:100%;"><option value="">选择询价单</option></select><input type="text" id="fInquiryNo" placeholder="或手动输入单号" style="margin-top:4px;" onchange="autoPullInquiry()"></div>
+      <div class="form-group"><label>子项产品</label><select id="fSubProductSelect" onchange="onSubProductSelected()" style="width:100%;"><option value="">请先选择询价单</option></select></div>
+    </div>
+    <div id="subProductInfo" style="display:none;background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;"></div>
+    <div class="form-row">
+      <div class="form-group"><label>关联产品</label><select id="fProductSelect" onchange="onProductSelect()" style="width:100%;"><option value="">选择产品</option></select><input type="text" id="fModel" placeholder="或手动输入型号" style="margin-top:4px;" required></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>产品名称</label><input type="text" id="fProductName" placeholder="如 S系列100W工作灯"></div>
+      <div class="form-group"><label>功率</label><input type="text" id="fPower" placeholder="如 100W"></div>
+      <div class="form-group"><label>产品系列/品类</label><select id="fProductSeries"><option value="">请选择</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>证书是否符合标准</label><select id="fCertCompliant"><option value="">请选择</option><option value="是">是</option><option value="否">否</option></select></div>
+      <div class="form-group"><label>证书等级</label><select id="fCertLevel"><option value="">请选择</option><option value="国标">国标</option><option value="行标">行标</option><option value="企标">企标</option><option value="无证书">无证书</option></select></div>
+      <div class="form-group"></div>
+    </div>
+
+    <div class="section-title">BOM成本明细</div>
+    <div class="form-row-7">
+      <div class="form-group"><label>套件</label><input type="number" step="0.01" class="cost-input bom-item" id="fKit"></div>
+      <div class="form-group"><label>电缆线</label><input type="number" step="0.01" class="cost-input bom-item" id="fCable"></div>
+      <div class="form-group"><label>光源</label><input type="number" step="0.01" class="cost-input bom-item" id="fLightSource"></div>
+      <div class="form-group"><label>驱动</label><input type="number" step="0.01" class="cost-input bom-item" id="fDriver"></div>
+      <div class="form-group"><label>电池</label><input type="number" step="0.01" class="cost-input bom-item" id="fBattery"></div>
+      <div class="form-group"><label>支架</label><input type="number" step="0.01" class="cost-input bom-item" id="fBracket"></div>
+      <div class="form-group"><label>开关</label><input type="number" step="0.01" class="cost-input bom-item" id="fSwitchType"></div>
+    </div>
+    <div class="form-row-7">
+      <div class="form-group"><label>太阳能板</label><input type="number" step="0.01" class="cost-input bom-item" id="fSolarPanel"></div>
+      <div class="form-group"><label>插座</label><input type="number" step="0.01" class="cost-input bom-item" id="fSocket"></div>
+      <div class="form-group"><label>盒子</label><input type="number" step="0.01" class="cost-input bom-item" id="fBox"></div>
+      <div class="form-group"><label>说明书</label><input type="number" step="0.01" class="cost-input bom-item" id="fManual"></div>
+      <div class="form-group"><label>包装</label><input type="number" step="0.01" class="cost-input bom-item" id="fPackaging"></div>
+      <div class="form-group"><label>配件</label><input type="number" step="0.01" class="cost-input bom-item" id="fAccessories"></div>
+      <div class="form-group"><label>人工</label><input type="number" step="0.01" class="cost-input bom-item" id="fLabor"></div>
+    </div>
+    <div class="auto-calc">BOM合计: <strong id="calcTotal">0.00</strong> 元</div>
+
+    <div class="section-title price">报价信息</div>
+    <div class="form-row-4">
+      <div class="form-group"><label>合计成本</label><input type="number" step="0.01" class="cost-input" id="fTotalCost"></div>
+      <div class="form-group"><label>人工加工费</label><input type="number" step="0.01" class="cost-input" id="fLaborCost"></div>
+      <div class="form-group"><label>工艺成本</label><input type="number" step="0.01" class="cost-input" id="fProcessCost"></div>
+      <div class="form-group"><label>预估损耗</label><input type="number" step="0.01" class="cost-input" id="fEstimatedLoss"></div>
+    </div>
+    <div class="form-row-4">
+      <div class="form-group"><label>最低限价</label><input type="number" step="0.01" class="cost-input" id="fMinPrice"></div>
+      <div class="form-group"><label>核价人 *</label><input type="text" id="fPricer"></div>
+      <div class="form-group"><label>核价链接</label><input type="text" id="fPricingLink" placeholder="如 JFX20260512-119"></div>
+      <div class="form-group"><label>备注</label><input type="text" id="fRemarks"></div>
+    </div>
+    <div class="form-row-4">
+      <div class="form-group"><label>报价(RMB)</label><input type="number" step="0.01" class="cost-input" id="fPriceRmb" oninput="autoConvertPricingPrice('rmb')"></div>
+      <div class="form-group"><label>报价(USD)</label><input type="number" step="0.01" class="cost-input" id="fPriceUsd" oninput="autoConvertPricingPrice('usd')"></div>
+      <div class="form-group"><label>毛利率(%)</label><input type="number" step="0.1" class="cost-input" id="fProfitRate" placeholder="如30表示30%" oninput="calcPriceFromProfitRate()"></div>
+      <div class="form-group"><label>目标价</label><input type="number" step="0.01" class="cost-input" id="fTargetPrice"></div>
+      <div class="form-group"><label>核价版本</label><input type="text" id="fPricingVersion" value="V1.0"></div>
+      <div class="form-group"><label>生效日期</label><input type="date" id="fEffectiveDate"></div>
+    </div>
+    <div id="pricingRateHint" style="font-size:12px;color:#888;margin-bottom:5px;"></div>
+    <div style="margin-top:15px;"><button type="submit" class="btn btn-primary">保存</button></div>
+  </form></div></div>
+
+  <!-- 详情 -->
+  <div class="modal" id="detailModal"><div class="modal-content" style="max-width:800px;"><span class="close-btn" onclick="closeModal('detailModal')">&times;</span><h3>核价详情</h3><div id="detailContent"></div></div></div>
+
+  <!-- 从询价单拉取弹窗 -->
+  <div class="modal" id="inquirySearchModal">
+    <div class="modal-content" style="max-width:700px;">
+      <span class="close-btn" onclick="closeModal('inquirySearchModal')">&times;</span>
+      <h3>从询价单拉取信息</h3>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input type="text" id="inqSearchKeyword" placeholder="输入询价单号、产品型号或名称搜索..." style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;" onkeydown="if(event.key==='Enter')searchInquiriesForPull()">
+        <button class="btn btn-primary" onclick="searchInquiriesForPull()">搜索</button>
+      </div>
+      <div id="inquirySearchResults" style="max-height:350px;overflow-y:auto;border:1px solid #eee;border-radius:6px;"></div>
+    </div>
+  </div>
+
+<script src="table-sort-filter.js"></script>
+<script>
+const API = window.location.origin + '/api';
+let currentPage = 1, totalPages = 1, editingId = null;
+let allProducts = [];
+let pricingExchangeRate = 7.25;
+
+// 加载汇率
+async function loadPricingExchangeRate() {
+  try {
+    const res = await fetch(`${API}/settings/config/exchange_rate`);
+    const val = await res.json();
+    if (val) pricingExchangeRate = parseFloat(val) || 7.25;
+  } catch(e) {}
+}
+
+// 核价库汇率自动换算，保留2位小数
+function autoConvertPricingPrice(changed) {
+  const rmbInput = document.getElementById('fPriceRmb');
+  const usdInput = document.getElementById('fPriceUsd');
+  const hint = document.getElementById('pricingRateHint');
+  if (changed === 'rmb' && rmbInput.value) {
+    const rmb = parseFloat(rmbInput.value);
+    if (!isNaN(rmb)) {
+      usdInput.value = Math.round(rmb / pricingExchangeRate * 100) / 100;
+      hint.textContent = `按汇率 ${pricingExchangeRate} 自动换算: ¥${rmb.toFixed(2)} = $${usdInput.value}`;
+    }
+  } else if (changed === 'usd' && usdInput.value) {
+    const usd = parseFloat(usdInput.value);
+    if (!isNaN(usd)) {
+      rmbInput.value = Math.round(usd * pricingExchangeRate * 100) / 100;
+      hint.textContent = `按汇率 ${pricingExchangeRate} 自动换算: $${usd.toFixed(2)} = ¥${rmbInput.value}`;
+    }
+  }
+}
+
+loadPricingExchangeRate();
+
+// 加载产品列表供关联选择
+async function loadProductList() {
+  try {
+    const res = await fetch(`${API}/pricing/products/list`);
+    const data = await res.json();
+    allProducts = data.data || [];
+    const select = document.getElementById('fProductSelect');
+    if (select) {
+      select.innerHTML = '<option value="">选择产品</option>';
+      allProducts.forEach(p => {
+        const label = `${p.external_model}${p.internal_model ? ' / ' + p.internal_model : ''}${p.category ? ' (' + p.category + ')' : ''}`;
+        select.innerHTML += `<option value="${p.external_model}" data-name="${p.product_name || ''}" data-power="${p.power || ''}" data-internal="${p.internal_model || ''}">${label}</option>`;
+      });
+    }
+  } catch (e) { console.error('加载产品列表失败:', e); }
+  // 同时加载询价单列表和客户列表
+  await Promise.all([loadInquiryList(), loadCustomerList()]);
+}
+
+// 加载客户列表供选择
+async function loadCustomerList() {
+  try {
+    const res = await fetch(`${API}/customers?limit=999`);
+    const data = await res.json();
+    const customers = data.data || [];
+    const select = document.getElementById('fCustomerSelect');
+    if (!select) return;
+    select.innerHTML = '<option value="">选择客户</option>';
+    customers.forEach(c => {
+      const label = `${c.name || c.code || ''}${c.code ? ' (' + c.code + ')' : ''}`;
+      select.innerHTML += `<option value="${c.name || c.code}" data-code="${c.code || ''}" data-name="${c.name || ''}">${label}</option>`;
+    });
+  } catch (e) { console.error('加载客户列表失败:', e); }
+}
+
+// 选择客户后自动填充
+function onCustomerSelected() {
+  const select = document.getElementById('fCustomerSelect');
+  const opt = select.options[select.selectedIndex];
+  if (!opt || !opt.value) return;
+  document.getElementById('fCustomer').value = opt.dataset.code || opt.value;
+}
+
+// 加载询价单列表供选择
+async function loadInquiryList() {
+  try {
+    const res = await fetch(`${API}/inquiries?limit=999`);
+    const data = await res.json();
+    const inquiries = data.data || [];
+    const select = document.getElementById('fInquirySelect');
+    if (!select) return;
+    select.innerHTML = '<option value="">选择询价单</option>';
+    inquiries.filter(i => ['new','pending_pricing','pending_quote'].includes(i.status)).forEach(i => {
+      const label = `${i.serial_number} - ${i.customer_name || '-'} - ${i.external_model || '-'}`;
+      select.innerHTML += `<option value="${i.serial_number}" data-customer="${i.customer_name || ''}" data-model="${i.external_model || ''}" data-name="${i.product_name || ''}" data-power="${i.power || ''}">${label}</option>`;
+    });
+  } catch (e) { console.error('加载询价单列表失败:', e); }
+}
+
+// 选择询价单后自动填充
+function onInquirySelected() {
+  const select = document.getElementById('fInquirySelect');
+  const opt = select.options[select.selectedIndex];
+  if (!opt || !opt.value) return;
+  document.getElementById('fInquiryNo').value = opt.value;
+  if (opt.dataset.customer) {
+    document.getElementById('fCustomer').value = opt.dataset.customer;
+    // 联动客户下拉框
+    const custSelect = document.getElementById('fCustomerSelect');
+    for (let i = 0; i < custSelect.options.length; i++) {
+      if (custSelect.options[i].value === opt.dataset.customer || custSelect.options[i].dataset.code === opt.dataset.customer) {
+        custSelect.selectedIndex = i; break;
+      }
+    }
+  }
+  if (opt.dataset.model) document.getElementById('fModel').value = opt.dataset.model;
+  if (opt.dataset.name) document.getElementById('fProductName').value = opt.dataset.name;
+  if (opt.dataset.power) document.getElementById('fPower').value = opt.dataset.power;
+  // 显示拉取信息
+  const infoEl = document.getElementById('inquiryPullInfo');
+  infoEl.style.display = 'block';
+  infoEl.style.background = '#e8f5e9';
+  infoEl.style.borderColor = '#a5d6a7';
+  infoEl.innerHTML = `<strong>已选择询价单</strong> ${opt.value} | 客户: ${opt.dataset.customer || '-'} | 型号: ${opt.dataset.model || '-'}`;
+  // 加载子项产品列表
+  loadSubProducts(opt.value);
+}
+
+// ===== 子项产品相关 =====
+let currentSubProducts = [];
+
+async function loadSubProducts(inquiryNo) {
+  const subSelect = document.getElementById('fSubProductSelect');
+  const subInfo = document.getElementById('subProductInfo');
+  if (!inquiryNo) {
+    subSelect.innerHTML = '<option value="">请先选择询价单</option>';
+    subInfo.style.display = 'none';
+    currentSubProducts = [];
+    return;
+  }
+  subSelect.innerHTML = '<option value="">加载中...</option>';
+  try {
+    const res = await fetch(`${API}/pricing/inquiry-products/${encodeURIComponent(inquiryNo)}`);
+    const data = await res.json();
+    currentSubProducts = data.data || [];
+    if (currentSubProducts.length === 0) {
+      subSelect.innerHTML = '<option value="">无子项产品</option>';
+      subInfo.style.display = 'none';
+      return;
+    }
+    if (currentSubProducts.length === 1) {
+      // 只有一个产品，直接选中
+      const p = currentSubProducts[0];
+      subSelect.innerHTML = `<option value="0">${p.external_model || '-'} - ${p.product_name || '-'} (${p.power || '-'})</option>`;
+      subSelect.selectedIndex = 0;
+      applySubProduct(0);
+    } else {
+      // 多个产品，显示下拉选择
+      subSelect.innerHTML = `<option value="">共 ${currentSubProducts.length} 个产品，请选择</option>`;
+      currentSubProducts.forEach((p, idx) => {
+        const label = `${p.serial_number || ''} | ${p.external_model || '-'} - ${p.product_name || '-'} (${p.power || '-'})`;
+        subSelect.innerHTML += `<option value="${idx}">${label}</option>`;
+      });
+      subInfo.style.display = 'block';
+      subInfo.innerHTML = `<strong>该询价单包含 ${currentSubProducts.length} 个产品</strong>，请在"子项产品"下拉中选择要核价的产品`;
+    }
+  } catch (e) {
+    console.error('加载子项产品失败:', e);
+    subSelect.innerHTML = '<option value="">加载失败</option>';
+  }
+}
+
+function onSubProductSelected() {
+  const idx = document.getElementById('fSubProductSelect').value;
+  if (idx === '' || idx === undefined) {
+    document.getElementById('subProductInfo').style.display = 'none';
+    return;
+  }
+  applySubProduct(parseInt(idx));
+}
+
+function applySubProduct(idx) {
+  const p = currentSubProducts[idx];
+  if (!p) return;
+  if (p.customer_name) document.getElementById('fCustomer').value = p.customer_name;
+  if (p.serial_number) document.getElementById('fInquiryNo').value = p.serial_number;
+  if (p.external_model) document.getElementById('fModel').value = p.external_model;
+  if (p.product_name) document.getElementById('fProductName').value = p.product_name;
+  if (p.power) document.getElementById('fPower').value = p.power;
+  if (p.target_price) document.getElementById('fTargetPrice').value = p.target_price;
+  if (p.certificate_compliant) document.getElementById('fCertCompliant').value = p.certificate_compliant;
+  if (p.certificate_level) document.getElementById('fCertLevel').value = p.certificate_level;
+  if (p.customer_name) {
+    const custSelect = document.getElementById('fCustomerSelect');
+    for (let i = 0; i < custSelect.options.length; i++) {
+      if (custSelect.options[i].value === p.customer_name || custSelect.options[i].dataset.code === p.customer_name) {
+        custSelect.selectedIndex = i; break;
+      }
+    }
+  }
+  const prodSelect = document.getElementById('fProductSelect');
+  if (prodSelect && p.external_model) {
+    let matched = false;
+    for (let i = 0; i < prodSelect.options.length; i++) {
+      if (prodSelect.options[i].value === p.external_model) {
+        prodSelect.selectedIndex = i; matched = true; break;
+      }
+    }
+    if (!matched) {
+      const baseModel = p.external_model.replace(/-\d{2,}$/, '');
+      if (baseModel !== p.external_model) {
+        for (let i = 0; i < prodSelect.options.length; i++) {
+          if (prodSelect.options[i].value === baseModel) {
+            prodSelect.selectedIndex = i; matched = true; break;
+          }
+        }
+      }
+    }
+    if (matched) {
+      const productInfo = findProductByModel(p.external_model);
+      if (productInfo) {
+        if (!p.product_name && productInfo.product_name) document.getElementById('fProductName').value = productInfo.product_name;
+        if (!p.power && productInfo.power) document.getElementById('fPower').value = productInfo.power;
+      }
+    }
+  }
+  // 显示子项产品信息
+  const subInfo = document.getElementById('subProductInfo');
+  subInfo.style.display = 'block';
+  subInfo.innerHTML = `<strong>已选择子项产品</strong> ${p.external_model || '-'} | 产品: ${p.product_name || '-'} | 功率: ${p.power || '-'} | 数量: ${p.quantity || '-'}${p.custom_requirements ? ' | 需求: ' + p.custom_requirements : ''}`;
+  // 同时更新拉取信息
+  const infoEl = document.getElementById('inquiryPullInfo');
+  infoEl.style.display = 'block';
+  infoEl.style.background = '#e8f5e9';
+  infoEl.style.borderColor = '#a5d6a7';
+  const statusMap = {'new':'新建','pending_pricing':'待核价','pending_quote':'待报价','quoted':'已报价','negotiating':'洽谈中','closed':'已成交','lost':'已流失'};
+  infoEl.innerHTML = `<strong>已拉取询价单信息</strong><br>
+    询价单号: ${p.serial_number || '-'} | 客户: ${p.customer_name || '-'} | 型号: ${p.external_model || '-'}<br>
+    产品: ${p.product_name || '-'} | 功率: ${p.power || '-'} | 数量: ${p.quantity || '-'} | 状态: ${statusMap[p.status] || p.status || '-'}
+    ${p.custom_requirements ? '<br>需求: ' + p.custom_requirements : ''}
+    ${p.delivery_date ? ' | 交期: ' + p.delivery_date : ''}`;
+}
+
+// 选择产品后自动填充
+function onProductSelect() {
+  const select = document.getElementById('fProductSelect');
+  const opt = select.options[select.selectedIndex];
+  if (opt && opt.value) {
+    document.getElementById('fModel').value = opt.value;
+    document.getElementById('fProductName').value = opt.dataset.name || '';
+    document.getElementById('fPower').value = opt.dataset.power || '';
+    const p = allProducts.find(p => p.external_model === opt.value);
+    if (p && window._pulledInquirySpecs) {
+      const specs = window._pulledInquirySpecs;
+      const paramFields = ['input_voltage','battery','color_temp','luminous_flux','light_source','main_body','lampshade','reflector','cable','switch_type','usb','waterproof','sensor'];
+      paramFields.forEach(f => {
+        if (!specs[f] && p[f]) specs[f] = p[f];
+      });
+    }
+  }
+}
+
+function findProductByModel(model) {
+  if (!model) return null;
+  let p = allProducts.find(p => p.external_model === model || p.internal_model === model);
+  if (!p) {
+    const baseModel = model.replace(/-\d{2,}$/, '');
+    if (baseModel !== model) {
+      p = allProducts.find(p => p.external_model === baseModel || p.internal_model === baseModel);
+    }
+  }
+  return p;
+}
+
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function fmt(v) { return v !== null && v !== undefined ? Number(v).toFixed(2) : '-'; }
+
+// BOM成本项自动计算
+document.querySelectorAll('.bom-item').forEach(input => {
+  input.addEventListener('input', calcBomTotal);
+});
+document.getElementById('fTotalCost').addEventListener('input', calcPriceFromProfitRate);
+function calcBomTotal() {
+  let total = 0;
+  document.querySelectorAll('.bom-item').forEach(input => {
+    if (input.value) total += parseFloat(input.value) || 0;
+  });
+  document.getElementById('calcTotal').textContent = total.toFixed(2);
+  document.getElementById('fTotalCost').value = total.toFixed(2);
+  calcPriceFromProfitRate();
+}
+
+function calcPriceFromProfitRate() {
+  const totalCost = parseFloat(document.getElementById('fTotalCost').value) || 0;
+  const profitRate = parseFloat(document.getElementById('fProfitRate').value);
+  const hint = document.getElementById('pricingRateHint');
+  if (totalCost > 0 && !isNaN(profitRate) && profitRate >= 0) {
+    const priceRmb = totalCost / (1 - profitRate / 100);
+    document.getElementById('fPriceRmb').value = priceRmb.toFixed(2);
+    const usdVal = Math.round(priceRmb / pricingExchangeRate * 100) / 100;
+    document.getElementById('fPriceUsd').value = usdVal.toFixed(2);
+    const actualProfit = ((priceRmb - totalCost) / priceRmb * 100).toFixed(1);
+    hint.innerHTML = `<span style="color:#27ae60;">自动计算:</span> 成本 ¥${totalCost.toFixed(2)} × 毛利率 ${profitRate}% = 报价 ¥${priceRmb.toFixed(2)}（实际毛利率 ${actualProfit}%）`;
+  }
+}
+
+async function init() { await Promise.all([loadStats(), loadPricing(), loadProductList()]); }
+
+async function syncAllData() {
+  if (!confirm('确认将核价库数据同步到产品管理和客户管理？\n\n• 型号 → 产品管理内部型号\n• 产品系列 → 品类\n• 产品名称 → 产品名称\n• 客户 → 客户管理名称\n\n已存在的记录将更新，不存在的将自动创建。')) return;
+  try {
+    const res = await fetch(`${API}/pricing/sync-all`, { method: 'POST' });
+    const data = await res.json();
+    alert(`同步完成！\n\n核价记录总数: ${data.total_pricing_records}\n新建产品: ${data.synced_products}\n更新产品: ${data.updated_products}\n新建客户: ${data.synced_customers}\n已存在客户: ${data.existing_customers}`);
+    loadStats();
+    loadPricing(currentPage);
+  } catch(e) { alert('同步失败: ' + e.message); }
+}
+
+// 导出核价数据（字段与编辑表单/导入模板对齐）
+async function exportPricing() {
+  try {
+    const params = new URLSearchParams({ page: 1, limit: 9999 });
+    ['keyword','customer','inquiry_no','model'].forEach(k => {
+      const id = {keyword:'keywordInput',customer:'customerInput',inquiry_no:'inquiryInput',model:'modelInput'}[k];
+      const v = document.getElementById(id).value;
+      if (v) params.set(k, v);
+    });
+    const res = await fetch(`${API}/pricing?${params}`);
+    const data = await res.json();
+    const list = data.data || [];
+    if (list.length === 0) { alert('暂无数据可导出'); return; }
+    const headers = ['客户编号','询价单号','产品型号','产品名称','功率','产品系列','证书是否符合标准','证书等级',
+      '套件','电缆线','光源','驱动','电池','支架','开关','太阳能板','插座','盒子','说明书','包装','配件','人工',
+      '合计成本','人工加工费','工艺成本','预估损耗','最低限价','核价人','核价链接','报价(RMB)','报价(USD)','目标价','核价版本','备注'];
+    let csv = headers.join(',') + '\n';
+    list.forEach(m => {
+      const row = [
+        m.customer||'', m.inquiry_no||'', m.model||'', m.product_name||'', m.power||'', m.product_series||'',
+        m.certificate_compliant||'', m.certificate_level||'',
+        m.kit||'', m.cable||'', m.light_source||'', m.driver||'', m.battery||'',
+        m.bracket||'', m.switch_type||'', m.solar_panel||'', m.socket||'', m.box||'',
+        m.manual||'', m.packaging||'', m.accessories||'', m.labor||'',
+        m.total_cost||'', m.labor_cost||'', m.process_cost||'', m.estimated_loss||'',
+        m.min_price||'', m.pricer||'', m.pricing_link||'',
+        m.price_rmb||'', m.price_usd||'', m.target_price||'', m.pricing_version||'V1.0', m.remarks||''
+      ].map(v => String(v).replace(/,/g, '，'));
+      csv += row.join(',') + '\n';
+    });
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `核价表_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  } catch (e) { alert('导出失败'); }
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/pricing/stats/summary`);
+    const s = await res.json();
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><h4>核价总数</h4><div class="val" style="color:#667eea;">${s.total}</div></div>
+      <div class="stat-card"><h4>平均成本</h4><div class="val" style="color:#e74c3c;">${s.avg_cost}</div></div>
+      <div class="stat-card"><h4>平均报价</h4><div class="val" style="color:#27ae60;">${s.avg_price_rmb}</div></div>
+      <div class="stat-card"><h4>客户数</h4><div class="val" style="color:#f39c12;">${s.total_customers}</div></div>`;
+  } catch (e) { console.error(e); }
+}
+
+async function loadPricing(page = 1) {
+  const params = new URLSearchParams({ page, limit: 15 });
+  ['keyword','customer','inquiry_no','model'].forEach(k => {
+    const id = {keyword:'keywordInput',customer:'customerInput',inquiry_no:'inquiryInput',model:'modelInput'}[k];
+    const v = document.getElementById(id).value;
+    if (v) params.set(k, v);
+  });
+  try {
+    const res = await fetch(`${API}/pricing?${params}`);
+    const data = await res.json();
+    currentPage = page;
+    totalPages = Math.ceil(data.total / 15);
+    const tbody = document.getElementById('pricingTable');
+    tbody.innerHTML = '';
+    const items = data.data || [];
+
+    // 按询价单号分组
+    const groups = {};
+    const groupOrder = [];
+    items.forEach(item => {
+      const key = item.inquiry_no || '__no_inquiry__' + item.id;
+      if (!groups[key]) {
+        groups[key] = [];
+        groupOrder.push(key);
+      }
+      groups[key].push(item);
+    });
+
+    let seqNum = (page - 1) * 15;
+    groupOrder.forEach((key, gIdx) => {
+      const groupItems = groups[key];
+      const hasMultiple = groupItems.length > 1;
+      const firstItem = groupItems[0];
+      const groupKey = 'grp_' + gIdx;
+
+      if (hasMultiple) {
+        // 父行：询价单汇总
+        const models = groupItems.map(i => i.model).filter(Boolean).join(', ');
+        const totalCost = groupItems.reduce((s, i) => s + (parseFloat(i.total_cost) || 0), 0);
+        const avgPriceRmb = groupItems.reduce((s, i) => s + (parseFloat(i.price_rmb) || 0), 0);
+        const allLinked = groupItems.every(i => i.product_id);
+        const linkedBadge = allLinked ? '<span class="badge badge-linked">全部关联</span>' : '<span class="badge badge-unlinked">部分关联</span>';
+        seqNum++;
+        tbody.innerHTML += `<tr class="group-row" data-group="${groupKey}">
+          <td class="checkbox-col"></td>
+          <td class="seq-col"><span class="expand-icon" onclick="toggleGroup('${groupKey}')">&#9654;</span></td>
+          <td>${seqNum}</td>
+          <td class="left">${firstItem.customer || '-'}</td>
+          <td class="left">${firstItem.inquiry_no || '-'}<span class="sub-count">${groupItems.length}</span></td>
+          <td class="left" title="${models}">${models.length > 30 ? models.substring(0, 30) + '...' : models}</td>
+          <td class="left">-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td colspan="14" style="text-align:left;color:#667eea;font-size:12px;">共 ${groupItems.length} 个产品核价 | 成本合计: <strong style="color:#e74c3c;">${totalCost.toFixed(2)}</strong> | 报价合计: <strong style="color:#27ae60;">${avgPriceRmb.toFixed(2)}</strong></td>
+          <td>${linkedBadge}</td>
+          <td><button class="btn btn-info btn-sm" onclick="toggleGroup('${groupKey}')">展开</button></td>
+        </tr>`;
+
+        // 子行：每个产品
+        groupItems.forEach((item, idx) => {
+          const linked = item.product_id ? `<span class="badge badge-linked">已关联</span>` : `<span class="badge badge-unlinked">未关联</span>`;
+          tbody.innerHTML += `<tr class="sub-row" data-group="${groupKey}">
+            <td class="checkbox-col"><input type="checkbox" class="pricing-checkbox" value="${item.id}" onchange="updatePricingBatchBar()"></td>
+            <td class="seq-col">${idx + 1}</td>
+            <td>${item.id}</td>
+            <td class="left">${item.customer || '-'}</td>
+            <td class="left">${item.inquiry_no || '-'}</td>
+            <td class="left"><span class="product-link" onclick="viewByModel('${item.model}')">${item.model}</span></td>
+            <td class="left" title="${item.product_name || ''}">${(item.product_name || '-').substring(0, 15)}${(item.product_name||'').length > 15 ? '...' : ''}</td>
+            <td>${item.power || '-'}</td>
+            <td>${item.certificate_compliant || '-'}</td>
+            <td>${item.certificate_level || '-'}</td>
+            <td>${fmt(item.kit)}</td><td>${fmt(item.cable)}</td><td>${fmt(item.light_source)}</td><td>${fmt(item.driver)}</td>
+            <td>${fmt(item.battery)}</td><td>${fmt(item.bracket)}</td><td>${fmt(item.switch_type)}</td><td>${fmt(item.solar_panel)}</td>
+            <td>${fmt(item.socket)}</td><td>${fmt(item.box)}</td><td>${fmt(item.manual)}</td><td>${fmt(item.packaging)}</td>
+            <td>${fmt(item.accessories)}</td><td>${fmt(item.labor)}</td>
+            <td class="total-cell">${fmt(item.total_cost)}</td>
+            <td>${fmt(item.labor_cost)}</td>
+            <td>${fmt(item.process_cost)}</td>
+            <td>${fmt(item.estimated_loss)}</td>
+            <td>${fmt(item.min_price)}</td>
+            <td>${item.pricer || '-'}</td>
+            <td class="price-cell">${fmt(item.price_rmb)}</td>
+            <td class="price-cell">${fmt(item.price_usd)}</td>
+            <td>${item.pricing_version || 'V1.0'}</td>
+            <td>${linked}</td>
+            <td><div class="btn-group">
+              <button class="btn btn-info btn-sm" onclick="showDetail(${item.id})">详情</button>
+              <button class="btn btn-warning btn-sm" onclick="editPricing(${item.id})">编辑</button>
+              <button class="btn btn-danger btn-sm" onclick="deletePricing(${item.id})">删除</button>
+            </div></td></tr>`;
+        });
+      } else {
+        // 单个产品，直接显示
+        const item = firstItem;
+        const linked = item.product_id ? `<span class="badge badge-linked">已关联</span>` : `<span class="badge badge-unlinked">未关联</span>`;
+        seqNum++;
+        tbody.innerHTML += `<tr>
+          <td class="checkbox-col"><input type="checkbox" class="pricing-checkbox" value="${item.id}" onchange="updatePricingBatchBar()"></td>
+          <td class="seq-col">${seqNum}</td>
+          <td>${item.id}</td>
+          <td class="left">${item.customer || '-'}</td>
+          <td class="left">${item.inquiry_no || '-'}</td>
+          <td class="left"><span class="product-link" onclick="viewByModel('${item.model}')">${item.model}</span></td>
+          <td class="left" title="${item.product_name || ''}">${(item.product_name || '-').substring(0, 15)}${(item.product_name||'').length > 15 ? '...' : ''}</td>
+          <td>${item.power || '-'}</td>
+          <td>${item.certificate_compliant || '-'}</td>
+          <td>${item.certificate_level || '-'}</td>
+          <td>${fmt(item.kit)}</td><td>${fmt(item.cable)}</td><td>${fmt(item.light_source)}</td><td>${fmt(item.driver)}</td>
+          <td>${fmt(item.battery)}</td><td>${fmt(item.bracket)}</td><td>${fmt(item.switch_type)}</td><td>${fmt(item.solar_panel)}</td>
+          <td>${fmt(item.socket)}</td><td>${fmt(item.box)}</td><td>${fmt(item.manual)}</td><td>${fmt(item.packaging)}</td>
+          <td>${fmt(item.accessories)}</td><td>${fmt(item.labor)}</td>
+          <td class="total-cell">${fmt(item.total_cost)}</td>
+          <td>${fmt(item.labor_cost)}</td>
+          <td>${fmt(item.process_cost)}</td>
+          <td>${fmt(item.estimated_loss)}</td>
+          <td>${fmt(item.min_price)}</td>
+          <td>${item.pricer || '-'}</td>
+          <td class="price-cell">${fmt(item.price_rmb)}</td>
+          <td class="price-cell">${fmt(item.price_usd)}</td>
+          <td>${item.pricing_version || 'V1.0'}</td>
+          <td>${linked}</td>
+          <td><div class="btn-group">
+            <button class="btn btn-info btn-sm" onclick="showDetail(${item.id})">详情</button>
+            <button class="btn btn-warning btn-sm" onclick="editPricing(${item.id})">编辑</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePricing(${item.id})">删除</button>
+          </div></td></tr>`;
+      }
+    });
+    renderPagination();
+    if (window.TableSortFilter) { TableSortFilter.init('pricingTableEl'); }
+  } catch (e) { console.error('加载核价失败:', e); }
+}
+
+// 展开/收起子行
+function toggleGroup(groupKey) {
+  const subRows = document.querySelectorAll(`.sub-row[data-group="${groupKey}"]`);
+  const expandIcon = document.querySelector(`.group-row[data-group="${groupKey}"] .expand-icon`);
+  const expandBtn = document.querySelector(`.group-row[data-group="${groupKey}"] td:last-child .btn`);
+  const isVisible = subRows.length > 0 && subRows[0].classList.contains('visible');
+  subRows.forEach(row => {
+    if (isVisible) {
+      row.classList.remove('visible');
+    } else {
+      row.classList.add('visible');
+    }
+  });
+  if (expandIcon) {
+    expandIcon.classList.toggle('expanded', !isVisible);
+  }
+  if (expandBtn) {
+    expandBtn.textContent = isVisible ? '展开' : '收起';
+  }
+}
+
+function renderPagination() {
+  const p = document.getElementById('pagination'); p.innerHTML = '';
+  if (currentPage > 1) p.innerHTML += `<button onclick="loadPricing(${currentPage-1})">上一页</button>`;
+  for (let i = Math.max(1, currentPage-2); i <= Math.min(totalPages, currentPage+2); i++)
+    p.innerHTML += `<button class="${i===currentPage?'active':''}" onclick="loadPricing(${i})">${i}</button>`;
+  if (currentPage < totalPages) p.innerHTML += `<button onclick="loadPricing(${currentPage+1})">下一页</button>`;
+}
+
+function searchPricing() { loadPricing(1); }
+function resetSearch() { ['keywordInput','customerInput','inquiryInput','modelInput'].forEach(id => document.getElementById(id).value = ''); loadPricing(1); }
+
+function viewByModel(model) { window.open(`product.html?model=${model}`, '_blank'); }
+
+// ===== 新增 =====
+function showAddModal() {
+  editingId = null;
+  window._pulledInquirySpecs = null;
+  document.getElementById('modalTitle').textContent = '新增核价';
+  document.getElementById('addForm').reset();
+  document.getElementById('fProductSelect').value = '';
+  document.getElementById('fSubProductSelect').innerHTML = '<option value="">请先选择询价单</option>';
+  document.getElementById('subProductInfo').style.display = 'none';
+  document.getElementById('calcTotal').textContent = '0.00';
+  document.getElementById('inquiryPullInfo').style.display = 'none';
+  document.getElementById('fPricingVersion').value = 'V1.0';
+  document.getElementById('fEffectiveDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('addModal').style.display = 'flex';
+  // 重新加载下拉框数据，确保不显示已删除的记录
+  DictLoader.clearCache();
+  Promise.all([loadCustomerList(), loadInquiryList()]).then(() => {
+    DictLoader.fillAll([{select:'fProductSeries',group:'product_series',placeholder:'请选择'}]);
+  });
+}
+
+// ===== 从询价单拉取信息 =====
+function showInquirySearchModal() {
+  document.getElementById('inquirySearchModal').style.display = 'flex';
+  document.getElementById('inqSearchKeyword').value = '';
+  document.getElementById('inquirySearchResults').innerHTML = '<div style="text-align:center;padding:30px;color:#999;">输入询价单号、产品型号或名称进行搜索</div>';
+  // 如果型号已有值，自动搜索
+  const model = document.getElementById('fModel').value.trim();
+  if (model) {
+    document.getElementById('inqSearchKeyword').value = model;
+    searchInquiriesForPull();
+  }
+}
+
+async function searchInquiriesForPull() {
+  const keyword = document.getElementById('inqSearchKeyword').value.trim();
+  if (!keyword) { alert('请输入搜索关键词'); return; }
+  const results = document.getElementById('inquirySearchResults');
+  results.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">搜索中...</div>';
+  try {
+    // 先尝试按询价单号拉取
+    const directRes = await fetch(`${API}/pricing/from-inquiry/${encodeURIComponent(keyword)}`);
+    const directData = await directRes.json();
+    let inquiries = [];
+    if (directData) inquiries.push(directData);
+    // 再按型号/名称搜索
+    const searchRes = await fetch(`${API}/pricing/search-inquiries?model=${encodeURIComponent(keyword)}&name=${encodeURIComponent(keyword)}`);
+    const searchData = await searchRes.json();
+    if (searchData.data) {
+      searchData.data.forEach(i => {
+        if (!inquiries.find(x => x.id === i.id)) inquiries.push(i);
+      });
+    }
+    if (inquiries.length === 0) {
+      results.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">未找到匹配的询价单</div>';
+      return;
+    }
+    const statusMap = {'new':'新建','pending_pricing':'待核价','pending_quote':'待报价','quoted':'已报价','negotiating':'洽谈中','closed':'已成交','lost':'已流失'};
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+    html += '<thead><tr style="background:#f8f9fa;"><th style="padding:8px;">询价单号</th><th style="padding:8px;">客户</th><th style="padding:8px;">型号</th><th style="padding:8px;">产品名称</th><th style="padding:8px;">功率</th><th style="padding:8px;">数量</th><th style="padding:8px;">状态</th><th style="padding:8px;">操作</th></tr></thead><tbody>';
+    inquiries.forEach(i => {
+      html += `<tr style="border-bottom:1px solid #eee;cursor:pointer;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background=''">
+        <td style="padding:8px;">${i.serial_number || '-'}</td>
+        <td style="padding:8px;">${i.customer_name || '-'}</td>
+        <td style="padding:8px;font-weight:500;">${i.external_model || '-'}</td>
+        <td style="padding:8px;">${i.product_name || '-'}</td>
+        <td style="padding:8px;">${i.power || '-'}</td>
+        <td style="padding:8px;">${i.quantity || '-'}</td>
+        <td style="padding:8px;">${statusMap[i.status] || i.status || '-'}</td>
+        <td style="padding:8px;"><button class="btn btn-primary btn-sm" onclick="applyInquiryPull(${i.id})">拉取</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    results.innerHTML = html;
+  } catch(e) {
+    results.innerHTML = '<div style="text-align:center;padding:30px;color:#e74c3c;">搜索失败</div>';
+    console.error('搜索询价单失败', e);
+  }
+}
+
+async function applyInquiryPull(inquiryId) {
+  try {
+    const res = await fetch(`${API}/inquiries/${inquiryId}`);
+    const data = await res.json();
+    if (!data) { alert('未找到询价单'); return; }
+    if (data.customer_name) document.getElementById('fCustomer').value = data.customer_name;
+    if (data.serial_number) document.getElementById('fInquiryNo').value = data.serial_number;
+    if (data.external_model) document.getElementById('fModel').value = data.external_model;
+    if (data.product_name) document.getElementById('fProductName').value = data.product_name;
+    if (data.power) document.getElementById('fPower').value = data.power;
+    if (data.target_price) document.getElementById('fTargetPrice').value = data.target_price;
+    if (data.certificate_compliant) document.getElementById('fCertCompliant').value = data.certificate_compliant;
+    if (data.certificate_level) document.getElementById('fCertLevel').value = data.certificate_level;
+    // 同步成本信息
+    if (data.material_cost) document.getElementById('fTotalCost').value = data.material_cost;
+    if (data.process_cost) document.getElementById('fProcessCost').value = data.process_cost;
+    if (data.estimated_loss) document.getElementById('fEstimatedLoss').value = data.estimated_loss;
+    if (data.base_cost) document.getElementById('fMinPrice').value = data.base_cost;
+    if (data.final_price) {
+      document.getElementById('fPriceRmb').value = data.final_price;
+      autoConvertPricingPrice('rmb');
+    }
+    if (data.target_price) document.getElementById('fTargetPrice').value = data.target_price;
+    if (data.serial_number) document.getElementById('fPricingLink').value = data.serial_number;
+    const prodSelect = document.getElementById('fProductSelect');
+    if (prodSelect && data.external_model) {
+      let matched = false;
+      for (let i = 0; i < prodSelect.options.length; i++) {
+        if (prodSelect.options[i].value === data.external_model) {
+          prodSelect.selectedIndex = i; matched = true; break;
+        }
+      }
+      if (!matched) {
+        const baseModel = data.external_model.replace(/-\d{2,}$/, '');
+        if (baseModel !== data.external_model) {
+          for (let i = 0; i < prodSelect.options.length; i++) {
+            if (prodSelect.options[i].value === baseModel) {
+              prodSelect.selectedIndex = i; matched = true; break;
+            }
+          }
+        }
+      }
+      if (matched) {
+        const productInfo = findProductByModel(data.external_model);
+        if (productInfo) {
+          if (!data.product_name && productInfo.product_name) document.getElementById('fProductName').value = productInfo.product_name;
+          if (!data.power && productInfo.power) document.getElementById('fPower').value = productInfo.power;
+        }
+      }
+    }
+    window._pulledInquirySpecs = {
+      input_voltage: data.input_voltage || '',
+      color_temp: data.color_temp || '',
+      luminous_flux: data.luminous_flux || '',
+      main_body: data.main_body || '',
+      lampshade: data.lampshade || '',
+      reflector: data.reflector || '',
+      usb: data.usb || '',
+      waterproof: data.waterproof || '',
+      sensor: data.sensor || '',
+      configuration: data.configuration || '',
+      special_process: data.special_process || '',
+      custom_requirements: data.custom_requirements || '',
+      quantity: data.quantity || null,
+      delivery_date: data.delivery_date || ''
+    };
+    // 显示拉取信息
+    const infoEl = document.getElementById('inquiryPullInfo');
+    infoEl.style.display = 'block';
+    infoEl.style.background = '#e8f5e9';
+    infoEl.style.borderColor = '#a5d6a7';
+    const statusMap = {'new':'新建','pending_pricing':'待核价','pending_quote':'待报价','quoted':'已报价','negotiating':'洽谈中','closed':'已成交','lost':'已流失'};
+    const specs = [];
+    if (data.input_voltage) specs.push('输入电压: ' + data.input_voltage);
+    if (data.color_temp) specs.push('色温: ' + data.color_temp);
+    if (data.luminous_flux) specs.push('光通量: ' + data.luminous_flux);
+    if (data.light_source) specs.push('光源: ' + data.light_source);
+    if (data.main_body) specs.push('主体: ' + data.main_body);
+    if (data.lampshade) specs.push('灯罩: ' + data.lampshade);
+    if (data.reflector) specs.push('反光罩: ' + data.reflector);
+    if (data.cable) specs.push('电缆: ' + data.cable);
+    if (data.waterproof) specs.push('防水: ' + data.waterproof);
+    if (data.configuration) specs.push('配置: ' + data.configuration);
+    if (data.special_process) specs.push('特殊工艺: ' + data.special_process);
+    infoEl.innerHTML = `<strong>已拉取询价单信息</strong>${data.is_variant ? ' <span style="color:#e65100;font-size:12px;">（变体型号，已关联主型号 ' + (data.base_model || '') + '）</span>' : ''}<br>
+      询价单号: ${data.serial_number || '-'} | 客户: ${data.customer_name || '-'} | 型号: ${data.external_model || '-'}<br>
+      产品: ${data.product_name || '-'} | 功率: ${data.power || '-'} | 数量: ${data.quantity || '-'} | 状态: ${statusMap[data.status] || data.status || '-'}
+      ${specs.length > 0 ? '<br>规格参数: ' + specs.join(' | ') : ''}
+      ${data.custom_requirements ? '<br>需求: ' + data.custom_requirements : ''}
+      ${data.delivery_date ? ' | 交期: ' + data.delivery_date : ''}
+      ${data.material_cost || data.base_cost || data.final_price ? '<br>成本信息: 物料¥' + (data.material_cost||'-') + ' | 成本¥' + (data.base_cost||'-') + ' | 报价¥' + (data.final_price||'-') : ''}`;
+    closeModal('inquirySearchModal');
+    // 加载子项产品
+    if (data.serial_number) loadSubProducts(data.serial_number);
+  } catch(e) {
+    alert('拉取失败：' + e.message);
+  }
+}
+
+async function pullFromInquiry() {
+  const inquiryNo = document.getElementById('fInquiryNo').value.trim();
+  if (!inquiryNo) { showInquirySearchModal(); return; }
+  await doPullInquiry(inquiryNo);
+}
+
+async function autoPullInquiry() {
+  const inquiryNo = document.getElementById('fInquiryNo').value.trim();
+  if (!inquiryNo) return;
+  await doPullInquiry(inquiryNo);
+}
+
+async function doPullInquiry(inquiryNo) {
+  try {
+    const res = await fetch(`${API}/pricing/from-inquiry/${encodeURIComponent(inquiryNo)}`);
+    const data = await res.json();
+    if (!data) {
+      document.getElementById('inquiryPullInfo').style.display = 'block';
+      document.getElementById('inquiryPullInfo').style.background = '#fff3e0';
+      document.getElementById('inquiryPullInfo').style.borderColor = '#ffcc80';
+      document.getElementById('inquiryPullInfo').innerHTML = '未找到询价单 <strong>' + inquiryNo + '</strong>，请手动输入信息';
+      return;
+    }
+    // 填充表单
+    if (data.customer_name) document.getElementById('fCustomer').value = data.customer_name;
+    if (data.external_model) document.getElementById('fModel').value = data.external_model;
+    if (data.product_name) document.getElementById('fProductName').value = data.product_name;
+    if (data.power) document.getElementById('fPower').value = data.power;
+    if (data.target_price) document.getElementById('fTargetPrice').value = data.target_price;
+    if (data.certificate_compliant) document.getElementById('fCertCompliant').value = data.certificate_compliant;
+    if (data.certificate_level) document.getElementById('fCertLevel').value = data.certificate_level;
+    // 同步成本信息
+    if (data.material_cost) document.getElementById('fTotalCost').value = data.material_cost;
+    if (data.process_cost) document.getElementById('fProcessCost').value = data.process_cost;
+    if (data.estimated_loss) document.getElementById('fEstimatedLoss').value = data.estimated_loss;
+    if (data.base_cost) document.getElementById('fMinPrice').value = data.base_cost;
+    if (data.final_price) {
+      document.getElementById('fPriceRmb').value = data.final_price;
+      autoConvertPricingPrice('rmb');
+    }
+    if (data.serial_number) document.getElementById('fPricingLink').value = data.serial_number;
+    if (data.product_series || data.product_category) {
+      const seriesEl = document.getElementById('fProductSeries');
+      if (seriesEl) seriesEl.value = data.product_series || data.product_category || '';
+    }
+    const prodSelect = document.getElementById('fProductSelect');
+    if (prodSelect && data.external_model) {
+      let matched = false;
+      for (let i = 0; i < prodSelect.options.length; i++) {
+        if (prodSelect.options[i].value === data.external_model) {
+          prodSelect.selectedIndex = i; matched = true; break;
+        }
+      }
+      if (!matched) {
+        const baseModel = data.external_model.replace(/-\d{2,}$/, '');
+        if (baseModel !== data.external_model) {
+          for (let i = 0; i < prodSelect.options.length; i++) {
+            if (prodSelect.options[i].value === baseModel) {
+              prodSelect.selectedIndex = i; matched = true; break;
+            }
+          }
+        }
+      }
+      if (matched) {
+        const productInfo = findProductByModel(data.external_model);
+        if (productInfo) {
+          if (!data.product_name && productInfo.product_name) document.getElementById('fProductName').value = productInfo.product_name;
+          if (!data.power && productInfo.power) document.getElementById('fPower').value = productInfo.power;
+        }
+      }
+    }
+    window._pulledInquirySpecs = {
+      input_voltage: data.input_voltage || '',
+      color_temp: data.color_temp || '',
+      luminous_flux: data.luminous_flux || '',
+      main_body: data.main_body || '',
+      lampshade: data.lampshade || '',
+      reflector: data.reflector || '',
+      usb: data.usb || '',
+      waterproof: data.waterproof || '',
+      sensor: data.sensor || '',
+      configuration: data.configuration || '',
+      special_process: data.special_process || '',
+      custom_requirements: data.custom_requirements || '',
+      quantity: data.quantity || null,
+      delivery_date: data.delivery_date || ''
+    };
+    // 显示拉取信息
+    const infoEl = document.getElementById('inquiryPullInfo');
+    infoEl.style.display = 'block';
+    infoEl.style.background = '#e8f5e9';
+    infoEl.style.borderColor = '#a5d6a7';
+    const statusMap = {'new':'新建','pending_pricing':'待核价','pending_quote':'待报价','quoted':'已报价','negotiating':'洽谈中','closed':'已成交','lost':'已流失'};
+    const specs = [];
+    if (data.input_voltage) specs.push('输入电压: ' + data.input_voltage);
+    if (data.color_temp) specs.push('色温: ' + data.color_temp);
+    if (data.luminous_flux) specs.push('光通量: ' + data.luminous_flux);
+    if (data.light_source) specs.push('光源: ' + data.light_source);
+    if (data.main_body) specs.push('主体: ' + data.main_body);
+    if (data.lampshade) specs.push('灯罩: ' + data.lampshade);
+    if (data.reflector) specs.push('反光罩: ' + data.reflector);
+    if (data.cable) specs.push('电缆: ' + data.cable);
+    if (data.waterproof) specs.push('防水: ' + data.waterproof);
+    if (data.configuration) specs.push('配置: ' + data.configuration);
+    if (data.special_process) specs.push('特殊工艺: ' + data.special_process);
+    infoEl.innerHTML = `<strong>已拉取询价单信息</strong>${data.is_variant ? ' <span style="color:#e65100;font-size:12px;">（变体型号，已关联主型号 ' + (data.base_model || '') + '）</span>' : ''}<br>
+      询价单号: ${data.serial_number || inquiryNo} | 客户: ${data.customer_name || '-'} | 型号: ${data.external_model || '-'}<br>
+      产品: ${data.product_name || '-'} | 功率: ${data.power || '-'} | 数量: ${data.quantity || '-'} | 状态: ${statusMap[data.status] || data.status || '-'}
+      ${specs.length > 0 ? '<br>规格参数: ' + specs.join(' | ') : ''}
+      ${data.custom_requirements || data.requirements ? '<br>需求: ' + (data.custom_requirements || data.requirements) : ''}
+      ${data.delivery_date ? ' | 交期: ' + data.delivery_date : ''}
+      ${data.material_cost || data.base_cost || data.final_price ? '<br>成本信息: 物料¥' + (data.material_cost||'-') + ' | 成本¥' + (data.base_cost||'-') + ' | 报价¥' + (data.final_price||'-') : ''}`;
+    // 加载子项产品
+    if (data.serial_number) loadSubProducts(data.serial_number);
+  } catch(e) {
+    console.error('拉取询价单失败', e);
+  }
+}
+
+// ===== 编辑 =====
+async function editPricing(id) {
+  try {
+    const res = await fetch(`${API}/pricing/${id}`);
+    const item = await res.json();
+    editingId = id;
+    document.getElementById('modalTitle').textContent = '编辑核价';
+    document.getElementById('fCustomer').value = item.customer || '';
+    document.getElementById('fInquiryNo').value = item.inquiry_no || '';
+    document.getElementById('fModel').value = item.model || '';
+    document.getElementById('fProductName').value = item.product_name || '';
+    document.getElementById('fPower').value = item.power || '';
+    document.getElementById('fProductSeries').value = item.product_series || '';
+    document.getElementById('fCertCompliant').value = item.certificate_compliant || '';
+    document.getElementById('fCertLevel').value = item.certificate_level || '';
+    document.getElementById('fKit').value = item.kit || '';
+    document.getElementById('fCable').value = item.cable || '';
+    document.getElementById('fLightSource').value = item.light_source || '';
+    document.getElementById('fDriver').value = item.driver || '';
+    document.getElementById('fBattery').value = item.battery || '';
+    document.getElementById('fBracket').value = item.bracket || '';
+    document.getElementById('fSwitchType').value = item.switch_type || '';
+    document.getElementById('fSolarPanel').value = item.solar_panel || '';
+    document.getElementById('fSocket').value = item.socket || '';
+    document.getElementById('fBox').value = item.box || '';
+    document.getElementById('fManual').value = item.manual || '';
+    document.getElementById('fPackaging').value = item.packaging || '';
+    document.getElementById('fAccessories').value = item.accessories || '';
+    document.getElementById('fLabor').value = item.labor || '';
+    document.getElementById('fTotalCost').value = item.total_cost || '';
+    document.getElementById('fLaborCost').value = item.labor_cost || '';
+    document.getElementById('fProcessCost').value = item.process_cost || '';
+    document.getElementById('fEstimatedLoss').value = item.estimated_loss || '';
+    document.getElementById('fMinPrice').value = item.min_price || '';
+    document.getElementById('fPricer').value = item.pricer || '';
+    document.getElementById('fPricingLink').value = item.pricing_link || '';
+    document.getElementById('fRemarks').value = item.remarks || '';
+    document.getElementById('fPriceRmb').value = item.price_rmb || '';
+    document.getElementById('fPriceUsd').value = item.price_usd || '';
+    document.getElementById('fProfitRate').value = item.profit_rate || (item.price_rmb && item.total_cost ? ((item.price_rmb - item.total_cost) / item.price_rmb * 100).toFixed(1) : '');
+    document.getElementById('fTargetPrice').value = item.target_price || '';
+    document.getElementById('fPricingVersion').value = item.pricing_version || 'V1.0';
+    document.getElementById('fEffectiveDate').value = item.effective_date || new Date().toISOString().split('T')[0];
+    calcBomTotal();
+    document.getElementById('addModal').style.display = 'flex';
+    // 加载子项产品
+    if (item.inquiry_no) loadSubProducts(item.inquiry_no);
+  } catch (e) { alert('加载失败'); }
+}
+
+document.getElementById('addForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const data = {
+    customer: document.getElementById('fCustomer').value,
+    inquiry_no: document.getElementById('fInquiryNo').value,
+    model: document.getElementById('fModel').value,
+    product_name: document.getElementById('fProductName').value,
+    power: document.getElementById('fPower').value,
+    product_series: document.getElementById('fProductSeries').value,
+    certificate_compliant: document.getElementById('fCertCompliant').value,
+    certificate_level: document.getElementById('fCertLevel').value,
+    kit: document.getElementById('fKit').value || null,
+    cable: document.getElementById('fCable').value || null,
+    light_source: document.getElementById('fLightSource').value || null,
+    driver: document.getElementById('fDriver').value || null,
+    battery: document.getElementById('fBattery').value || null,
+    bracket: document.getElementById('fBracket').value || null,
+    switch_type: document.getElementById('fSwitchType').value || null,
+    solar_panel: document.getElementById('fSolarPanel').value || null,
+    socket: document.getElementById('fSocket').value || null,
+    box: document.getElementById('fBox').value || null,
+    manual: document.getElementById('fManual').value || null,
+    packaging: document.getElementById('fPackaging').value || null,
+    accessories: document.getElementById('fAccessories').value || null,
+    labor: document.getElementById('fLabor').value || null,
+    total_cost: document.getElementById('fTotalCost').value || null,
+    labor_cost: document.getElementById('fLaborCost').value || null,
+    process_cost: document.getElementById('fProcessCost').value || null,
+    estimated_loss: document.getElementById('fEstimatedLoss').value || null,
+    min_price: document.getElementById('fMinPrice').value || null,
+    pricer: document.getElementById('fPricer').value,
+    pricing_link: document.getElementById('fPricingLink').value,
+    remarks: document.getElementById('fRemarks').value,
+    price_rmb: document.getElementById('fPriceRmb').value ? Math.round(parseFloat(document.getElementById('fPriceRmb').value) * 100) / 100 : null,
+    price_usd: document.getElementById('fPriceUsd').value ? Math.round(parseFloat(document.getElementById('fPriceUsd').value) * 100) / 100 : null,
+    profit_rate: document.getElementById('fProfitRate').value ? parseFloat(document.getElementById('fProfitRate').value) : null,
+    target_price: document.getElementById('fTargetPrice').value ? Math.round(parseFloat(document.getElementById('fTargetPrice').value) * 100) / 100 : null,
+    pricing_version: document.getElementById('fPricingVersion').value || 'V1.0',
+    effective_date: document.getElementById('fEffectiveDate').value || new Date().toISOString().split('T')[0]
+  };
+  if (!data.pricer) { alert('核价人为必填项'); return; }
+  if (window._pulledInquirySpecs) Object.assign(data, window._pulledInquirySpecs);
+  try {
+    const url = editingId ? `${API}/pricing/${editingId}` : `${API}/pricing`;
+    const method = editingId ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const result = await res.json();
+    if (res.ok) { alert(editingId ? '更新成功' : '创建成功'); closeModal('addModal'); loadPricing(); loadStats(); }
+    else { alert(result.error || '操作失败'); }
+  } catch (e) { alert('网络错误'); }
+});
+
+// ===== 删除 =====
+async function deletePricing(id) {
+  if (!confirm('确定删除此核价记录？')) return;
+  try {
+    const res = await fetch(`${API}/pricing/${id}`, { method: 'DELETE' });
+    if (res.ok) { alert('删除成功'); loadPricing(); loadStats(); }
+    else { const data = await res.json(); alert(data.error); }
+  } catch (e) { alert('网络错误'); }
+}
+
+// ===== 批量选择与删除 =====
+function toggleSelectAllPricing() {
+  const checked = document.getElementById('selectAllPricing').checked;
+  document.querySelectorAll('.pricing-checkbox').forEach(cb => { cb.checked = checked; });
+  updatePricingBatchBar();
+}
+
+function updatePricingBatchBar() {
+  const checked = document.querySelectorAll('.pricing-checkbox:checked');
+  const bar = document.getElementById('batchBar');
+  const countEl = document.getElementById('batchCount');
+  if (checked.length > 0) {
+    bar.style.display = 'flex';
+    countEl.textContent = `已选 ${checked.length} 条`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function clearPricingSelection() {
+  document.querySelectorAll('.pricing-checkbox').forEach(cb => { cb.checked = false; });
+  document.getElementById('selectAllPricing').checked = false;
+  document.getElementById('batchBar').style.display = 'none';
+}
+
+async function batchDeletePricing() {
+  const checked = document.querySelectorAll('.pricing-checkbox:checked');
+  if (checked.length === 0) { alert('请先选择要删除的记录'); return; }
+  const ids = Array.from(checked).map(cb => Number(cb.value));
+  if (!confirm(`确定删除选中的 ${ids.length} 条核价记录？`)) return;
+  try {
+    const res = await fetch(`${API}/pricing/batch-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    const data = await res.json();
+    if (res.ok) { alert(data.message); clearPricingSelection(); loadPricing(); loadStats(); }
+    else { alert(data.error || '批量删除失败'); }
+  } catch (e) { alert('网络错误'); }
+}
+
+// ===== 详情 =====
+async function showDetail(id) {
+  try {
+    const res = await fetch(`${API}/pricing/${id}`);
+    const item = await res.json();
+    const bomItems = [
+      ['套件', item.kit], ['电缆线', item.cable], ['光源', item.light_source], ['驱动', item.driver],
+      ['电池', item.battery], ['支架', item.bracket], ['开关', item.switch_type], ['太阳能板', item.solar_panel],
+      ['插座', item.socket], ['盒子', item.box], ['说明书', item.manual], ['包装', item.packaging],
+      ['配件', item.accessories], ['人工', item.labor]
+    ];
+    let bomHtml = '<table style="width:100%;border-collapse:collapse;"><tr>';
+    bomItems.forEach(([label, val]) => {
+      bomHtml += `<td style="padding:6px 10px;border:1px solid #eee;text-align:center;"><strong>${label}</strong><br><span style="color:${val ? '#e74c3c' : '#ccc'};">${fmt(val)}</span></td>`;
+    });
+    bomHtml += '</tr></table>';
+
+    const productInfo = item.product_info ? `<span class="badge badge-linked">已关联产品: ${item.product_info.external_model}</span>` : '<span class="badge badge-unlinked">未关联产品</span>';
+
+    document.getElementById('detailContent').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:15px;">
+        <div><label style="color:#888;font-size:12px;">客户</label><div>${item.customer || '-'}</div></div>
+        <div><label style="color:#888;font-size:12px;">询价单号</label><div>${item.inquiry_no || '-'}</div></div>
+        <div><label style="color:#888;font-size:12px;">型号</label><div><strong>${item.model}</strong></div></div>
+        <div><label style="color:#888;font-size:12px;">产品名称</label><div>${item.product_name || '-'}</div></div>
+        <div><label style="color:#888;font-size:12px;">功率</label><div>${item.power || '-'}</div></div>
+        <div><label style="color:#888;font-size:12px;">关联产品</label><div>${productInfo}</div></div>
+      </div>
+      <div class="section-title">BOM成本明细</div>
+      ${bomHtml}
+      <div class="auto-calc" style="margin-top:10px;">BOM合计: <strong>${fmt(item.total_cost)}</strong> 元</div>
+      <div class="section-title price">报价信息</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
+        <div><label style="color:#888;font-size:12px;">核价人</label><div>${item.pricer || '-'}</div></div>
+        <div><label style="color:#888;font-size:12px;">核价链接</label><div>${item.pricing_link || '-'}</div></div>
+        <div><label style="color:#888;font-size:12px;">报价(RMB)</label><div style="color:#27ae60;font-weight:600;font-size:18px;">${fmt(item.price_rmb)}</div></div>
+        <div><label style="color:#888;font-size:12px;">报价(USD)</label><div style="color:#27ae60;font-weight:600;font-size:18px;">${fmt(item.price_usd)}</div></div>
+        <div><label style="color:#888;font-size:12px;">目标价</label><div>${fmt(item.target_price)}</div></div>
+        <div><label style="color:#888;font-size:12px;">备注</label><div>${item.remarks || '-'}</div></div>
+        <div><label style="color:#888;font-size:12px;">毛利率</label><div>${item.profit_rate ? item.profit_rate + '%' : (item.price_rmb && item.total_cost ? ((item.price_rmb - item.total_cost) / item.price_rmb * 100).toFixed(1) + '%' : '-')}</div></div>
+        <div><label style="color:#888;font-size:12px;">创建时间</label><div>${item.created_at || '-'}</div></div>
+      </div>
+      ${item.input_voltage || item.color_temp || item.luminous_flux || item.main_body || item.lampshade || item.reflector || item.waterproof || item.configuration || item.special_process || item.custom_requirements ? `
+      <div class="section-title">询价规格参数</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
+        ${item.input_voltage ? '<div><label style="color:#888;font-size:12px;">输入电压</label><div>' + item.input_voltage + '</div></div>' : ''}
+        ${item.color_temp ? '<div><label style="color:#888;font-size:12px;">色温</label><div>' + item.color_temp + '</div></div>' : ''}
+        ${item.luminous_flux ? '<div><label style="color:#888;font-size:12px;">光通量</label><div>' + item.luminous_flux + '</div></div>' : ''}
+        ${item.light_source ? '<div><label style="color:#888;font-size:12px;">光源</label><div>' + item.light_source + '</div></div>' : ''}
+        ${item.main_body ? '<div><label style="color:#888;font-size:12px;">主体</label><div>' + item.main_body + '</div></div>' : ''}
+        ${item.lampshade ? '<div><label style="color:#888;font-size:12px;">灯罩</label><div>' + item.lampshade + '</div></div>' : ''}
+        ${item.reflector ? '<div><label style="color:#888;font-size:12px;">反光罩</label><div>' + item.reflector + '</div></div>' : ''}
+        ${item.waterproof ? '<div><label style="color:#888;font-size:12px;">防水等级</label><div>' + item.waterproof + '</div></div>' : ''}
+        ${item.configuration ? '<div><label style="color:#888;font-size:12px;">配置</label><div>' + item.configuration + '</div></div>' : ''}
+        ${item.special_process ? '<div><label style="color:#888;font-size:12px;">特殊工艺</label><div>' + item.special_process + '</div></div>' : ''}
+        ${item.custom_requirements ? '<div><label style="color:#888;font-size:12px;">定制需求</label><div>' + item.custom_requirements + '</div></div>' : ''}
+        ${item.quantity ? '<div><label style="color:#888;font-size:12px;">数量</label><div>' + item.quantity + '</div></div>' : ''}
+        ${item.delivery_date ? '<div><label style="color:#888;font-size:12px;">交期</label><div>' + item.delivery_date + '</div></div>' : ''}
+      </div>` : ''}`;
+    document.getElementById('detailModal').style.display = 'flex';
+  } catch (e) { alert('加载失败'); }
+}
+
+init();
+</script>
+<script src="import-dropzone.js"></script>
+<div id="importDropzoneContainer"></div>
+<script>ImportDropzone.init('importDropzoneContainer', 'bom_pricing', () => { loadPricing(); loadStats(); });</script>
+<script>
+  function initPricingSortFilter() {
+    if (window.TableSortFilter) {
+      TableSortFilter.init('pricingTableEl', {
+        sortFields: { 0: 'id', 1: 'customer', 3: 'model', 5: 'power', 7: 'cert_level', 22: 'total_cost', 27: 'pricer', 28: 'price_rmb', 29: 'price_usd' },
+        filterFields: { 1: 'customer', 6: 'cert_compliant', 7: 'cert_level', 31: 'product_link' }
+      });
+    }
+  }
+  // 数据加载后刷新
+  const origLoadPricing = loadPricing;
+  loadPricing = async function(page) {
+    await origLoadPricing(page || 1);
+    initPricingSortFilter();
+  };
+  initPricingSortFilter();
+
+  // URL参数预选
+  const urlParams = new URLSearchParams(window.location.search);
+  const preModel = urlParams.get('model');
+  if (preModel) {
+    document.getElementById('modelInput').value = preModel;
+  }
+</script>
+<script src="dict-loader.js"></script><script src="permission-check.js"></script><script>PermissionCheck.init(); DictLoader.fillAll([{select:'fProductSeries',group:'product_series',placeholder:'请选择'},{select:'fCertCompliant',group:'certificate_compliant',placeholder:'请选择'},{select:'fCertLevel',group:'certificate_level',placeholder:'请选择'}]);</script>
+<script src="chat-widget.js"></script>
+<script src="feature-gate.js"></script><script>FeatureGate.init();</script>
+</body>
+</html>

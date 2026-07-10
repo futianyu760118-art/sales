@@ -1,0 +1,23 @@
+{
+  "records": [
+    {
+      "customer_id": 1095,
+      "type": "file",
+      "file_name": "957客户来访背景.docx",
+      "file_path": "C:\\Users\\colorful\\Downloads\\sales-service-system\\uploads\\customers\\1782975107423_957__________________.docx",
+      "size": 13167,
+      "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "uploaded_at": "2026-07-02 14:51:47",
+      "id": 12
+    },
+    {
+      "customer_id": 1095,
+      "type": "link",
+      "file_name": "957",
+      "url": "【金山文档】 957客户来访背景\r\nhttps://www.kdocs.cn/l/ceDgKs6lYkwb",
+      "uploaded_at": "2026-07-02 14:52:17",
+      "id": 13
+    }
+  ],
+  "nextId": 14
+}

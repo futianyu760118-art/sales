@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>流程规则</title><link rel="stylesheet" href="common.css">
+<style>
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.em{text-align:center;color:#999;padding:30px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb2{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:90vh;overflow:auto}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:50px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.togg-wrap{display:flex;align-items:center;justify-content:center}
+.togg{position:relative;width:44px;height:22px;display:inline-block;cursor:pointer}
+.togg input{opacity:0;width:0;height:0}
+.togg .slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:22px;transition:all 0.3s}
+.togg .slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:all 0.3s}
+.togg input:checked+.slider{background:#27ae60}
+.togg input:checked+.slider:before{transform:translateX(22px)}
+.tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
+.st-on{background:#d4edda;color:#155724}.st-off{background:#f8d7da;color:#721c24}
+.tab-nav{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid #eee;padding-bottom:0}
+.tab-nav button{padding:8px 20px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
+.tab-nav button.active{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tab-nav button:hover{color:#667eea}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>流程规则</h2>
+<div style="display:flex;gap:8px;">
+<button class="btn b2" onclick="openAdd()">新增规则</button>
+<button class="btn b4" onclick="batchToggleAll(true)">全部启用</button>
+<button class="btn b3" onclick="batchToggleAll(false)">全部禁用</button>
+</div>
+</div>
+<div class="tab-nav" style="margin-bottom:14px;">
+<button class="active" id="tabAllBtn" onclick="switchRuleTab('all')">全部规则</button>
+<button id="tabFeatureBtn" onclick="switchRuleTab('feature')">功能开关</button>
+</div>
+<div id="panel-all">
+<div class="sb">
+<input type="text" id="rKw" placeholder="搜索编号/名称/描述" style="width:220px" onkeydown="if(event.key==='Enter')loadList()">
+<select id="rCategory"><option value="">全部分类</option></select>
+<select id="rType"><option value="">全部类型</option></select>
+<select id="rEnabled"><option value="">全部状态</option><option value="1">已启用</option><option value="0">已禁用</option></select>
+<button class="btn b1" onclick="loadList()">搜索</button>
+<span style="margin-left:auto">共 <b id="rTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>规则编码</th><th>规则名称</th><th>分类</th><th>类型</th><th>优先级</th><th>描述</th><th>启用</th><th>操作</th>
+</tr></thead><tbody id="rTb"><tr><td colspan="8" class="em">暂无数据</td></tr></tbody></table>
+</div>
+</div>
+<div id="panel-feature" style="display:none;">
+<div class="sb"><input type="text" id="fKw" placeholder="搜索模块/功能..." style="width:220px" onkeyup="renderFeatureCards()"><span style="margin-left:auto">共 <b id="fTc">0</b> 个模块</span></div>
+<div id="featureCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;"></div>
+</div>
+</div>
+
+<!-- 新增/编辑弹窗 -->
+<div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
+
+<script>
+const API='/api/rules';
+let categoryOptions=[],typeOptions=[];
+
+async function loadList(){
+  const p=new URLSearchParams();
+  const kw=document.getElementById('rKw').value,cat=document.getElementById('rCategory').value,tp=document.getElementById('rType').value,en=document.getElementById('rEnabled').value;
+  if(kw)p.set('keyword',kw);if(cat)p.set('category',cat);if(tp)p.set('type',tp);if(en)p.set('enabled',en);
+  try{
+    const r=await fetch(API+'?'+p);const d=await r.json();
+    const recs=d.data||d||[];const total=Array.isArray(d)?d.length:(d.total||recs.length);
+    document.getElementById('rTc').textContent=total;
+    const tb=document.getElementById('rTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="8" class="em">暂无数据</td></tr>';return}
+    const cats=new Set(),types=new Set();
+    recs.forEach(r=>{if(r.category)cats.add(r.category);if(r.type)types.add(r.type)});
+    if(cats.size>categoryOptions.length){
+      const sel=document.getElementById('rCategory');sel.innerHTML='<option value="">全部分类</option>';
+      cats.forEach(c=>sel.innerHTML+=`<option value="${c}">${c}</option>`);
+      categoryOptions=[...cats];
+    }
+    if(types.size>typeOptions.length){
+      const sel=document.getElementById('rType');sel.innerHTML='<option value="">全部类型</option>';
+      types.forEach(t=>sel.innerHTML+=`<option value="${t}">${t}</option>`);
+      typeOptions=[...types];
+    }
+    tb.innerHTML=recs.map(r=>`<tr>
+      <td><b>${r.code||'-'}</b></td>
+      <td>${(r.name||'').substring(0,20)}</td>
+      <td><span class="badge" style="background:#e8eaf6;color:#3949ab">${r.category||'-'}</span></td>
+      <td>${r.type||'-'}</td>
+      <td>${r.priority||'-'}</td>
+      <td>${(r.description||'').substring(0,30)}</td>
+      <td style="text-align:center">
+        <label class="togg"><input type="checkbox" ${r.enabled!==0?'checked':''} onchange="toggleRule(${r.id},this.checked)"><span class="slider"></span></label>
+        <span class="badge ${r.enabled!==0?'st-on':'st-off'}">${r.enabled!==0?'启用':'禁用'}</span>
+      </td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b4" onclick="openEdit(${r.id})">编辑</button>
+        <button class="btn bs b3" onclick="delItem(${r.id})" data-perm="rules:delete">删除</button>
+      </td>
+    </tr>`).join('');
+  }catch(e){console.error(e)}
+}
+
+async function toggleRule(id,checked){
+  try{
+    const r=await fetch(API+'/toggle/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:checked?1:0})});
+    if(r.ok)loadList();
+  }catch(e){console.error(e)}
+}
+
+function openAdd(){
+  const fields=[
+    ['code','规则编码*','text'],['name','规则名称*','text'],['category','分类','text'],
+    ['type','类型','text'],['priority','优先级','text'],
+    ['description','描述','textarea'],['condition','触发条件','textarea'],
+    ['action','执行动作','text'],['action_params','动作参数','textarea'],
+    ['enabled','启用','select:1,0']
+  ];
+  openForm('新增规则',fields,{enabled:'1'},async(data)=>{
+    if(!data.code||!data.name){alert('规则编码和名称必填');return}
+    data.enabled=data.enabled==='1'?1:0;
+    await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('gMo').classList.remove('ac');
+    loadList();
+  });
+}
+
+async function openEdit(id){
+  try{
+    const r=await fetch(API+'/'+id);const d=await r.json();
+    const fields=[
+      ['code','规则编码*','text'],['name','规则名称*','text'],['category','分类','text'],
+      ['type','类型','text'],['priority','优先级','text'],
+      ['description','描述','textarea'],['condition','触发条件','textarea'],
+      ['action','执行动作','text'],['action_params','动作参数','textarea'],
+      ['enabled','启用','select:1,0']
+    ];
+    openForm('编辑规则',fields,{...d,enabled:d.enabled!==0?'1':'0'},async(data)=>{
+      if(!data.code||!data.name){alert('规则编码和名称必填');return}
+      data.enabled=data.enabled==='1'?1:0;
+      await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      document.getElementById('gMo').classList.remove('ac');
+      loadList();
+    });
+  }catch(e){alert('加载失败')}
+}
+
+async function delItem(id){
+  if(!PermissionCheck.has('rules:delete')){alert('无删除权限');return;}
+  if(!confirm('确定删除此规则？'))return;
+  await fetch(API+'/'+id,{method:'DELETE'});
+  loadList();
+}
+
+function openForm(title,fields,data,onSave){
+  const box=document.getElementById('gMoBox');
+  let html=`<div style="display:flex;justify-content:space-between;margin-bottom:14px"><h3>${title}</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">×</span></div>`;
+  html+='<div style="max-height:60vh;overflow-y:auto;padding-right:6px">';
+  let i=0;
+  while(i<fields.length){
+    const [key,label,type]=fields[i];
+    if(type==='textarea'){
+      html+=`<div class="fg"><label>${label}</label><textarea id="ff_${key}">${data[key]||''}</textarea></div>`;
+      i++;
+    }else{
+      const next=fields[i+1];
+      if(next&&next[2]!=='textarea'){
+        html+='<div class="gr">';
+        html+=renderField(fields[i],data);
+        html+=renderField(next,data);
+        html+='</div>';
+        i+=2;
+      }else{
+        html+='<div class="gr">';
+        html+=renderField(fields[i],data);
+        html+='</div>';
+        i++;
+      }
+    }
+  }
+  html+='</div>';
+  html+='<div style="text-align:right;margin-top:12px"><button class="btn b2" id="ffSave">保存</button></div>';
+  box.innerHTML=html;
+  document.getElementById('gMo').classList.add('ac');
+  document.getElementById('ffSave').onclick=()=>{
+    const d={};
+    fields.forEach(([key,,type])=>{
+      const el=document.getElementById('ff_'+key);
+      if(!el)return;
+      d[key]=type==='number'?Number(el.value)||0:el.value;
+    });
+    onSave(d);
+  };
+}
+
+function renderField([key,label,type],data){
+  const val=data[key]||'';
+  if(type.startsWith('select:')){
+    const opts=type.substring(7).split(',');
+    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${String(val)===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  }
+  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}"></div>`;
+}
+
+// ===== 功能开关 Tab =====
+let allFeatureRules=[],featureMap={};
+
+function switchRuleTab(tab){
+  document.querySelectorAll('.tab-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-all').style.display=tab==='all'?'block':'none';
+  document.getElementById('panel-feature').style.display=tab==='feature'?'block':'none';
+  document.getElementById(tab==='all'?'tabAllBtn':'tabFeatureBtn').classList.add('active');
+  if(tab==='feature') loadFeatureCards();
+}
+
+async function loadFeatureCards(){
+  try{
+    const r=await fetch(API+'?type=feature');
+    allFeatureRules=await r.json();
+    allFeatureRules=Array.isArray(allFeatureRules)?allFeatureRules:(allFeatureRules.data||[]);
+    renderFeatureCards();
+  }catch(e){console.error(e)}
+}
+
+function renderFeatureCards(){
+  const div=document.getElementById('featureCards');
+  const kw=(document.getElementById('fKw')?.value||'').toLowerCase();
+  let rules=allFeatureRules.filter(r=>{
+    if(kw&&!`${r.code} ${r.name} ${r.category}`.toLowerCase().includes(kw)) return false;
+    return true;
+  });
+  const grouped={};
+  rules.forEach(r=>{
+    const cat=r.category||'other';
+    if(!grouped[cat]) grouped[cat]=[];
+    grouped[cat].push(r);
+  });
+  document.getElementById('fTc').textContent=Object.keys(grouped).length;
+  const catNames={
+    'inquiry':'询价管理','customer':'客户管理','product':'产品管理',
+    'material':'物料库','supplier':'供应商管理','bom':'BOM管理',
+    'order':'订单管理','sample':'样品管理','project':'项目管理',
+    'pricing':'核价表','quote':'报价库','config':'产品配置表',
+    'report':'数据报表','dashboard':'首页仪表盘'
+  };
+  let html='';
+  for(const [cat,items] of Object.entries(grouped)){
+    const total=items.length,enabled=items.filter(i=>i.enabled!==0).length;
+    html+=`<div class="role-card" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div>
+          <div class="role-name">${catNames[cat]||cat}</div>
+          <div class="role-desc">${enabled}/${total} 项已启用</div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <button class="btn bs b2" onclick="batchModuleToggle('${cat}',true)">全开</button>
+          <button class="btn bs b3" onclick="batchModuleToggle('${cat}',false)">全关</button>
+        </div>
+      </div>
+      <div class="perm-grid">${items.map(r=>{
+        const name=r.name.split(' - ')[1]||r.name;
+        return `<div class="perm-item"><label>
+          <input type="checkbox" id="fc_${r.id}" ${r.enabled!==0?'checked':''} onchange="toggleFeature(${r.id},this.checked)">
+          <span style="font-size:12px">${name}</span>
+        </label></div>`;
+      }).join('')}</div>
+    </div>`;
+  }
+  div.innerHTML=html||'<div class="em">暂无功能开关规则</div>';
+}
+
+async function toggleFeature(id,checked){
+  try{
+    await fetch(API+'/toggle/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:checked?1:0})});
+    const item=allFeatureRules.find(r=>r.id===id);
+    if(item) item.enabled=checked?1:0;
+  }catch(e){console.error(e)}
+}
+
+async function batchModuleToggle(cat,enabled){
+  const items=allFeatureRules.filter(r=>r.category===cat);
+  for(const r of items){
+    const cb=document.getElementById('fc_'+r.id);
+    if(cb) cb.checked=enabled;
+    await toggleFeature(r.id,enabled);
+  }
+  renderFeatureCards();
+}
+
+async function batchToggleAll(enabled){
+  const items=allFeatureRules;
+  for(const r of items){
+    await toggleFeature(r.id,enabled);
+  }
+  renderFeatureCards();
+}
+
+loadList();
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body></html>

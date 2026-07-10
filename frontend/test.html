@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>自动测试</title><link rel="stylesheet" href="common.css">
+<style>
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.sc{background:#fff;padding:16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.sc h3{font-size:14px;color:#333;margin-bottom:8px}
+.sc .bar-wrap{background:#eee;height:6px;border-radius:3px;margin:8px 0;overflow:hidden}
+.sc .bar-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:3px;transition:width .5s}
+.sc .meta{font-size:12px;color:#999}
+.sb{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}.b5{background:#3498db;color:#fff}.bs{padding:3px 8px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.bg-r{background:#f8d7da;color:#721c24}.bg-o{background:#fff3cd;color:#856404}.bg-g{background:#d4edda;color:#155724}.bg-b{background:#cce5ff;color:#004085}.bg-n{background:#e2e3e5;color:#383d41}
+.em{text-align:center;color:#999;padding:30px}
+.tbl-wrap{overflow-x:auto;max-height:55vh;overflow-y:auto}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:700px;max-width:95%;max-height:90vh;overflow:auto}
+.pg{text-align:center;margin-top:12px}
+.tv{display:flex;border-bottom:2px solid #eee;margin-bottom:16px}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>自动测试</h2>
+<div style="display:flex;gap:8px">
+<button class="btn b1" onclick="runAllTests()">运行全部测试</button>
+<button class="btn b2" onclick="autoFixAllBugs()">一键修复</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('suites',this)">测试套件</button>
+<button onclick="swTab('history',this)">测试历史</button>
+<button onclick="swTab('bugs',this)">Bug列表</button>
+</div>
+
+<div class="tc ac" id="tab-suites">
+<div class="sg" id="sGrid"></div>
+<div id="sStatus" style="margin-top:8px"></div>
+</div>
+
+<div class="tc" id="tab-history">
+<div class="sb">
+<button class="btn b5" onclick="loadHistory()">刷新</button>
+<span style="margin-left:auto">共 <b id="hTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>时间</th><th>测试套件</th><th>总计</th><th>通过</th><th>失败</th><th>跳过</th><th>耗时</th><th>状态</th>
+</tr></thead><tbody id="hTb"><tr><td colspan="8" class="em">暂无记录</td></tr></tbody></table>
+</div>
+<div class="pg" id="hPg"></div>
+</div>
+
+<div class="tc" id="tab-bugs">
+<div class="sb">
+<select id="bStatus"><option value="">全部状态</option><option value="open">未修复</option><option value="fixed">已修复</option><option value="closed">已关闭</option></select>
+<select id="bSeverity"><option value="">全部严重程度</option><option value="critical">致命</option><option value="major">严重</option><option value="minor">轻微</option></select>
+<button class="btn b1" onclick="loadBugs()">搜索</button>
+<span style="margin-left:auto">共 <b id="bTc">0</b> 条</span>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>Bug编号</th><th>严重程度</th><th>模块</th><th>描述</th><th>关联测试</th><th>状态</th><th>操作</th>
+</tr></thead><tbody id="bTb"><tr><td colspan="7" class="em">暂无Bug</td></tr></tbody></table>
+</div>
+<div class="pg" id="bPg"></div>
+</div>
+</div>
+
+<div class="mo" id="bMo"><div class="mb">
+<div style="display:flex;justify-content:space-between;margin-bottom:12px">
+<h3 id="bMoTi">Bug详情</h3><span onclick="document.getElementById('bMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span>
+</div>
+<div id="bMoBody"></div>
+</div></div>
+
+<script>
+const API='/api/test';
+const severityMap={critical:'bg-r',major:'bg-o',minor:'bg-n'};
+const bugStatusMap={open:'bg-r',fixed:'bg-g',closed:'bg-n'};
+
+function swTab(name,btn){
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
+  btn.classList.add('ac');
+  document.getElementById('tab-'+name).classList.add('ac');
+  if(name==='suites')loadSuites();
+  else if(name==='history')loadHistory();
+  else if(name==='bugs')loadBugs();
+}
+
+async function loadSuites(){
+  try{
+    const r=await fetch(API+'/suites');const d=await r.json();
+    const suites=d.data||d||[];
+    const grid=document.getElementById('sGrid');
+    if(!suites.length){grid.innerHTML='<div class="em" style="grid-column:1/-1">暂无测试套件</div>';return}
+    grid.innerHTML=suites.map(s=>`
+      <div class="sc">
+        <h3>${s.name||s.key||'-'}</h3>
+        <div class="meta">${s.description||''}</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${s.pass_rate||0}%"></div></div>
+        <div class="meta">通过率: ${s.pass_rate||0}% | ${s.total_cases||0}个用例</div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button class="btn bs b1" onclick="runSuite('${s.key||s.id}')">运行</button>
+          ${s.cases&&s.cases.length?`<button class="btn bs b5" onclick="showCases('${s.key||s.id}','${(s.name||'').replace(/'/g,"\\'")}')">用例</button>`:''}
+        </div>
+      </div>
+    `).join('');
+    await loadStatus();
+  }catch(e){console.error(e)}
+}
+
+async function loadStatus(){
+  try{
+    const r=await fetch(API+'/status');const s=await r.json();
+    document.getElementById('sStatus').innerHTML=s.running?`
+      <div style="background:#fff3cd;padding:12px;border-radius:8px;text-align:center;color:#856404;font-size:13px">
+        测试运行中... ${s.current||''} (${s.progress||''})
+      </div>`:'';
+  }catch(e){}
+}
+
+async function runSuite(key){
+  try{
+    const r=await fetch(API+'/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({suite:key})});
+    const d=await r.json();
+    alert(d.message||'测试已提交运行');
+    loadSuites();loadHistory();
+  }catch(e){alert('运行失败: '+e.message)}
+}
+
+async function runAllTests(){
+  if(!confirm('确定运行全部测试？可能需要较长时间。'))return;
+  try{
+    const r=await fetch(API+'/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const d=await r.json();
+    alert(d.message||'全部测试已提交运行');
+    loadSuites();loadHistory();
+  }catch(e){alert('运行失败: '+e.message)}
+}
+
+function showCases(key,name){
+  alert('查看测试用例: '+(name||key));
+  // Placeholder for case drill-down
+}
+
+async function loadHistory(){
+  try{
+    const r=await fetch(API+'/history');const d=await r.json();
+    const recs=d.data||d||[];document.getElementById('hTc').textContent=recs.length;
+    const tb=document.getElementById('hTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="8" class="em">暂无记录</td></tr>';return}
+    tb.innerHTML=recs.map(h=>`<tr>
+      <td>${h.run_at||h.created_at||'-'}</td>
+      <td>${h.suite_name||h.suite||'-'}</td>
+      <td>${h.total||0}</td>
+      <td style="color:#27ae60">${h.passed||0}</td>
+      <td style="color:#e74c3c">${h.failed||0}</td>
+      <td>${h.skipped||0}</td>
+      <td>${h.duration||'-'}</td>
+      <td><span class="badge ${h.status==='passed'?'bg-g':h.status==='failed'?'bg-r':'bg-o'}">${h.status||'-'}</span></td>
+    </tr>`).join('');
+  }catch(e){console.error(e)}
+}
+
+async function loadBugs(){
+  const p=new URLSearchParams();
+  const st=document.getElementById('bStatus').value,sv=document.getElementById('bSeverity').value;
+  if(st)p.set('status',st);if(sv)p.set('severity',sv);
+  try{
+    const [br,bs]=await Promise.all([fetch(API+'/bugs?'+p),fetch(API+'/bug-stats')]);
+    const d=await br.json(),stats=await bs.json();
+    const recs=d.data||d||[];document.getElementById('bTc').textContent=recs.length;
+    const tb=document.getElementById('bTb');
+    if(!recs.length){tb.innerHTML='<tr><td colspan="7" class="em">暂无Bug</td></tr>';return}
+    tb.innerHTML=recs.map(b=>`<tr>
+      <td><b>${b.bug_no||b.id||'-'}</b></td>
+      <td><span class="badge ${severityMap[b.severity]||'bg-n'}">${b.severity||'-'}</span></td>
+      <td>${b.module||'-'}</td>
+      <td title="${b.description||''}">${(b.description||'').substring(0,35)}</td>
+      <td>${b.related_test||'-'}</td>
+      <td><span class="badge ${bugStatusMap[b.status]||'bg-n'}">${b.status||'-'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b1" onclick="openBug(${b.id})">详情</button>
+        ${b.auto_fixable||b.can_auto_fix?`<button class="btn bs b2" onclick="autoFixBug(${b.id})">修复</button>`:''}
+      </td>
+    </tr>`).join('');
+  }catch(e){console.error(e)}
+}
+
+async function openBug(id){
+  try{
+    const r=await fetch(API+'/bugs/'+id);const b=await r.json();
+    const d=b||{};
+    document.getElementById('bMoTi').textContent='Bug详情 - #'+(d.bug_no||d.id||'');
+    document.getElementById('bMoBody').innerHTML=`
+      <table style="width:100%;font-size:13px;margin-bottom:14px">
+        <tr><td style="color:#999;width:100px">编号</td><td><b>${d.bug_no||d.id||'-'}</b></td></tr>
+        <tr><td style="color:#999">严重程度</td><td><span class="badge ${severityMap[d.severity]||'bg-n'}">${d.severity||'-'}</span></td></tr>
+        <tr><td style="color:#999">模块</td><td>${d.module||'-'}</td></tr>
+        <tr><td style="color:#999">描述</td><td>${d.description||'-'}</td></tr>
+        <tr><td style="color:#999">关联测试</td><td>${d.related_test||'-'}</td></tr>
+        <tr><td style="color:#999">状态</td><td><span class="badge ${bugStatusMap[d.status]||'bg-n'}">${d.status||'-'}</span></td></tr>
+        <tr><td style="color:#999">发现时间</td><td>${d.found_at||d.created_at||'-'}</td></tr>
+        <tr><td style="color:#999">备注</td><td>${d.remarks||'-'}</td></tr>
+      </table>
+      <div style="text-align:right">
+        ${d.auto_fixable||d.can_auto_fix?'<button class="btn b2" onclick="autoFixBug('+d.id+')">自动修复</button> ':''}
+        <button class="btn b4" onclick="document.getElementById(\'bMo\').classList.remove(\'ac\')">关闭</button>
+      </div>
+    `;
+    document.getElementById('bMo').classList.add('ac');
+  }catch(e){alert('加载失败: '+e.message)}
+}
+
+async function autoFixBug(id){
+  if(!confirm('确定自动修复此Bug？'))return;
+  try{
+    const r=await fetch(API+'/bugs/'+id+'/auto-fix',{method:'POST'});const d=await r.json();
+    alert(d.message||'修复完成');
+    loadBugs();
+  }catch(e){alert('修复失败: '+e.message)}
+}
+
+async function autoFixAllBugs(){
+  if(!confirm('确定一键修复所有可自动修复的Bug？'))return;
+  try{
+    const r=await fetch(API+'/auto-fix-all',{method:'POST'});const d=await r.json();
+    alert(d.message||'修复完成');
+    loadBugs();
+  }catch(e){alert('修复失败: '+e.message)}
+}
+
+loadSuites();
+</script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="chat-widget.js"></script>
+</body></html>

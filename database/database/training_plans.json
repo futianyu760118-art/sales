@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "title": "报价流程优化培训",
+      "target_persons": [
+        "李四"
+      ],
+      "training_type": "流程优化",
+      "description": "针对报价响应慢的问题，优化核价流程，建立快速报价通道",
+      "deadline": "2024-04-30",
+      "status": "planned",
+      "created_at": "2024-03-25 10:00:00",
+      "id": 1
+    },
+    {
+      "title": "客户需求分析培训",
+      "target_persons": [
+        "李四"
+      ],
+      "training_type": "销售技巧",
+      "description": "提升销售人员客户需求分析能力，降低流失率",
+      "deadline": "2024-05-15",
+      "status": "planned",
+      "created_at": "2024-03-25 10:00:00",
+      "id": 2
+    },
+    {
+      "title": "销售谈判技巧培训",
+      "target_persons": [
+        "张三",
+        "李四"
+      ],
+      "training_type": "销售技巧",
+      "description": "提升成交转化率，加强谈判能力",
+      "deadline": "2024-05-30",
+      "status": "planned",
+      "created_at": "2024-03-25 10:00:00",
+      "id": 3
+    }
+  ],
+  "nextId": 4
+}
