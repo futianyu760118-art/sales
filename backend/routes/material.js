@@ -46,6 +46,30 @@ function computeNextPurchaseDate(record) {
   return d.toISOString().substring(0, 10);
 }
 
+// 仪表盘过滤器：status / classifications / inv / price
+// 返回 filter(material) 函数；未提供的维度不过滤
+function parseDashboardFilters(query) {
+  const status = String(query.status || '').trim();
+  const classifications = String(query.classifications || '').split(',').map(s => s.trim()).filter(Boolean);
+  const invMin = query.inv_min !== undefined && query.inv_min !== '' ? Number(query.inv_min) : null;
+  const invMax = query.inv_max !== undefined && query.inv_max !== '' ? Number(query.inv_max) : null;
+  const priceMin = query.price_min !== undefined && query.price_min !== '' ? Number(query.price_min) : null;
+  const priceMax = query.price_max !== undefined && query.price_max !== '' ? Number(query.price_max) : null;
+  const filter = (m) => {
+    if (status === 'active' && m.status === 'inactive') return false;
+    if (status === 'inactive' && m.status !== 'inactive') return false;
+    if (classifications.length && !classifications.includes(m.classification || '通用物料')) return false;
+    const inv = Number(m.inventory_qty) || 0;
+    if (invMin !== null && inv < invMin) return false;
+    if (invMax !== null && inv > invMax) return false;
+    const price = Number(m.standard_cost) || 0;
+    if (priceMin !== null && price < priceMin) return false;
+    if (priceMax !== null && price > priceMax) return false;
+    return true;
+  };
+  return { filter, meta: { status, classifications, invMin, invMax, priceMin, priceMax } };
+}
+
 router.get('/', requirePerm('material:view'), (req, res) => {
   const { page = 1, limit = 15, product_id, status, keyword, category, classification, sort_by, sort_order } = req.query;
   const table = getTable('materials');
@@ -75,7 +99,8 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
   matTable._invalidate();
   bomTable._invalidate();
 
-  const materials = matTable.all();
+  const { filter: matFilter, meta: filterMeta } = parseDashboardFilters(req.query);
+  const materials = matTable.all().filter(matFilter);
   const bomItems = bomTable.all();
 
   const totalMaterials = materials.length;
@@ -179,7 +204,8 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     procurement_enabled: procurementEnabledCount,
     procurement_due: procurementDueCount,
     procurement_due_items: procurementDueItems.sort((a, b) => b.overdue_days - a.overdue_days),
-    timeline
+    timeline,
+    filters: filterMeta
   });
 });
 
@@ -349,7 +375,8 @@ router.get('/dashboard/period-stats', requirePerm('material:view'), (req, res) =
   if (!period) return res.status(400).json({ error: '时间范围参数无效' });
   const matTable = getTable('materials');
   matTable._invalidate();
-  const materials = matTable.all();
+  const { filter: matFilter, meta: filterMeta } = parseDashboardFilters(req.query);
+  const materials = matTable.all().filter(matFilter);
   const today = new Date(); today.setUTCHours(23, 59, 59, 999);
   const current = snapshotAt(materials, today);
   const prev = snapshotAt(materials, period.previous.to);
@@ -379,7 +406,8 @@ router.get('/dashboard/period-stats', requirePerm('material:view'), (req, res) =
     },
     current, previous: prev, changes,
     events: ev,
-    trend
+    trend,
+    filters: filterMeta
   });
 });
 

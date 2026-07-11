@@ -99,11 +99,31 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <div class="dash-panel" data-feature="dashboard">
 <div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>📊 物料统计仪表盘</span><span class="dash-arrow">▼</span></div>
 <div class="dash-body">
-  <div class="sb" style="background:#f8f9ff;padding:8px 10px;border-radius:6px;margin-bottom:10px">
-    <span style="font-weight:600;color:#667eea">📅 自定义时间段</span>
+  <div class="sb" style="background:#f8f9ff;padding:8px 10px;border-radius:6px;margin-bottom:10px;gap:6px">
+    <span style="font-weight:600;color:#667eea">🔍 仪表盘筛选</span>
+    <select id="dashStatus" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
+      <option value="">全部状态</option>
+      <option value="active">启用</option>
+      <option value="inactive">禁用</option>
+    </select>
+    <select id="dashClass" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
+      <option value="">全部分类</option>
+      <option value="结构类物料">结构类物料</option>
+      <option value="电子类物料">电子类物料</option>
+      <option value="包材类物料">包材类物料</option>
+      <option value="附件类物料">附件类物料</option>
+      <option value="通用物料">通用物料</option>
+      <option value="常用物料">常用物料</option>
+      <option value="定制物料">定制物料</option>
+      <option value="专用物料">专用物料</option>
+    </select>
+    <label style="font-size:12px;color:#666">库存 ≥ <input type="number" id="dashInvMin" placeholder="不限" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
+    <label style="font-size:12px;color:#666">库存 ≤ <input type="number" id="dashInvMax" placeholder="不限" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
+    <label style="font-size:12px;color:#666">价格 ≥ ¥ <input type="number" step="0.01" id="dashPriceMin" placeholder="不限" style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
+    <label style="font-size:12px;color:#666">价格 ≤ ¥ <input type="number" step="0.01" id="dashPriceMax" placeholder="不限" style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
+    <span style="margin-left:auto;font-size:12px;color:#667eea">📅</span>
     <label style="font-size:12px;color:#666">起 <input type="date" id="periodFrom" style="padding:4px;border:1px solid #ddd;border-radius:4px"></label>
     <label style="font-size:12px;color:#666">止 <input type="date" id="periodTo" style="padding:4px;border:1px solid #ddd;border-radius:4px"></label>
-    <button class="btn b1 bs" onclick="loadPeriodStats()">查询</button>
     <span id="periodLabel" style="font-size:12px;color:#999;margin-left:6px"></span>
   </div>
   <div class="sg" id="mStats"></div>
@@ -194,9 +214,42 @@ function swTab(name,btn){
   else if(name==='policy')loadPolicyTab();
 }
 
+// 仪表盘筛选参数（用于 loadStats / loadPeriodStats）
+function buildDashQuery(extra){
+  const p=new URLSearchParams();
+  const status=document.getElementById('dashStatus').value;
+  const cls=document.getElementById('dashClass').value;
+  const invMin=document.getElementById('dashInvMin').value;
+  const invMax=document.getElementById('dashInvMax').value;
+  const priceMin=document.getElementById('dashPriceMin').value;
+  const priceMax=document.getElementById('dashPriceMax').value;
+  if(status)p.set('status',status);
+  if(cls)p.set('classifications',cls);
+  if(invMin!=='')p.set('inv_min',invMin);
+  if(invMax!=='')p.set('inv_max',invMax);
+  if(priceMin!=='')p.set('price_min',priceMin);
+  if(priceMax!=='')p.set('price_max',priceMax);
+  if(extra){for(const[k,v]of Object.entries(extra))if(v!==''&&v!=null)p.set(k,v);}
+  return p.toString();
+}
+let dashTimer=null;
+function scheduleDashRefresh(){
+  clearTimeout(dashTimer);
+  dashTimer=setTimeout(()=>{loadStats();loadPeriodStats();},250);
+}
+function bindDashFilters(){
+  ['dashStatus','dashClass','dashInvMin','dashInvMax','dashPriceMin','dashPriceMax','periodFrom','periodTo'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el||el.dataset.bound)return;
+    el.dataset.bound='1';
+    el.addEventListener('change',scheduleDashRefresh);
+    el.addEventListener('input',scheduleDashRefresh);
+  });
+}
+
 async function loadStats(){
   try{
-    const r=await fetch(API+'/dashboard/stats');const d=await r.json();
+    const r=await fetch(API+'/dashboard/stats?'+buildDashQuery());const d=await r.json();
     const cards=[
       `<div class="sc"><div class="n">${d.total||0}</div><div class="l">物料总数</div></div>`,
       `<div class="sc"><div class="n" style="color:#27ae60">${d.active||0}</div><div class="l">启用物料</div></div>`,
@@ -776,7 +829,7 @@ async function applyAllGap(){
 }
 
 ImportDropzone.init('import-dropzone-container','materials',function(){loadMaterials(1);loadStats();});
-initSortHeaders();loadStats();loadFilterOpts();loadMaterials(1);
+initSortHeaders();loadStats();loadFilterOpts();loadMaterials(1);bindDashFilters();
 
 // ===== 自定义时间段对比 =====
 let periodState={from:'',to:''};
@@ -784,13 +837,18 @@ function buildPeriodQuery(){
   const f=document.getElementById('periodFrom').value;
   const t=document.getElementById('periodTo').value;
   periodState.from=f;periodState.to=t;
-  return `range=custom&from=${encodeURIComponent(f)}&to=${encodeURIComponent(t)}`;
+  if(!f||!t)return '';
+  return buildDashQuery({range:'custom',from:f,to:t});
 }
 async function loadPeriodStats(){
   const f=document.getElementById('periodFrom').value;
   const t=document.getElementById('periodTo').value;
-  if(!f||!t){alert('请选择起止日期');return}
-  if(f>t){alert('起始日期不能晚于结束日期');return}
+  if(!f||!t){
+    document.getElementById('mCompare').innerHTML='';
+    const le=document.getElementById('periodLabel');if(le)le.textContent='';
+    return;
+  }
+  if(f>t){return}
   const labelEl=document.getElementById('periodLabel');
   const cmpPanel=document.getElementById('mCompare');
   if(labelEl)labelEl.textContent='加载中…';
