@@ -318,7 +318,7 @@ router.post('/progress', requirePerm('project:create'), (req, res) => {
   let prog = progTable.all().find(p => p.project_id === project.id);
   if (prog) {
     const fields = { updated_at: now() };
-    ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'].forEach(f => {
+    ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','electronics','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'].forEach(f => {
       if (b[f] !== undefined) fields[f] = b[f];
     });
     progTable.update(prog.id, fields);
@@ -354,7 +354,7 @@ router.put('/:id/progress', requirePerm('project:edit'), (req, res) => {
     return m ? m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0') : v;
   };
   const isDateLike = (v) => /^\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/.test(String(v));
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','electronics','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
   let changedCount = 0;
   nodeFields.forEach(f => {
     if (req.body[f] !== undefined) {
@@ -413,7 +413,7 @@ router.post('/progress/dedup', requirePerm('project:delete'), (req, res) => {
   projectsTable._invalidate();
   const pNoMap = {};
   projectsTable.all().forEach(p => { pNoMap[p.id] = (p.project_no || '').trim(); });
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','electronics','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
   const isEmpty = v => !v || ['','/','-','0'].includes(String(v).trim());
   const completeness = rec => nodeFields.reduce((n, f) => n + (isEmpty(rec[f]) ? 0 : 1), 0);
 
@@ -818,7 +818,7 @@ router.get('/analysis/progress', requirePerm('project:view'), (req, res) => {
   const progAll = progTable.all();
   const progMap = {};
   progAll.forEach(p => { progMap[p.project_id] = p; });
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','electronics','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
   const today = new Date();
   const parseDate = (s) => {
     if (!s) return null;
@@ -1138,7 +1138,7 @@ router.get('/analysis/delay', requirePerm('project:view'), (req, res) => {
     return isNaN(d) ? null : d;
   };
   const isDateVal = v => typeof v === 'string' && /^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/.test(v);
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','electronics','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
 
   // 按月份分组的延误统计
   const monthMap = {};

@@ -333,7 +333,7 @@ const API='/api/projects';
 const statusMap={init:'预项目',executing:'进行中',completed:'已完成',paused:'暂停',cancelled:'取消'};
 const statusColor={init:'#999',executing:'#3498db',completed:'#27ae60',paused:'#e67e22',cancelled:'#e74c3c'};
 const stageOptions=['预项目','方案','手样','模具样','功能样','首次封样','最终封样','电试','研试','工试','生试','技转','出货','复盘','暂停','完成'];
-const progFields=[['plan','计划表'],['bom','BOM'],['spec','规格书'],['config','配置表'],['mold_drawing','模具图纸'],['mold_review','开模评审'],['hand_sample','手样'],['appearance','外观'],['structure','结构'],['mold','模具'],['mold_sample','模样'],['packaging','包装设计'],['elec_trial','电试'],['rd_trial','研试'],['tech_transfer','技转'],['eng_trial','工试'],['prod_trial','生试'],['test_report','测试报告'],['shipment','出货'],['review','复盘'],['other','其他']];
+const progFields=[['plan','计划表'],['bom','BOM'],['spec','规格书'],['config','配置表'],['mold_drawing','模具图纸'],['mold_review','开模评审'],['hand_sample','手样'],['appearance','外观'],['structure','结构'],['electronics','电子'],['mold','模具'],['mold_sample','模样'],['packaging','包装设计'],['elec_trial','电试'],['rd_trial','研试'],['tech_transfer','技转'],['eng_trial','工试'],['prod_trial','生试'],['test_report','测试报告'],['shipment','出货'],['review','复盘'],['other','其他']];
 function S(v){return v!=null?String(v):''}
 function T(v,n){var s=S(v);return s.length>n?s.substring(0,n):s}
 
