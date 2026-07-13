@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>研发项目管理</title><link rel="stylesheet" href="common.css">
+﻿<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 研发项目管理</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -8,7 +8,7 @@
 .sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:20;background:#fff;padding-top:8px;padding-bottom:8px;border-bottom:1px solid #eee}
 .sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:#fff}
-th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:50px;z-index:10;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10;box-shadow:0 1px 0 rgba(0,0,0,.06)}
 td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
 tr:hover td{background:#f8f9ff}
 tr:hover td.sticky-col{background:#f8f9ff}
@@ -35,7 +35,7 @@ tr:hover td.sticky-col{background:#f8f9ff}
 .st-done{background:#d4edda;color:#155724}.st-prog{background:#cce5ff;color:#004085}.st-pause{background:#fff3cd;color:#856404}.st-init{background:#e2e3e5;color:#383d41}
 .lvl-a{background:#f8d7da;color:#721c24}.lvl-b{background:#fff3cd;color:#856404}.lvl-c{background:#d1ecf1;color:#0c5460}
 .chk{color:#27ae60;font-weight:700}.unchk{color:#ccc}.pend{color:#f39c12}
-.tbl-wrap{overflow-x:auto;max-height:65vh}
+.tbl-wrap{overflow:auto;max-height:65vh}
 .sticky-col{position:sticky;left:0;z-index:5;background:#fff;box-shadow:1px 0 0 rgba(0,0,0,.04)}
 th.sticky-col{z-index:20;background:#f5f6fa}
 tr:hover .sticky-col{background:#f8f9ff}
@@ -70,7 +70,7 @@ tr:hover .sticky-col{background:#f8f9ff}
 .form-foot{text-align:right;margin-top:14px;padding-top:12px;border-top:1px solid #eee}
 .form-foot .btn{padding:8px 30px;font-size:14px}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 2px rgba(102,126,234,.15)}
-</style></head><body>
+</style></head><body data-page-title="研发项目管理">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -333,7 +333,7 @@ const API='/api/projects';
 const statusMap={init:'预项目',executing:'进行中',completed:'已完成',paused:'暂停',cancelled:'取消'};
 const statusColor={init:'#999',executing:'#3498db',completed:'#27ae60',paused:'#e67e22',cancelled:'#e74c3c'};
 const stageOptions=['预项目','方案','手样','模具样','功能样','首次封样','最终封样','电试','研试','工试','生试','技转','出货','复盘','暂停','完成'];
-const progFields=[['plan','计划表'],['bom','BOM'],['spec','规格书'],['config','配置表'],['mold_drawing','模具图纸'],['mold_review','开模评审'],['hand_sample','手样'],['mold','模具'],['mold_sample','模样'],['packaging','包装设计'],['elec_trial','电试'],['rd_trial','研试'],['eng_trial','工试'],['prod_trial','生试'],['test_report','测试报告'],['tech_transfer','技转'],['shipment','出货'],['review','复盘'],['other','其他']];
+const progFields=[['plan','计划表'],['bom','BOM'],['spec','规格书'],['config','配置表'],['mold_drawing','模具图纸'],['mold_review','开模评审'],['hand_sample','手样'],['appearance','外观'],['structure','结构'],['mold','模具'],['mold_sample','模样'],['packaging','包装设计'],['elec_trial','电试'],['rd_trial','研试'],['tech_transfer','技转'],['eng_trial','工试'],['prod_trial','生试'],['test_report','测试报告'],['shipment','出货'],['review','复盘'],['other','其他']];
 function S(v){return v!=null?String(v):''}
 function T(v,n){var s=S(v);return s.length>n?s.substring(0,n):s}
 
@@ -2487,93 +2487,16 @@ function renderField([key,label,type],data){
   return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}"></div>`;
 }
 
-// 表格表头吸顶：JS fixed 方案（最可靠）
-function fixStickyHeaders(){
-  var tabs=['tab-projects','tab-progress','tab-supply','tab-sales','tab-review','tab-initiation','tab-analysis'];
-  tabs.forEach(function(tid){
-    var tab=document.getElementById(tid);if(!tab)return;
-    var sb=tab.querySelector('.sb');if(!sb)return;
-    var tables=tab.querySelectorAll('.tbl-wrap table');
-    if(!tables.length)return;
-    // 复制表头（每个表格一个固定表头）
-    tables.forEach(function(table,idx){
-      var thead=table.querySelector('thead');if(!thead)return;
-      // 移除已有的固定表头
-      var oldFixed=document.getElementById('jsFixH_'+tid+'_'+idx);
-      if(oldFixed)oldFixed.remove();
-      // 创建固定表头容器
-      var fixed=document.createElement('div');
-      fixed.id='jsFixH_'+tid+'_'+idx;
-      fixed.style.cssText='position:fixed;top:0;left:0;right:0;z-index:1000;background:#fff;display:none;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1);pointer-events:none';
-      var fixedTable=document.createElement('table');
-      fixedTable.style.cssText='width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:#fff;table-layout:auto';
-      // 复制 colgroup（保持列宽）
-      var colgroup=table.querySelector('colgroup');
-      if(colgroup)fixedTable.appendChild(colgroup.cloneNode(true));
-      // 复制 thead
-      fixedTable.appendChild(thead.cloneNode(true));
-      fixed.appendChild(fixedTable);
-      document.body.appendChild(fixed);
-
-      (function(tbl,ft,sbEl,fixEl){
-        function update(){
-          if(tbl.offsetParent===null){
-            // 表格不可见，隐藏
-            fixEl.style.display='none';
-            return;
-          }
-          var rect=tbl.getBoundingClientRect();
-          var sbRect=sbEl.getBoundingClientRect();
-          // 搜索栏底部位置（视口坐标）
-          var sbBottom=sbRect.bottom;
-          // 表头原始位置（视口坐标）
-          var theadEl=tbl.querySelector('thead');
-          var theadRect=theadEl?theadEl.getBoundingClientRect():{top:0,bottom:0};
-          // 表格底部
-          var tblBottom=rect.bottom;
-          // 条件：表头在视口上方（被滚出），但表格底部还在视口下方
-          if(theadRect.top<sbBottom && tblBottom>sbBottom){
-            // 固定表头显示在搜索栏底部
-            fixEl.style.display='block';
-            fixEl.style.top=sbBottom+'px';
-            // 同步列宽：取原表 th 的实际宽度
-            var origThs=tbl.querySelectorAll('thead th');
-            var cloneThs=fixEl.querySelectorAll('thead th');
-            for(var i=0;i<origThs.length && i<cloneThs.length;i++){
-              var w=origThs[i].getBoundingClientRect().width;
-              if(w>0){
-                cloneThs[i].style.width=w+'px';
-                cloneThs[i].style.minWidth=w+'px';
-              }
-            }
-            // 同步整个 fixedTable 的宽度 = 原表宽度
-            var tblW=tbl.getBoundingClientRect().width;
-            fixEl.style.width=tblW+'px';
-            // fixedTable 内部宽度 = 原表内部宽度
-            fixedTable.style.width='100%';
-          }else{
-            fixEl.style.display='none';
-          }
-        }
-        window.addEventListener('scroll',update);
-        window.addEventListener('resize',update);
-        // 初始调用
-        setTimeout(update,100);
-        // 定期刷新（防止内容变化导致宽度不同步）
-        setInterval(update,500);
-      })(table,fixedTable,sb,fixed);
-    });
-  });
-}
-
 // ==================== 初始化 ====================
 ImportDropzone.init('import-dropzone-container', 'projects', function(){ loadProjects(1); loadPStats(); });
 enhanceProgressHeaders();
-fixStickyHeaders();
-window.addEventListener('resize', fixStickyHeaders);
 loadPStats();
 loadProjects(1);
 </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
+
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="data-scope.js"></script><script>window.DataScope && window.DataScope.load().then(()=>{try{window.DataScope.renderBanner('.search-bar');}catch(e){}});</script>
 </body></html>

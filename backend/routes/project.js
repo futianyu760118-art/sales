@@ -1,7 +1,9 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const { resolveDataScope, isInScope } = require('../data-scope');
+const { resolveDataScopeV2, buildScopeFilter, combineFilter, logDataPermission } = require('../data-scope-v2');
 
 // ==================== 研发项目主数据库 ====================
 // 基于供22模版：1.研发项目数据库 + 7.研发项目数据库 + 3.研发数据库-24年
@@ -12,6 +14,18 @@ router.get('/', requirePerm('project:view'), (req, res) => {
   const table = getTable('projects');
   table._invalidate();
   let records = table.all();
+  const scope = resolveDataScopeV2(req);
+  const scopeLegacy = resolveDataScope(req);
+  const scopeFilter = buildScopeFilter(scope, 'projects');
+  if (scope.enabled) {
+    records = records.filter(r => {
+      if (scopeFilter(r)) return true;
+      if (scopeLegacy.enabled && isInScope(scopeLegacy, r, { ownerField: 'owner' })) return true;
+      return false;
+    });
+  } else if (scopeLegacy.enabled) {
+    records = records.filter(r => isInScope(scopeLegacy, r, { ownerField: 'owner' }));
+  }
   if (status) records = records.filter(r => r.status === status);
   if (customer) records = records.filter(r => (r.customer_name || '').includes(customer));
   if (owner) records = records.filter(r => (r.owner || '').includes(owner));
@@ -59,8 +73,25 @@ router.get('/', requirePerm('project:view'), (req, res) => {
   const total = records.length;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   const data = records.slice(offset, offset + parseInt(limit));
-  res.json({ data, total, page: parseInt(page), limit: parseInt(limit) });
+  logDataPermission(req, 'project.list', { table: 'projects', count: total, scope_mode: scope.mode || 'none' });
+  res.json({
+    data, total, page: parseInt(page), limit: parseInt(limit),
+    scope: scope.enabled
+      ? { mode: scope.mode, label: labelScopeProject(scope.mode) }
+      : { mode: 'none', label: '全部数据' }
+  });
 });
+
+function labelScopeProject(mode) {
+  return {
+    all: '全部数据',
+    self: '我的项目',
+    dept: '本部门项目',
+    dept_and_child: '本部门及下级部门项目',
+    custom: '自定义范围项目',
+    none: '全部数据'
+  }[mode] || '全部数据';
+}
 
 // 统计概览
 router.get('/stats', requirePerm('project:view'), (req, res) => {
@@ -104,6 +135,16 @@ router.get('/:id', requirePerm('project:view'), (req, res) => {
   const table = getTable('projects');
   const row = table.findById(req.params.id);
   if (!row) return res.status(404).json({ error: '项目不存在' });
+  const scope = resolveDataScopeV2(req);
+  let ok = true;
+  if (scope.enabled) {
+    ok = buildScopeFilter(scope, 'projects')(row);
+    if (!ok) {
+      const scopeLegacy = resolveDataScope(req);
+      if (scopeLegacy.enabled) ok = isInScope(scopeLegacy, row, { ownerField: 'owner' });
+    }
+  }
+  if (!ok) return res.status(403).json({ error: '无访问该项目的权限', code: 'DATA_SCOPE_DENIED' });
   // 关联进度节点
   const progTable = getTable('rd_project_progress');
   progTable._invalidate();
@@ -112,6 +153,7 @@ router.get('/:id', requirePerm('project:view'), (req, res) => {
   const reviewTable = getTable('rd_project_reviews');
   reviewTable._invalidate();
   row.review = reviewTable.all().find(r => r.project_id === row.id || (row.project_no && r.project_no === row.project_no)) || null;
+  logDataPermission(req, 'project.detail', { table: 'projects', record_id: row.id, scope_mode: scope.mode || 'none' });
   res.json(row);
 });
 
@@ -276,7 +318,7 @@ router.post('/progress', requirePerm('project:create'), (req, res) => {
   let prog = progTable.all().find(p => p.project_id === project.id);
   if (prog) {
     const fields = { updated_at: now() };
-    ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','mold','mold_sample','packaging','elec_trial','rd_trial','eng_trial','prod_trial','test_report','tech_transfer','shipment','review','other'].forEach(f => {
+    ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'].forEach(f => {
       if (b[f] !== undefined) fields[f] = b[f];
     });
     progTable.update(prog.id, fields);
@@ -312,7 +354,7 @@ router.put('/:id/progress', requirePerm('project:edit'), (req, res) => {
     return m ? m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0') : v;
   };
   const isDateLike = (v) => /^\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/.test(String(v));
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','mold','mold_sample','packaging','elec_trial','rd_trial','eng_trial','prod_trial','test_report','tech_transfer','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
   let changedCount = 0;
   nodeFields.forEach(f => {
     if (req.body[f] !== undefined) {
@@ -371,7 +413,7 @@ router.post('/progress/dedup', requirePerm('project:delete'), (req, res) => {
   projectsTable._invalidate();
   const pNoMap = {};
   projectsTable.all().forEach(p => { pNoMap[p.id] = (p.project_no || '').trim(); });
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','mold','mold_sample','packaging','elec_trial','rd_trial','eng_trial','prod_trial','test_report','tech_transfer','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
   const isEmpty = v => !v || ['','/','-','0'].includes(String(v).trim());
   const completeness = rec => nodeFields.reduce((n, f) => n + (isEmpty(rec[f]) ? 0 : 1), 0);
 
@@ -776,8 +818,7 @@ router.get('/analysis/progress', requirePerm('project:view'), (req, res) => {
   const progAll = progTable.all();
   const progMap = {};
   progAll.forEach(p => { progMap[p.project_id] = p; });
-
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','mold','mold_sample','packaging','elec_trial','rd_trial','eng_trial','prod_trial','test_report','tech_transfer','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
   const today = new Date();
   const parseDate = (s) => {
     if (!s) return null;
@@ -1097,7 +1138,7 @@ router.get('/analysis/delay', requirePerm('project:view'), (req, res) => {
     return isNaN(d) ? null : d;
   };
   const isDateVal = v => typeof v === 'string' && /^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/.test(v);
-  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','mold','mold_sample','packaging','elec_trial','rd_trial','eng_trial','prod_trial','test_report','tech_transfer','shipment','review','other'];
+  const nodeFields = ['plan','bom','spec','config','mold_drawing','mold_review','hand_sample','appearance','structure','mold','mold_sample','packaging','elec_trial','rd_trial','tech_transfer','eng_trial','prod_trial','test_report','shipment','review','other'];
 
   // 按月份分组的延误统计
   const monthMap = {};
