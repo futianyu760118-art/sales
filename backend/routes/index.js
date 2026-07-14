@@ -12,6 +12,7 @@ router.use('/external-api', require('./external-api'));
 router.use('/orders', require('./order'));
 router.use('/samples', require('./sample'));
 router.use('/projects', require('./project'));
+router.use('/annual-plan', require('./annual-plan'));
 router.use('/products/bom-types', require('./bom-type'));
 router.use('/products/bom-issues', require('./bom-issue'));
 router.use('/pricing', require('./pricing'));
@@ -34,5 +35,7 @@ router.use('/bom', require('./bom'));
 router.use('/external-sync', require('./external-sync'));
 router.use('/tech', require('./tech-transfer'));
 router.use('/organization', require('./organization'));
+router.use('/data-scope', require('./data-scope'));
+router.use('/material-check', require('./material-check'));
 
 module.exports = router;

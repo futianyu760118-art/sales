@@ -69,6 +69,9 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// 启动物料库自检调度器
+try { require('./lib/material-check-scheduler').startScheduler(); } catch (e) { console.error('[material-check] 调度器启动失败:', e.message); }
+
 const server = http.createServer(app);
 
 let httpsServer = null;

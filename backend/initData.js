@@ -4,7 +4,9 @@ const { getTable, ensureTable, now } = require('./db');
 const tableNames = ['users', 'products', 'customers', 'materials', 'pricing_standards',
   'inquiries', 'inquiry_status_changes', 'inquiry_comments', 'inquiry_messages',
   'operation_logs', 'samples', 'projects', 'orders', 'assessment_cycles', 'training_plans',
-  'roles', 'permissions', 'role_permissions', 'user_roles', 'feedback', 'bom_pricing', 'workflow_rules'];
+  'roles', 'permissions', 'role_permissions', 'user_roles', 'feedback', 'bom_pricing', 'workflow_rules',
+  'annual_plan_goals', 'annual_department_plans', 'annual_kpis', 'annual_okrs', 'annual_action_plans',
+  'annual_risks', 'annual_reviews', 'annual_ai_records', 'material_check_issues'];
 tableNames.forEach(name => ensureTable(name));
 
 // 初始化用户
@@ -415,6 +417,12 @@ const permissions = [
     { name: '创建项目', code: 'project:create', module: '项目管理', description: '新增项目', created_at: now() },
     { name: '编辑项目', code: 'project:edit', module: '项目管理', description: '修改项目信息', created_at: now() },
     { name: '删除项目', code: 'project:delete', module: '项目管理', description: '删除项目', created_at: now() },
+    { name: '查看年度经营计划', code: 'annual-plan:view', module: '年度经营计划', description: '查看经营驾驶舱、年度目标和经营分析', created_at: now() },
+    { name: '创建年度经营计划', code: 'annual-plan:create', module: '年度经营计划', description: '新增年度经营计划数据', created_at: now() },
+    { name: '编辑年度经营计划', code: 'annual-plan:edit', module: '年度经营计划', description: '修改年度经营计划和进度', created_at: now() },
+    { name: '删除年度经营计划', code: 'annual-plan:delete', module: '年度经营计划', description: '删除年度经营计划记录', created_at: now() },
+    { name: 'AI经营分析', code: 'annual-plan:analyze', module: '年度经营计划', description: '使用AI经营助手分析和生成报告', created_at: now() },
+    { name: '导出年度经营计划', code: 'annual-plan:export', module: '年度经营计划', description: '导出年度经营计划数据', created_at: now() },
     // BOM对比
     { name: '查看BOM对比', code: 'bom-compare:view', module: 'BOM对比', description: '查看BOM对比分析', created_at: now() },
     // 报价库
@@ -512,6 +520,7 @@ if (rpTable.all().length === 0) {
     'sample:view','sample:create','sample:edit',
     // 项目：完全
     'project:view','project:create','project:edit',
+    'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:delete','annual-plan:analyze','annual-plan:export',
     // 配置/规格：只读
     'config:view','spec:view','config-lib:view',
     // 报表：完全
@@ -548,6 +557,7 @@ if (rpTable.all().length === 0) {
     'sample:view','sample:create','sample:edit',
     // 项目：只读
     'project:view',
+    'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
     // 报价库：完全
     'quote:view','quote:manage',
     // 配置/规格：只读
@@ -590,6 +600,7 @@ if (rpTable.all().length === 0) {
     'sample:view',
     // 项目：完全
     'project:view','project:create','project:edit',
+    'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
     // 订单：只读
     'order:view',
     // 报表：完全
@@ -630,6 +641,7 @@ if (rpTable.all().length === 0) {
     'sample:view',
     // 项目：只读
     'project:view',
+    'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
     // 配置/规格：只读
     'config:view','spec:view','config-lib:view',
     // 报价库：❌
@@ -659,6 +671,7 @@ if (rpTable.all().length === 0) {
     'bom:view','bom-compare:view',
     // 订单/样品/项目：只读
     'order:view','sample:view','project:view',
+    'annual-plan:view','annual-plan:analyze','annual-plan:export',
     // 报价库：只读
     'quote:view',
     // 配置/规格：只读
@@ -681,6 +694,7 @@ if (rpTable.all().length === 0) {
     'inquiry:view','product:view','customer:view','material:view',
     'pricing:view','supplier:view','bom:view','order:view',
     'sample:view','project:view','bom-compare:view',
+    'annual-plan:view','annual-plan:export',
     'quote:view','config:view','spec:view','config-lib:view',
     'report:view','ai:view','rules:view','compliance:view',
     'test:view','data-clean:view',
@@ -700,6 +714,7 @@ if (rpTable.all().length === 0) {
     'order:view','order:create','order:edit',
     'sample:view','sample:create','sample:edit','sample:delete',
     'project:view','project:create','project:edit','project:delete',
+    'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:delete','annual-plan:analyze','annual-plan:export',
     'config:view','spec:view','config-lib:view',
     'report:view','ai:view','ai:delete',
     'system:permission',
@@ -723,6 +738,7 @@ if (rpTable.all().length === 0) {
     'sample:view','sample:create','sample:edit','sample:delete',
     'order:view',
     'project:view','project:create','project:edit','project:delete',
+    'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
     'report:view','ai:view','ai:delete',
     'compliance:view','compliance:run',
     'test:view','test:run',
@@ -734,6 +750,32 @@ if (rpTable.all().length === 0) {
 
   console.log('角色权限关联初始化完成');
 }
+
+const annualRolePerms = {
+  sales_manager: ['annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:delete','annual-plan:analyze','annual-plan:export'],
+  sales: ['annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export'],
+  engineer: ['annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export'],
+  purchase: ['annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export'],
+  finance: ['annual-plan:view','annual-plan:analyze','annual-plan:export'],
+  viewer: ['annual-plan:view','annual-plan:export'],
+  project_manager: ['annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:delete','annual-plan:analyze','annual-plan:export'],
+  rd_manager: ['annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export']
+};
+let annualPermsAdded = 0;
+Object.keys(annualRolePerms).forEach(roleCode => {
+  const role = roleTable.all().find(r => r.code === roleCode);
+  if (!role) return;
+  annualRolePerms[roleCode].forEach(code => {
+    const perm = permTable.all().find(p => p.code === code);
+    if (!perm) return;
+    const exists = rpTable.all().some(rp => rp.role_id === role.id && rp.permission_id === perm.id);
+    if (!exists) {
+      rpTable.insert({ role_id: role.id, permission_id: perm.id, granted_at: now() });
+      annualPermsAdded++;
+    }
+  });
+});
+if (annualPermsAdded > 0) console.log('年度经营计划角色权限补充完成，新增 ' + annualPermsAdded + ' 条');
 
 // 初始化用户角色关联
 const urTable = getTable('user_roles');

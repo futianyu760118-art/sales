@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>物料库自检待办</title><link rel="stylesheet" href="common.css">
+<style>
+.wrap{max-width:1400px;margin:0 auto;padding:18px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:4px solid #ccc}
+.stat-card.crit{border-left-color:#c0392b}
+.stat-card.high{border-left-color:#e74c3c}
+.stat-card.med{border-left-color:#f39c12}
+.stat-card.low{border-left-color:#3498db}
+.stat-card.ok{border-left-color:#27ae60}
+.stat-num{font-size:24px;font-weight:700;color:#333}
+.stat-l{font-size:12px;color:#888;margin-top:2px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:12px}
+.toolbar select,.toolbar input{padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}
+.b2{background:#27ae60;color:#fff}
+.b3{background:#e74c3c;color:#fff}
+.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sev{display:inline-block;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:600;color:#fff}
+.sev-critical{background:#c0392b}
+.sev-high{background:#e74c3c}
+.sev-medium{background:#f39c12}
+.sev-low{background:#3498db}
+.status{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-open{background:#fff3cd;color:#856404}
+.st-in_progress{background:#cce5ff;color:#004085}
+.st-resolved{background:#d4edda;color:#155724}
+.st-ignored{background:#f0f0f0;color:#666}
+.st-wont_fix{background:#f8d7da;color:#721c24}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+tr.resolved td{opacity:.55}
+.batch-bar{display:none;background:#f8f9ff;border:1px solid #d0d7ff;border-radius:6px;padding:8px 12px;margin-bottom:10px;align-items:center;gap:8px;flex-wrap:wrap}
+.batch-bar.show{display:flex}
+.row-check{width:18px;height:18px;cursor:pointer}
+.tbl-wrap{overflow-x:auto;max-height:70vh;overflow-y:auto;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:60px}
+.mo.show{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:80vh;overflow:auto}
+.fg{margin-bottom:10px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:60px}
+.dash-panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.rule-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.rule-card{background:#fafbff;padding:8px 10px;border-radius:6px;border:1px solid #e8ebf7;font-size:12px}
+.rule-card b{color:#667eea}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div class="wrap">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<h2>物料库自检待办</h2>
+<div style="display:flex;gap:8px">
+<button class="btn b2" onclick="runCheck()">▶ 运行自检</button>
+<button class="btn b1" onclick="loadIssues()">刷新</button>
+<a class="btn bs" href="material.html" style="background:#e8ebf7;color:#444;text-decoration:none">返回物料库</a>
+</div>
+</div>
+
+<div class="stats-grid" id="statsGrid"></div>
+
+<div class="dash-panel">
+<div style="font-weight:600;color:#555;margin-bottom:8px;font-size:13px">📋 规则库（启 / 停）</div>
+<div class="rule-list" id="ruleList"></div>
+</div>
+
+<div class="toolbar">
+<input type="text" id="q" placeholder="搜索代码/描述" style="width:200px" onkeydown="if(event.key==='Enter')loadIssues()">
+<select id="fStatus" onchange="loadIssues()">
+<option value="">全部状态</option>
+<option value="open">待处理</option>
+<option value="in_progress">跟进中</option>
+<option value="resolved">已解决</option>
+<option value="ignored">已忽略</option>
+<option value="wont_fix">暂不修复</option>
+</select>
+<select id="fSev" onchange="loadIssues()">
+<option value="">全部严重度</option>
+<option value="critical">严重</option>
+<option value="high">高</option>
+<option value="medium">中</option>
+<option value="low">低</option>
+</select>
+<select id="fRule" onchange="loadIssues()"><option value="">全部规则</option></select>
+<button class="btn b1 bs" onclick="loadIssues()">查询</button>
+<span style="margin-left:auto;font-size:12px;color:#999">共 <b id="totalN">0</b> 条</span>
+</div>
+
+<div class="batch-bar" id="batchBar">
+<span style="font-weight:600;color:#667eea">已选 <b id="selN">0</b> 项</span>
+<select id="batchStatus" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px">
+<option value="">改状态为…</option>
+<option value="open">待处理</option>
+<option value="in_progress">跟进中</option>
+<option value="resolved">已解决</option>
+<option value="ignored">已忽略</option>
+</select>
+<input type="text" id="batchAssignee" placeholder="指派人" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px">
+<button class="btn b1 bs" onclick="batchUpdate()">应用</button>
+<button class="btn bs" style="background:#eee;color:#666" onclick="clearSel()">取消选择</button>
+</div>
+
+<div class="tbl-wrap">
+<table><thead><tr>
+<th style="width:26px"><input type="checkbox" id="chkAll" onchange="toggleSelAll(this)"></th>
+<th style="width:60px">严重度</th>
+<th style="width:90px">规则</th>
+<th style="width:90px">状态</th>
+<th style="width:130px">物料代码</th>
+<th>问题描述</th>
+<th style="width:200px">整改建议</th>
+<th style="width:90px">指派人</th>
+<th style="width:90px">截止</th>
+<th style="width:140px">发现时间</th>
+<th style="width:80px">操作</th>
+</tr></thead><tbody id="issTb"><tr><td colspan="11" style="text-align:center;color:#999;padding:30px">加载中…</td></tr></tbody></table>
+</div>
+<div id="pgBar" style="margin-top:10px;text-align:center"></div>
+</div>
+</div>
+
+<div class="mo" id="editMo"><div class="mb" id="editMoBody"></div></div>
+
+<script>
+const API='/api/material-check';
+let allIssues=[];
+let page=1; const ps=50;
+let allRules=[];
+
+async function init(){
+  document.getElementById('sidebar').innerHTML=window.parent?'':''; // placeholder
+  await loadRules();
+  loadIssues();
+  loadStats();
+  setInterval(loadStats,30000);
+}
+async function loadRules(){
+  const r=await fetch(API+'/rules'); allRules=await r.json();
+  const select=document.getElementById('fRule');
+  select.innerHTML='<option value="">全部规则</option>'+(allRules.rules||[]).map(r=>`<option value="${r.id}">${r.id} ${r.name}</option>`).join('');
+  const list=document.getElementById('ruleList');
+  list.innerHTML=(allRules.rules||[]).map(r=>`
+    <div class="rule-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b>${r.id}</b>
+        <label style="font-size:11px"><input type="checkbox" ${r.enabled!==false?'checked':''} onchange="toggleRule('${r.id}',this.checked)"> ${r.enabled!==false?'已启用':'已停用'}</label>
+      </div>
+      <div style="margin-top:4px">${r.name}</div>
+      <div style="color:#888;font-size:11px;margin-top:2px">${(r.severity||'').toUpperCase()} · ${r.check_type}</div>
+    </div>`).join('');
+}
+async function toggleRule(id,enabled){
+  await fetch(API+'/rules/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled})});
+  toast('已更新');
+}
+async function loadStats(){
+  try{
+    const r=await fetch(API+'/issues/stats'); const d=await r.json();
+    const bs=d.byStatus||{},sv=d.bySeverity||{};
+    const total=d.total||0;
+    const open=bs.open||0,in_progress=bs.in_progress||0,resolved=bs.resolved||0;
+    document.getElementById('statsGrid').innerHTML=[
+      `<div class="stat-card ok"><div class="stat-num">${total}</div><div class="stat-l">问题总数</div></div>`,
+      `<div class="stat-card med"><div class="stat-num">${open}</div><div class="stat-l">待处理</div></div>`,
+      `<div class="stat-card"><div class="stat-num" style="color:#004085">${in_progress}</div><div class="stat-l">跟进中</div></div>`,
+      `<div class="stat-card crit"><div class="stat-num" style="color:#155724">${resolved}</div><div class="stat-l">已解决</div></div>`,
+      `<div class="stat-card crit"><div class="stat-num" style="color:#c0392b">${sv.critical||0}</div><div class="stat-l">严重问题</div></div>`,
+      `<div class="stat-card high"><div class="stat-num" style="color:#e74c3c">${sv.high||0}</div><div class="stat-l">高级问题</div></div>`
+    ].join('');
+    const last=d.lastRun;
+    if(last)document.getElementById('statsGrid').innerHTML+=`<div class="stat-card"><div class="stat-num" style="font-size:14px">${last.last_run||'-'}</div><div class="stat-l">上次自检（${last.materials_scanned||0} 物料）</div></div>`;
+  }catch(e){console.error(e)}
+}
+async function loadIssues(){
+  const q=document.getElementById('q').value;
+  const fStatus=document.getElementById('fStatus').value;
+  const fSev=document.getElementById('fSev').value;
+  const fRule=document.getElementById('fRule').value;
+  const p=new URLSearchParams();
+  if(q)p.set('q',q);if(fStatus)p.set('status',fStatus);if(fSev)p.set('severity',fSev);if(fRule)p.set('rule_id',fRule);
+  try{
+    const r=await fetch(API+'/issues?'+p); const d=await r.json();
+    allIssues=d.data||[];
+    document.getElementById('totalN').textContent=d.total;
+    renderRows();
+  }catch(e){console.error(e)}
+}
+function renderRows(){
+  const tbody=document.getElementById('issTb');
+  const start=(page-1)*ps,end=start+ps;
+  const rows=allIssues.slice(start,end);
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#999;padding:30px">无符合条件的问题</td></tr>';document.getElementById('pgBar').innerHTML='';return}
+  tbody.innerHTML=rows.map(i=>{
+    const stCls={open:'st-open',in_progress:'st-in_progress',resolved:'st-resolved',ignored:'st-ignored',wont_fix:'st-wont_fix'}[i.status]||'st-open';
+    const stLbl={open:'待处理',in_progress:'跟进中',resolved:'已解决',ignored:'已忽略',wont_fix:'暂不修复'}[i.status]||i.status;
+    const sel=document.querySelector(`.chk[data-id="${i.id}"]`)?.checked;
+    return `<tr class="${i.status==='resolved'?'resolved':''}">
+      <td><input type="checkbox" class="chk row-check" data-id="${i.id}" ${sel?'checked':''} onchange="updateSel()"></td>
+      <td><span class="sev sev-${i.severity}">${i.severity}</span></td>
+      <td><span title="${esc(i.rule_name||'')}" style="cursor:help">${i.rule_id}</span></td>
+      <td><span class="status ${stCls}">${stLbl}</span></td>
+      <td><b>${esc(i.target_code||'-')}</b></td>
+      <td>${esc(i.description||'')}</td>
+      <td style="font-size:12px;color:#555">${esc(i.suggested_action||'')}</td>
+      <td>${esc(i.assignee||'')}</td>
+      <td>${esc((i.due_date||'').substring(0,10)||'')}</td>
+      <td style="font-size:11px;color:#999">${esc(i.detected_at||'')}</td>
+      <td><button class="btn bs b1" onclick="openEdit(${i.id})">处理</button></td>
+    </tr>`;
+  }).join('');
+  // pagination
+  const total=allIssues.length, pages=Math.ceil(total/ps);
+  let pg='';
+  if(pages>1){
+    if(page>1)pg+=`<button class="btn bs" onclick="goPage(${page-1})">上一页</button> `;
+    for(let i=Math.max(1,page-3);i<=Math.min(pages,page+3);i++)pg+=`<button class="btn bs ${i===page?'b1':''}" onclick="goPage(${i})">${i}</button> `;
+    if(page<pages)pg+=`<button class="btn bs" onclick="goPage(${page+1})">下一页</button>`;
+  }
+  document.getElementById('pgBar').innerHTML=pg+`<span style="font-size:12px;color:#999;margin-left:12px">第 ${start+1}-${Math.min(end,total)} 条 / 共 ${total} 条</span>`;
+}
+function goPage(p){page=p;renderRows();}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function updateSel(){
+  const ids=[...document.querySelectorAll('.chk:checked')].map(c=>Number(c.dataset.id));
+  document.getElementById('selN').textContent=ids.length;
+  document.getElementById('batchBar').classList.toggle('show',ids.length>0);
+}
+function toggleSelAll(cb){document.querySelectorAll('.chk').forEach(c=>c.checked=cb.checked);updateSel();}
+function clearSel(){document.querySelectorAll('.chk:checked').forEach(c=>c.checked=false);updateSel();}
+async function batchUpdate(){
+  const ids=[...document.querySelectorAll('.chk:checked')].map(c=>Number(c.dataset.id));
+  if(!ids.length)return;
+  const status=document.getElementById('batchStatus').value;
+  const assignee=document.getElementById('batchAssignee').value;
+  if(!status&&!assignee){toast('请选择状态或指派人');return}
+  const r=await fetch(API+'/issues/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids,status,assignee})});
+  const d=await r.json();
+  toast(d.message);
+  loadIssues();loadStats();
+}
+function openEdit(id){
+  const it=allIssues.find(x=>x.id===id);if(!it)return;
+  const body=document.getElementById('editMoBody');
+  body.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>处理问题 #${id}</h3><span onclick="closeEdit()" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+    <div class="fg"><label>规则</label><div>${esc(it.rule_id)} - ${esc(it.rule_name)}</div></div>
+    <div class="fg"><label>物料代码</label><div><b>${esc(it.target_code||'')}</b>（${esc(it.scope||'')}）</div></div>
+    <div class="fg"><label>问题描述</label><div>${esc(it.description||'')}</div></div>
+    <div class="fg"><label>当前值</label><div style="font-family:monospace;background:#f5f5f5;padding:4px 6px;border-radius:4px">${esc(it.current_value||'(空)')}</div></div>
+    <div class="fg"><label>整改建议</label><div style="color:#555">${esc(it.suggested_action||'')}</div></div>
+    <div class="fg"><label>状态</label><select id="ed_status"><option value="open" ${it.status==='open'?'selected':''}>待处理</option><option value="in_progress" ${it.status==='in_progress'?'selected':''}>跟进中</option><option value="resolved" ${it.status==='resolved'?'selected':''}>已解决</option><option value="ignored" ${it.status==='ignored'?'selected':''}>已忽略</option><option value="wont_fix" ${it.status==='wont_fix'?'selected':''}>暂不修复</option></select></div>
+    <div class="fg"><label>指派人</label><input id="ed_assignee" value="${esc(it.assignee||'')}"></div>
+    <div class="fg"><label>截止日期</label><input type="date" id="ed_due" value="${esc((it.due_date||'').substring(0,10)||'')}"></div>
+    <div class="fg"><label>处理备注</label><textarea id="ed_notes" placeholder="处理过程、结果或说明">${esc(it.resolution_notes||'')}</textarea></div>
+    <div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveEdit(${id})">保存</button></div>
+  `;
+  document.getElementById('editMo').classList.add('show');
+}
+function closeEdit(){document.getElementById('editMo').classList.remove('show')}
+async function saveEdit(id){
+  const status=document.getElementById('ed_status').value;
+  const assignee=document.getElementById('ed_assignee').value;
+  const due_date=document.getElementById('ed_due').value;
+  const resolution_notes=document.getElementById('ed_notes').value;
+  const r=await fetch(API+'/issues/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status,assignee,due_date,resolution_notes})});
+  const d=await r.json();
+  if(!r.ok){alert(d.error||'保存失败');return}
+  toast(d.message);closeEdit();loadIssues();loadStats();
+}
+async function runCheck(){
+  if(!confirm('将扫描全部物料与 BOM，可能需要数十秒。\n注意：仅新增问题或重开已 closed 的问题，不会删除任何记录。\n确定继续？'))return;
+  toast('自检中…');
+  try{
+    const r=await fetch(API+'/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const d=await r.json();
+    if(!r.ok){alert(d.error||'自检失败');return}
+    toast(d.message);
+    loadIssues();loadStats();
+  }catch(e){alert('请求失败: '+e.message)}
+}
+let toastEl=null;
+function toast(m){
+  if(!toastEl){toastEl=document.createElement('div');toastEl.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:6px;z-index:9999';document.body.appendChild(toastEl)}
+  toastEl.textContent=m;toastEl.style.display='block';
+  clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.style.display='none',2500);
+}
+init();
+</script>
+<script src="chat-widget.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script><script src="feature-gate.js"></script><script>FeatureGate.init();</script></body></html>
