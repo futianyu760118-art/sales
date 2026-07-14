@@ -520,6 +520,20 @@ async function runAutoClassify(){
     loadMaterials(1);loadStats();
   }catch(e){alert('请求失败: '+e.message)}
 }
+
+// 轻量 toast 提示（避免引入 chat-widget 的依赖）
+let _mToastEl=null;
+function toast(m){
+  if(!_mToastEl){
+    _mToastEl=document.createElement('div');
+    _mToastEl.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:6px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2)';
+    document.body.appendChild(_mToastEl);
+  }
+  _mToastEl.textContent=m;
+  _mToastEl.style.display='block';
+  clearTimeout(_mToastEl._t);
+  _mToastEl._t=setTimeout(()=>_mToastEl.style.display='none',2500);
+}
 function updateMatSel(){
   document.getElementById('mSelCnt').textContent=matSel.size;
   document.getElementById('batchBar').style.display=matSel.size?'flex':'none';
