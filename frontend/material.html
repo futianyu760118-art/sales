@@ -155,8 +155,8 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <div class="tbl-wrap">
 <table id="matTable"><thead><tr>
 <th style="width:28px;text-align:center"><input type="checkbox" id="mChkAll" onclick="toggleMatAll(this)" title="全选当页"></th>
-<th class="sortable" data-sort="material_code">物料代码</th><th class="sortable" data-sort="material_name">物料名称</th><th>类别</th><th>规格</th><th class="sortable" data-sort="classification">分类</th><th>单位</th><th>类型</th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价</th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
-</tr></thead><tbody id="mTb"><tr><td colspan="20" class="em">暂无数据</td></tr></tbody></table>
+<th class="sortable" data-sort="material_code">物料代码</th><th class="sortable" data-sort="material_name">物料名称</th><th>类别</th><th>规格</th><th class="sortable" data-sort="classification">分类</th><th>单位</th><th>类型</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价</th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
+</tr></thead><tbody id="mTb"><tr><td colspan="21" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="mPg" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -324,7 +324,7 @@ async function loadMaterials(page){
     const r=await fetch(API+'?'+p);const d=await r.json();
     const total=d.total||0;document.getElementById('mTc').textContent=total;
     const recs=d.data||[],tb=document.getElementById('mTb');
-    if(!recs.length){tb.innerHTML='<tr><td colspan="20" class="em">暂无物料数据</td></tr>';renderPg('mPg',total,mPage,loadMaterials);updateSortArrows();return}
+    if(!recs.length){    tb.innerHTML='<tr><td colspan="21" class="em">暂无物料数据</td></tr>';renderPg('mPg',total,mPage,loadMaterials);updateSortArrows();return}
     tb.innerHTML=recs.map(m=>{
       const invLow=(m.inventory_qty||0)<(m.min_inventory||0);
       const procOn=Number(m.procurement_enabled)===1;
@@ -340,6 +340,7 @@ async function loadMaterials(page){
       <td>${esc((m.classification||'').substring(0,10))}</td>
       <td>${esc(m.unit||'-')}</td>
       <td>${esc(m.material_type||'-')}</td>
+      <td class="loc-cell" data-mid="${m.id}" data-code="${esc(m.material_code||'')}" style="font-size:12px;color:#555;max-width:200px;line-height:1.4"><span style="color:#bbb">—</span></td>
       <td class="ed" data-edit="supplier" data-mid="${m.id}">${esc(m.supplier||'')}</td>
       <td class="ed" data-edit="standard_cost" data-mid="${m.id}" data-num="${Number(m.standard_cost)||0}">${m.standard_cost?'¥'+Number(m.standard_cost).toFixed(2):'-'}</td>
       <td class="ed" data-edit="processing_cost" data-mid="${m.id}" data-num="${Number(m.processing_cost)||0}">${m.processing_cost?'¥'+Number(m.processing_cost).toFixed(2):'-'}</td>
@@ -361,6 +362,7 @@ async function loadMaterials(page){
     attachInlineEdits();
     updateSortArrows();
     updateMatSel();
+    refreshLocationsForCurrentPage();
   }catch(e){console.error(e)}
 }
 
@@ -369,6 +371,77 @@ const matSel=new Set();
 function toggleMatSel(id,on){if(on)matSel.add(id);else matSel.delete(id);updateMatSel();}
 function toggleMatAll(cb){document.querySelectorAll('#mTb .mChk').forEach(c=>{c.checked=cb.checked;const id=Number(c.dataset.id);if(cb.checked)matSel.add(id);else matSel.delete(id);});updateMatSel();}
 function clearMatSel(){matSel.clear();document.querySelectorAll('#mTb .mChk').forEach(c=>c.checked=false);const a=document.getElementById('mChkAll');if(a)a.checked=false;updateMatSel();}
+
+// ===== 物料库位（一次性批量加载 + 内存缓存）=====
+// 后端 /api/materials/locations?codes=A,B,C  返回这些代码的所有库位明细
+let matLocationsByCode = new Map(); // code → [{wh_name, location_name, qty_on_hand, batch_no}]
+let matLocationsLoadedAt = 0;
+let matLocationsLoading = null;
+
+async function loadMaterialLocationsForPage(codes){
+  if(!codes||!codes.length)return;
+  if(Date.now()-matLocationsLoadedAt<15000 && matLocationsByCode.size){
+    renderLocationCells(codes);
+    return;
+  }
+  // 防抖：短时间内重复请求只触发一次
+  if(matLocationsLoading){
+    await matLocationsLoading;
+    renderLocationCells(codes);
+    return;
+  }
+  matLocationsLoading=(async()=>{
+    try{
+      // 多次分批请求避免单次 codes 过长
+      const chunkSize=200;
+      const temp=new Map();
+      for(let i=0;i<codes.length;i+=chunkSize){
+        const chunk=codes.slice(i,i+chunkSize);
+        const r=await fetch(API+'/locations?codes='+encodeURIComponent(chunk.join(',')));
+        const d=await r.json();
+        (d.data||[]).forEach(l=>{
+          if(!temp.has(l.material_code))temp.set(l.material_code,[]);
+          temp.get(l.material_code).push(l);
+        });
+      }
+      matLocationsByCode=temp;
+      matLocationsLoadedAt=Date.now();
+    }catch(e){console.error('locations load',e.message)}
+  })();
+  await matLocationsLoading;
+  matLocationsLoading=null;
+  renderLocationCells(codes);
+}
+function renderLocationCells(codes){
+  codes.forEach(code=>{
+    const list=matLocationsByCode.get(code);
+    const cell=document.querySelector(`.loc-cell[data-code="${cssEscapeAttr(code)}"]`);
+    if(!cell)return;
+    if(!list||!list.length){cell.innerHTML='<span style="color:#bbb">—</span>';return}
+    const parts=list.slice(0,2).map(l=>{
+      const loc=l.location_name&&l.location_name!=='*'?l.location_name:'';
+      const qty=l.qty_on_hand?` <span style="color:#27ae60">${Number(l.qty_on_hand).toLocaleString()}</span>`:'';
+      const wh=l.wh_name?`<span style="color:#667eea">${esc(l.wh_name)}</span>`:'';
+      return `${wh}${loc?'/ '+esc(loc):''}${qty}`;
+    });
+    let html=parts.join('<br>');
+    if(list.length>2)html+=`<br><span style="color:#999">+${list.length-2} 个库位</span>`;
+    // 鼠标悬停显示完整列表
+    const tip=list.map(l=>`${l.wh_name||''}${l.location_name&&l.location_name!=='*'?' / '+l.location_name:''}${l.qty_on_hand?' · '+Number(l.qty_on_hand).toLocaleString():''}`).join('\n');
+    cell.innerHTML=html;
+    cell.title=tip;
+  });
+}
+function cssEscapeAttr(s){
+  return String(s||'').replace(/[\\"\\n\\r]/g,'_');
+}
+
+// 在 loadMaterials 渲染完成后调用：
+async function refreshLocationsForCurrentPage(){
+  const codes=Array.from(document.querySelectorAll('.loc-cell')).map(c=>c.dataset.code).filter(Boolean);
+  if(!codes.length)return;
+  await loadMaterialLocationsForPage(codes);
+}
 function updateMatSel(){
   document.getElementById('mSelCnt').textContent=matSel.size;
   document.getElementById('batchBar').style.display=matSel.size?'flex':'none';

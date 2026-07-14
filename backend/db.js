@@ -27,7 +27,35 @@ class JsonTable {
     if (this._cache) return this._cache;
     try {
       if (fs.existsSync(this.filePath)) {
-        this._cache = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
+        const raw = fs.readFileSync(this.filePath, 'utf8').trim();
+        if (!raw) {
+          this._cache = { records: [], nextId: 1 };
+        } else {
+          const parsed = JSON.parse(raw);
+          // 容错：如果解析结果是 null 或不是对象，重置为空表（避免 .records 报 null）
+          if (parsed && typeof parsed === 'object' && Array.isArray(parsed.records)) {
+            this._cache = parsed;
+          } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed)) {
+            // 兜底：被识别为纯数组也兼容
+            this._cache = { records: parsed, nextId: parsed.length + 1 };
+          } else {
+            // 严重异常：尝试从 .bak 恢复
+            const bakFile = this.filePath + '.bak';
+            if (fs.existsSync(bakFile)) {
+              try {
+                const bakRaw = fs.readFileSync(bakFile, 'utf8').trim();
+                const bakParsed = JSON.parse(bakRaw);
+                if (bakParsed && Array.isArray(bakParsed.records)) {
+                  console.warn('[db] 表 ' + this.name + ' 主文件损坏，已从 .bak 恢复');
+                  this._cache = bakParsed;
+                  this._save(); // 把正确的内容覆盖回主文件
+                  return this._cache;
+                }
+              } catch (_) {}
+            }
+            this._cache = { records: [], nextId: 1 };
+          }
+        }
       } else {
         this._cache = { records: [], nextId: 1 };
         this._save();
@@ -45,12 +73,19 @@ class JsonTable {
   _save() {
     // 原子写入：先写临时文件再重命名，避免并发读到的截断/半写 JSON
     const tmp = this.filePath + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(this._cache, null, 2), 'utf8');
-    try { fs.renameSync(tmp, this.filePath); }
+    const content = JSON.stringify(this._cache, null, 2);
+    fs.writeFileSync(tmp, content, 'utf8');
+    try {
+      fs.renameSync(tmp, this.filePath);
+    }
     catch (e) {
       // 某些平台跨卷重命名失败时回退为直接写入
-      fs.writeFileSync(this.filePath, JSON.stringify(this._cache, null, 2), 'utf8');
+      fs.writeFileSync(this.filePath, content, 'utf8');
       try { fs.unlinkSync(tmp); } catch (_) {}
+    }
+    // 关键表自动备份最近一次成功状态，供主文件损坏时恢复
+    if (this.name === 'materials' || this.name === 'users') {
+      try { fs.writeFileSync(this.filePath + '.bak', content, 'utf8'); } catch (_) {}
     }
   }
 

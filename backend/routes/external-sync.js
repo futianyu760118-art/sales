@@ -132,9 +132,11 @@ router.post('/config', requirePerm('system:config'), (req, res) => {
 });
 
 // 拉取外部库存明细并按物料代码汇总在手/可用数量（inventory.list）
+// 同时返回明细行（每条：物料×仓库×库位×批次）供持久化到 material_locations.json
 async function fetchInventoryAggregate() {
   const items = await fetchAllPages('inventory.list', 200);
   const agg = {};
+  const detail = [];
   for (const it of items) {
     const code = (it.material_code || '').trim();
     if (!code) continue;
@@ -143,8 +145,37 @@ async function fetchInventoryAggregate() {
     if (!agg[code]) agg[code] = { on_hand: 0, available: 0 };
     agg[code].on_hand += onHand;
     agg[code].available += avail;
+    detail.push({
+      material_code: code,
+      wh_code: it.wh_code || '',
+      wh_name: it.wh_name || '',
+      location_id: Number(it.location_id || 0),
+      location_name: it.location_name || '',
+      qty_on_hand: onHand,
+      qty_available: avail,
+      batch_no: it.batch_no || '',
+      updated_at: it.updated_at || ''
+    });
   }
-  return { agg, rows: items.length };
+  return { agg, detail, rows: items.length };
+}
+
+// 持久化物料-库位明细到 database/material_locations.json（原子写入 + 自动备份）
+function saveMaterialLocations(detail) {
+  const fs = require('fs');
+  const path = require('path');
+  const file = path.join(__dirname, '..', '..', 'database', 'material_locations.json');
+  const payload = { updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19), records: detail };
+  const content = JSON.stringify(payload, null, 2);
+  const tmp = file + '.tmp';
+  fs.writeFileSync(tmp, content, 'utf8');
+  try { fs.renameSync(tmp, file); }
+  catch (e) {
+    // 备份原文件再回退写入
+    try { fs.copyFileSync(file, file + '.bak'); } catch (_) {}
+    fs.writeFileSync(file, content, 'utf8');
+    try { fs.unlinkSync(tmp); } catch (_) {}
+  }
 }
 
 // ==================== 物料同步 ====================
@@ -217,14 +248,15 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ==================== 库存同步（取现有库存量 qty_on_hand）====================
-// inventory.list 为 物料×仓库×库位×批次 明细，按 material_code 汇总在手数量后写回物料 inventory_qty
+// ==================== 库存同步（取现有库存量 qty_on_hand + 库位明细）====================
+// inventory.list 为 物料×仓库×库位×批次 明细，汇总在手数量后写回物料 inventory_qty，
+// 同时把整份明细写入 material_locations.json 供物料列表「库位」列使用
 router.post('/sync-inventory', requirePerm('material:edit'), async (req, res) => {
   try {
-    let agg, rows;
+    let agg, detail, rows;
     try {
       const r = await fetchInventoryAggregate();
-      agg = r.agg; rows = r.rows;
+      agg = r.agg; detail = r.detail; rows = r.rows;
     } catch (e) {
       return res.status(200).json({ message: '外部库存API暂不可用: ' + e.message, updated: 0 });
     }
@@ -251,9 +283,12 @@ router.post('/sync-inventory', requirePerm('material:edit'), async (req, res) =>
 
     table.saveNow();
     table._invalidate();
+    // 库位明细写到独立文件
+    saveMaterialLocations(detail || []);
     res.json({
       message: `库存同步完成：更新${updated}个物料（外部库存明细${rows}条，汇总${Object.keys(agg).length}个物料代码，未匹配${unmatched}个）`,
-      updated, inventory_rows: rows, aggregated_codes: Object.keys(agg).length, unmatched
+      updated, inventory_rows: rows, aggregated_codes: Object.keys(agg).length, unmatched,
+      locations: (detail || []).length
     });
   } catch (e) { res.status(500).json({ error: '库存同步失败: ' + e.message }); }
 });

@@ -411,6 +411,63 @@ router.get('/dashboard/period-stats', requirePerm('material:view'), (req, res) =
   });
 });
 
+// ===== 物料-库位明细（按物料代码聚合的库存分布，来自外部 API inventory.list 同步）=====
+// 入参：?codes=CODE1,CODE2,...  多个以逗号分隔
+//       ?q=xxx 支持关键字搜索
+//       ?warehouse=xxx  按仓库过滤
+// 全部返回按物料代码排序的所有明细，供前端一次性加载
+let _locationsCache = null;
+let _locationsCacheMtime = 0;
+function loadLocationsFile() {
+  const fs = require('fs');
+  const path = require('path');
+  const file = path.join(__dirname, '..', '..', 'database', 'material_locations.json');
+  try {
+    const stat = fs.statSync(file);
+    if (_locationsCache && stat.mtimeMs === _locationsCacheMtime) return _locationsCache;
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    _locationsCache = data.records || [];
+    _locationsCacheMtime = stat.mtimeMs;
+    return _locationsCache;
+  } catch (e) {
+    if (!_locationsCache) _locationsCache = [];
+    return _locationsCache;
+  }
+}
+router.get('/locations', requirePerm('material:view'), (req, res) => {
+  const all = loadLocationsFile();
+  let data = all;
+  if (req.query.codes) {
+    const codeSet = new Set(String(req.query.codes).split(',').map(s => s.trim()).filter(Boolean));
+    data = data.filter(l => codeSet.has(l.material_code));
+  }
+  if (req.query.warehouse) {
+    const w = String(req.query.warehouse).toLowerCase();
+    data = data.filter(l => (l.wh_name || '').toLowerCase().includes(w) || (l.wh_code || '').toLowerCase().includes(w));
+  }
+  if (req.query.q) {
+    const k = String(req.query.q).toLowerCase();
+    data = data.filter(l =>
+      (l.material_code || '').toLowerCase().includes(k) ||
+      (l.wh_name || '').toLowerCase().includes(k) ||
+      (l.location_name || '').toLowerCase().includes(k));
+  }
+  // 限制返回量（避免一次返回太多）
+  const limit = Math.min(parseInt(req.query.limit) || 10000, 50000);
+  res.json({ total: data.length, rows_total: all.length, data: data.slice(0, limit) });
+});
+
+// 单物料库位详情
+router.get('/:id/locations', requirePerm('material:view'), (req, res) => {
+  const matTable = getTable('materials');
+  const m = matTable.findById(req.params.id);
+  if (!m) return res.status(404).json({ error: '物料不存在' });
+  const code = (m.material_code || '').trim();
+  const all = loadLocationsFile();
+  const list = all.filter(l => l.material_code === code);
+  res.json({ material_id: Number(req.params.id), material_code: code, total: list.length, data: list });
+});
+
 router.get('/inventory/alerts', requirePerm('material:view'), (req, res) => {
   const matTable = getTable('materials');
   matTable._invalidate();
