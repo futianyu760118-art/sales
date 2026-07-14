@@ -735,3 +735,6 @@ router.post('/sync-all', requirePerm('system:config'), async (req, res) => {
 });
 
 module.exports = router;
+module.exports.fetchAllPages = fetchAllPages;
+module.exports.fetchInventoryAggregate = fetchInventoryAggregate;
+module.exports.saveMaterialLocations = saveMaterialLocations;

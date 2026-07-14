@@ -72,8 +72,9 @@ async function recover(reason, hooks) {
           matTable.insertNoSave(mapped); codeMap[code] = mapped; created++;
         }
       }
-      matTable.saveNow(); matTable._invalidate();
-      result = { message: '自愈完成：新增 ' + created + '，更新 ' + updated, created, updated };
+      // 关键：用异步写，不阻塞事件循环 —— 这样在 13MB 写盘期间，其它 HTTP 请求仍能正常响应
+      await matTable._saveAsync(); matTable._invalidate();
+      result = { message: '自愈完成（异步写入）：新增 ' + created + '，更新 ' + updated, created, updated, async_write: true };
     }
     log('成功：' + (result.message || JSON.stringify(result)));
     return result;

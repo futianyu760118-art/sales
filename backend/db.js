@@ -89,6 +89,26 @@ class JsonTable {
     }
   }
 
+  // 异步写盘：不阻塞事件循环，适用于大文件（materials/issues）
+  // 在写盘期间仍能响应其它 HTTP 请求
+  async _saveAsync() {
+    const tmp = this.filePath + '.tmp';
+    const content = JSON.stringify(this._cache, null, 2);
+    const fsp = fs.promises;
+    try {
+      await fsp.writeFile(tmp, content, 'utf8');
+      await fsp.rename(tmp, this.filePath);
+    } catch (e) {
+      try {
+        await fsp.writeFile(this.filePath, content, 'utf8');
+        try { await fsp.unlink(tmp); } catch (_) {}
+      } catch (_) {}
+    }
+    if (this.name === 'materials' || this.name === 'users') {
+      try { await fsp.writeFile(this.filePath + '.bak', content, 'utf8'); } catch (_) {}
+    }
+  }
+
   _invalidate() {
     this._cache = null;
   }

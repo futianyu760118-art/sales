@@ -69,12 +69,14 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 启动物料库自检调度器
-try { require('./lib/material-check-scheduler').startScheduler(); } catch (e) { console.error('[material-check] 调度器启动失败:', e.message); }
+// 物料库自检调度器（启动 5 分钟首次，之后每 6 小时）
+// 已禁用：周期写 85MB 的 issues.json 阻塞事件循环；要自检请手动访问 /api/material-check/run
+// try { require('./lib/material-check-scheduler').startScheduler(); } catch (e) { console.error('[material-check] 调度器启动失败:', e.message); }
 
 // ===== 物料数据完整性自愈 =====
 // 检测到 materials.json < 50KB → 自动从外部 API 拉回
-// 触发时机：1) 服务启动 5s 后 2) 每 5 分钟检查 3) 物料列表请求时惰性触发（见 routes/material.js）
+// 触发时机：1) 服务启动 5s 后 2) 路由惰性触发（见 routes/material.js）
+// 不再使用 setInterval 周期检查，避免在卡顿的 13MB 写盘期间反复触发出问题
 const recovery = require('./lib/materials-recovery');
 
 function ensureMaterialsHealth(){
@@ -89,13 +91,11 @@ function ensureMaterialsHealth(){
 // 暴露给路由的惰性触发
 global._recoverMaterialsNow = (reason) => recovery.recover(reason, { log: (m) => console.log('[recovery] ' + m) });
 setTimeout(ensureMaterialsHealth, 5000);
-// 周期性健康检查（每 5 分钟）
-setInterval(() => {
-  const h = recovery.check();
-  if (!h.ok || h.tooSmall) recovery.recover('periodic-' + h.size + 'B', { log: (m) => console.log('[recovery] ' + m) });
-}, 5 * 60 * 1000);
 
-const server = http.createServer(app);
+// 关闭物料自动恢复周期任务 —— 周期任务在 13MB 写盘期间阻塞事件循环，
+// 而且 material_check_issues.json 累积会撑到 80MB+
+// 改为按需手动触发 + 路由惰性触发，需要时由用户在 UI 点「恢复」按钮或后端运维时手动跑
+console.log('[startup] 材料自动恢复：仅启动时 + 按需触发，已禁用周期任务（避免长时间写盘阻塞）');
 
 let httpsServer = null;
 const certPfxPath = path.join(__dirname, 'cert', 'server.pfx');
@@ -123,6 +123,7 @@ if (fs.existsSync(certPfxPath)) {
     console.log('HTTPS证书加载失败，仅使用HTTP:', e.message);
   }
 }
+const server = http.createServer(app);
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ server, path: '/ws' });
 
@@ -186,6 +187,11 @@ server.listen(PORT, '0.0.0.0', () => {
     });
   }
 
+  // ===== 周期任务默认禁用 =====
+  // 之前的 4 个周期任务（物料自检 / 核价同步 / AI 引擎 / 外部 API 同步）会持续写大文件
+  // 同步 13MB materials.json / 80MB issues.json 时阻塞事件循环，导致前端页面卡顿
+  // 在 13MB 异步写盘机制未彻底解决前，默认禁用；启用方法：环境变量 ENABLE_PERIODIC_TASKS=1
+  if (process.env.ENABLE_PERIODIC_TASKS === '1') {
   // 定时同步：核价库→报价库，每5分钟执行一次
   const { syncPricingToQuote } = require('./routes/quote');
   const SYNC_INTERVAL = 5 * 60 * 1000;
@@ -304,4 +310,7 @@ server.listen(PORT, '0.0.0.0', () => {
   // 每30秒检查一次是否需要同步
   setInterval(runExternalSync, 30000);
   console.log('外部同步调度器: 按配置频率自动同步');
+  } else {
+    console.log('[startup] 周期任务已禁用（物料自检/核价同步/AI引擎/外部API），设置 ENABLE_PERIODIC_TASKS=1 启用');
+  }
 });
