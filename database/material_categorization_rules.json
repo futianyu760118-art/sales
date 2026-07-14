@@ -1,0 +1,111 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-07-14",
+  "description": "物料等级与用途分类规则。等级：常用物料 / 临时物料 / 普通物料。用途：产品类 / 设备工具类 / 后勤用 / 未分类。按用途定义必填字段与建议字段。",
+  "level_options": ["常用物料", "普通物料", "临时物料"],
+  "purpose_options": ["产品类", "设备工具类", "后勤用", "未分类"],
+
+  "level_rules": {
+    "常用物料": {
+      "desc": "经常使用、需常备库存、多产品共用",
+      "criteria": "any",
+      "conditions": [
+        { "field": "bom_usage_count", "op": ">=", "value": 3 },
+        { "field": "monthly_usage", "op": ">=", "value": 1 },
+        { "field": "procurement_enabled", "op": "==", "value": 1 },
+        { "field": "inventory_qty", "op": ">=", "value": 1 },
+        { "field": "standard_cost", "op": ">", "value": 0 }
+      ]
+    },
+    "临时物料": {
+      "desc": "只使用一次或偶尔使用，按需采购，不需要常备库存",
+      "criteria": "all",
+      "conditions": [
+        { "field": "bom_usage_count", "op": "<=", "value": 1 },
+        { "field": "monthly_usage", "op": "<=", "value": 0 },
+        { "field": "procurement_enabled", "op": "==", "value": 0 },
+        { "field": "inventory_qty", "op": "<=", "value": 0 }
+      ]
+    },
+    "普通物料": {
+      "desc": "等级之间，使用频率介于常用与临时之间（兜底逻辑：有任何中等强度信号）",
+      "criteria": "fallback"
+    }
+  },
+
+  "purpose_rules": {
+    "产品类": {
+      "desc": "用于产品生产（BOM 直接引用，或属结构/电子/包材等生产物料）",
+      "match": [
+        { "field": "classification", "values": ["结构类物料", "电子类物料", "包材类物料", "附件类物料", "光学件", "五金件", "紧固件", "线材类", "通用物料", "常用物料", "定制物料", "专用物料"] },
+        { "field": "name_includes", "values": ["外壳", "支架", "芯片", "电容", "电阻", "电感", "PCB", "光源", "电池", "太阳能", "电缆", "电源线", "彩盒", "外箱", "说明书", "螺丝", "螺母", "灯壳", "后盖", "压框"] }
+      ]
+    },
+    "设备工具类": {
+      "desc": "用于设备维修、模具、工具、夹具等生产辅助",
+      "match": [
+        { "field": "name_includes", "values": ["工具", "设备", "模具", "夹具", "刀具", "刃具", "扳手", "螺丝刀", "万用表", "示波器", "电烙铁", "焊台", "风枪", "电钻", "气动", "液压", "压力表", "卡尺", "千分尺", "塞规", "量具", "砂轮", "砂纸", "钻头", "丝攻"] }
+      ]
+    },
+    "后勤用": {
+      "desc": "日常办公、清洁、后勤杂项",
+      "match": [
+        { "field": "name_includes", "values": ["办公", "文具", "纸", "打印", "复印", "笔", "本", "档案", "文件夹", "订书机", "计算器", "墨盒", "色带", "清洁", "卫生", "扫把", "拖把", "垃圾袋", "洗手", "消毒", "垃圾", "纸巾", "毛巾", "围裙", "手套", "口罩", "工服", "鞋套"] },
+        { "field": "category_includes", "values": ["办公", "后勤", "杂项"] }
+      ]
+    },
+    "未分类": {
+      "desc": "未匹配任何规则",
+      "criteria": "fallback"
+    }
+  },
+
+  "required_fields_by_purpose": {
+    "产品类": {
+      "required": ["material_code", "material_name", "classification", "material_type", "unit", "standard_cost"],
+      "recommended": ["category", "supplier", "specs", "min_inventory", "inventory_qty", "procurement_enabled", "procurement_cycle"]
+    },
+    "设备工具类": {
+      "required": ["material_code", "material_name", "classification", "unit"],
+      "recommended": ["category", "specs", "standard_cost", "supplier", "procurement_cycle"]
+    },
+    "后勤用": {
+      "required": ["material_code", "material_name", "classification", "unit"],
+      "recommended": ["category", "specs", "standard_cost"]
+    },
+    "未分类": {
+      "required": ["material_code", "material_name", "classification", "unit"],
+      "recommended": []
+    }
+  },
+
+  "required_fields_by_level": {
+    "常用物料": {
+      "required": ["material_code", "material_name", "classification", "material_type", "unit", "standard_cost", "supplier", "min_inventory", "procurement_enabled"],
+      "recommended": ["specs", "category", "inventory_qty", "procurement_cycle", "procurement_qty", "next_purchase_date"]
+    },
+    "普通物料": {
+      "required": ["material_code", "material_name", "classification", "material_type", "unit"],
+      "recommended": ["standard_cost", "supplier", "min_inventory"]
+    },
+    "临时物料": {
+      "required": ["material_code", "material_name", "classification", "material_type", "unit"],
+      "recommended": ["standard_cost"]
+    }
+  },
+
+  "filling_standards": [
+    "物料代码：按 [大类].[中类].[小类].[代号]-[序号] 规范（见 material_coding_rules.json）",
+    "物料名称：3-30 字，去除「未确认」「TBD」等占位词，不含 <>/\\|",
+    "分类 classification：必须从 已批准枚举（结构类/电子类/包材类/附件类/光学件/五金件/紧固件/线材类/通用物料/常用物料/定制物料/专用物料）中选",
+    "类型 material_type：常用物料/普通物料 取值「外购 / 自制 / 委外加工」，临时物料 取值同或「辅料」",
+    "单位 unit：仅允许 PCS / g / kg / ml / m / t",
+    "标准成本 standard_cost：常用物料必填 > 0；其它等级建议填；外部 API 不返回成本时从 BOM.unit_price 或采购订单最近价同步",
+    "供应商 supplier：常用物料必填；普通物料建议填；临时物料可不填",
+    "规格 specs：尽量填具体规格参数，避免包含图纸号/版本号（这些应单独字段）",
+    "采购周期/数量：常用物料必填；临时物料可不填",
+    "最小库存：常用物料必填；普通物料建议填；临时物料可不填",
+    "库存数量：常用物料从外部库存API同步，按需再人工调整",
+    "用途 material_purpose：自动分类，但可在物料详情里手动覆盖"
+  ]
+}

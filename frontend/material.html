@@ -51,6 +51,13 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 .proc-off{background:#f0f0f0;color:#999}
 .due-tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;background:#fff3cd;color:#856404}
 .ex-tag{font-size:9px;color:#e67e22;margin-left:2px;vertical-align:super;font-weight:normal;cursor:help}
+.lvl-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff}
+.lvl-常用物料{background:#27ae60}.lvl-普通物料{background:#95a5a6}.lvl-临时物料{background:#e67e22}
+.pur-badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#eaf2ff;color:#3b5998;border:1px solid #d0defc}
+.pur-产品类{background:#eaf2ff;color:#3b5998;border-color:#d0defc}
+.pur-设备工具类{background:#fff3e0;color:#e67e22;border-color:#ffd9a3}
+.pur-后勤用{background:#e8f5e9;color:#27ae60;border-color:#c8e6c9}
+.pur-未分类{background:#f0f0f0;color:#999;border-color:#e0e0e0}
 .cmp-panel{background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
 .cmp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .cmp-card{background:#fafbff;border:1px solid #e8ebf7;border-radius:6px;padding:10px 12px}
@@ -140,7 +147,11 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <option value="包材类物料">包材类物料</option><option value="附件类物料">附件类物料</option>
 </select>
 <select id="mStat"><option value="">全部状态</option><option value="active">启用</option><option value="inactive">禁用</option></select>
+<select id="mLevel"><option value="">全部等级</option><option value="常用物料">常用物料</option><option value="普通物料">普通物料</option><option value="临时物料">临时物料</option></select>
+<select id="mPurpose"><option value="">全部用途</option><option value="产品类">产品类</option><option value="设备工具类">设备工具类</option><option value="后勤用">后勤用</option><option value="未分类">未分类</option></select>
 <button class="btn b1" onclick="loadMaterials(1)">搜索</button>
+<button class="btn b4 bs" onclick="openCatRules()" title="查看等级和用途分类填写标准">📋 分类标准</button>
+<button class="btn b2 bs" onclick="runAutoClassify()" title="按规则自动给所有物料打等级和用途标签">⚙️ 自动分类</button>
 <span class="ed-hint">提示：双击单元格可直接编辑 · 点击表头排序</span>
 <span style="margin-left:auto">共 <b id="mTc">0</b> 条</span>
 </div>
@@ -155,8 +166,8 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <div class="tbl-wrap">
 <table id="matTable"><thead><tr>
 <th style="width:28px;text-align:center"><input type="checkbox" id="mChkAll" onclick="toggleMatAll(this)" title="全选当页"></th>
-<th class="sortable" data-sort="material_code">物料代码</th><th class="sortable" data-sort="material_name">物料名称</th><th>类别</th><th>规格</th><th class="sortable" data-sort="classification">分类</th><th>单位</th><th>类型</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价</th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
-</tr></thead><tbody id="mTb"><tr><td colspan="21" class="em">暂无数据</td></tr></tbody></table>
+<th class="sortable" data-sort="material_code">物料代码</th><th class="sortable" data-sort="material_name">物料名称</th><th>类别</th><th>规格</th><th class="sortable" data-sort="classification">分类</th><th>单位</th><th>类型</th><th style="width:78px">等级</th><th style="width:90px">用途</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价</th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
+</tr></thead><tbody id="mTb"><tr><td colspan="23" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="mPg" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -317,14 +328,16 @@ async function loadMaterials(page){
   const p=new URLSearchParams({page:mPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('mKw').value,cat=document.getElementById('mCat').value;
   const cls=document.getElementById('mCls').value,st=document.getElementById('mStat').value;
+  const lvl=document.getElementById('mLevel').value,pur=document.getElementById('mPurpose').value;
   if(kw)p.set('keyword',kw);if(cat)p.set('category',cat);
   if(cls)p.set('classification',cls);if(st)p.set('status',st);
+  if(lvl)p.set('material_level',lvl);if(pur)p.set('material_purpose',pur);
   if(mSort.field){p.set('sort_by',mSort.field);p.set('sort_order',mSort.dir);}
   try{
     const r=await fetch(API+'?'+p);const d=await r.json();
     const total=d.total||0;document.getElementById('mTc').textContent=total;
     const recs=d.data||[],tb=document.getElementById('mTb');
-    if(!recs.length){    tb.innerHTML='<tr><td colspan="21" class="em">暂无物料数据</td></tr>';renderPg('mPg',total,mPage,loadMaterials);updateSortArrows();return}
+    if(!recs.length){    tb.innerHTML='<tr><td colspan="23" class="em">暂无物料数据</td></tr>';renderPg('mPg',total,mPage,loadMaterials);updateSortArrows();return}
     tb.innerHTML=recs.map(m=>{
       const invLow=(m.inventory_qty||0)<(m.min_inventory||0);
       const procOn=Number(m.procurement_enabled)===1;
@@ -340,6 +353,8 @@ async function loadMaterials(page){
       <td>${esc((m.classification||'').substring(0,10))}</td>
       <td>${esc(m.unit||'-')}</td>
       <td>${esc(m.material_type||'-')}</td>
+      <td><span class="lvl-badge lvl-${(m.material_level||'普通物料').replace(/[^一-龥]/g,'')}" title="等级">${esc(m.material_level||'普通物料')}</span></td>
+      <td><span class="pur-badge pur-${(m.material_purpose||'未分类').replace(/[^一-龥]/g,'')}" title="用途">${esc(m.material_purpose||'未分类')}</span></td>
       <td class="loc-cell" data-mid="${m.id}" data-code="${esc(m.material_code||'')}" style="font-size:12px;color:#555;max-width:200px;line-height:1.4"><span style="color:#bbb">—</span></td>
       <td class="ed" data-edit="supplier" data-mid="${m.id}">${esc(m.supplier||'')}</td>
       <td class="ed" data-edit="standard_cost" data-mid="${m.id}" data-num="${Number(m.standard_cost)||0}">${m.standard_cost?'¥'+Number(m.standard_cost).toFixed(2):'-'}</td>
@@ -441,6 +456,69 @@ async function refreshLocationsForCurrentPage(){
   const codes=Array.from(document.querySelectorAll('.loc-cell')).map(c=>c.dataset.code).filter(Boolean);
   if(!codes.length)return;
   await loadMaterialLocationsForPage(codes);
+}
+
+// ===== 物料等级 & 用途分类 =====
+const LEVEL_OPTIONS=['常用物料','普通物料','临时物料'];
+const PURPOSE_OPTIONS=['产品类','设备工具类','后勤用','未分类'];
+let catRulesCache=null;
+
+async function loadCatRules(){
+  if(catRulesCache)return catRulesCache;
+  try{const r=await fetch(API+'/classification/rules');catRulesCache=await r.json();return catRulesCache;}catch(e){return null}
+}
+
+function openCatRules(){
+  (async()=>{
+    const rules=await loadCatRules();
+    if(!rules){alert('加载规则失败');return}
+    const box=document.getElementById('gMoBox');
+    const lp=(r,k)=>(r&&r[k])?r[k]:{};
+    const lvlRules=lp(rules,'level_rules');
+    const purRules=lp(rules,'purpose_rules');
+    const reqByLevel=lp(rules,'required_fields_by_level');
+    const reqByPur=lp(rules,'required_fields_by_purpose');
+    const standards=(rules.filling_standards)||[];
+    box.innerHTML=`
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>📋 物料等级与用途分类标准</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+      <div style="font-size:12px;color:#666;margin-bottom:8px">规则版本 v${rules.version||'?'} · 更新于 ${rules.updated_at||'-'}</div>
+      <h4 style="color:#667eea;margin:10px 0 6px">一、物料等级（自动分类）</h4>
+      ${Object.entries(lvlRules).map(([k,r])=>`<div style="border-left:3px solid #27ae60;padding:6px 10px;margin-bottom:6px;background:#f9fef9"><b>${esc(k)}</b>：${esc(r.desc||'')}
+        <div style="font-size:11px;color:#666;margin-top:4px">判定条件：${(r.conditions||[]).map(c=>`${c.field} ${c.op} ${c.value}`).join(' 且/或 ')||'fallback'}</div></div>`).join('')}
+      <h4 style="color:#667eea;margin:10px 0 6px">二、用途分类（自动分类）</h4>
+      ${Object.entries(purRules).map(([k,r])=>`<div style="border-left:3px solid #3b5998;padding:6px 10px;margin-bottom:6px;background:#f7faff"><b>${esc(k)}</b>：${esc(r.desc||'')}
+        <div style="font-size:11px;color:#666;margin-top:4px">匹配规则：${(r.match||[]).map(m=>m.field+'='+JSON.stringify(m.values||m.keywords)).join(' ; ')||'fallback'}</div></div>`).join('')}
+      <h4 style="color:#667eea;margin:14px 0 6px">三、填写标准（按等级）</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <tr style="background:#f5f6fa"><th style="padding:6px;text-align:left">等级</th><th>必填</th><th>建议填</th></tr>
+      ${Object.entries(reqByLevel).map(([k,r])=>`<tr><td style="padding:6px;font-weight:600">${esc(k)}</td><td>${(r.required||[]).map(esc).join('、')||'-'}</td><td style="color:#888">${(r.recommended||[]).map(esc).join('、')||'-'}</td></tr>`).join('')}
+      </table>
+      <h4 style="color:#667eea;margin:14px 0 6px">四、填写标准（按用途）</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <tr style="background:#f5f6fa"><th style="padding:6px;text-align:left">用途</th><th>必填</th><th>建议填</th></tr>
+      ${Object.entries(reqByPur).map(([k,r])=>`<tr><td style="padding:6px;font-weight:600">${esc(k)}</td><td>${(r.required||[]).map(esc).join('、')||'-'}</td><td style="color:#888">${(r.recommended||[]).map(esc).join('、')||'-'}</td></tr>`).join('')}
+      </table>
+      <h4 style="color:#667eea;margin:14px 0 6px">五、补充标准</h4>
+      <ul style="font-size:12px;line-height:1.8;color:#444">
+        ${standards.map(esc).map(s=>`<li>${s}</li>`).join('')}
+      </ul>
+      <div style="text-align:right;margin-top:14px"><button class="btn b1" onclick="runAutoClassify()">⚙️ 立即自动分类全部物料</button></div>
+    `;
+    document.getElementById('gMo').classList.add('ac');
+  })();
+}
+
+async function runAutoClassify(){
+  if(!confirm('将按规则库对全部物料重新计算等级与用途，可能耗时几十秒。继续？'))return;
+  toast('分类中…');
+  try{
+    const r=await fetch(API+'/classification/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const d=await r.json();
+    if(!r.ok){alert(d.error||'分类失败');return}
+    toast(`分类完成：更新 ${d.updated} 条`);
+    document.getElementById('gMo')?.classList.remove('ac');
+    loadMaterials(1);loadStats();
+  }catch(e){alert('请求失败: '+e.message)}
 }
 function updateMatSel(){
   document.getElementById('mSelCnt').textContent=matSel.size;
@@ -652,6 +730,8 @@ function openAddMaterial(){
     ['material_code','物料代码','text'],['material_name','物料名称','text'],['product_id','关联产品ID','text'],
     ['category','类别','text'],['specs','规格','text'],['material_type','物料类型','select:外购,委外加工,自制'],
     ['unit','单位','text'],['supplier','供应商','text'],['status','状态','select:active,inactive'],
+    ['material_level','等级','select:常用物料,普通物料,临时物料'],
+    ['material_purpose','用途','select:产品类,设备工具类,后勤用'],
     ['standard_cost','标准成本','number'],['processing_cost','加工成本','number'],
     ['processing_loss','加工损耗','text'],['unit_price','单价','number'],
     ['quantity','数量','number'],['classification','分类','select:结构类物料,电子类物料,包材类物料,附件类物料'],
@@ -661,8 +741,18 @@ function openAddMaterial(){
     ['procurement_qty','每次采购数量','number'],['last_purchase_date','上次采购日期','date'],
     ['certificate_required','认证要求','select:0,1'],['remarks','备注','textarea']
   ];
-  openForm('新增物料',fields,{status:'active',certificate_required:'0',quantity:0,inventory_qty:0,min_inventory:0,procurement_enabled:'0',procurement_cycle:0,procurement_qty:0,volume:0},async(data)=>{
+  openForm('新增物料',fields,{status:'active',certificate_required:'0',quantity:0,inventory_qty:0,min_inventory:0,procurement_enabled:'0',procurement_cycle:0,procurement_qty:0,volume:0,material_level:'普通物料',material_purpose:'产品类'},async(data)=>{
     if(!data.material_code&&!data.material_name){alert('物料代码或名称必填');return}
+    // 用后端校验找出缺失的必填字段
+    try{
+      const r=await fetch(API+'/classification/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      const v=await r.json();
+      const missing=v.missing_required||[];
+      if(missing.length){
+        const allow=confirm(`按当前等级[${v.level}]与用途[${v.purpose}]标准，缺失必填字段：\n${missing.map(m=>'  · '+m.label).join('\n')}\n\n点击「确定」仍可保存（不推荐），点击「取消」返回编辑。`);
+        if(!allow)return;
+      }
+    }catch(e){}
     await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     document.getElementById('gMo').classList.remove('ac');loadMaterials(mPage);loadStats();
   });
@@ -670,10 +760,14 @@ function openAddMaterial(){
 async function openEditMaterial(id){
   try{
     const r=await fetch(API+'/'+id);const m=await r.json();
+    if(!m.material_level)m.material_level='普通物料';
+    if(!m.material_purpose)m.material_purpose='未分类';
     const fields=[
       ['material_code','物料代码','text'],['material_name','物料名称','text'],['product_id','关联产品ID','text'],
       ['category','类别','text'],['specs','规格','text'],['material_type','物料类型','select:外购,委外加工,自制'],
       ['unit','单位','text'],['supplier','供应商','text'],['status','状态','select:active,inactive'],
+      ['material_level','等级','select:常用物料,普通物料,临时物料'],
+      ['material_purpose','用途','select:产品类,设备工具类,后勤用,未分类'],
       ['standard_cost','标准成本','number'],['processing_cost','加工成本','number'],
       ['processing_loss','加工损耗','text'],['unit_price','单价','number'],
       ['quantity','数量','number'],['classification','分类','select:结构类物料,电子类物料,包材类物料,附件类物料'],
@@ -684,6 +778,14 @@ async function openEditMaterial(id){
     ['certificate_required','认证要求','select:0,1'],['remarks','备注','textarea']
     ];
     openForm('编辑物料',fields,m,async(data)=>{
+      try{
+        const v=await fetch(API+'/classification/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+        const rj=await v.json();
+        if((rj.missing_required||[]).length){
+          const allow=confirm(`按当前等级[${rj.level}]与用途[${rj.purpose}]缺失必填：\n${rj.missing_required.map(m=>'  · '+m.label).join('\n')}\n\n确定仍要保存？取消返回编辑。`);
+          if(!allow)return;
+        }
+      }catch(e){}
       await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       document.getElementById('gMo').classList.remove('ac');loadMaterials(mPage);loadStats();
     });

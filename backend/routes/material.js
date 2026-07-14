@@ -71,13 +71,16 @@ function parseDashboardFilters(query) {
 }
 
 router.get('/', requirePerm('material:view'), (req, res) => {
-  const { page = 1, limit = 15, product_id, status, keyword, category, classification, sort_by, sort_order } = req.query;
+  const { page = 1, limit = 15, product_id, status, keyword, category, classification,
+          material_level, material_purpose, sort_by, sort_order } = req.query;
   const table = getTable('materials');
   const filter = (r) => {
     if (product_id && r.product_id !== Number(product_id)) return false;
     if (status && r.status !== status) return false;
     if (category && !(r.category || '').includes(category)) return false;
     if (classification && (r.classification || '通用物料') !== classification) return false;
+    if (material_level && r.material_level !== material_level) return false;
+    if (material_purpose && r.material_purpose !== material_purpose) return false;
     if (keyword) {
       const kw = keyword.toLowerCase();
       const searchStr = [r.material_name, r.material_code, r.specs, r.material_type, r.supplier, r.category].join(' ').toLowerCase();
@@ -85,7 +88,7 @@ router.get('/', requirePerm('material:view'), (req, res) => {
     }
     return true;
   };
-  const allowedSortFields = ['id', 'material_code', 'material_name', 'category', 'standard_cost', 'processing_cost', 'processing_loss', 'inventory_qty', 'min_inventory', 'monthly_usage', 'unit_price', 'supplier', 'bom_usage_count', 'status', 'classification', 'procurement_enabled', 'procurement_cycle', 'procurement_qty', 'last_purchase_date', 'next_purchase_date', 'created_at'];
+  const allowedSortFields = ['id', 'material_code', 'material_name', 'category', 'standard_cost', 'processing_cost', 'processing_loss', 'inventory_qty', 'min_inventory', 'monthly_usage', 'unit_price', 'supplier', 'bom_usage_count', 'status', 'classification', 'procurement_enabled', 'procurement_cycle', 'procurement_qty', 'last_purchase_date', 'next_purchase_date', 'created_at', 'material_level', 'material_purpose'];
   const orderBy = allowedSortFields.includes(sort_by) ? sort_by : 'id';
   const orderDir = (sort_order && sort_order.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
   const { records, total } = table.findWhere(filter, orderBy, orderDir, parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
@@ -1022,6 +1025,173 @@ router.get('/:id', requirePerm('material:view'), (req, res) => {
   res.json(row);
 });
 
+// ===== 物料等级 & 用途分类 =====
+const CAT_RULES_FILE = path.join(__dirname, '..', '..', 'database', 'material_categorization_rules.json');
+
+function loadCategorizationRules() {
+  try { return JSON.parse(fs.readFileSync(CAT_RULES_FILE, 'utf8')); } catch (e) { return { level_rules: {}, purpose_rules: {}, required_fields_by_purpose: {}, required_fields_by_level: {} }; }
+}
+
+function evalCondition(cond, ctx) {
+  const v = ctx[cond.field];
+  switch (cond.op) {
+    case '>=': return Number(v) >= Number(cond.value);
+    case '<=': return Number(v) <= Number(cond.value);
+    case '>': return Number(v) > Number(cond.value);
+    case '<': return Number(v) < Number(cond.value);
+    case '==': return String(v) === String(cond.value);
+    case '!=': return String(v) !== String(cond.value);
+    default: return false;
+  }
+}
+
+function classifyLevel(ctx, rules) {
+  // 按顺序匹配，每条规则的 criteria: any/all/fallback
+  for (const [name, rule] of Object.entries(rules.level_rules || {})) {
+    if (rule.criteria === 'fallback') continue; // fallback 留到最后
+    const conds = rule.conditions || [];
+    if (conds.length === 0) continue;
+    let ok;
+    if (rule.criteria === 'all') ok = conds.every(c => evalCondition(c, ctx));
+    else ok = conds.some(c => evalCondition(c, ctx));
+    if (ok) return name;
+  }
+  // fallback
+  for (const [name, rule] of Object.entries(rules.level_rules || {})) {
+    if (rule.criteria === 'fallback') return name;
+  }
+  return '普通物料';
+}
+
+function classifyPurpose(material, rules) {
+  const name = (material.material_name || '').toLowerCase();
+  const cls = material.classification || '';
+  for (const [purposeName, rule] of Object.entries(rules.purpose_rules || {})) {
+    if (rule.criteria === 'fallback') continue;
+    let matched = false;
+    for (const m of (rule.match || [])) {
+      if (m.field === 'classification' && Array.isArray(m.values) && m.values.includes(cls)) { matched = true; break; }
+      if (m.field === 'name_includes' && Array.isArray(m.values) && m.values.some(k => name.includes(k.toLowerCase()))) { matched = true; break; }
+      if (m.field === 'category_includes' && Array.isArray(m.values) && m.values.some(k => ((material.category || '') + (material.specs || '')).toLowerCase().includes(k.toLowerCase()))) { matched = true; break; }
+    }
+    if (matched) return purposeName;
+  }
+  for (const [name, rule] of Object.entries(rules.purpose_rules || {})) {
+    if (rule.criteria === 'fallback') return name;
+  }
+  return '未分类';
+}
+
+// 获取物料分类规则（供前端展示）
+router.get('/classification/rules', requirePerm('material:view'), (req, res) => {
+  res.json(loadCategorizationRules());
+});
+
+// 单物料实时计算等级 + 用途（不写库）
+router.post('/classification/preview', requirePerm('material:view'), (req, res) => {
+  const rules = loadCategorizationRules();
+  const m = req.body || {};
+  const ctx = {
+    bom_usage_count: Number(m.bom_usage_count || 0),
+    monthly_usage: Number(m.monthly_usage || 0),
+    procurement_enabled: Number(m.procurement_enabled || 0)
+  };
+  const level = classifyLevel(ctx, rules);
+  const purpose = classifyPurpose(m, rules);
+  res.json({ level, purpose });
+});
+
+// 全表自动分类（计算 + 写回 material_level / material_purpose）
+// body: { batchSize?: 500 }
+router.post('/classification/run', requirePerm('material:edit'), async (req, res) => {
+  try {
+    const rules = loadCategorizationRules();
+    const matTable = getTable('materials');
+    const bomTable = getTable('product_bom');
+    matTable._invalidate();
+    bomTable._invalidate();
+    const materials = matTable.all();
+    const bomItems = bomTable.all();
+    // 物料代码 → 使用次数
+    const usageCount = {};
+    bomItems.forEach(b => {
+      const c = (b.material_code || '').trim();
+      if (c) usageCount[c] = (usageCount[c] || 0) + 1;
+    });
+    const ts = now();
+    let updated = 0;
+    let byLevel = {}, byPurpose = {};
+    for (const m of materials) {
+      const code = (m.material_code || '').trim();
+      const ctx = {
+        bom_usage_count: usageCount[code] || 0,
+        monthly_usage: Number(m.monthly_usage || 0),
+        procurement_enabled: Number(m.procurement_enabled || 0)
+      };
+      const newLevel = classifyLevel(ctx, rules);
+      const newPurpose = classifyPurpose(m, rules);
+      if (m.material_level !== newLevel || m.material_purpose !== newPurpose) {
+        m.material_level = newLevel;
+        m.material_purpose = newPurpose;
+        m.updated_at = ts;
+        updated++;
+      }
+      byLevel[newLevel] = (byLevel[newLevel] || 0) + 1;
+      byPurpose[newPurpose] = (byPurpose[newPurpose] || 0) + 1;
+    }
+    matTable.saveNow();
+    matTable._invalidate();
+    res.json({
+      message: `分类完成：扫描 ${materials.length} 条物料，更新 ${updated} 条`,
+      total: materials.length, updated,
+      by_level: byLevel,
+      by_purpose: byPurpose
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 物料填写完整度校验（前端在保存前/查看时调，按 level + purpose 返回缺失字段）
+router.post('/classification/validate', requirePerm('material:view'), (req, res) => {
+  const rules = loadCategorizationRules();
+  const m = req.body || {};
+  const level = m.material_level || '普通物料';
+  const purpose = m.material_purpose || '未分类';
+  const required = new Set();
+  const recommended = new Set();
+  (rules.required_fields_by_level || {})[level] && (rules.required_fields_by_level[level].required || []).forEach(f => required.add(f));
+  (rules.required_fields_by_purpose || {})[purpose] && (rules.required_fields_by_purpose[purpose].required || []).forEach(f => required.add(f));
+  (rules.required_fields_by_level || {})[level] && (rules.required_fields_by_level[level].recommended || []).forEach(f => recommended.add(f));
+  (rules.required_fields_by_purpose || {})[purpose] && (rules.required_fields_by_purpose[purpose].recommended || []).forEach(f => recommended.add(f));
+  const missing = [];
+  const recommended_missing = [];
+  required.forEach(f => {
+    const v = m[f];
+    const empty = v === undefined || v === null || v === '' || v === 0 && ['standard_cost','inventory_qty','min_inventory','monthly_usage','procurement_cycle','procurement_qty'].includes(f);
+    if (empty) missing.push({ field: f, label: FIELD_LABELS[f] || f });
+  });
+  recommended.forEach(f => {
+    const v = m[f];
+    if (v === undefined || v === null || v === '') recommended_missing.push({ field: f, label: FIELD_LABELS[f] || f });
+  });
+  res.json({
+    level, purpose,
+    passed: missing.length === 0,
+    missing_required: missing,
+    missing_recommended: recommended_missing
+  });
+});
+
+const FIELD_LABELS = {
+  material_code: '物料代码', material_name: '物料名称', classification: '物料分类',
+  material_type: '物料类型', material_purpose: '用途', material_level: '等级',
+  unit: '单位', standard_cost: '标准成本', supplier: '供应商',
+  specs: '规格', category: '类别',
+  min_inventory: '最小库存', inventory_qty: '库存数量',
+  procurement_enabled: '启用周期采购', procurement_cycle: '采购周期',
+  procurement_qty: '采购数量', next_purchase_date: '下次采购',
+  monthly_usage: '月用量'
+};
+
 router.post('/', requirePerm('material:create'), (req, res) => {
   const { product_id, material_name, material_code, category, specs, material_type,
           unit, standard_cost, processing_cost, processing_loss, supplier,
@@ -1031,7 +1201,8 @@ router.post('/', requirePerm('material:create'), (req, res) => {
           manual_cost, packaging_cost, accessory_cost, labor_cost,
           certificate_required, remarks,
           classification, inventory_qty, min_inventory, monthly_usage,
-          procurement_enabled, procurement_cycle, procurement_qty, last_purchase_date, volume } = req.body;
+          procurement_enabled, procurement_cycle, procurement_qty, last_purchase_date, volume,
+          material_level, material_purpose } = req.body;
   if (!material_name) return res.status(400).json({ error: '物料名称为必填项' });
   if (!material_code) return res.status(400).json({ error: '物料编码为必填项' });
 
@@ -1053,11 +1224,11 @@ router.post('/', requirePerm('material:create'), (req, res) => {
     unit: unit || '个', standard_cost: standard_cost ? Number(standard_cost) : 0,
     processing_cost: processing_cost ? Number(processing_cost) : 0,
     processing_loss: processing_loss ? Number(processing_loss) : 0,
-    supplier: supplier || '', status: status || 'active',
+    supplier: supplier || '', status: status || 'normal',
     unit_price: unit_price ? Number(unit_price) : 0, quantity: quantity ? Number(quantity) : 0,
     classification: classification || '通用物料',
     inventory_qty: inventory_qty ? Number(inventory_qty) : 0,
-    min_inventory: min_inventory ? Number(min_inventory) : 0,
+    min_inventory: min_inventory ? Number(minventory) : 0,
     monthly_usage: monthly_usage ? Number(monthly_usage) : 0,
     kit_cost: kit_cost ? Number(kit_cost) : 0, cable_cost: cable_cost ? Number(cable_cost) : 0,
     light_source_cost: light_source_cost ? Number(light_source_cost) : 0,
@@ -1067,7 +1238,8 @@ router.post('/', requirePerm('material:create'), (req, res) => {
     socket_cost: socket_cost ? Number(socket_cost) : 0, box_cost: box_cost ? Number(box_cost) : 0,
     manual_cost: manual_cost ? Number(manual_cost) : 0, packaging_cost: packaging_cost ? Number(packaging_cost) : 0,
     accessory_cost: accessory_cost ? Number(accessory_cost) : 0, labor_cost: labor_cost ? Number(labor_cost) : 0,
-    certificate_required: certificate_required ? Number(certificate_required) : 0, remarks: remarks || '',
+    certificate_required: certificate_required || '', remarks: remarks || '',
+    material_level: material_level || '', material_purpose: material_purpose || '',
     procurement_enabled: procFields.procurement_enabled,
     procurement_cycle: procFields.procurement_cycle,
     procurement_qty: procFields.procurement_qty,
@@ -1086,7 +1258,7 @@ router.put('/:id', requirePerm('material:edit'), (req, res) => {
   const fields = { updated_at: now() };
   ['product_id', 'material_name', 'material_code', 'category', 'specs', 'material_type',
    'unit', 'supplier', 'status', 'remarks', 'classification', 'used_in_products',
-   'last_purchase_date'].forEach(f => {
+   'last_purchase_date', 'material_level', 'material_purpose'].forEach(f => {
     if (req.body[f] !== undefined) fields[f] = req.body[f];
   });
   ['standard_cost', 'processing_cost', 'processing_loss', 'unit_price', 'quantity',
