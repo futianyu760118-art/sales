@@ -74,6 +74,18 @@ router.get('/', requirePerm('material:view'), (req, res) => {
   const { page = 1, limit = 15, product_id, status, keyword, category, classification,
           material_level, material_purpose, sort_by, sort_order } = req.query;
   const table = getTable('materials');
+
+  // 惰性自愈：若 materials.json 异常小（< 50KB）+ 当前返回空 → 触发后台同步
+  let needsRecovery=false;
+  try{
+    const recovery = require('../lib/materials-recovery');
+    if(!recovery.check().ok){needsRecovery=true}
+  }catch(e){needsRecovery=true}
+
+  // 先快速返回（不等同步完成），但记录触发状态
+  if(needsRecovery && global._recoverMaterialsNow){
+    try{global._recoverMaterialsNow('lazy-list')}catch(e){}
+  }
   const filter = (r) => {
     if (product_id && r.product_id !== Number(product_id)) return false;
     if (status && r.status !== status) return false;
@@ -93,6 +105,21 @@ router.get('/', requirePerm('material:view'), (req, res) => {
   const orderDir = (sort_order && sort_order.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
   const { records, total } = table.findWhere(filter, orderBy, orderDir, parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
   res.json({ data: records, total, page: parseInt(page), limit: parseInt(limit), sort_by: orderBy, sort_order: orderDir });
+});
+
+// ===== 物料数据手动恢复 =====
+// 用于前端在看到「物料没有了」时手动触发从外部 API 重新同步
+router.post('/recover-from-external', requirePerm('material:edit'), async (req, res) => {
+  try {
+    const recovery = require('../lib/materials-recovery');
+    const result = await recovery.recover('manual', { log: (m) => console.log('[recovery] ' + m) });
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/recover-status', requirePerm('material:view'), (req, res) => {
+  const recovery = require('../lib/materials-recovery');
+  res.json(recovery.check());
 });
 
 router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {

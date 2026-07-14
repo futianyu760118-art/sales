@@ -72,26 +72,28 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // 启动物料库自检调度器
 try { require('./lib/material-check-scheduler').startScheduler(); } catch (e) { console.error('[material-check] 调度器启动失败:', e.message); }
 
-// 物料数据完整性自愈：若 materials.json < 1MB（疑似损坏或曾被覆盖为空），自动从外部 API 拉回
-function ensureMaterialsHealth() {
-  try {
-    const matFile = path.join(__dirname, '..', 'database', 'materials.json');
-    const stat = fs.statSync(matFile);
-    if (stat.size < 1024 * 1024) {
-      console.log('[startup] materials.json 仅 ' + stat.size + ' 字节，启动自动恢复 → 调外部 API 同步...');
-      const expSync = require('./routes/external-sync');
-      const originalApp = app._router;
-      // 通过 http 内部调用
-      const opts = { hostname: 'localhost', port: 3010, path: '/api/external-sync/sync-materials', method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': 2 } };
-      const req = http.request(opts, (res) => { let d=''; res.on('data',c=>d+=c); res.on('end',()=>console.log('[startup] 恢复完成:', d.substring(0,150))); });
-      req.on('error',()=>{});
-      req.write('{}');req.end();
-    } else {
-      console.log('[startup] materials.json 大小正常 ('+ (stat.size/1024/1024).toFixed(1) +' MB)');
-    }
-  } catch(e) { console.error('[startup] 检查物料数据失败:', e.message); }
+// ===== 物料数据完整性自愈 =====
+// 检测到 materials.json < 50KB → 自动从外部 API 拉回
+// 触发时机：1) 服务启动 5s 后 2) 每 5 分钟检查 3) 物料列表请求时惰性触发（见 routes/material.js）
+const recovery = require('./lib/materials-recovery');
+
+function ensureMaterialsHealth(){
+  const h = recovery.check();
+  if(!h.ok || h.tooSmall){
+    console.log('[startup] materials.json 异常（size=' + h.size + '），启动自动恢复...');
+    recovery.recover('startup', { log: (m) => console.log('[recovery] ' + m) });
+  } else {
+    console.log('[startup] materials.json 大小正常 (' + (h.size/1024/1024).toFixed(1) + ' MB)');
+  }
 }
-setTimeout(ensureMaterialsHealth, 10000); // 启动 10 秒后做健康检查
+// 暴露给路由的惰性触发
+global._recoverMaterialsNow = (reason) => recovery.recover(reason, { log: (m) => console.log('[recovery] ' + m) });
+setTimeout(ensureMaterialsHealth, 5000);
+// 周期性健康检查（每 5 分钟）
+setInterval(() => {
+  const h = recovery.check();
+  if (!h.ok || h.tooSmall) recovery.recover('periodic-' + h.size + 'B', { log: (m) => console.log('[recovery] ' + m) });
+}, 5 * 60 * 1000);
 
 const server = http.createServer(app);
 
