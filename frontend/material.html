@@ -205,6 +205,17 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 const API='/api/materials';
 let mPage=1;
 
+// 错峰定时刷新：基础周期 ± 随机抖动，避免所有定时器在同一秒触发
+function staggeredRefresh(fn, baseSec, jitterSec){
+  const tick=()=>{
+    try{fn()}catch(e){console.error(e)}
+    const next=(baseSec+(Math.random()*2-1)*jitterSec)*1000;
+    setTimeout(tick,Math.max(2000,next));
+  };
+  // 首次延迟也加入抖动，避免页面打开瞬间并发
+  setTimeout(tick, 2000+Math.random()*3000);
+}
+
 function swTab(name,btn){
   document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
   document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
@@ -844,7 +855,11 @@ async function applyAllGap(){
 }
 
 ImportDropzone.init('import-dropzone-container','materials',function(){loadMaterials(1);loadStats();});
-initSortHeaders();loadStats();loadFilterOpts();loadMaterials(1);bindDashFilters();loadIssueBadge();setInterval(loadIssueBadge,60000);
+initSortHeaders();loadStats();loadFilterOpts();loadMaterials(1);bindDashFilters();loadIssueBadge();
+// 错峰定时刷新（不同频率 + 随机抖动，避免同时打满后端）
+staggeredRefresh(loadIssueBadge, 60, 8);     // 每 60±8s 拉一次
+staggeredRefresh(loadStats, 45, 10);        // 每 45±10s 拉一次
+staggeredRefresh(()=>{ if(document.getElementById('periodFrom').value) loadPeriodStats(); }, 90, 12); // 90±12s（仅在有时间筛选时）
 
 // ===== 自定义时间段对比 =====
 let periodState={from:'',to:''};

@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
-const { loadRules, runChecks } = require('../lib/material-check-runner');
+const { loadRules, runChecksBatch } = require('../lib/material-check-runner');
 
 const RULES_FILE = path.join(__dirname, '..', '..', 'database', 'material_check_rules.json');
 const ISSUES_FILE = path.join(__dirname, '..', '..', 'database', 'material_check_issues.json');
@@ -49,7 +49,8 @@ function dedupeByKey(issues) {
 }
 
 // 执行自检并把 issue 写入数据库。新发现的 (open 状态未存在的) 才插入；已 resolved 的若再次触发会自动 reopen
-router.post('/run', requirePerm('material:view'), (req, res) => {
+// 使用分批异步版：每次只处理 500 条物料后 setImmediate 让出，避免长任务卡死服务
+router.post('/run', requirePerm('material:view'), async (req, res) => {
   try {
     const rulesDoc = loadRules();
     const matTable = getTable('materials');
@@ -59,7 +60,7 @@ router.post('/run', requirePerm('material:view'), (req, res) => {
     const materials = matTable.all();
     const bomItems = bomTable.all();
 
-    const issues = runChecks(materials, bomItems, rulesDoc);
+    const issues = await runChecksBatch(materials, bomItems, rulesDoc, 500);
     const deduped = dedupeByKey(issues);
 
     const issuesStore = getIssues();
@@ -90,7 +91,11 @@ router.post('/run', requirePerm('material:view'), (req, res) => {
         kept++;
       }
     }
-    persistIssues();
+    // 异步持久化，不阻塞响应
+    await new Promise((resolve, reject) => {
+      persistIssues();
+      process.nextTick(resolve);
+    });
 
     const report = {
       last_run: now(), trigger: 'manual',

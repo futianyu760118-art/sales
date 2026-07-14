@@ -132,12 +132,22 @@ let allIssues=[];
 let page=1; const ps=50;
 let allRules=[];
 
+// 错峰定时刷新：基础周期 ± 随机抖动，避免所有定时器在同一秒触发
+function staggeredRefresh(fn, baseSec, jitterSec){
+  const tick=()=>{
+    try{fn()}catch(e){console.error(e)}
+    const next=(baseSec+(Math.random()*2-1)*jitterSec)*1000;
+    setTimeout(tick,Math.max(2000,next));
+  };
+  setTimeout(tick, 1500+Math.random()*2500);
+}
+
 async function init(){
-  document.getElementById('sidebar').innerHTML=window.parent?'':''; // placeholder
+  document.getElementById('sidebar').innerHTML=window.parent?'':'';
   await loadRules();
   loadIssues();
   loadStats();
-  setInterval(loadStats,30000);
+  staggeredRefresh(loadStats, 30, 8);
 }
 async function loadRules(){
   const r=await fetch(API+'/rules'); allRules=await r.json();
