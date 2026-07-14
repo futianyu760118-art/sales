@@ -50,6 +50,8 @@ function dedupeByKey(issues) {
 
 // 执行自检并把 issue 写入数据库。新发现的 (open 状态未存在的) 才插入；已 resolved 的若再次触发会自动 reopen
 // 使用分批异步版：每次只处理 500 条物料后 setImmediate 让出，避免长任务卡死服务
+// body: { rule_ids?:string[], categories?:string[], exclude_rule_ids?:string[] }
+//       任一参数缺省/空 时跑所有已启用规则
 router.post('/run', requirePerm('material:view'), async (req, res) => {
   try {
     const rulesDoc = loadRules();
@@ -59,8 +61,13 @@ router.post('/run', requirePerm('material:view'), async (req, res) => {
     bomTable._invalidate();
     const materials = matTable.all();
     const bomItems = bomTable.all();
+    const select = {
+      ruleIds: Array.isArray(req.body.rule_ids) ? req.body.rule_ids : undefined,
+      categories: Array.isArray(req.body.categories) ? req.body.categories : undefined,
+      excludeRuleIds: Array.isArray(req.body.exclude_rule_ids) ? req.body.exclude_rule_ids : undefined
+    };
 
-    const issues = await runChecksBatch(materials, bomItems, rulesDoc, 500);
+    const issues = await runChecksBatch(materials, bomItems, rulesDoc, 500, select);
     const deduped = dedupeByKey(issues);
 
     const issuesStore = getIssues();
@@ -101,11 +108,51 @@ router.post('/run', requirePerm('material:view'), async (req, res) => {
       last_run: now(), trigger: 'manual',
       materials_scanned: materials.length, bom_scanned: bomItems.length,
       issues_found: deduped.length, issues_created: created, issues_reopened: reopened, issues_kept: kept,
-      by_severity: deduped.reduce((acc, i) => { acc[i.severity] = (acc[i.severity] || 0) + 1; return acc; }, {})
+      by_severity: deduped.reduce((acc, i) => { acc[i.severity] = (acc[i.severity] || 0) + 1; return acc; }, {}),
+      scope: {
+        rule_ids: select.ruleIds || 'all',
+        categories: select.categories || 'all',
+        exclude_rule_ids: select.excludeRuleIds || []
+      },
+      rules_executed: dedupeByKey ? new Set(deduped.map(d=>d.rule_id)).size : 0
     };
     try { fs.writeFileSync(LAST_RUN_FILE(), JSON.stringify(report, null, 2)); } catch (e) {}
     res.json(Object.assign({ message: `自检完成：扫描 ${materials.length} 条物料 / ${bomItems.length} 行 BOM，新增 ${created} 个问题，重开 ${reopened} 个，更新 ${kept} 个` }, report));
   } catch (e) { res.status(500).json({ error: '自检执行失败: ' + e.message }); }
+});
+
+// 试运行自检：返回将生成的问题清单，但不写库
+// body: { rule_ids?:string[], categories?:string[], exclude_rule_ids?:string[], limit?:number }
+router.post('/preview', requirePerm('material:view'), async (req, res) => {
+  try {
+    const rulesDoc = loadRules();
+    const matTable = getTable('materials');
+    const bomTable = getTable('product_bom');
+    matTable._invalidate(); bomTable._invalidate();
+    const materials = matTable.all();
+    const bomItems = bomTable.all();
+    const select = {
+      ruleIds: Array.isArray(req.body.rule_ids) ? req.body.rule_ids : undefined,
+      categories: Array.isArray(req.body.categories) ? req.body.categories : undefined,
+      excludeRuleIds: Array.isArray(req.body.exclude_rule_ids) ? req.body.exclude_rule_ids : undefined
+    };
+    const t0 = Date.now();
+    const allIssues = await runChecksBatch(materials, bomItems, rulesDoc, 500, select);
+    const deduped = dedupeByKey(allIssues);
+    const limit = Math.min(parseInt(req.body.limit) || 200, 5000);
+    const bySeverity = deduped.reduce((acc, i) => { acc[i.severity] = (acc[i.severity] || 0) + 1; return acc; }, {});
+    const byRule = {};
+    for (const i of deduped) byRule[i.rule_id] = (byRule[i.rule_id] || 0) + 1;
+    res.json({
+      total: deduped.length,
+      by_severity: bySeverity,
+      by_rule: byRule,
+      rules_executed: new Set(deduped.map(d => d.rule_id)).size,
+      materials_scanned: materials.length,
+      elapsed_ms: Date.now() - t0,
+      preview: deduped.slice(0, limit)
+    });
+  } catch (e) { res.status(500).json({ error: '试运行失败: ' + e.message }); }
 });
 
 // 列出问题

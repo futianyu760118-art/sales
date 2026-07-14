@@ -13,8 +13,26 @@ function loadRules() {
   }
 }
 
-function runChecks(materials, bomItems, rulesDoc) {
-  const rules = (rulesDoc.rules || []).filter(r => r.enabled !== false);
+// 选择性过滤规则：ruleIds(白名单) / categories(白名单类别) / excludeRuleIds
+function selectRules(rulesDoc, { ruleIds, categories, excludeRuleIds } = {}) {
+  let rules = (rulesDoc.rules || []).filter(r => r.enabled !== false);
+  if (Array.isArray(ruleIds) && ruleIds.length) {
+    const set = new Set(ruleIds);
+    rules = rules.filter(r => set.has(r.id));
+  }
+  if (Array.isArray(categories) && categories.length) {
+    const set = new Set(categories);
+    rules = rules.filter(r => r.category && set.has(r.category));
+  }
+  if (Array.isArray(excludeRuleIds) && excludeRuleIds.length) {
+    const set = new Set(excludeRuleIds);
+    rules = rules.filter(r => !set.has(r.id));
+  }
+  return rules;
+}
+
+function runChecks(materials, bomItems, rulesDoc, select) {
+  const rules = select ? selectRules(rulesDoc, select) : (rulesDoc.rules || []).filter(r => r.enabled !== false);
   const issues = [];
   const ts = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
@@ -153,9 +171,9 @@ function runChecks(materials, bomItems, rulesDoc) {
 
 // 批处理 + 让出事件循环的异步自检；与 runChecks 等价但分块
 //   batchSize: 每处理 N 条物料让出一次 (默认 500)
-function runChecksBatch(materials, bomItems, rulesDoc, batchSize = 500) {
+function runChecksBatch(materials, bomItems, rulesDoc, batchSize = 500, select) {
   return new Promise((resolve) => {
-    const rules = (rulesDoc.rules || []).filter(r => r.enabled !== false);
+    const rules = select ? selectRules(rulesDoc, select) : (rulesDoc.rules || []).filter(r => r.enabled !== false);
     const issues = [];
     const ts = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
@@ -295,4 +313,4 @@ function runChecksBatch(materials, bomItems, rulesDoc, batchSize = 500) {
   });
 }
 
-module.exports = { loadRules, runChecks, runChecksBatch };
+module.exports = { loadRules, runChecks, runChecksBatch, selectRules };

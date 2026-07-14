@@ -56,6 +56,7 @@ tr.resolved td{opacity:.55}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
 <h2>物料库自检待办</h2>
 <div style="display:flex;gap:8px">
+<button class="btn b4" onclick="previewCheck()">👁 试运行（不写库）</button>
 <button class="btn b2" onclick="runCheck()">▶ 运行自检</button>
 <button class="btn b1" onclick="loadIssues()">刷新</button>
 <a class="btn bs" href="material.html" style="background:#e8ebf7;color:#444;text-decoration:none">返回物料库</a>
@@ -65,9 +66,29 @@ tr.resolved td{opacity:.55}
 <div class="stats-grid" id="statsGrid"></div>
 
 <div class="dash-panel">
-<div style="font-weight:600;color:#555;margin-bottom:8px;font-size:13px">📋 规则库（启 / 停）</div>
-<div class="rule-list" id="ruleList"></div>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+  <div style="font-weight:600;color:#555;font-size:13px">📋 选择本次要执行的检查指令</div>
+  <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn bs" style="background:#eaf2ff;color:#3b5998" onclick="selectPreset('all')">全选</button>
+    <button class="btn bs" style="background:#eaf2ff;color:#3b5998" onclick="selectPreset('enabled')">仅已启用</button>
+    <button class="btn bs" style="background:#fff3e0;color:#e67e22" onclick="selectPreset('critical')">仅严重（critical）</button>
+    <button class="btn bs" style="background:#e8f5e9;color:#27ae60" onclick="selectPreset('none')">清空</button>
+  </div>
 </div>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;font-size:12px;color:#666">
+  <span style="font-weight:600">快捷分类：</span>
+  <label><input type="checkbox" id="cat-code" onchange="applyCategoryFilter()"> 代码 code</label>
+  <label><input type="checkbox" id="cat-name" onchange="applyCategoryFilter()"> 名称 name</label>
+  <label><input type="checkbox" id="cat-unit" onchange="applyCategoryFilter()"> 单位 unit</label>
+  <label><input type="checkbox" id="cat-classification" onchange="applyCategoryFilter()"> 分类 classification</label>
+  <label><input type="checkbox" id="cat-bom" onchange="applyCategoryFilter()"> BOM bom</label>
+  <label><input type="checkbox" id="cat-integrity" onchange="applyCategoryFilter()"> 完整性 integrity</label>
+</div>
+<div class="rule-list" id="ruleList"></div>
+<div style="margin-top:8px;font-size:12px;color:#888">已选 <b id="selRuleCnt">0</b> / 共 <b id="totalRuleCnt">0</b> 条规则</div>
+</div>
+
+<div id="previewResult" style="display:none;margin-bottom:14px"></div>
 
 <div class="toolbar">
 <input type="text" id="q" placeholder="搜索代码/描述" style="width:200px" onkeydown="if(event.key==='Enter')loadIssues()">
@@ -154,15 +175,25 @@ async function loadRules(){
   const select=document.getElementById('fRule');
   select.innerHTML='<option value="">全部规则</option>'+(allRules.rules||[]).map(r=>`<option value="${r.id}">${r.id} ${r.name}</option>`).join('');
   const list=document.getElementById('ruleList');
-  list.innerHTML=(allRules.rules||[]).map(r=>`
-    <div class="rule-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <b>${r.id}</b>
-        <label style="font-size:11px"><input type="checkbox" ${r.enabled!==false?'checked':''} onchange="toggleRule('${r.id}',this.checked)"> ${r.enabled!==false?'已启用':'已停用'}</label>
+  list.innerHTML=(allRules.rules||[]).map(r=>{
+    const isEnabled=r.enabled!==false;
+    return `
+    <div class="rule-card" data-category="${r.category||''}" data-severity="${r.severity||''}" style="display:flex;align-items:center;gap:6px;padding:6px 8px">
+      <input type="checkbox" class="ruleChk" data-id="${r.id}" data-cat="${r.category||''}" data-sev="${r.severity||''}" ${isEnabled?'checked':''} onchange="updateSelCount()" title="勾选后纳入本次自检">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <b>${r.id}</b>
+          <span class="sev sev-${r.severity||'medium'}" title="严重度">${r.severity||'medium'}</span>
+          <span style="color:#888;font-size:11px">${r.category||''}</span>
+          ${!isEnabled?'<span style="color:#999;font-size:11px">（已停用）</span>':''}
+        </div>
+        <div style="margin-top:2px;font-size:12px">${r.name}</div>
+        <div style="color:#999;font-size:10px;margin-top:2px">${r.check_type}${r.pattern?' · '+esc(r.pattern.substring(0,40)):''}</div>
       </div>
-      <div style="margin-top:4px">${r.name}</div>
-      <div style="color:#888;font-size:11px;margin-top:2px">${(r.severity||'').toUpperCase()} · ${r.check_type}</div>
-    </div>`).join('');
+      <label style="font-size:11px;white-space:nowrap" title="启用/停用规则"><input type="checkbox" ${isEnabled?'checked':''} onchange="toggleRule('${r.id}',this.checked)">${isEnabled?'启用':'停用'}</label>
+    </div>`;
+  }).join('');
+  updateSelCount();
 }
 async function toggleRule(id,enabled){
   await fetch(API+'/rules/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled})});
@@ -282,16 +313,111 @@ async function saveEdit(id){
   if(!r.ok){alert(d.error||'保存失败');return}
   toast(d.message);closeEdit();loadIssues();loadStats();
 }
+function getSelectedRuleIds(){
+  const ids=[];
+  document.querySelectorAll('.ruleChk:checked').forEach(c=>ids.push(c.dataset.id));
+  return ids;
+}
+function getSelectedCategories(){
+  const cats=[];
+  document.querySelectorAll('[id^="cat-"]:checked').forEach(c=>cats.push(c.id.replace(/^cat-/,'')));
+  return cats;
+}
+function selectPreset(preset){
+  document.querySelectorAll('.ruleChk').forEach(c=>{
+    const rule=allRules.rules.find(r=>r.id===c.dataset.id);
+    if(!rule)return;
+    if(preset==='all')c.checked=true;
+    else if(preset==='none')c.checked=false;
+    else if(preset==='enabled')c.checked=rule.enabled!==false;
+    else if(preset==='critical')c.checked=(rule.severity==='critical');
+  });
+  updateSelCount();
+}
+function applyCategoryFilter(){
+  const selectedCats=new Set(getSelectedCategories());
+  document.querySelectorAll('.ruleChk').forEach(c=>{
+    const rule=allRules.rules.find(r=>r.id===c.dataset.id);
+    if(!rule)return;
+    if(selectedCats.size===0){return} // 全部取消 → 不影响
+    c.checked=selectedCats.has(rule.category);
+  });
+  updateSelCount();
+}
+function updateSelCount(){
+  let n=0;
+  document.querySelectorAll('.ruleChk:checked').forEach(()=>n++);
+  document.getElementById('selRuleCnt').textContent=n;
+  document.getElementById('totalRuleCnt').textContent=(allRules.rules||[]).length;
+}
+function updateAllRulesCheckboxes(){
+  selectPreset('enabled');
+}
+
 async function runCheck(){
-  if(!confirm('将扫描全部物料与 BOM，可能需要数十秒。\n注意：仅新增问题或重开已 closed 的问题，不会删除任何记录。\n确定继续？'))return;
+  const sel=getSelectedRuleIds();
+  const cats=getSelectedCategories();
+  const summary=sel.length?`已选 ${sel.length} 条规则`:cats.length?`已选分类：${cats.join(', ')}`:'全部规则';
+  if(!confirm(`将执行【${summary}】，扫描全部物料与 BOM，可能耗时几十秒。\n注意：仅新增问题或重开已 closed 的问题，不会删除任何记录。\n确定继续？`))return;
   toast('自检中…');
   try{
-    const r=await fetch(API+'/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const body={};
+    if(sel.length)body.rule_ids=sel;
+    if(cats.length)body.categories=cats;
+    const r=await fetch(API+'/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok){alert(d.error||'自检失败');return}
     toast(d.message);
     loadIssues();loadStats();
   }catch(e){alert('请求失败: '+e.message)}
+}
+
+async function previewCheck(){
+  const sel=getSelectedRuleIds();
+  const cats=getSelectedCategories();
+  toast('试运行中…');
+  try{
+    const body={};
+    if(sel.length)body.rule_ids=sel;
+    if(cats.length)body.categories=cats;
+    const r=await fetch(API+'/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){alert(d.error||'试运行失败');return}
+    showPreviewResult(d);
+  }catch(e){alert('请求失败: '+e.message)}
+}
+
+function showPreviewResult(d){
+  const box=document.getElementById('previewResult');
+  if(!box)return;
+  const sorted=d.by_rule?Object.entries(d.by_rule).sort((a,b)=>b[1]-a[1]):[];
+  const bySev=d.by_severity||{};
+  box.innerHTML=`
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#f8f9ff;padding:10px;border-radius:6px;margin-bottom:10px">
+      <div style="font-weight:600;color:#27ae60">试运行结果：发现 ${d.total} 个问题（${d.elapsed_ms}ms）</div>
+      <span style="color:#888;margin-left:auto">扫描 ${d.materials_scanned} 条物料</span>
+    </div>
+    <div style="display:flex;gap:12px;font-size:12px;color:#555;margin-bottom:10px;flex-wrap:wrap">
+      按严重度：
+      ${Object.entries(bySev).map(([k,v])=>`<span class="sev sev-${k}">${k}</span> × ${v}`).join(' ')||'<span style="color:#bbb">无</span>'}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px">
+      ${sorted.map(([id,n])=>{
+        const r=(allRules.rules||[]).find(x=>x.id===id)||{};
+        return `<div style="background:#fff;border:1px solid #e8ebf7;border-radius:6px;padding:8px 10px">
+          <div style="display:flex;justify-content:space-between"><b>${id}</b> <span class="sev sev-${r.severity||'medium'}">${r.severity||'medium'}</span></div>
+          <div style="font-size:12px;color:#666;margin-top:2px">${esc(r.name||'')}</div>
+          <div style="font-size:14px;font-weight:600;color:#e74c3c;margin-top:4px">${n} 个问题</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${d.preview&&d.preview.length?`
+    <details style="margin-top:10px"><summary style="cursor:pointer;color:#667eea;font-weight:600">查看前 ${Math.min(d.preview.length,200)} 条样例</summary>
+    <div style="max-height:300px;overflow-y:auto;background:#fafbff;padding:8px;margin-top:6px;font-size:12px;font-family:monospace">
+      ${d.preview.slice(0,200).map(p=>`<div style="border-bottom:1px dashed #ddd;padding:4px 0"><b>${p.target_code}</b> · ${p.rule_id} · ${p.severity}<br>${esc(p.description)}</div>`).join('')}
+    </div></details>`:''}
+  `;
+  box.style.display='block';
 }
 let toastEl=null;
 function toast(m){
