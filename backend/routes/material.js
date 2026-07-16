@@ -58,7 +58,7 @@ function parseDashboardFilters(query) {
   const filter = (m) => {
     if (status === 'active' && m.status === 'inactive') return false;
     if (status === 'inactive' && m.status !== 'inactive') return false;
-    if (classifications.length && !classifications.includes(m.classification || '通用物料')) return false;
+    if (classifications.length && !classifications.includes(m.classification || '')) return false;
     const inv = Number(m.inventory_qty) || 0;
     if (invMin !== null && inv < invMin) return false;
     if (invMax !== null && inv > invMax) return false;
@@ -71,9 +71,17 @@ function parseDashboardFilters(query) {
 }
 
 router.get('/', requirePerm('material:view'), (req, res) => {
-  const { page = 1, limit = 15, product_id, status, keyword, category, classification,
-          material_level, material_purpose, sort_by, sort_order } = req.query;
+  const { page = 1, limit = 15, product_id, status, keyword, category, classification, classification2,
+          material_level, material_purpose, warehouse, sort_by, sort_order } = req.query;
   const table = getTable('materials');
+
+  // 库位(仓库)筛选：取该仓库下所有 material_code 集合
+  let locCodeSet = null;
+  if (warehouse) {
+    const locs = loadLocationsFile();
+    const w = String(warehouse);
+    locCodeSet = new Set(locs.filter(l => (l.wh_name || '') === w || (l.wh_code || '') === w).map(l => l.material_code));
+  }
 
   // 惰性自愈：若 materials.json 异常小（< 50KB）+ 当前返回空 → 触发后台同步
   let needsRecovery=false;
@@ -90,7 +98,9 @@ router.get('/', requirePerm('material:view'), (req, res) => {
     if (product_id && r.product_id !== Number(product_id)) return false;
     if (status && r.status !== status) return false;
     if (category && !(r.category || '').includes(category)) return false;
-    if (classification && (r.classification || '通用物料') !== classification) return false;
+    if (classification && r.classification !== classification) return false;
+    if (classification2 && (r.classification2 || '通用物料') !== classification2) return false;
+    if (locCodeSet && !locCodeSet.has(r.material_code)) return false;
     if (material_level && r.material_level !== material_level) return false;
     if (material_purpose && r.material_purpose !== material_purpose) return false;
     if (keyword) {
@@ -100,7 +110,7 @@ router.get('/', requirePerm('material:view'), (req, res) => {
     }
     return true;
   };
-  const allowedSortFields = ['id', 'material_code', 'material_name', 'category', 'standard_cost', 'processing_cost', 'processing_loss', 'inventory_qty', 'min_inventory', 'monthly_usage', 'unit_price', 'supplier', 'bom_usage_count', 'status', 'classification', 'procurement_enabled', 'procurement_cycle', 'procurement_qty', 'last_purchase_date', 'next_purchase_date', 'created_at', 'material_level', 'material_purpose'];
+  const allowedSortFields = ['id', 'material_code', 'material_name', 'category', 'standard_cost', 'processing_cost', 'processing_loss', 'inventory_qty', 'inventory_value', 'min_inventory', 'monthly_usage', 'unit_price', 'supplier', 'bom_usage_count', 'status', 'classification', 'procurement_enabled', 'procurement_cycle', 'procurement_qty', 'last_purchase_date', 'next_purchase_date', 'created_at', 'material_level', 'material_purpose', 'classification2'];
   const orderBy = allowedSortFields.includes(sort_by) ? sort_by : 'id';
   const orderDir = (sort_order && sort_order.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
   const { records, total } = table.findWhere(filter, orderBy, orderDir, parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
@@ -135,20 +145,32 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
 
   const totalMaterials = materials.length;
   const byClassification = {};
+  const byClassification2 = {};
   const byCategory = {};
   const byStatus = {};
   let totalCost = 0;
   let lowInventoryCount = 0;
+  let inStockCount = 0;
+  let inventoryTotalQty = 0;
+  const inventoryByClassification = {};
+  const inventoryByClassification2 = {};
   const lowInventoryItems = [];
 
   materials.forEach(m => {
-    const cls = m.classification || '通用物料';
+    const cls = m.classification || '';
+    const cls2 = m.classification2 || '通用物料';
     byClassification[cls] = (byClassification[cls] || 0) + 1;
+    byClassification2[cls2] = (byClassification2[cls2] || 0) + 1;
     const cat = m.category || '未分类';
     byCategory[cat] = (byCategory[cat] || 0) + 1;
     const st = m.status || 'normal';
     byStatus[st] = (byStatus[st] || 0) + 1;
     totalCost += Number(m.standard_cost) || 0;
+    const qty = Number(m.inventory_qty) || 0;
+    if (qty > 0) inStockCount++;
+    inventoryTotalQty += qty;
+    if (cls) inventoryByClassification[cls] = (inventoryByClassification[cls] || 0) + qty;
+    inventoryByClassification2[cls2] = (inventoryByClassification2[cls2] || 0) + qty;
     if (m.min_inventory > 0 && (m.inventory_qty || 0) <= m.min_inventory) {
       lowInventoryCount++;
       lowInventoryItems.push({
@@ -168,6 +190,13 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     .sort((a, b) => (Number(b.standard_cost) || 0) - (Number(a.standard_cost) || 0))
     .slice(0, 10)
     .map(m => ({ material_code: m.material_code, material_name: m.material_name, standard_cost: Number(m.standard_cost) || 0, classification: m.classification || '通用物料' }));
+
+  // 库存数量 TOP 物料（用于库存总数量分析图）
+  const topInventoryItems = [...materials]
+    .filter(m => Number(m.inventory_qty) > 0)
+    .sort((a, b) => (Number(b.inventory_qty) || 0) - (Number(a.inventory_qty) || 0))
+    .slice(0, 10)
+    .map(m => ({ material_code: m.material_code, material_name: m.material_name, inventory_qty: Number(m.inventory_qty) || 0, classification: m.classification || '通用物料', unit: m.unit || '' }));
 
   const monthlyPurchaseSuggestion = materials
     .filter(m => m.monthly_usage > 0)
@@ -223,9 +252,14 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     .slice(0, 20);
 
   res.json({
-    totalMaterials, byClassification, byCategory, byStatus, totalCost, lowInventoryCount, lowInventoryItems, topUsed, topCost, monthlyPurchaseSuggestion, bomTotalItems: bomItems.length,
+    totalMaterials, byClassification, byClassification2, byCategory, byStatus, totalCost, lowInventoryCount, lowInventoryItems, topUsed, topCost, monthlyPurchaseSuggestion, bomTotalItems: bomItems.length,
     // 即时仪表盘便捷字段
     total: totalMaterials,
+    in_stock: inStockCount,
+    inventory_total_qty: inventoryTotalQty,
+    inventory_by_classification: inventoryByClassification,
+    inventory_by_classification2: inventoryByClassification2,
+    top_inventory_items: topInventoryItems,
     active: (byStatus.active || 0) + (byStatus.normal || 0),
     inactive: byStatus.inactive || 0,
     low_stock: lowInventoryCount,
@@ -487,6 +521,21 @@ router.get('/locations', requirePerm('material:view'), (req, res) => {
   res.json({ total: data.length, rows_total: all.length, data: data.slice(0, limit) });
 });
 
+// 库位仓库列表（供筛选下拉）：去重仓库名 + 每个仓库的物料数
+router.get('/locations/warehouses', requirePerm('material:view'), (req, res) => {
+  const all = loadLocationsFile();
+  const map = {};
+  all.forEach(l => {
+    const w = l.wh_name || '';
+    if (!w) return;
+    if (!map[w]) map[w] = { warehouse: w, wh_code: l.wh_code || '', material_count: 0, qty_on_hand: 0 };
+    map[w].material_count += 1;
+    map[w].qty_on_hand += Number(l.qty_on_hand) || 0;
+  });
+  const list = Object.values(map).sort((a, b) => b.material_count - a.material_count);
+  res.json({ total: list.length, data: list });
+});
+
 // 单物料库位详情
 router.get('/:id/locations', requirePerm('material:view'), (req, res) => {
   const matTable = getTable('materials');
@@ -612,7 +661,7 @@ router.post('/inventory/batch-update', requirePerm('material:edit'), (req, res) 
   if (!Array.isArray(items)) return res.status(400).json({ error: 'items必须为数组' });
   const matTable = getTable('materials');
   matTable._invalidate();
-  const allowedFields = ['inventory_qty', 'min_inventory', 'monthly_usage', 'classification', 'status', 'category', 'supplier', 'unit', 'standard_cost', 'processing_cost', 'processing_loss', 'certificate_required', 'material_type', 'remarks'];
+  const allowedFields = ['inventory_qty', 'min_inventory', 'monthly_usage', 'classification', 'classification2', 'status', 'category', 'specs', 'supplier', 'unit', 'standard_cost', 'processing_cost', 'processing_loss', 'unit_price', 'certificate_required', 'material_type', 'material_level', 'material_purpose', 'last_outbound_date', 'procurement_cycle', 'procurement_qty', 'remarks'];
   let updated = 0;
   let skipped = 0;
   let bomSynced = 0;
@@ -627,7 +676,7 @@ router.post('/inventory/batch-update', requirePerm('material:edit'), (req, res) 
     const typeChanged = item.material_type !== undefined && item.material_type !== mat.material_type;
     allowedFields.forEach(f => {
       if (item[f] !== undefined) {
-        if (['inventory_qty', 'min_inventory', 'monthly_usage', 'standard_cost', 'processing_cost', 'processing_loss'].includes(f)) {
+        if (['inventory_qty', 'min_inventory', 'monthly_usage', 'standard_cost', 'processing_cost', 'processing_loss', 'unit_price', 'procurement_cycle', 'procurement_qty'].includes(f)) {
           fields[f] = Number(item[f]) || 0;
         } else {
           fields[f] = item[f];
@@ -689,7 +738,8 @@ router.get('/meta/filter-options', requirePerm('material:view'), (req, res) => {
     categories: uniq('category'),
     material_types: uniq('material_type'),
     statuses: uniq('status'),
-    classifications: uniq('classification')
+    classifications: uniq('classification'),
+    classifications2: uniq('classification2')
   });
 });
 
@@ -1166,8 +1216,9 @@ router.post('/classification/run', requirePerm('material:edit'), async (req, res
       byLevel[newLevel] = (byLevel[newLevel] || 0) + 1;
       byPurpose[newPurpose] = (byPurpose[newPurpose] || 0) + 1;
     }
-    matTable.saveNow();
-    matTable._invalidate();
+    // 注意：saveNow 经锁异步执行，必须 await 完成后再响应；
+    // 切勿在其后调用 _invalidate()，否则写盘前缓存被清空会把 null 落盘（历史数据全丢 bug）
+    await matTable.saveNow();
     res.json({
       message: `分类完成：扫描 ${materials.length} 条物料，更新 ${updated} 条`,
       total: materials.length, updated,
@@ -1229,7 +1280,7 @@ router.post('/', requirePerm('material:create'), (req, res) => {
           certificate_required, remarks,
           classification, inventory_qty, min_inventory, monthly_usage,
           procurement_enabled, procurement_cycle, procurement_qty, last_purchase_date, volume,
-          material_level, material_purpose } = req.body;
+          material_level, material_purpose, classification2 } = req.body;
   if (!material_name) return res.status(400).json({ error: '物料名称为必填项' });
   if (!material_code) return res.status(400).json({ error: '物料编码为必填项' });
 
@@ -1253,7 +1304,8 @@ router.post('/', requirePerm('material:create'), (req, res) => {
     processing_loss: processing_loss ? Number(processing_loss) : 0,
     supplier: supplier || '', status: status || 'normal',
     unit_price: unit_price ? Number(unit_price) : 0, quantity: quantity ? Number(quantity) : 0,
-    classification: classification || '通用物料',
+    classification: classification || '',
+    classification2: classification2 || '通用物料',
     inventory_qty: inventory_qty ? Number(inventory_qty) : 0,
     min_inventory: min_inventory ? Number(minventory) : 0,
     monthly_usage: monthly_usage ? Number(monthly_usage) : 0,
@@ -1284,8 +1336,8 @@ router.put('/:id', requirePerm('material:edit'), (req, res) => {
   if (!existing) return res.status(404).json({ error: '物料不存在' });
   const fields = { updated_at: now() };
   ['product_id', 'material_name', 'material_code', 'category', 'specs', 'material_type',
-   'unit', 'supplier', 'status', 'remarks', 'classification', 'used_in_products',
-   'last_purchase_date', 'material_level', 'material_purpose'].forEach(f => {
+   'unit', 'supplier', 'status', 'remarks', 'classification', 'classification2', 'used_in_products',
+   'last_purchase_date', 'last_outbound_date', 'material_level', 'material_purpose'].forEach(f => {
     if (req.body[f] !== undefined) fields[f] = req.body[f];
   });
   ['standard_cost', 'processing_cost', 'processing_loss', 'unit_price', 'quantity',

@@ -80,6 +80,33 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 .dash-panel.collapsed .dash-arrow{transform:rotate(-90deg)}
 .dash-panel.collapsed .dash-body{display:none}
 .dash-body{padding:12px 14px}
+/* 库存总数量分析 */
+.inv-grid{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+@media(max-width:900px){.inv-grid{grid-template-columns:1fr}}
+.inv-total{background:linear-gradient(135deg,#16a085,#1abc9c);color:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.inv-total .n{font-size:26px;font-weight:700;line-height:1.2}
+.inv-total .l{font-size:12px;opacity:.9;margin-top:2px}
+.donut-wrap{display:flex;flex-direction:column;align-items:center}
+.donut{width:180px;height:180px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative}
+.donut::after{content:'';position:absolute;width:96px;height:96px;border-radius:50%;background:#fff}
+.donut-center{position:relative;z-index:1;text-align:center}
+.donut-center .v{font-size:15px;font-weight:700;color:#333}
+.donut-center .s{font-size:10px;color:#999}
+.inv-legend{margin-top:12px;width:100%}
+.inv-legend .row{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;border-bottom:1px dashed #f0f0f0}
+.inv-legend .row:last-child{border:none}
+.inv-legend .dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.inv-legend .name{flex:1;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inv-legend .qty{font-weight:600;color:#333}
+.inv-legend .pct{color:#999;font-size:11px;width:42px;text-align:right}
+.hbar-list{display:flex;flex-direction:column;gap:7px}
+.hbar{display:flex;align-items:center;gap:8px;font-size:12px}
+.hbar .lb{width:150px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.hbar .track{flex:1;height:18px;background:#f0f2f8;border-radius:4px;overflow:hidden;position:relative}
+.hbar .fill{height:100%;border-radius:4px;transition:width .4s}
+.hbar .val{font-weight:600;color:#333;width:80px;text-align:right;flex-shrink:0}
+.inv-sub-title{font-size:12px;color:#888;font-weight:600;margin:0 0 10px}
+.inv-col-head{font-size:13px;font-weight:600;color:#555;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #eee}
 </style></head><body data-page-title="物料库" data-page-perm="material:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content" data-module="material">
@@ -115,15 +142,11 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
       <option value="inactive">禁用</option>
     </select>
     <select id="dashClass" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
-      <option value="">全部分类</option>
-      <option value="结构类物料">结构类物料</option>
-      <option value="电子类物料">电子类物料</option>
-      <option value="包材类物料">包材类物料</option>
-      <option value="附件类物料">附件类物料</option>
-      <option value="通用物料">通用物料</option>
-      <option value="常用物料">常用物料</option>
-      <option value="定制物料">定制物料</option>
-      <option value="专用物料">专用物料</option>
+      <option value="">全部分类1</option>
+      <option value="电子物料">电子物料</option>
+      <option value="结构物料">结构物料</option>
+      <option value="包材物料">包材物料</option>
+      <option value="附件物料">附件物料</option>
     </select>
     <label style="font-size:12px;color:#666">库存 ≥ <input type="number" id="dashInvMin" placeholder="不限" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
     <label style="font-size:12px;color:#666">库存 ≤ <input type="number" id="dashInvMax" placeholder="不限" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
@@ -136,22 +159,37 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
   </div>
   <div class="sg" id="mStats"></div>
   <div class="dash-grid" id="mInsight"></div>
+  <div id="mInvAnalysis" class="dash-panel" style="margin-top:0;border:none;background:none;box-shadow:none;padding:0"></div>
   <div id="mCompare" class="cmp-panel" style="margin-top:10px"></div>
+</div>
+</div>
+
+<div class="dash-panel" data-feature="dashboard">
+<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>🔍 物料存放分析</span><span class="dash-arrow">▼</span></div>
+<div class="dash-body">
+  <div style="font-size:12px;color:#666;margin-bottom:10px">输入物料代码或名称，查看该物料在各仓库的存放数量、库位及是否符合仓库品类标准。</div>
+  <div style="position:relative;max-width:520px;margin-bottom:12px">
+    <input id="dashMatInput" type="text" placeholder="输入物料代码/名称（如 IC-001 / 螺丝）" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" oninput="dashMatSearch(this.value)" onkeydown="if(event.key==='Enter'){const f=document.querySelector('.dash-mat-opt');if(f)dashMatAnalyze(f.dataset.code)}">
+    <div id="dashMatDropdown" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-radius:0 0 6px 6px;max-height:280px;overflow:auto;z-index:50;display:none;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>
+  </div>
+  <div id="dashMatResult"></div>
 </div>
 </div>
 <div class="sb" data-feature="filter">
 <input type="text" id="mKw" placeholder="搜索物料代码/名称" style="width:200px" onkeydown="if(event.key==='Enter')loadMaterials(1)">
 <select id="mCat"><option value="">全部类别</option></select>
-<select id="mCls"><option value="">全部分类</option>
-<option value="结构类物料">结构类物料</option><option value="电子类物料">电子类物料</option>
-<option value="包材类物料">包材类物料</option><option value="附件类物料">附件类物料</option>
+<select id="mCls"><option value="">全部分类(物理)</option>
 </select>
+<select id="mCls2"><option value="">全部分类(管理)</option><option value="通用物料">通用物料</option><option value="专用物料">专用物料</option></select>
+<select id="mWh"><option value="">全部库位</option></select>
 <select id="mStat"><option value="">全部状态</option><option value="active">启用</option><option value="inactive">禁用</option></select>
 <select id="mLevel"><option value="">全部等级</option><option value="常用物料">常用物料</option><option value="普通物料">普通物料</option><option value="临时物料">临时物料</option></select>
 <select id="mPurpose"><option value="">全部用途</option><option value="产品类">产品类</option><option value="设备工具类">设备工具类</option><option value="后勤用">后勤用</option><option value="未分类">未分类</option></select>
 <button class="btn b1" onclick="loadMaterials(1)">搜索</button>
 <button class="btn b4 bs" onclick="openCatRules()" title="查看等级和用途分类填写标准">📋 分类标准</button>
 <button class="btn b2 bs" onclick="runAutoClassify()" title="按规则自动给所有物料打等级和用途标签">⚙️ 自动分类</button>
+<button class="btn b4 bs" onclick="openClsRules()" title="制定分类(结构/电子/通用/定制等)识别规则并自动归类">📝 分类规则</button>
+<button class="btn b4 bs" onclick="openWhStandards()" title="制定仓库分类标准：各仓库存放品类与物料上限">🏭 仓库标准</button>
 <span class="ed-hint">提示：双击单元格可直接编辑 · 点击表头排序</span>
 <span style="margin-left:auto">共 <b id="mTc">0</b> 条</span>
 </div>
@@ -166,8 +204,8 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <div class="tbl-wrap">
 <table id="matTable"><thead><tr>
 <th style="width:28px;text-align:center"><input type="checkbox" id="mChkAll" onclick="toggleMatAll(this)" title="全选当页"></th>
-<th class="sortable" data-sort="material_code">物料代码</th><th class="sortable" data-sort="material_name">物料名称</th><th>类别</th><th>规格</th><th class="sortable" data-sort="classification">分类</th><th>单位</th><th>类型</th><th style="width:78px">等级</th><th style="width:90px">用途</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价</th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
-</tr></thead><tbody id="mTb"><tr><td colspan="23" class="em">暂无数据</td></tr></tbody></table>
+<th class="sortable" data-sort="material_code">物料代码</th><th class="sortable" data-sort="material_name">物料名称</th><th>类别</th><th>规格</th><th class="sortable" data-sort="classification">分类1</th><th class="sortable" data-sort="classification2">分类2</th><th>单位</th><th>类型</th><th style="width:78px">等级</th><th style="width:90px">用途</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>出入库时间<span class="ex-tag" title="外部库存最近更新时间">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价<span class="ex-tag" title="取同步的订货单价 order_unit_price">外</span></th><th class="sortable" data-sort="last_outbound_date">使用时间<span class="ex-tag" title="取同步的最后出货时间 last_outbound_date">外</span></th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th>库存总值</th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
+</tr></thead><tbody id="mTb"><tr><td colspan="27" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="mPg" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -215,6 +253,32 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <script>
 const API='/api/materials';
 let mPage=1;
+
+// ===== 分类双维度 =====
+// 分类1（classification 物理属性）：电子/结构/包材/附件，按物料名称自动识别
+// 分类2（classification2 管理属性）：通用/专用，按自制/外购自动识别
+const CLASSIFICATION_OPTIONS=['电子物料','结构物料','包材物料','附件物料'];
+const CLASSIFICATION2_OPTIONS=['通用物料','专用物料'];
+let _clsExtraOpts=[]; // 由规则库 result_category 与数据现有值动态补充（分类1）
+function getClsOptions(){
+  const extra=(_clsExtraOpts||[]).slice();
+  return [...new Set([...CLASSIFICATION_OPTIONS,...extra])];
+}
+async function loadClsExtraOpts(){
+  try{
+    const r=await fetch('/api/materials-ext/classification-rules');
+    const d=await r.json();
+    const fromRules=(d.data||[]).filter(x=>(x.target_field||'classification')==='classification').map(x=>x.result_category).filter(Boolean);
+    _clsExtraOpts=[...new Set([...fromRules,..._clsExtraOpts])];
+    syncClsDropdowns();
+  }catch(e){/* 规则库不可用时不阻塞 */}
+}
+function syncClsDropdowns(){
+  const sel=document.getElementById('mCls'); if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">全部分类(物理)</option>'+getClsOptions().map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  if(cur)sel.value=cur;
+}
 
 // 错峰定时刷新：基础周期 ± 随机抖动，避免所有定时器在同一秒触发
 function staggeredRefresh(fn, baseSec, jitterSec){
@@ -275,6 +339,7 @@ async function loadStats(){
     const r=await fetch(API+'/dashboard/stats?'+buildDashQuery());const d=await r.json();
     const cards=[
       `<div class="sc"><div class="n">${d.total||0}</div><div class="l">物料总数</div></div>`,
+      `<div class="sc"><div class="n" style="color:#16a085">${d.in_stock||0}</div><div class="l">库存物料总数</div></div>`,
       `<div class="sc"><div class="n" style="color:#27ae60">${d.active||0}</div><div class="l">启用物料</div></div>`,
       `<div class="sc"><div class="n" style="color:#e74c3c">${d.low_stock||0}</div><div class="l">库存不足</div></div>`,
       `<div class="sc"><div class="n" style="color:#9b59b6">${d.categories||0}</div><div class="l">分类数</div></div>`,
@@ -296,7 +361,122 @@ async function loadStats(){
       <div class="dash-card"><h4>⚠️ 库存不足 TOP</h4>${lowList}</div>
       <div class="dash-card"><h4>⏰ 到期采购 TOP</h4>${dueList}</div>
       <div class="dash-card"><h4>📦 分类构成</h4>${catList}</div>`;
+    renderInvAnalysis(d);
   }catch(e){console.error(e)}
+}
+
+// ===== 库存物料总数量分析（饼图 + TOP条形图）=====
+const INV_COLORS=['#667eea','#16a085','#e67e22','#9b59b6','#e74c3c','#3498db','#1abc9c','#f39c12','#764ba2','#95a5a6'];
+function fmtQty(n){
+  n=Number(n)||0;
+  if(n>=100000000)return (n/100000000).toFixed(2)+'亿';
+  if(n>=10000)return (n/10000).toFixed(1)+'万';
+  return n.toLocaleString();
+}
+function renderInvAnalysis(d){
+  const box=document.getElementById('mInvAnalysis');if(!box)return;
+  const totalQty=Number(d.inventory_total_qty)||0;
+  if(totalQty<=0){box.innerHTML='<div class="dash-card"><h4>📊 库存总数量分析</h4><div class="em">暂无库存数量数据</div></div>';return}
+  // 按分类聚合（降序），构造饼图与图例
+  const entries=Object.entries(d.inventory_by_classification||{})
+    .map(([k,v])=>[k||'未分类',Number(v)||0]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  const pieTotal=entries.reduce((s,x)=>s+x[1],0)||1;
+  let acc=0;const stops=[];
+  entries.forEach(([k,v],i)=>{
+    const start=(acc/pieTotal)*360,end=((acc+v)/pieTotal)*360;
+    stops.push(`${INV_COLORS[i%INV_COLORS.length]} ${start}deg ${end}deg`);acc+=v;
+  });
+  const donutCss=stops.length?`conic-gradient(${stops.join(',')})`:'#eee';
+  const legend=entries.slice(0,8).map(([k,v],i)=>`<div class="row">
+      <span class="dot" style="background:${INV_COLORS[i%INV_COLORS.length]}"></span>
+      <span class="name" title="${esc(k)}">${esc(k)}</span>
+      <span class="qty">${fmtQty(v)}</span>
+      <span class="pct">${(v/pieTotal*100).toFixed(1)}%</span>
+    </div>`).join('');
+  // TOP 物料条形图
+  const items=(d.top_inventory_items||[]).filter(x=>Number(x.inventory_qty)>0);
+  const maxQ=Math.max(1,...items.map(x=>Number(x.inventory_qty)||0));
+  const colors=INV_COLORS;
+  const bars=items.map((m,i)=>{
+    const pct=Math.round((Number(m.inventory_qty)||0)/maxQ*100);
+    const c=colors[i%colors.length];
+    const name=(m.material_name||m.material_code||'').substring(0,16);
+    return `<div class="hbar"><span class="lb" title="${esc(m.material_name)}">${esc(name)}</span>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${c}"></div></div>
+      <span class="val">${fmtQty(m.inventory_qty)}${esc(m.unit||'')}</span></div>`;
+  }).join('')||'<div class="em">暂无</div>';
+  box.innerHTML=`
+    <div class="inv-col-head">📊 库存物料总数量分析</div>
+    <div class="inv-total"><div class="n">${fmtQty(totalQty)}</div><div class="l">库存总数量 · 共 ${d.in_stock||0} 种物料有库存</div></div>
+    <div class="inv-grid">
+      <div class="dash-card">
+        <div class="inv-sub-title">按分类分布</div>
+        <div class="donut-wrap">
+          <div class="donut" style="background:${donutCss}">
+            <div class="donut-center"><div class="v">${fmtQty(totalQty)}</div><div class="s">总数量</div></div>
+          </div>
+          <div class="inv-legend">${legend}</div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="inv-sub-title">库存数量 TOP 10 物料</div>
+        <div class="hbar-list">${bars}</div>
+      </div>
+     </div>`;
+}
+
+// ===== 仪表盘：单物料存放分析（按输入的物料代码/名称查看其存放情况）=====
+const MAT_API='/api/materials-ext/warehouse-standards/material-analysis';
+let _dashMatTimer=null;
+function dashMatSearch(kw){
+  clearTimeout(_dashMatTimer);
+  kw=(kw||'').trim();
+  const dd=document.getElementById('dashMatDropdown');
+  if(!kw){if(dd)dd.style.display='none';return}
+  _dashMatTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(MAT_API+'?q='+encodeURIComponent(kw));
+      const d=await r.json();
+      const list=d.data||[];
+      if(!dd)return;
+      if(!list.length){dd.innerHTML='<div style="padding:10px;color:#999;font-size:12px">无匹配物料</div>';dd.style.display='block';return}
+      dd.innerHTML=list.map(m=>`<div class="dash-mat-opt" data-code="${esc(m.material_code)}" onclick="dashMatAnalyze('${esc(m.material_code)}')" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px" onmouseover="this.style.background='#f0f3ff'" onmouseout="this.style.background='#fff'">
+        <b>${esc(m.material_code)}</b> ${esc((m.material_name||'').substring(0,28))}<br><span style="color:#999;font-size:11px">${esc(m.classification||'未分类')} · ${esc(m.classification2||'')}</span></div>`).join('');
+      dd.style.display='block';
+    }catch(e){if(dd)dd.style.display='none'}
+  },250);
+}
+async function dashMatAnalyze(code){
+  const inp=document.getElementById('dashMatInput');if(inp)inp.value=code;
+  const dd=document.getElementById('dashMatDropdown');if(dd)dd.style.display='none';
+  const box=document.getElementById('dashMatResult');if(!box)return;
+  box.innerHTML='<div class="em">分析中…</div>';
+  try{
+    const r=await fetch(MAT_API+'?code='+encodeURIComponent(code));
+    const d=await r.json();
+    if(!r.ok){box.innerHTML='<div class="em">'+esc(d.error||'查询失败')+'</div>';return}
+    const m=d.material||{},locs=d.locations||[],s=d.summary||{};
+    const clsLabel=m.classification||'未分类';
+    box.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="dash-card"><h4>物料信息</h4>
+          <div style="font-weight:600;font-size:13px">${esc(m.material_name||'')} <span style="color:#999;font-weight:normal">(${esc(m.material_code)})</span></div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分类1：<b>${esc(clsLabel)}</b> · 分类2：${esc(m.classification2||'-')} · 类型：${esc(m.material_type||'-')}</div></div>
+        <div class="dash-card"><h4>存放汇总</h4>
+          <div style="font-size:20px;font-weight:700;color:#16a085">${(d.total_qty||0).toLocaleString()} ${esc(m.unit||'')}</div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分布于 <b>${d.warehouse_count}</b> 个仓库 · 符合 ${s.compliant_warehouses||0} / 不符 <b style="color:${s.mismatch_warehouses?'#e74c3c':'#999'}">${s.mismatch_warehouses||0}</b></div></div>
+      </div>
+      ${locs.length?`<div style="max-height:40vh;overflow:auto;border:1px solid #eee;border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa;position:sticky;top:0">
+        <th style="padding:6px;text-align:left">仓库</th><th style="padding:6px">负责人</th><th style="padding:6px">库存数量</th><th style="padding:6px;text-align:left">库位</th><th style="padding:6px">标准品类</th><th style="padding:6px">符合</th>
+      </tr></thead><tbody>${locs.map(w=>`<tr style="border-top:1px solid #f0f0f0">
+        <td style="padding:6px;font-weight:600">${esc(w.warehouse)}</td>
+        <td style="padding:6px;text-align:center">${esc(w.manager||'-')}</td>
+        <td style="padding:6px;text-align:center"><b style="color:#16a085">${(w.qty_on_hand||0).toLocaleString()}</b></td>
+        <td style="padding:6px;color:#666">${w.locations.length?w.locations.slice(0,3).map(esc).join('<br>'):'<span style="color:#bbb">-</span>'}</td>
+        <td style="padding:6px">${w.allowed_categories.length?w.allowed_categories.map(c=>`<span class="badge" style="background:#eaf2ff;color:#3b5998;margin:1px">${esc(c)}</span>`).join(''):'<span style="color:#999">未限定</span>'}</td>
+        <td style="padding:6px;text-align:center">${w.compliant?'<span class="badge st-active">符合</span>':'<span class="badge st-inactive" title="该物料分类'+esc(clsLabel)+'不在此仓库允许品类内">不符</span>'}</td>
+      </tr>`).join('')}</tbody></table></div>`:'<div class="em">该物料暂无库位存放记录</div>'}`;
+  }catch(e){box.innerHTML='<div class="em">查询失败: '+esc(e.message)+'</div>'}
 }
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
@@ -318,26 +498,44 @@ async function loadFilterOpts(){
   try{
     const r=await fetch(API+'/meta/filter-options');const d=await r.json();
     const cat=document.getElementById('mCat');
-    const cats=d.categories||[];
-    cats.forEach(c=>{cat.innerHTML+=`<option value="${c}">${c}</option>`;});
+    (d.categories||[]).forEach(c=>{cat.innerHTML+=`<option value="${esc(c)}">${esc(c)}</option>`;});
+    // 把数据中实际存在的分类值并入分类下拉，确保"通用物料"等真实值可选
+    if(Array.isArray(d.classifications)){
+      _clsExtraOpts=[...new Set([...(_clsExtraOpts||[]),...d.classifications])];
+      syncClsDropdowns();
+    }
   }catch(e){}
+}
+// 加载库位(仓库)筛选下拉
+async function loadWarehouses(){
+  try{
+    const r=await fetch(API+'/locations/warehouses');const d=await r.json();
+    const sel=document.getElementById('mWh');if(!sel)return;
+    const cur=sel.value;
+    const data=d.data||[];
+    _whWarehouses=data.map(w=>w.warehouse);
+    sel.innerHTML='<option value="">全部库位</option>'+data.map(w=>`<option value="${esc(w.warehouse)}">${esc(w.warehouse)} (${w.material_count})</option>`).join('');
+    if(cur)sel.value=cur;
+  }catch(e){/* 库位不可用时不阻塞 */}
 }
 
 async function loadMaterials(page){
   mPage=page||1;
   const p=new URLSearchParams({page:mPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('mKw').value,cat=document.getElementById('mCat').value;
-  const cls=document.getElementById('mCls').value,st=document.getElementById('mStat').value;
+  const cls=document.getElementById('mCls').value,cls2=document.getElementById('mCls2').value,st=document.getElementById('mStat').value;
+  const wh=document.getElementById('mWh').value;
   const lvl=document.getElementById('mLevel').value,pur=document.getElementById('mPurpose').value;
   if(kw)p.set('keyword',kw);if(cat)p.set('category',cat);
-  if(cls)p.set('classification',cls);if(st)p.set('status',st);
+  if(cls)p.set('classification',cls);if(cls2)p.set('classification2',cls2);if(st)p.set('status',st);
+  if(wh)p.set('warehouse',wh);
   if(lvl)p.set('material_level',lvl);if(pur)p.set('material_purpose',pur);
   if(mSort.field){p.set('sort_by',mSort.field);p.set('sort_order',mSort.dir);}
   try{
     const r=await fetch(API+'?'+p);const d=await r.json();
     const total=d.total||0;document.getElementById('mTc').textContent=total;
     const recs=d.data||[],tb=document.getElementById('mTb');
-    if(!recs.length){    tb.innerHTML='<tr><td colspan="23" class="em">暂无物料数据</td></tr>';renderPg('mPg',total,mPage,loadMaterials);updateSortArrows();return}
+    if(!recs.length){    tb.innerHTML='<tr><td colspan="27" class="em">暂无物料数据</td></tr>';renderPg('mPg',total,mPage,loadMaterials);updateSortArrows();return}
     tb.innerHTML=recs.map(m=>{
       const invLow=(m.inventory_qty||0)<(m.min_inventory||0);
       const procOn=Number(m.procurement_enabled)===1;
@@ -350,17 +548,21 @@ async function loadMaterials(page){
       <td>${esc((m.material_name||'').substring(0,16))}</td>
       <td>${esc((m.category||'').substring(0,12))}</td>
       <td>${esc((m.specs||'').substring(0,15))}</td>
-      <td>${esc((m.classification||'').substring(0,10))}</td>
+      <td class="ed" data-edit="classification" data-mid="${m.id}" title="双击修改(电子/结构/包材/附件)">${esc(m.classification||'')}</td>
+      <td class="ed" data-edit="classification2" data-mid="${m.id}" title="双击修改(通用/专用)">${esc(m.classification2||'通用物料')}</td>
       <td>${esc(m.unit||'-')}</td>
       <td>${esc(m.material_type||'-')}</td>
       <td><span class="lvl-badge lvl-${(m.material_level||'普通物料').replace(/[^一-龥]/g,'')}" title="等级">${esc(m.material_level||'普通物料')}</span></td>
       <td><span class="pur-badge pur-${(m.material_purpose||'未分类').replace(/[^一-龥]/g,'')}" title="用途">${esc(m.material_purpose||'未分类')}</span></td>
       <td class="loc-cell" data-mid="${m.id}" data-code="${esc(m.material_code||'')}" style="font-size:12px;color:#555;max-width:200px;line-height:1.4"><span style="color:#bbb">—</span></td>
+      <td class="time-cell" data-code="${esc(m.material_code||'')}" style="font-size:11px;color:#888;white-space:nowrap"><span style="color:#bbb">—</span></td>
       <td class="ed" data-edit="supplier" data-mid="${m.id}">${esc(m.supplier||'')}</td>
       <td class="ed" data-edit="standard_cost" data-mid="${m.id}" data-num="${Number(m.standard_cost)||0}">${m.standard_cost?'¥'+Number(m.standard_cost).toFixed(2):'-'}</td>
       <td class="ed" data-edit="processing_cost" data-mid="${m.id}" data-num="${Number(m.processing_cost)||0}">${m.processing_cost?'¥'+Number(m.processing_cost).toFixed(2):'-'}</td>
       <td class="ed" data-edit="unit_price" data-mid="${m.id}" data-num="${Number(m.unit_price)||0}">${m.unit_price?'¥'+Number(m.unit_price).toFixed(2):'-'}</td>
+      <td style="font-size:11px;color:#888;white-space:nowrap">${esc((m.last_outbound_date||'').substring(0,10))||'<span style="color:#bbb">—</span>'}</td>
       <td class="ed" data-edit="inventory_qty" data-mid="${m.id}" data-num="${m.inventory_qty||0}" style="color:${invLow?'#e74c3c':'#333'};font-weight:600">${m.inventory_qty||0}</td>
+      <td style="font-weight:600;color:#16a085">${((Number(m.inventory_qty)||0)*(Number(m.standard_cost)||0))>0?'¥'+((Number(m.inventory_qty)||0)*(Number(m.standard_cost)||0)).toLocaleString(undefined,{maximumFractionDigits:2}):'-'}</td>
       <td class="ed" data-edit="min_inventory" data-mid="${m.id}" data-num="${m.min_inventory||0}">${m.min_inventory||0}</td>
       <td>${procOn?`<span class="proc-badge">${(m.procurement_cycle||0)+'天'}</span>`:'<span class="proc-off proc-badge">未启用</span>'}</td>
       <td>${procOn?(m.procurement_qty||0):'-'}</td>
@@ -432,7 +634,16 @@ function renderLocationCells(codes){
     const list=matLocationsByCode.get(code);
     const cell=document.querySelector(`.loc-cell[data-code="${cssEscapeAttr(code)}"]`);
     if(!cell)return;
-    if(!list||!list.length){cell.innerHTML='<span style="color:#bbb">—</span>';return}
+    // 出入库时间：该物料各库位最近更新时间的最大值
+    const timeCell=document.querySelector(`.time-cell[data-code="${cssEscapeAttr(code)}"]`);
+    if(list&&list.length&&timeCell){
+      const maxT=list.map(l=>l.updated_at||'').filter(Boolean).sort().pop();
+      timeCell.innerHTML=maxT?`<span title="最近库存更新时间">${maxT.substring(0,16).replace('T',' ')}</span>`:'<span style="color:#bbb">—</span>';
+    }
+    if(!list||!list.length){
+      cell.innerHTML='<span style="color:#bbb">—</span>';
+      return;
+    }
     const parts=list.slice(0,2).map(l=>{
       const loc=l.location_name&&l.location_name!=='*'?l.location_name:'';
       const qty=l.qty_on_hand?` <span style="color:#27ae60">${Number(l.qty_on_hand).toLocaleString()}</span>`:'';
@@ -442,7 +653,7 @@ function renderLocationCells(codes){
     let html=parts.join('<br>');
     if(list.length>2)html+=`<br><span style="color:#999">+${list.length-2} 个库位</span>`;
     // 鼠标悬停显示完整列表
-    const tip=list.map(l=>`${l.wh_name||''}${l.location_name&&l.location_name!=='*'?' / '+l.location_name:''}${l.qty_on_hand?' · '+Number(l.qty_on_hand).toLocaleString():''}`).join('\n');
+    const tip=list.map(l=>`${l.wh_name||''}${l.location_name&&l.location_name!=='*'?' / '+l.location_name:''}${l.qty_on_hand?' · '+Number(l.qty_on_hand).toLocaleString():''}${l.updated_at?' · '+l.updated_at.replace('T',' ').substring(0,16):''}`).join('\n');
     cell.innerHTML=html;
     cell.title=tip;
   });
@@ -521,6 +732,427 @@ async function runAutoClassify(){
   }catch(e){alert('请求失败: '+e.message)}
 }
 
+// ===== 分类（classification）识别规则：制定标准 + 自动识别 + 手工改写 =====
+// 与上方"等级/用途自动分类"不同：本套针对"分类"双维度（分类1物理 / 分类2管理）
+const CLS_API='/api/materials-ext/classification-rules';
+const CLS_TARGET_OPTS=[
+  ['classification','分类1（电子/结构/包材/附件）'],['classification2','分类2（通用/专用）']
+];
+const CLS_FIELD_OPTS=[
+  ['material_name','物料名称'],['material_code','物料代码'],['material_type','物料类型'],
+  ['category','类别'],['specs','规格'],['supplier','供应商'],['unit','单位'],['status','状态']
+];
+const CLS_OP_OPTS=[
+  ['contains','包含'],['containsAny','包含任一(逗号分隔)'],['equals','等于'],['startsWith','开头为'],['endsWith','结尾为'],
+  ['notEquals','不等于'],['gte','数值≥'],['lte','数值≤']
+];
+let _clsRulesCache=null;
+async function fetchClsRules(force){
+  if(_clsRulesCache&&!force)return _clsRulesCache;
+  const r=await fetch(CLS_API);
+  const d=await r.json();
+  _clsRulesCache=(d.data||[]).sort((a,b)=>(a.priority||999)-(b.priority||999));
+  // 把规则产出分类补进下拉选项
+  _clsExtraOpts=[...new Set([...(_clsExtraOpts||[]),..._clsRulesCache.filter(x=>(x.target_field||'classification')==='classification').map(x=>x.result_category).filter(Boolean)])];
+  syncClsDropdowns();
+  return _clsRulesCache;
+}
+function openClsRules(){
+  (async()=>{
+    let rules;
+    try{rules=await fetchClsRules(true);}catch(e){alert('加载规则失败: '+e.message);return}
+    const box=document.getElementById('gMoBox');
+    const enabled=rules.filter(r=>r.enabled!==0).length;
+    box.innerHTML=`
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>📝 分类识别规则（制定标准）</h3>
+        <span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+      <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.7">
+        按<b>优先级</b>从上到下匹配，命中即归类为<b>结果分类</b>。<b>分类1</b>(电子/结构/包材/附件)按名称识别，<b>分类2</b>(通用/专用)按自制/外购识别；都不命中用兜底值。<br>
+        自动识别后仍可逐条<b>手工改写</b>（双击列表分类列或编辑物料）。
+        <span style="color:#999">· 共 ${rules.length} 条，启用 ${enabled} 条</span>
+      </div>
+      <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn b1 bs" onclick="openClsRuleForm()">➕ 新增规则</button>
+        <button class="btn b2 bs" onclick="runClsAutoClassify()">⚙️ 自动识别分类</button>
+        <button class="btn b4 bs" onclick="openCatRules()">查看等级/用途标准</button>
+      </div>
+      <div style="max-height:48vh;overflow:auto;border:1px solid #eee;border-radius:6px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#f5f6fa;position:sticky;top:0">
+            <th style="padding:6px;width:36px">序</th><th style="padding:6px;text-align:left">规则名称</th>
+            <th style="padding:6px;text-align:left">目标</th>
+            <th style="padding:6px;text-align:left">条件（字段 操作 值）</th><th style="padding:6px;text-align:left">结果分类</th>
+            <th style="padding:6px;width:50px">启用</th><th style="padding:6px;width:96px">操作</th>
+          </tr></thead><tbody>
+          ${rules.length?rules.map((r,i)=>{const tf=r.target_field||'classification';const tfLabel=tf==='classification2'?'分类2':'分类1';const tfColor=tf==='classification2'?'#e67e22':'#667eea';return `<tr style="border-top:1px solid #f0f0f0">
+            <td style="padding:6px;text-align:center;color:#999">${i+1}</td>
+            <td style="padding:6px">${esc(r.name||'')}</td>
+            <td style="padding:6px"><span class="badge" style="background:${tfColor}22;color:${tfColor}">${tfLabel}</span></td>
+            <td style="padding:6px;color:#555">${esc(r.field)} <b style="color:#667eea">${esc((CLS_OP_OPTS.find(o=>o[0]===r.operator)||[])[1]||r.operator)}</b> "<b>${esc(r.value)}</b>"</td>
+            <td style="padding:6px"><span class="pur-badge" style="background:#eef;color:#555">${esc(r.result_category||'')}</span></td>
+            <td style="padding:6px;text-align:center">
+              <input type="checkbox" ${r.enabled!==0?'checked':''} onchange="toggleClsRule(${r.id},this.checked)">
+            </td>
+            <td style="padding:6px;white-space:nowrap">
+              <button class="btn bs" onclick="openClsRuleForm(${r.id})">编辑</button>
+              <button class="btn bs" style="color:#e74c3c" onclick="delClsRule(${r.id})">删</button>
+            </td></tr>`;}).join(''):`<tr><td colspan="7" class="em" style="padding:20px;color:#999">暂无规则，点击「新增规则」制定分类标准</td></tr>`}
+          </tbody></table>
+      </div>`;
+    document.getElementById('gMo').classList.add('ac');
+  })();
+}
+function openClsRuleForm(id){
+  const rules=_clsRulesCache||[];
+  const r=id?rules.find(x=>x.id===id):{enabled:1,priority:(rules.length?Math.max(...rules.map(x=>x.priority||0))+1:1),target_field:'classification'};
+  const tf=r.target_field||'classification';
+  const resOpts=tf==='classification2'?CLASSIFICATION2_OPTIONS:getClsOptions();
+  const box=document.getElementById('gMoBox');
+  box.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑规则':'新增规则'}</h3>
+      <span onclick="openClsRules()" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+    <div style="font-size:12px;color:#666;margin-bottom:10px">示例：分类1—物料名称 包含任一 "螺丝,支架" → 结构物料；分类2—物料类型 等于 "自制" → 专用物料</div>
+    <div class="fg"><label>规则名称 *</label><input id="cr_name" value="${esc(r.name||'')}" placeholder="如：标准紧固件-螺丝"></div>
+    <div class="fg"><label>目标字段（写入哪个分类）*</label><select id="cr_target_field" onchange="syncCrResultOpts()">${CLS_TARGET_OPTS.map(o=>`<option value="${o[0]}" ${o[0]===tf?'selected':''}>${o[1]}</option>`).join('')}</select></div>
+    <div class="gr">
+      <div class="fg"><label>匹配字段 *</label><select id="cr_field">${CLS_FIELD_OPTS.map(o=>`<option value="${o[0]}" ${o[0]===r.field?'selected':''}>${o[1]}</option>`).join('')}</select></div>
+      <div class="fg"><label>操作符 *</label><select id="cr_operator">${CLS_OP_OPTS.map(o=>`<option value="${o[0]}" ${o[0]===r.operator?'selected':''}>${o[1]}</option>`).join('')}</select></div>
+    </div>
+    <div class="gr">
+      <div class="fg"><label>匹配值 *</label><input id="cr_value" value="${esc(r.value||'')}" placeholder="如：螺丝"></div>
+      <div class="fg"><label>结果分类 *</label>
+        <input id="cr_result_category" list="cr_cls_dl" value="${esc(r.result_category||resOpts[0]||'')}" placeholder="选择或输入">
+        <datalist id="cr_cls_dl">${resOpts.map(o=>`<option value="${esc(o)}">`).join('')}</datalist></div>
+    </div>
+    <div class="gr">
+      <div class="fg"><label>优先级（小=先匹配）</label><input id="cr_priority" type="number" value="${r.priority!=null?r.priority:1}"></div>
+      <div class="fg" style="display:flex;align-items:center;gap:6px;padding-top:22px"><input type="checkbox" id="cr_enabled" ${r.enabled!==0?'checked':''}> <label style="margin:0">启用</label></div>
+    </div>
+    <div style="text-align:right;margin-top:12px">
+      <button class="btn bs" onclick="openClsRules()">取消</button>
+      <button class="btn b2" onclick="saveClsRule(${id||0})">保存</button>
+    </div>`;
+}
+// 目标字段切换时，刷新结果分类的可选值
+function syncCrResultOpts(){
+  const tf=document.getElementById('cr_target_field').value;
+  const opts=tf==='classification2'?CLASSIFICATION2_OPTIONS:getClsOptions();
+  const dl=document.getElementById('cr_cls_dl');
+  if(dl)dl.innerHTML=opts.map(o=>`<option value="${esc(o)}">`).join('');
+}
+async function saveClsRule(id){
+  const body={
+    name:document.getElementById('cr_name').value.trim(),
+    target_field:document.getElementById('cr_target_field').value,
+    field:document.getElementById('cr_field').value,
+    operator:document.getElementById('cr_operator').value,
+    value:document.getElementById('cr_value').value,
+    result_category:document.getElementById('cr_result_category').value.trim(),
+    priority:Number(document.getElementById('cr_priority').value)||999,
+    enabled:document.getElementById('cr_enabled').checked?1:0
+  };
+  if(!body.name||!body.field||!body.operator||!body.result_category){alert('规则名称、字段、操作符、结果分类为必填');return}
+  try{
+    const url=id?(CLS_API+'/'+id):CLS_API;
+    const method=id?'PUT':'POST';
+    const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();if(!r.ok){alert(d.error||'保存失败');return}
+    toast('规则已保存');_clsRulesCache=null;openClsRules();
+  }catch(e){alert('保存失败: '+e.message)}
+}
+async function delClsRule(id){
+  if(!confirm('确定删除该规则？'))return;
+  try{
+    const r=await fetch(CLS_API+'/'+id,{method:'DELETE'});
+    const d=await r.json();if(!r.ok){alert(d.error||'删除失败');return}
+    toast('规则已删除');_clsRulesCache=null;openClsRules();
+  }catch(e){alert('删除失败: '+e.message)}
+}
+async function toggleClsRule(id,on){
+  try{
+    const r=await fetch(CLS_API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:on?1:0})});
+    if(!r.ok){alert('切换失败');_clsRulesCache=null;openClsRules();return}
+    _clsRulesCache=null;
+  }catch(e){alert('切换失败: '+e.message)}
+}
+async function runClsAutoClassify(){
+  if(!confirm('将按"分类识别规则"对全部物料重新识别分类。\n\n第一步：先预览将变更的条数与分布；不会立即改动数据。继续？'))return;
+  toast('正在预览…');
+  const defCls=(_clsRulesCache&&_clsRulesCache.length)?'通用物料':'通用物料';
+  try{
+    // 第一步：预览
+    const rp=await fetch(CLS_API+'/auto-classify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply:false,default_category:defCls})});
+    const dp=await rp.json();if(!rp.ok){alert(dp.error||'预览失败');return}
+    const dist=Object.entries(dp.by_category||{}).map(([k,v])=>`${k}: ${v}`).join('，');
+    const msg=`预览结果（共 ${dp.total} 条，将变更 ${dp.change_count} 条）：\n${dist}\n\n默认兜底分类：${dp.default_category}\n\n是否应用？（已手工改写的分类也会被规则覆盖，应用后仍可逐条调整）`;
+    if(!confirm(msg)){return}
+    // 第二步：应用
+    toast('正在应用分类…');
+    const ra=await fetch(CLS_API+'/auto-classify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply:true,default_category:defCls})});
+    const da=await ra.json();if(!ra.ok){alert(da.error||'应用失败');return}
+    toast(`分类识别完成：更新 ${da.updated} 条，同步BOM ${da.bomSynced||0} 条`);
+    document.getElementById('gMo')?.classList.remove('ac');
+    loadMaterials(mPage);loadStats();
+  }catch(e){alert('请求失败: '+e.message)}
+}
+
+// ===== 仓库分类标准：制定各仓库存放品类(分类1) + 物料上限，并可查看实际存放分析 =====
+const WH_API='/api/materials-ext/warehouse-standards';
+let _whStdCache=null;
+let _whView='analysis'; // 'analysis' | 'edit'
+async function fetchWhStd(force){
+  if(_whStdCache&&!force)return _whStdCache;
+  const r=await fetch(WH_API);const d=await r.json();
+  _whStdCache=d.data||[];
+  return _whStdCache;
+}
+function openWhStandards(){(async()=>{
+  await fetchWhStd(true).catch(()=>{});
+  _whView='analysis';
+  renderWhModal();
+})();}
+function renderWhModal(){
+  const box=document.getElementById('gMoBox');
+  const tabs=`<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn ${_whView==='analysis'?'b1':'bs'} bs" onclick="_whView='analysis';renderWhModal()">📊 存放分析</button>
+    <button class="btn ${_whView==='edit'?'b1':'bs'} bs" onclick="_whView='edit';renderWhModal()">✏️ 标准设置</button>
+    <button class="btn ${_whView==='material'?'b1':'bs'} bs" onclick="_whView='material';renderWhModal()">🔍 物料查询</button>
+    <button class="btn b4 bs" onclick="openWhStdForm()">➕ 新增仓库标准</button>
+    <button class="btn bs" style="background:#27ae60;color:#fff" onclick="exportWhStandards()">⬇️ 导出</button>
+  </div>`;
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>🏭 仓库分类标准</h3>
+    <span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+    <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.6">为每个仓库设定<b>存放品类</b>(分类1: 电子/结构/包材/附件)与<b>物料上限</b>。系统据此检测各仓库实际存放是否<b>品类不符</b>或<b>超上限</b>。</div>
+    ${tabs}
+    <div id="whBody"></div>`;
+  document.getElementById('gMo').classList.add('ac');
+  if(_whView==='analysis')renderWhAnalysis();else if(_whView==='material')renderWhMaterial();else renderWhEdit();
+}
+async function renderWhAnalysis(){
+  const body=document.getElementById('whBody');
+  body.innerHTML='<div class="em">分析中…</div>';
+  try{
+    // 物料筛选条件
+    const fCls=document.getElementById('whFilterCls')?document.getElementById('whFilterCls').value:'';
+    const fCls2=document.getElementById('whFilterCls2')?document.getElementById('whFilterCls2').value:'';
+    const fKw=document.getElementById('whFilterKw')?document.getElementById('whFilterKw').value.trim():'';
+    const params=new URLSearchParams();
+    if(fCls)params.set('classification',fCls);
+    if(fCls2)params.set('classification2',fCls2);
+    if(fKw)params.set('keyword',fKw);
+    const r=await fetch(WH_API+'/analysis'+(params.toString()?('?'+params):''));const d=await r.json();
+    const s=d.summary||{};
+    const f=d.filter||{};
+    const rows=d.data||[];
+    const filterBar=`<div style="background:#f8f9ff;padding:8px 10px;border-radius:6px;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-weight:600;color:#667eea;font-size:12px">🔍 物料筛选</span>
+      <select id="whFilterCls" onchange="renderWhAnalysis()" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
+        <option value="">全部分类1</option>${CLASSIFICATION_OPTIONS.map(c=>`<option value="${esc(c)}" ${c===fCls?'selected':''}>${esc(c)}</option>`).join('')}</select>
+      <select id="whFilterCls2" onchange="renderWhAnalysis()" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
+        <option value="">全部分类2</option>${CLASSIFICATION2_OPTIONS.map(c=>`<option value="${esc(c)}" ${c===fCls2?'selected':''}>${esc(c)}</option>`).join('')}</select>
+      <input id="whFilterKw" value="${esc(fKw)}" placeholder="物料编码/名称" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:140px" onkeydown="if(event.key==='Enter')renderWhAnalysis()">
+      ${f.applied?`<span class="badge st-warn">已筛选·匹配 ${f.matched_materials} 种物料</span>`:''}
+      </div>`;
+    const head=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:12px">
+      <span class="badge st-active">仓库 ${s.warehouses||0}</span>
+      <span class="badge" style="background:#eaf2ff;color:#3b5998">已设标准 ${s.with_standard||0}</span>
+      <span class="badge st-inactive">超上限 ${s.over_limit||0}</span>
+      <span class="badge st-warn">品类不符 ${s.category_mismatch||0}</span></div>`;
+    if(!rows.length){body.innerHTML=filterBar+head+'<div class="em">暂无库位数据</div>';return}
+    body.innerHTML=filterBar+head+`<div style="max-height:56vh;overflow:auto;border:1px solid #eee;border-radius:6px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa;position:sticky;top:0">
+        <th style="padding:6px;text-align:left">仓库</th><th style="padding:6px">负责人</th><th style="padding:6px">标准品类</th><th style="padding:6px">上限</th>
+        <th style="padding:6px">实际物料</th><th style="padding:6px;text-align:left">实际品类分布</th><th style="padding:6px">状态</th>
+      </tr></thead><tbody>${rows.map(r=>{
+        const limitTxt=r.material_limit>0?r.material_limit:'未设';
+        const limitCell=r.over_limit?`<b style="color:#e74c3c">${limitTxt}</b>`:limitTxt;
+        const countCell=r.over_limit?`<b style="color:#e74c3c">${r.actual_material_count}</b>`:r.actual_material_count;
+        const allowed=r.allowed_categories.length?r.allowed_categories.map(c=>`<span class="badge" style="background:#eaf2ff;color:#3b5998;margin:1px">${esc(c)}</span>`).join(''):'<span style="color:#999">未限定</span>';
+        const dist=r.category_distribution.slice(0,4).map(c=>`${esc(c.category||'未分类')}<span style="color:#999">(${c.count})</span>`).join(' ');
+        const flags=[];
+        if(!r.has_standard)flags.push('<span class="badge" style="background:#eee;color:#888">未设标准</span>');
+        if(r.over_limit)flags.push('<span class="badge st-inactive">超上限</span>');
+        if(r.mismatched_categories.length)flags.push(`<span class="badge st-warn" title="${esc(r.mismatched_categories.join('、'))}">品类不符</span>`);
+        const status=flags.length?flags.join(' '):'<span class="badge st-active">正常</span>';
+        return `<tr style="border-top:1px solid #f0f0f0">
+          <td style="padding:6px;font-weight:600">${esc(r.warehouse)}</td>
+          <td style="padding:6px;text-align:center">${esc(r.manager||'-')}</td>
+          <td style="padding:6px">${allowed}</td>
+          <td style="padding:6px;text-align:center">${limitCell}</td>
+          <td style="padding:6px;text-align:center">${countCell}</td>
+          <td style="padding:6px;color:#555">${dist||'-'}</td>
+          <td style="padding:6px">${status}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
+  }catch(e){body.innerHTML='<div class="em">加载失败: '+esc(e.message)+'</div>'}
+}
+// 单物料存放分析：输入物料代码/名称搜索选择，查看该物料在各仓库的存放与品类符合情况
+let _whMatSearchTimer=null;
+function renderWhMaterial(){
+  const body=document.getElementById('whBody');
+  body.innerHTML=`
+    <div style="background:#f8f9ff;padding:10px;border-radius:8px;margin-bottom:12px">
+      <div style="font-weight:600;color:#667eea;font-size:13px;margin-bottom:6px">🔍 输入物料代码或名称，选择后查看其存放分析</div>
+      <div style="position:relative">
+        <input id="whMatInput" type="text" placeholder="如：IC-001 / 螺丝 / 电容" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" oninput="whMatSearch(this.value)" onkeydown="if(event.key==='Enter'){const f=document.querySelector('.wh-mat-opt');if(f)whMatPick(f.dataset.code)}">
+        <div id="whMatDropdown" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-radius:0 0 6px 6px;max-height:260px;overflow:auto;z-index:20;display:none;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>
+      </div>
+    </div>
+    <div id="whMatResult"></div>`;
+}
+function whMatSearch(kw){
+  clearTimeout(_whMatSearchTimer);
+  kw=kw.trim();
+  const dd=document.getElementById('whMatDropdown');
+  if(!kw){dd.style.display='none';return}
+  _whMatSearchTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(WH_API+'/material-analysis?q='+encodeURIComponent(kw));
+      const d=await r.json();
+      const list=d.data||[];
+      if(!list.length){dd.innerHTML='<div style="padding:10px;color:#999;font-size:12px">无匹配物料</div>';dd.style.display='block';return}
+      dd.innerHTML=list.map(m=>`<div class="wh-mat-opt" data-code="${esc(m.material_code)}" onclick="whMatPick('${esc(m.material_code)}')" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px" onmouseover="this.style.background='#f0f3ff'" onmouseout="this.style.background='#fff'">
+        <b>${esc(m.material_code)}</b> ${esc((m.material_name||'').substring(0,24))}<br><span style="color:#999;font-size:11px">${esc(m.classification||'未分类')} · ${esc(m.classification2||'')}</span></div>`).join('');
+      dd.style.display='block';
+    }catch(e){dd.style.display='none'}
+  },250);
+}
+async function whMatPick(code){
+  document.getElementById('whMatInput').value=code;
+  document.getElementById('whMatDropdown').style.display='none';
+  const box=document.getElementById('whMatResult');
+  box.innerHTML='<div class="em">分析中…</div>';
+  try{
+    const r=await fetch(WH_API+'/material-analysis?code='+encodeURIComponent(code));
+    const d=await r.json();
+    if(!r.ok){box.innerHTML='<div class="em">'+esc(d.error||'查询失败')+'</div>';return}
+    const m=d.material||{};
+    const locs=d.locations||[];
+    const s=d.summary||{};
+    const clsLabel=m.classification||'未分类';
+    box.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="dash-card"><div style="font-size:11px;color:#888">物料</div><div style="font-weight:600">${esc(m.material_name||'')} <span style="color:#999">(${esc(m.material_code)})</span></div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分类1：<b>${esc(clsLabel)}</b> · 分类2：${esc(m.classification2)} · 类型：${esc(m.material_type||'-')}</div></div>
+        <div class="dash-card"><div style="font-size:11px;color:#888">存放汇总</div>
+          <div style="font-size:18px;font-weight:700;color:#16a085">${(d.total_qty||0).toLocaleString()} ${esc(m.unit||'')}</div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分布于 <b>${d.warehouse_count}</b> 个仓库 · 符合 ${s.compliant_warehouses} / 不符 <b style="color:${s.mismatch_warehouses?'#e74c3c':'#999'}">${s.mismatch_warehouses}</b></div></div>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">📦 各仓库存放详情</div>
+      ${locs.length?`<div style="max-height:40vh;overflow:auto;border:1px solid #eee;border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa;position:sticky;top:0">
+        <th style="padding:6px;text-align:left">仓库</th><th style="padding:6px">负责人</th><th style="padding:6px">库存数量</th><th style="padding:6px;text-align:left">库位</th><th style="padding:6px">标准品类</th><th style="padding:6px">符合</th>
+      </tr></thead><tbody>${locs.map(w=>`<tr style="border-top:1px solid #f0f0f0">
+        <td style="padding:6px;font-weight:600">${esc(w.warehouse)}</td>
+        <td style="padding:6px;text-align:center">${esc(w.manager||'-')}</td>
+        <td style="padding:6px;text-align:center"><b style="color:#16a085">${w.qty_on_hand.toLocaleString()}</b></td>
+        <td style="padding:6px;color:#666">${w.locations.length?w.locations.slice(0,3).map(esc).join('<br>'):'<span style="color:#bbb">-</span>'}</td>
+        <td style="padding:6px">${w.allowed_categories.length?w.allowed_categories.map(c=>`<span class="badge" style="background:#eaf2ff;color:#3b5998;margin:1px">${esc(c)}</span>`).join(''):'<span style="color:#999">未限定</span>'}</td>
+        <td style="padding:6px;text-align:center">${w.compliant?'<span class="badge st-active">符合</span>':'<span class="badge st-inactive" title="该物料分类'+esc(clsLabel)+'不在此仓库允许品类内">不符</span>'}</td>
+      </tr>`).join('')}</tbody></table></div>`:'<div class="em">该物料暂无库位存放记录</div>'}`;
+  }catch(e){box.innerHTML='<div class="em">查询失败: '+esc(e.message)+'</div>'}
+}
+function renderWhEdit(){
+  const list=_whStdCache||[];
+  const body=document.getElementById('whBody');  if(!list.length){body.innerHTML='<div class="em">暂无标准，点击「新增仓库标准」制定</div>';return}
+  body.innerHTML=`<div style="max-height:56vh;overflow:auto;border:1px solid #eee;border-radius:6px">
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa;position:sticky;top:0">
+      <th style="padding:6px;text-align:left">仓库</th><th style="padding:6px;text-align:left">存放品类</th>
+      <th style="padding:6px">物料上限</th><th style="padding:6px;text-align:left">负责人</th><th style="padding:6px;text-align:left">备注</th><th style="padding:6px;width:96px">操作</th>
+    </tr></thead><tbody>${list.map(s=>`<tr style="border-top:1px solid #f0f0f0">
+      <td style="padding:6px;font-weight:600">${esc(s.warehouse)}</td>
+      <td style="padding:6px">${(s.allowed_categories||[]).map(c=>`<span class="badge" style="background:#eaf2ff;color:#3b5998;margin:1px">${esc(c)}</span>`).join('')||'<span style="color:#999">未限定</span>'}</td>
+      <td style="padding:6px;text-align:center">${s.material_limit>0?s.material_limit:'-'}</td>
+      <td style="padding:6px">${esc(s.manager||'-')}</td>
+      <td style="padding:6px;color:#888">${esc(s.remarks||'')}</td>
+      <td style="padding:6px;white-space:nowrap">
+        <button class="btn bs" onclick="openWhStdForm(${s.id})">编辑</button>
+        <button class="btn bs" style="color:#e74c3c" onclick="delWhStd(${s.id})">删</button>
+      </td></tr>`).join('')}</tbody></table></div>`;
+}
+function openWhStdForm(id){
+  const list=_whStdCache||[];
+  const s=id?list.find(x=>x.id===id):{allowed_categories:[],material_limit:0};
+  const box=document.getElementById('gMoBox');
+  const checked=c=>(s.allowed_categories||[]).includes(c)?'checked':'';
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑仓库标准':'新增仓库标准'}</h3>
+    <span onclick="renderWhModal()" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+    <div class="fg"><label>仓库名 *</label><input id="wh_name" list="wh_name_dl" value="${esc(s.warehouse||'')}" placeholder="如：电子仓库">
+      <datalist id="wh_name_dl">${(_whWarehouses||[]).map(w=>`<option value="${esc(w)}">`).join('')}</datalist></div>
+    <div class="fg"><label>存放品类（分类1，多选；不勾选=不限品类）</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;padding:6px 0">
+      ${CLASSIFICATION_OPTIONS.map(c=>`<label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" class="wh_cat" value="${esc(c)}" ${checked(c)}> ${esc(c)}</label>`).join('')}
+      </div></div>
+    <div class="gr">
+      <div class="fg"><label>物料上限（物料种类数，0=不限）</label><input id="wh_limit" type="number" value="${s.material_limit||0}"></div>
+      <div class="fg"><label>仓库负责人</label><input id="wh_manager" value="${esc(s.manager||'')}" placeholder="如：张三"></div>
+    </div>
+    <div class="fg"><label>备注</label><input id="wh_remarks" value="${esc(s.remarks||'')}"></div>
+    <div style="text-align:right;margin-top:12px">
+      <button class="btn bs" onclick="renderWhModal()">取消</button>
+      <button class="btn b2" onclick="saveWhStd(${id||0})">保存</button>
+    </div>`;
+}
+let _whWarehouses=[];
+async function saveWhStd(id){
+  const warehouse=document.getElementById('wh_name').value.trim();
+  if(!warehouse){alert('仓库名为必填');return}
+  const allowed_categories=[...document.querySelectorAll('.wh_cat:checked')].map(c=>c.value);
+  const body={
+    warehouse,
+    allowed_categories,
+    material_limit:Number(document.getElementById('wh_limit').value)||0,
+    manager:document.getElementById('wh_manager').value,
+    remarks:document.getElementById('wh_remarks').value
+  };
+  try{
+    const url=id?(WH_API+'/'+id):WH_API;
+    const method=id?'PUT':'POST';
+    const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();if(!r.ok){alert(d.error||'保存失败');return}
+    toast('仓库标准已保存');_whStdCache=null;renderWhModal();
+  }catch(e){alert('保存失败: '+e.message)}
+}
+async function delWhStd(id){
+  if(!confirm('确定删除该仓库标准？'))return;
+  try{
+    const r=await fetch(WH_API+'/'+id,{method:'DELETE'});
+    const d=await r.json();if(!r.ok){alert(d.error||'删除失败');return}
+    toast('已删除');_whStdCache=null;renderWhModal();
+  }catch(e){alert('删除失败: '+e.message)}
+}
+// 导出仓库标准（分析视图：标准 + 实际存放 + 预警），CSV 含 BOM 兼容 Excel
+async function exportWhStandards(){
+  const cs=window.csvSafe||(s=>/^[=+\-@\t\r]/.test(String(s))?"'"+s:s);
+  try{
+    const r=await fetch(WH_API+'/analysis');const d=await r.json();
+    const rows=d.data||[];
+    if(!rows.length){alert('暂无数据');return}
+    const heads=['仓库','负责人','标准品类','物料上限','实际物料数','实际品类分布','超上限','品类不符','状态','备注'];
+    let csv='\uFEFF'+heads.join(',')+'\n';
+    rows.forEach(x=>{
+      const dist=x.category_distribution.map(c=>c.category+':'+c.count).join(' / ');
+      const status=(x.over_limit?'超上限;':'')+(x.mismatched_categories.length?('品类不符:'+x.mismatched_categories.join('/')):'')+(x.has_standard?'':'未设标准')||'正常';
+      const line=[
+        x.warehouse,x.manager||'-',
+        (x.allowed_categories||[]).join('/')||'未限定',
+        x.material_limit>0?x.material_limit:'不限',
+        x.actual_material_count,
+        dist||'-',
+        x.over_limit?'是':'否',
+        x.mismatched_categories.join('/')||'无',
+        status,
+        x.remarks||''
+      ].map(v=>cs(String(v))).join(',');
+      csv+=line+'\n';
+    });
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='仓库标准_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();URL.revokeObjectURL(a.href);
+    toast('已导出 '+rows.length+' 条');
+  }catch(e){alert('导出失败: '+e.message)}
+}
+
 // 轻量 toast 提示（避免引入 chat-widget 的依赖）
 let _mToastEl=null;
 function toast(m){
@@ -565,19 +1197,26 @@ async function batchDelete(){
 
 // 批量修改：勾选需要修改的字段，仅提交勾选项，统一应用到所选物料
 const BATCH_FIELDS=[
-  ['classification','分类','select:结构类物料,电子类物料,包材类物料,附件类物料,通用物料,常用物料,定制物料,专用物料'],
+  ['classification','分类1(物理)','select:电子物料,结构物料,包材物料,附件物料'],
+  ['classification2','分类2(管理)','select:通用物料,专用物料'],
   ['material_type','物料类型','select:外购,委外加工,自制'],
   ['category','类别','text'],
+  ['specs','规格','text'],
   ['unit','单位','text'],
+  ['material_level','等级','select:常用物料,普通物料,临时物料'],
+  ['material_purpose','用途','select:产品类,设备工具类,后勤用,未分类'],
   ['supplier','供应商','text'],
-  ['status','状态','select:active,inactive'],
-  ['certificate_required','认证要求','select:0,1'],
   ['standard_cost','标准成本','number'],
   ['processing_cost','加工成本','number'],
-  ['processing_loss','加工损耗','number'],
+  ['unit_price','单价','number'],
+  ['last_outbound_date','使用时间','date'],
   ['inventory_qty','库存数量','number'],
   ['min_inventory','最小库存','number'],
   ['monthly_usage','月用量','number'],
+  ['procurement_cycle','采购周期','number'],
+  ['procurement_qty','采购数量','number'],
+  ['certificate_required','认证要求','select:0,1'],
+  ['status','状态','select:active,inactive'],
   ['remarks','备注','text']
 ];
 function openBatchEdit(){
@@ -586,11 +1225,15 @@ function openBatchEdit(){
   const box=document.getElementById('gMoBox');
   let rows=BATCH_FIELDS.map(([key,label,type])=>{
     let ctrl;
-    if(type.startsWith('select:')){
-      const opts=type.substring(7).split(',');
-      ctrl=`<select id="bf_${key}" disabled style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px">${opts.map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`;
+    // 分类字段用动态选项（与规则库/数据保持一致）
+    let effType=type;
+    if(key==='classification')effType='select:'+getClsOptions().join(',');
+    else if(key==='classification2')effType='select:'+CLASSIFICATION2_OPTIONS.join(',');
+    if(effType.startsWith('select:')){
+      const opts=effType.substring(7).split(',');
+      ctrl=`<select id="bf_${key}" disabled style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px">${opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
     }else{
-      ctrl=`<input type="${type==='number'?'number':'text'}" id="bf_${key}" disabled style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px">`;
+      ctrl=`<input type="${effType==='number'?'number':effType==='date'?'date':'text'}" id="bf_${key}" disabled style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px">`;
     }
     return `<div class="fg" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
       <label style="display:flex;align-items:center;gap:5px;width:120px;margin:0;cursor:pointer">
@@ -608,7 +1251,7 @@ async function submitBatchEdit(ids){
   const changes={};
   document.querySelectorAll('.bfChk:checked').forEach(cb=>{
     const key=cb.dataset.key;const el=document.getElementById('bf_'+key);
-    const numFields=['standard_cost','processing_cost','processing_loss','inventory_qty','min_inventory','monthly_usage'];
+    const numFields=['standard_cost','processing_cost','unit_price','inventory_qty','min_inventory','monthly_usage','procurement_cycle','procurement_qty'];
     changes[key]=numFields.includes(key)?(Number(el.value)||0):el.value;
   });
   const keys=Object.keys(changes);
@@ -647,7 +1290,8 @@ function updateSortArrows(){
 // 行内编辑：双击单元格直接修改
 const ED_NUM=['standard_cost','processing_cost','unit_price','inventory_qty','min_inventory'];
 const ED_SELECT={
-  classification:['结构类物料','电子类物料','包材类物料','附件类物料','通用物料','常用物料','定制物料','专用物料']
+  classification:CLASSIFICATION_OPTIONS,
+  classification2:CLASSIFICATION2_OPTIONS
 };
 function attachInlineEdits(){
   document.querySelectorAll('#mTb td.ed').forEach(td=>{
@@ -660,11 +1304,15 @@ function startInlineEdit(td){
   const cur=td.dataset.num!==undefined?td.dataset.num:td.textContent.trim();
   td.classList.add('ing');
   let input;
-  const opts=ED_SELECT[field];
-  if(opts){
-    input=document.createElement('select');
-    input.innerHTML=opts.map(o=>`<option value="${o}" ${o===cur?'selected':''}>${o}</option>`).join('');
-  }else{
+    const opts=ED_SELECT[field];
+    if(opts){
+      // 分类字段：合并动态选项与当前值，避免当前值不在选项内导致丢失
+      const isCls1=field==='classification';
+      const baseList=isCls1?getClsOptions():(field==='classification2'?CLASSIFICATION2_OPTIONS:opts);
+      const optList=[...new Set([...baseList,String(cur)].filter(Boolean))];
+      input=document.createElement('select');
+      input.innerHTML=optList.map(o=>`<option value="${esc(o)}" ${String(o)===String(cur)?'selected':''}>${esc(o)}</option>`).join('');
+    }else{
     input=document.createElement('input');
     input.type=ED_NUM.includes(field)?'number':'text';
     input.value=cur;
@@ -717,7 +1365,8 @@ async function openMatDtl(id){
         ${df('加工损耗',m.processing_loss||'-')}
         ${df('单价',m.unit_price?'¥'+Number(m.unit_price).toFixed(2):'-')}
         ${df('数量',m.quantity)}
-        ${df('分类',m.classification)}
+        ${df('分类1(物理)',m.classification)}
+        ${df('分类2(管理)',m.classification2||'通用物料')}
         ${df('库存数量',m.inventory_qty!=null?m.inventory_qty:'-')}
         ${df('最小库存',m.min_inventory||'-')}
         ${df('体积',m.volume?Number(m.volume)+' m³':'-')}
@@ -748,14 +1397,14 @@ function openAddMaterial(){
     ['material_purpose','用途','select:产品类,设备工具类,后勤用'],
     ['standard_cost','标准成本','number'],['processing_cost','加工成本','number'],
     ['processing_loss','加工损耗','text'],['unit_price','单价','number'],
-    ['quantity','数量','number'],['classification','分类','select:结构类物料,电子类物料,包材类物料,附件类物料'],
+    ['quantity','数量','number'],['classification','分类1(物理)','select:电子物料,结构物料,包材物料,附件物料'],['classification2','分类2(管理)','select:通用物料,专用物料'],
     ['inventory_qty','库存数量','number'],['min_inventory','最小库存','number'],
     ['volume','体积(m³)','number'],
     ['procurement_enabled','启用周期采购','select:0,1'],['procurement_cycle','采购周期(天)','number'],
     ['procurement_qty','每次采购数量','number'],['last_purchase_date','上次采购日期','date'],
     ['certificate_required','认证要求','select:0,1'],['remarks','备注','textarea']
   ];
-  openForm('新增物料',fields,{status:'active',certificate_required:'0',quantity:0,inventory_qty:0,min_inventory:0,procurement_enabled:'0',procurement_cycle:0,procurement_qty:0,volume:0,material_level:'普通物料',material_purpose:'产品类'},async(data)=>{
+  openForm('新增物料',fields,{status:'active',certificate_required:'0',quantity:0,inventory_qty:0,min_inventory:0,procurement_enabled:'0',procurement_cycle:0,procurement_qty:0,volume:0,material_level:'普通物料',material_purpose:'产品类',classification2:'通用物料'},async(data)=>{
     if(!data.material_code&&!data.material_name){alert('物料代码或名称必填');return}
     // 用后端校验找出缺失的必填字段
     try{
@@ -784,7 +1433,7 @@ async function openEditMaterial(id){
       ['material_purpose','用途','select:产品类,设备工具类,后勤用,未分类'],
       ['standard_cost','标准成本','number'],['processing_cost','加工成本','number'],
       ['processing_loss','加工损耗','text'],['unit_price','单价','number'],
-      ['quantity','数量','number'],['classification','分类','select:结构类物料,电子类物料,包材类物料,附件类物料'],
+      ['quantity','数量','number'],['classification','分类1(物理)','select:电子物料,结构物料,包材物料,附件物料'],['classification2','分类2(管理)','select:通用物料,专用物料'],
     ['inventory_qty','库存数量','number'],['min_inventory','最小库存','number'],
     ['volume','体积(m³)','number'],
     ['procurement_enabled','启用周期采购','select:0,1'],['procurement_cycle','采购周期(天)','number'],
@@ -884,12 +1533,21 @@ function openForm(title,fields,data,onSave){
   };
 }
 function renderField([key,label,type],data){
-  const val=data[key]||'';
-  if(type.startsWith('select:')){
-    const opts=type.substring(7).split(',');
-    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val==o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  // 分类字段统一走动态选项；并保证当前值始终在选项内（修复：值不在选项→丢失/被改成首项）
+  const val=data[key]==null?'':data[key];
+  let t=type;
+  if(key==='classification'){
+    const opts=[...new Set([...getClsOptions(),String(val)].filter(Boolean))];
+    t='select:'+opts.join(',');
+  }else if(key==='classification2'){
+    const opts=[...new Set([...CLASSIFICATION2_OPTIONS,String(val)].filter(Boolean))];
+    t='select:'+opts.join(',');
   }
-  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}">`;
+  if(t.startsWith('select:')){
+    const opts=t.substring(7).split(',');
+    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${esc(o)}" ${String(val)===String(o)?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
+  }
+  return `<div class="fg"><label>${label}</label><input type="${t==='number'?'number':t==='date'?'date':'text'}" id="ff_${key}" value="${esc(val)}">`;
 }
 
 async function syncInventory(){
@@ -1044,7 +1702,7 @@ async function applyAllGap(){
 }
 
 ImportDropzone.init('import-dropzone-container','materials',function(){loadMaterials(1);loadStats();});
-initSortHeaders();loadStats();loadFilterOpts();loadMaterials(1);bindDashFilters();loadIssueBadge();
+initSortHeaders();loadStats();loadFilterOpts();loadClsExtraOpts();loadWarehouses();loadMaterials(1);bindDashFilters();loadIssueBadge();
 // 错峰定时刷新（不同频率 + 随机抖动，避免同时打满后端）
 staggeredRefresh(loadIssueBadge, 60, 8);     // 每 60±8s 拉一次
 staggeredRefresh(loadStats, 45, 10);        // 每 45±10s 拉一次
