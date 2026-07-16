@@ -55,6 +55,15 @@ function parseDashboardFilters(query) {
   const invMax = query.inv_max !== undefined && query.inv_max !== '' ? Number(query.inv_max) : null;
   const priceMin = query.price_min !== undefined && query.price_min !== '' ? Number(query.price_min) : null;
   const priceMax = query.price_max !== undefined && query.price_max !== '' ? Number(query.price_max) : null;
+  const supplier = String(query.supplier || '').trim();
+  const materialCode = String(query.material_code || '').trim();
+  const warehouse = String(query.warehouse || '').trim();
+  // 仓库筛选：取该仓库下所有 material_code
+  let locCodeSet = null;
+  if (warehouse) {
+    const locs = loadLocationsFile();
+    locCodeSet = new Set(locs.filter(l => (l.wh_name || '') === warehouse || (l.wh_code || '') === warehouse).map(l => l.material_code));
+  }
   const filter = (m) => {
     if (status === 'active' && m.status === 'inactive') return false;
     if (status === 'inactive' && m.status !== 'inactive') return false;
@@ -65,9 +74,15 @@ function parseDashboardFilters(query) {
     const price = Number(m.standard_cost) || 0;
     if (priceMin !== null && price < priceMin) return false;
     if (priceMax !== null && price > priceMax) return false;
+    if (supplier && (m.supplier || '') !== supplier) return false;
+    if (materialCode) {
+      const code = (m.material_code || '');
+      if (!(code === materialCode || code.toLowerCase().includes(materialCode.toLowerCase()))) return false;
+    }
+    if (locCodeSet && !locCodeSet.has(m.material_code)) return false;
     return true;
   };
-  return { filter, meta: { status, classifications, invMin, invMax, priceMin, priceMax } };
+  return { filter, meta: { status, classifications, invMin, invMax, priceMin, priceMax, supplier, materialCode, warehouse } };
 }
 
 router.get('/', requirePerm('material:view'), (req, res) => {
@@ -432,6 +447,27 @@ function buildTrend(materials, from, to){
   }
   return { points, step, total_days: days };
 }
+
+// 仪表盘筛选选项：返回供应商/仓库的可用值
+router.get('/dashboard/filter-options', requirePerm('material:view'), (req, res) => {
+  const matTable = getTable('materials');
+  matTable._invalidate();
+  const materials = matTable.all();
+  const suppliers = new Set();
+  for (const m of materials) {
+    if (m.supplier) suppliers.add(String(m.supplier));
+  }
+  const locs = loadLocationsFile();
+  const warehouses = new Set();
+  for (const l of locs) {
+    if (l.wh_name) warehouses.add(String(l.wh_name));
+  }
+  res.json({
+    suppliers: Array.from(suppliers).sort(),
+    warehouses: Array.from(warehouses).sort(),
+    material_count: materials.length
+  });
+});
 
 router.get('/dashboard/period-stats', requirePerm('material:view'), (req, res) => {
   ensureMigration();

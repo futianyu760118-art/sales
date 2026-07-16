@@ -152,6 +152,13 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
     <label style="font-size:12px;color:#666">库存 ≤ <input type="number" id="dashInvMax" placeholder="不限" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
     <label style="font-size:12px;color:#666">价格 ≥ ¥ <input type="number" step="0.01" id="dashPriceMin" placeholder="不限" style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
     <label style="font-size:12px;color:#666">价格 ≤ ¥ <input type="number" step="0.01" id="dashPriceMax" placeholder="不限" style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
+    <select id="dashSupplier" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px" title="按供应商筛选">
+      <option value="">全部供应商</option>
+    </select>
+    <input type="text" id="dashMaterialCode" placeholder="物料代码/关键字" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:130px" title="按物料代码或关键字筛选">
+    <select id="dashWarehouse" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px" title="按仓库筛选（依据外部库存库位）">
+      <option value="">全部仓库</option>
+    </select>
     <span style="margin-left:auto;font-size:12px;color:#667eea">📅</span>
     <label style="font-size:12px;color:#666">起 <input type="date" id="periodFrom" style="padding:4px;border:1px solid #ddd;border-radius:4px"></label>
     <label style="font-size:12px;color:#666">止 <input type="date" id="periodTo" style="padding:4px;border:1px solid #ddd;border-radius:4px"></label>
@@ -317,12 +324,18 @@ function buildDashQuery(extra){
   const invMax=document.getElementById('dashInvMax').value;
   const priceMin=document.getElementById('dashPriceMin').value;
   const priceMax=document.getElementById('dashPriceMax').value;
+  const supplier=document.getElementById('dashSupplier')?document.getElementById('dashSupplier').value:'';
+  const materialCode=document.getElementById('dashMaterialCode')?document.getElementById('dashMaterialCode').value.trim():'';
+  const warehouse=document.getElementById('dashWarehouse')?document.getElementById('dashWarehouse').value:'';
   if(status)p.set('status',status);
   if(cls)p.set('classifications',cls);
   if(invMin!=='')p.set('inv_min',invMin);
   if(invMax!=='')p.set('inv_max',invMax);
   if(priceMin!=='')p.set('price_min',priceMin);
   if(priceMax!=='')p.set('price_max',priceMax);
+  if(supplier)p.set('supplier',supplier);
+  if(materialCode)p.set('material_code',materialCode);
+  if(warehouse)p.set('warehouse',warehouse);
   if(extra){for(const[k,v]of Object.entries(extra))if(v!==''&&v!=null)p.set(k,v);}
   return p.toString();
 }
@@ -331,8 +344,24 @@ function scheduleDashRefresh(){
   clearTimeout(dashTimer);
   dashTimer=setTimeout(()=>{loadStats();loadPeriodStats();},250);
 }
+let dashFilterOptions=null;
+async function loadDashFilterOptions(){
+  try{
+    const r=await fetch(API+'/dashboard/filter-options');
+    const d=await r.json();
+    dashFilterOptions=d;
+    const supSel=document.getElementById('dashSupplier');
+    if(supSel){
+      supSel.innerHTML='<option value="">全部供应商</option>'+d.suppliers.map(s=>'<option value="'+s.replace(/"/g,'&quot;')+'">'+s+'</option>').join('');
+    }
+    const whSel=document.getElementById('dashWarehouse');
+    if(whSel){
+      whSel.innerHTML='<option value="">全部仓库</option>'+d.warehouses.map(w=>'<option value="'+w.replace(/"/g,'&quot;')+'">'+w+'</option>').join('');
+    }
+  }catch(e){console.error('load filter options',e.message)}
+}
 function bindDashFilters(){
-  ['dashStatus','dashClass','dashInvMin','dashInvMax','dashPriceMin','dashPriceMax','periodFrom','periodTo'].forEach(id=>{
+  ['dashStatus','dashClass','dashInvMin','dashInvMax','dashPriceMin','dashPriceMax','dashSupplier','dashMaterialCode','dashWarehouse','periodFrom','periodTo'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el||el.dataset.bound)return;
     el.dataset.bound='1';
@@ -383,10 +412,11 @@ function fmtQty(n){
 function renderInvAnalysis(d){
   const box=document.getElementById('mInvAnalysis');if(!box)return;
   const totalQty=Number(d.inventory_total_qty)||0;
-  if(totalQty<=0){box.innerHTML='<div class="dash-card"><h4>📊 库存总数量分析</h4><div class="em">暂无库存数量数据</div></div>';return}
-  // 按分类聚合（降序），构造饼图与图例
+  const totalVal=Number(d.inventory_total_value)||0;
+  if(totalQty<=0){box.innerHTML='<div class="dash-card"><h4>📊 库存物料总数量分析</h4><div class="em">暂无库存数量数据</div></div>';return}
+  const invValMap=d.inventory_value_by_classification||{};
   const entries=Object.entries(d.inventory_by_classification||{})
-    .map(([k,v])=>[k||'未分类',Number(v)||0]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+    .map(([k,v])=>[k||'未分类',Number(v)||0,Number(invValMap[k])||0]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
   const pieTotal=entries.reduce((s,x)=>s+x[1],0)||1;
   let acc=0;const stops=[];
   entries.forEach(([k,v],i)=>{
@@ -394,13 +424,13 @@ function renderInvAnalysis(d){
     stops.push(`${INV_COLORS[i%INV_COLORS.length]} ${start}deg ${end}deg`);acc+=v;
   });
   const donutCss=stops.length?`conic-gradient(${stops.join(',')})`:'#eee';
-  const legend=entries.slice(0,8).map(([k,v],i)=>`<div class="row">
+  const legend=entries.slice(0,8).map(([k,v,val],i)=>`<div class="row">
       <span class="dot" style="background:${INV_COLORS[i%INV_COLORS.length]}"></span>
       <span class="name" title="${esc(k)}">${esc(k)}</span>
       <span class="qty">${fmtQty(v)}</span>
+      <span class="val" style="color:#16a085">¥${fmtQty(val)}</span>
       <span class="pct">${(v/pieTotal*100).toFixed(1)}%</span>
     </div>`).join('');
-  // TOP 物料条形图
   const items=(d.top_inventory_items||[]).filter(x=>Number(x.inventory_qty)>0);
   const maxQ=Math.max(1,...items.map(x=>Number(x.inventory_qty)||0));
   const colors=INV_COLORS;
@@ -408,13 +438,15 @@ function renderInvAnalysis(d){
     const pct=Math.round((Number(m.inventory_qty)||0)/maxQ*100);
     const c=colors[i%colors.length];
     const name=(m.material_name||m.material_code||'').substring(0,16);
+    const iv=Number(m.inventory_value)||0;
     return `<div class="hbar"><span class="lb" title="${esc(m.material_name)}">${esc(name)}</span>
       <div class="track"><div class="fill" style="width:${pct}%;background:${c}"></div></div>
-      <span class="val">${fmtQty(m.inventory_qty)}${esc(m.unit||'')}</span></div>`;
+      <span class="val">${fmtQty(m.inventory_qty)}${esc(m.unit||'')}</span>
+      <span class="val" style="min-width:80px;text-align:right;color:#16a085;font-size:12px" title="库存总值">¥${fmtQty(iv)}</span></div>`;
   }).join('')||'<div class="em">暂无</div>';
   box.innerHTML=`
     <div class="inv-col-head">📊 库存物料总数量分析</div>
-    <div class="inv-total"><div class="n">${fmtQty(totalQty)}</div><div class="l">库存总数量 · 共 ${d.in_stock||0} 种物料有库存</div></div>
+    <div class="inv-total"><div class="n">${fmtQty(totalQty)}</div><div class="l">库存总数量 · 共 ${d.in_stock||0} 种物料有库存 · 总值 ¥${fmtQty(totalVal)}</div></div>
     <div class="inv-grid">
       <div class="dash-card">
         <div class="inv-sub-title">按分类分布</div>
@@ -422,7 +454,7 @@ function renderInvAnalysis(d){
           <div class="donut" style="background:${donutCss}">
             <div class="donut-center"><div class="v">${fmtQty(totalQty)}</div><div class="s">总数量</div></div>
           </div>
-          <div class="inv-legend">${legend}</div>
+          <div class="inv-legend" style="max-height:340px;overflow-y:auto">${legend}</div>
         </div>
       </div>
       <div class="dash-card">
@@ -1763,7 +1795,7 @@ async function applyAllGap(){
 }
 
 ImportDropzone.init('import-dropzone-container','materials',function(){loadMaterials(1);loadStats();});
-initSortHeaders();loadStats();loadFilterOpts();loadClsExtraOpts();loadWarehouses();loadMaterials(1);bindDashFilters();loadIssueBadge();
+initSortHeaders();loadStats();loadFilterOpts();loadClsExtraOpts();loadWarehouses();loadMaterials(1);bindDashFilters();loadIssueBadge();loadDashFilterOptions();
 // 错峰定时刷新（不同频率 + 随机抖动，避免同时打满后端）
 staggeredRefresh(loadIssueBadge, 60, 8);     // 每 60±8s 拉一次
 staggeredRefresh(loadStats, 45, 10);        // 每 45±10s 拉一次
