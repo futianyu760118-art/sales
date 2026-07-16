@@ -259,6 +259,12 @@ let mPage=1;
 // 分类2（classification2 管理属性）：通用/专用，按自制/外购自动识别
 const CLASSIFICATION_OPTIONS=['电子物料','结构物料','包材物料','附件物料'];
 const CLASSIFICATION2_OPTIONS=['通用物料','专用物料'];
+// 物料类型：标准项 + 数据现有值动态补充（数据里实际有 包材/光电类/光源/支架 等 18+ 种）
+const MATERIAL_TYPE_OPTIONS=['外购','委外加工','自制','未分类'];
+let _mtExtraOpts=[];
+function getMtOptions(){
+  return [...new Set([...MATERIAL_TYPE_OPTIONS,...(_mtExtraOpts||[])])];
+}
 let _clsExtraOpts=[]; // 由规则库 result_category 与数据现有值动态补充（分类1）
 function getClsOptions(){
   const extra=(_clsExtraOpts||[]).slice();
@@ -504,6 +510,10 @@ async function loadFilterOpts(){
       _clsExtraOpts=[...new Set([...(_clsExtraOpts||[]),...d.classifications])];
       syncClsDropdowns();
     }
+    // 物料类型：并入数据现有值（包材/光电类/光源 等）
+    if(Array.isArray(d.material_types)){
+      _mtExtraOpts=[...new Set([...MATERIAL_TYPE_OPTIONS,...(d.material_types||[])])];
+    }
   }catch(e){}
 }
 // 加载库位(仓库)筛选下拉
@@ -562,7 +572,7 @@ async function loadMaterials(page){
       <td class="ed" data-edit="unit_price" data-mid="${m.id}" data-num="${Number(m.unit_price)||0}">${m.unit_price?'¥'+Number(m.unit_price).toFixed(2):'-'}</td>
       <td style="font-size:11px;color:#888;white-space:nowrap">${esc((m.last_outbound_date||'').substring(0,10))||'<span style="color:#bbb">—</span>'}</td>
       <td class="ed" data-edit="inventory_qty" data-mid="${m.id}" data-num="${m.inventory_qty||0}" style="color:${invLow?'#e74c3c':'#333'};font-weight:600">${m.inventory_qty||0}</td>
-      <td style="font-weight:600;color:#16a085">${((Number(m.inventory_qty)||0)*(Number(m.standard_cost)||0))>0?'¥'+((Number(m.inventory_qty)||0)*(Number(m.standard_cost)||0)).toLocaleString(undefined,{maximumFractionDigits:2}):'-'}</td>
+      <td style="font-weight:600;color:#16a085">${((Number(m.inventory_qty)||0)*(Number(m.unit_price)||0))>0?'¥'+((Number(m.inventory_qty)||0)*(Number(m.unit_price)||0)).toLocaleString(undefined,{maximumFractionDigits:2}):'-'}</td>
       <td class="ed" data-edit="min_inventory" data-mid="${m.id}" data-num="${m.min_inventory||0}">${m.min_inventory||0}</td>
       <td>${procOn?`<span class="proc-badge">${(m.procurement_cycle||0)+'天'}</span>`:'<span class="proc-off proc-badge">未启用</span>'}</td>
       <td>${procOn?(m.procurement_qty||0):'-'}</td>
@@ -1229,6 +1239,7 @@ function openBatchEdit(){
     let effType=type;
     if(key==='classification')effType='select:'+getClsOptions().join(',');
     else if(key==='classification2')effType='select:'+CLASSIFICATION2_OPTIONS.join(',');
+    else if(key==='material_type')effType='select:'+getMtOptions().join(',');
     if(effType.startsWith('select:')){
       const opts=effType.substring(7).split(',');
       ctrl=`<select id="bf_${key}" disabled style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px">${opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
@@ -1291,7 +1302,8 @@ function updateSortArrows(){
 const ED_NUM=['standard_cost','processing_cost','unit_price','inventory_qty','min_inventory'];
 const ED_SELECT={
   classification:CLASSIFICATION_OPTIONS,
-  classification2:CLASSIFICATION2_OPTIONS
+  classification2:CLASSIFICATION2_OPTIONS,
+  material_type:MATERIAL_TYPE_OPTIONS
 };
 function attachInlineEdits(){
   document.querySelectorAll('#mTb td.ed').forEach(td=>{
@@ -1308,7 +1320,7 @@ function startInlineEdit(td){
     if(opts){
       // 分类字段：合并动态选项与当前值，避免当前值不在选项内导致丢失
       const isCls1=field==='classification';
-      const baseList=isCls1?getClsOptions():(field==='classification2'?CLASSIFICATION2_OPTIONS:opts);
+      const baseList=isCls1?getClsOptions():(field==='classification2'?CLASSIFICATION2_OPTIONS:(field==='material_type'?getMtOptions():opts));
       const optList=[...new Set([...baseList,String(cur)].filter(Boolean))];
       input=document.createElement('select');
       input.innerHTML=optList.map(o=>`<option value="${esc(o)}" ${String(o)===String(cur)?'selected':''}>${esc(o)}</option>`).join('');
@@ -1541,6 +1553,9 @@ function renderField([key,label,type],data){
     t='select:'+opts.join(',');
   }else if(key==='classification2'){
     const opts=[...new Set([...CLASSIFICATION2_OPTIONS,String(val)].filter(Boolean))];
+    t='select:'+opts.join(',');
+  }else if(key==='material_type'){
+    const opts=[...new Set([...getMtOptions(),String(val)].filter(Boolean))];
     t='select:'+opts.join(',');
   }
   if(t.startsWith('select:')){
