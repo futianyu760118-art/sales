@@ -76,8 +76,13 @@ function parseDashboardFilters(query) {
     if (priceMax !== null && price > priceMax) return false;
     if (supplier && (m.supplier || '') !== supplier) return false;
     if (materialCode) {
-      const code = (m.material_code || '');
-      if (!(code === materialCode || code.toLowerCase().includes(materialCode.toLowerCase()))) return false;
+      // 模糊查询：匹配 物料代码 / 物料名称 / 规格 / 类型 / 供应商 / 类别 / 分类1 / 分类2 任一字段
+      const kw = materialCode.toLowerCase();
+      const candidates = [
+        m.material_code, m.material_name, m.specs, m.material_type,
+        m.supplier, m.category, m.classification, m.classification2
+      ].filter(Boolean).map(s => String(s).toLowerCase());
+      if (!candidates.some(s => s.includes(kw))) return false;
     }
     if (locCodeSet && !locCodeSet.has(m.material_code)) return false;
     return true;
@@ -128,6 +133,21 @@ router.get('/', requirePerm('material:view'), (req, res) => {
   const allowedSortFields = ['id', 'material_code', 'material_name', 'category', 'standard_cost', 'processing_cost', 'processing_loss', 'inventory_qty', 'inventory_value', 'min_inventory', 'monthly_usage', 'unit_price', 'supplier', 'bom_usage_count', 'status', 'classification', 'procurement_enabled', 'procurement_cycle', 'procurement_qty', 'last_purchase_date', 'next_purchase_date', 'created_at', 'material_level', 'material_purpose', 'classification2'];
   const orderBy = allowedSortFields.includes(sort_by) ? sort_by : 'id';
   const orderDir = (sort_order && sort_order.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
+  // 库存总值为派生字段（qty × 单价），需特殊排序：先 filter 再自定义排序
+  if (orderBy === 'inventory_value') {
+    let records = table.all().filter(filter);
+    records.sort((a, b) => {
+      const va = (Number(a.inventory_qty) || 0) * (Number(a.standard_cost) || Number(a.unit_price) || 0);
+      const vb = (Number(b.inventory_qty) || 0) * (Number(b.standard_cost) || Number(b.unit_price) || 0);
+      return orderDir === 'DESC' ? vb - va : va - vb;
+    });
+    const total = records.length;
+    const lim = parseInt(limit);
+    const off = (parseInt(page) - 1) * lim;
+    records = records.slice(off, off + lim);
+    res.json({ data: records, total, page: parseInt(page), limit: parseInt(limit), sort_by: orderBy, sort_order: orderDir });
+    return;
+  }
   const { records, total } = table.findWhere(filter, orderBy, orderDir, parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
   res.json({ data: records, total, page: parseInt(page), limit: parseInt(limit), sort_by: orderBy, sort_order: orderDir });
 });
@@ -167,7 +187,9 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
   let lowInventoryCount = 0;
   let inStockCount = 0;
   let inventoryTotalQty = 0;
+  let inventoryTotalValue = 0;
   const inventoryByClassification = {};
+  const inventoryValueByClassification = {};
   const inventoryByClassification2 = {};
   const lowInventoryItems = [];
 
@@ -184,7 +206,11 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     const qty = Number(m.inventory_qty) || 0;
     if (qty > 0) inStockCount++;
     inventoryTotalQty += qty;
+    const cost = Number(m.standard_cost) || Number(m.unit_price) || 0;
+    const invVal = qty * cost;
+    inventoryTotalValue += invVal;
     if (cls) inventoryByClassification[cls] = (inventoryByClassification[cls] || 0) + qty;
+    if (cls) inventoryValueByClassification[cls] = (inventoryValueByClassification[cls] || 0) + invVal;
     inventoryByClassification2[cls2] = (inventoryByClassification2[cls2] || 0) + qty;
     if (m.min_inventory > 0 && (m.inventory_qty || 0) <= m.min_inventory) {
       lowInventoryCount++;
@@ -211,7 +237,7 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     .filter(m => Number(m.inventory_qty) > 0)
     .sort((a, b) => (Number(b.inventory_qty) || 0) - (Number(a.inventory_qty) || 0))
     .slice(0, 10)
-    .map(m => ({ material_code: m.material_code, material_name: m.material_name, inventory_qty: Number(m.inventory_qty) || 0, classification: m.classification || '通用物料', unit: m.unit || '' }));
+    .map(m => ({ material_code: m.material_code, material_name: m.material_name, inventory_qty: Number(m.inventory_qty) || 0, classification: m.classification || '通用物料', unit: m.unit || '', inventory_value: (Number(m.inventory_qty)||0) * (Number(m.standard_cost) || Number(m.unit_price) || 0) }));
 
   const monthlyPurchaseSuggestion = materials
     .filter(m => m.monthly_usage > 0)
@@ -272,7 +298,9 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     total: totalMaterials,
     in_stock: inStockCount,
     inventory_total_qty: inventoryTotalQty,
+    inventory_total_value: Math.round(inventoryTotalValue * 100) / 100,
     inventory_by_classification: inventoryByClassification,
+    inventory_value_by_classification: Object.fromEntries(Object.entries(inventoryValueByClassification).map(([k,v])=>[k,Math.round(v*100)/100])),
     inventory_by_classification2: inventoryByClassification2,
     top_inventory_items: topInventoryItems,
     active: (byStatus.active || 0) + (byStatus.normal || 0),
