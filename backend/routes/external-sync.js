@@ -13,29 +13,54 @@ const DEFAULT_CONFIG = {
   timeout: 30000
 };
 
-function loadConfig() {
-  try {
-    const t = getTable('system_settings');
-    const row = t.all().find(r => r.key === 'external_sync_config');
-    if (row && row.value) {
-      const saved = JSON.parse(row.value);
-      return Object.assign({}, DEFAULT_CONFIG, saved);
-    }
-  } catch (e) { /* ignore */ }
-  return Object.assign({}, DEFAULT_CONFIG);
-}
-
-function saveConfig(patch) {
+// ===== 多环境预设：可保存多套 API 配置并选择激活的那一套 =====
+function _readSettingsRow() {
   const t = getTable('system_settings');
-  const merged = Object.assign({}, loadConfig(), patch);
-  const val = JSON.stringify(merged);
+  const row = t.all().find(r => r.key === 'external_sync_config');
+  if (row && row.value) { try { return JSON.parse(row.value); } catch (e) { return null; } }
+  return null;
+}
+function _writeSettingsRow(obj) {
+  const t = getTable('system_settings');
+  const val = JSON.stringify(obj);
   const existing = t.all().find(r => r.key === 'external_sync_config');
-  if (existing) {
-    t.update(existing.id, { value: val, updated_at: now() });
-  } else {
-    t.insert({ key: 'external_sync_config', value: val, created_at: now(), updated_at: now() });
-  }
+  if (existing) t.update(existing.id, { value: val, updated_at: now() });
+  else t.insert({ key: 'external_sync_config', value: val, created_at: now(), updated_at: now() });
   t._invalidate();
+}
+function newId() { return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// 读取预设集（不存在时初始化；兼容旧扁平结构）
+function getPresets() {
+  let raw = _readSettingsRow();
+  if (!raw) {
+    raw = { presets: [Object.assign({ id: newId(), name: '默认环境' }, DEFAULT_CONFIG)], activeId: null };
+    raw.activeId = raw.presets[0].id;
+    _writeSettingsRow(raw);
+    return raw;
+  }
+  if (!raw.presets) {
+    // 迁移旧扁平结构 → 单个预设
+    const id = newId();
+    raw = { presets: [Object.assign({ id, name: '默认环境' }, raw)], activeId: id };
+    _writeSettingsRow(raw);
+  }
+  return raw;
+}
+// 同步代码统一入口：返回当前激活预设（与 DEFAULT_CONFIG 合并）
+function loadConfig() {
+  const raw = getPresets();
+  const active = raw.presets.find(p => p.id === raw.activeId) || raw.presets[0];
+  return Object.assign({}, DEFAULT_CONFIG, active || {});
+}
+// 保存配置 = 更新当前激活预设
+function saveConfig(patch) {
+  const raw = getPresets();
+  const idx = raw.presets.findIndex(p => p.id === raw.activeId);
+  if (idx >= 0) {
+    raw.presets[idx] = Object.assign({}, raw.presets[idx], patch);
+    _writeSettingsRow(raw);
+  }
 }
 
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
@@ -131,6 +156,72 @@ router.post('/config', requirePerm('system:config'), (req, res) => {
   res.json({ message: '外部同步设置已保存' });
 });
 
+// ===== 多环境预设管理：可保存多套 API 配置并选择激活 =====
+// 预设列表（appSecret 脱敏）+ 激活ID
+router.get('/config/presets', requirePerm('system:config'), (req, res) => {
+  const raw = getPresets();
+  const presets = raw.presets.map(p => ({
+    id: p.id, name: p.name || '未命名',
+    baseUrl: p.baseUrl || '', appKey: p.appKey || '',
+    appSecret: p.appSecret ? '••••••' + String(p.appSecret).slice(-4) : '',
+    appSecretSet: !!p.appSecret,
+    timeout: p.timeout || DEFAULT_CONFIG.timeout
+  }));
+  res.json({ presets, activeId: raw.activeId });
+});
+
+// 新增预设
+router.post('/config/presets', requirePerm('system:config'), (req, res) => {
+  const { name, baseUrl, appKey, appSecret, timeout, activate } = req.body;
+  const raw = getPresets();
+  const id = newId();
+  const preset = {
+    id, name: String(name || '新环境').trim(),
+    baseUrl: String(baseUrl || '').trim(),
+    appKey: String(appKey || '').trim(),
+    timeout: Number(timeout) || DEFAULT_CONFIG.timeout
+  };
+  if (appSecret && !String(appSecret).startsWith('•••')) preset.appSecret = String(appSecret).trim();
+  raw.presets.push(preset);
+  if (activate) raw.activeId = id;
+  _writeSettingsRow(raw);
+  res.json({ message: '环境已创建', id, activeId: raw.activeId });
+});
+
+// 更新预设
+router.put('/config/presets/:id', requirePerm('system:config'), (req, res) => {
+  const raw = getPresets();
+  const p = raw.presets.find(x => x.id === req.params.id);
+  if (!p) return res.status(404).json({ error: '环境不存在' });
+  ['name', 'baseUrl', 'appKey'].forEach(f => { if (req.body[f] !== undefined) p[f] = String(req.body[f]).trim(); });
+  if (req.body.appSecret !== undefined && req.body.appSecret !== '' && !String(req.body.appSecret).startsWith('•••')) {
+    p.appSecret = String(req.body.appSecret).trim();
+  }
+  if (req.body.timeout !== undefined) p.timeout = Number(req.body.timeout) || DEFAULT_CONFIG.timeout;
+  _writeSettingsRow(raw);
+  res.json({ message: '环境已更新' });
+});
+
+// 删除预设（不允许删除激活项或最后一项）
+router.delete('/config/presets/:id', requirePerm('system:config'), (req, res) => {
+  const raw = getPresets();
+  if (raw.presets.length <= 1) return res.status(400).json({ error: '至少保留一个环境' });
+  if (raw.activeId === req.params.id) return res.status(400).json({ error: '不能删除当前激活环境，请先切换' });
+  raw.presets = raw.presets.filter(x => x.id !== req.params.id);
+  _writeSettingsRow(raw);
+  res.json({ message: '环境已删除' });
+});
+
+// 选择激活预设
+router.post('/config/active', requirePerm('system:config'), (req, res) => {
+  const raw = getPresets();
+  const id = req.body.id;
+  if (!raw.presets.some(x => x.id === id)) return res.status(404).json({ error: '环境不存在' });
+  raw.activeId = id;
+  _writeSettingsRow(raw);
+  res.json({ message: '已切换激活环境', activeId: id });
+});
+
 // 拉取外部库存明细并按物料代码汇总在手/可用数量（inventory.list）
 // 同时返回明细行（每条：物料×仓库×库位×批次）供持久化到 material_locations.json
 async function fetchInventoryAggregate() {
@@ -213,11 +304,13 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
         specs: item.spec_model || item.specification || item.specs || '',
         material_type: item.material_type || item.type || '',
         unit: item.unit_of_measure || item.unit || item.uom || '',
-        unit_price: Number(item.unit_price || item.price || 0),
+        unit_price: Number(item.order_unit_price || item.unit_price || item.price || 0),
         standard_cost: Number(item.standard_cost || item.cost || 0),
         supplier: item.brand || item.supplier_name || item.supplier || '',
         status: item.status === 1 ? 'active' : (item.status === 0 ? 'inactive' : (item.status || 'active')),
-        classification: item.classification || '通用物料',
+        classification: item.classification || '',
+        classification2: (/自制|委外/.test(item.material_type || item.type || '')) ? '专用物料' : '通用物料',
+        last_outbound_date: item.last_outbound_date || '',
         updated_at: now()
       };
       // 库存：优先取库存明细汇总（现有库存量），其次物料接口自带字段
@@ -231,7 +324,29 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
       }
       if (item.stock_qty !== undefined || item.quantity !== undefined) mapped.quantity = Number(item.stock_qty || item.quantity || 0);
       if (item.safety_stock !== undefined || item.min_inventory !== undefined) mapped.min_inventory = Number(item.safety_stock || item.min_inventory || 0);
-      if (existing) { Object.assign(existing, mapped); updated++; }
+      if (existing) {
+        // 已存在的物料：外部API没有返回的字段（category/classification/classification2）不要覆盖手动修改值
+        // 只更新外部API确实有值的字段
+        const updateFields = { updated_at: now() };
+        if (item.material_name) updateFields.material_name = mapped.material_name;
+        if (item.spec_model || item.specification) updateFields.specs = mapped.specs;
+        if (item.unit_of_measure || item.unit) updateFields.unit = mapped.unit;
+        if (item.material_type) updateFields.material_type = mapped.material_type;
+        if (item.brand) updateFields.supplier = mapped.supplier;
+        updateFields.status = mapped.status;
+        if (mapped.unit_price) updateFields.unit_price = mapped.unit_price;
+        // category / classification / classification2 仅在外部API有明确值时才覆盖
+        if (item.material_category || item.category) updateFields.category = mapped.category;
+        if (item.classification) updateFields.classification = mapped.classification;
+        if (item.classification2) updateFields.classification2 = mapped.classification2;
+        // 库存
+        if (mapped.inventory_qty !== undefined) updateFields.inventory_qty = mapped.inventory_qty;
+        if (mapped.available_qty !== undefined) updateFields.available_qty = mapped.available_qty;
+        if (mapped.quantity !== undefined) updateFields.quantity = mapped.quantity;
+        if (mapped.last_outbound_date !== undefined) updateFields.last_outbound_date = mapped.last_outbound_date;
+        Object.assign(existing, updateFields);
+        updated++;
+      }
       else {
         // 新建时补齐默认值（未匹配库存则默认0）
         if (mapped.inventory_qty === undefined) mapped.inventory_qty = 0;
