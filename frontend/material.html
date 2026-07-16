@@ -199,12 +199,13 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <button class="btn b2 bs" onclick="batchSetStatus('active')" data-perm="material:edit">批量启用</button>
 <button class="btn b4 bs" onclick="batchSetStatus('inactive')" data-perm="material:edit">批量禁用</button>
 <button class="btn b3 bs" onclick="batchDelete()" data-perm="material:delete">批量删除</button>
-<button class="btn bs" style="background:#eee;color:#666" onclick="clearMatSel()">取消选择</button>
+  <button class="btn bs" style="background:#eee;color:#666" onclick="clearMatSel()">取消选择</button>
 </div>
+<div id="selAnalysis" style="display:none;margin-top:8px"></div>
 <div class="tbl-wrap">
 <table id="matTable"><thead><tr>
 <th style="width:28px;text-align:center"><input type="checkbox" id="mChkAll" onclick="toggleMatAll(this)" title="全选当页"></th>
-<th class="sortable" data-sort="material_code">物料代码</th><th class="sortable" data-sort="material_name">物料名称</th><th>类别</th><th>规格</th><th class="sortable" data-sort="classification">分类1</th><th class="sortable" data-sort="classification2">分类2</th><th>单位</th><th>类型</th><th style="width:78px">等级</th><th style="width:90px">用途</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>出入库时间<span class="ex-tag" title="外部库存最近更新时间">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价<span class="ex-tag" title="取同步的订货单价 order_unit_price">外</span></th><th class="sortable" data-sort="last_outbound_date">使用时间<span class="ex-tag" title="取同步的最后出货时间 last_outbound_date">外</span></th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th>库存总值</th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
+<th class="sortable" data-sort="material_code">物料代码<span class="ex-tag" title="从外部 API 同步">外</span></th><th class="sortable" data-sort="material_name">物料名称<span class="ex-tag" title="从外部 API 同步">外</span></th><th>类别<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="外部API偶尔返回；缺失时不会覆盖手动值（仅外部有值时同步）">外</span></th><th>规格<span class="ex-tag" title="从外部 API 同步">外</span></th><th class="sortable" data-sort="classification">分类1<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="⚠️ 外部API不返回此字段，仅手动维护">仅手动</span></th><th class="sortable" data-sort="classification2">分类2<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="⚠️ 外部API不返回此字段，仅手动维护">仅手动</span></th><th>单位<span class="ex-tag" title="从外部 API 同步">外</span></th><th>类型<span class="ex-tag" title="从外部 API 同步">外</span></th><th style="width:78px">等级</th><th style="width:90px">用途</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>出入库时间<span class="ex-tag" title="外部库存最近更新时间">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价<span class="ex-tag" title="取同步的订货单价 order_unit_price">外</span></th><th class="sortable" data-sort="last_outbound_date">使用时间<span class="ex-tag" title="取同步的最后出货时间 last_outbound_date">外</span></th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th>库存总值</th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
 </tr></thead><tbody id="mTb"><tr><td colspan="27" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="mPg" style="margin-top:12px;text-align:center"></div>
@@ -1182,6 +1183,51 @@ function updateMatSel(){
   const boxes=document.querySelectorAll('#mTb .mChk');
   const all=document.getElementById('mChkAll');
   if(all)all.checked=boxes.length>0&&[...boxes].every(c=>c.checked);
+  scheduleSelAnalysis();
+}
+// 选中物料即时分析（防抖，避免连续勾选时频繁请求）
+let _selAnalysisTimer=null;
+function scheduleSelAnalysis(){
+  clearTimeout(_selAnalysisTimer);
+  const box=document.getElementById('selAnalysis');
+  if(!matSel.size){if(box)box.style.display='none';return}
+  _selAnalysisTimer=setTimeout(runSelAnalysis,300);
+}
+async function runSelAnalysis(){
+  const box=document.getElementById('selAnalysis');if(!box)return;
+  const ids=[...matSel];
+  box.style.display='block';
+  box.innerHTML='<div style="background:#f8f9ff;border:1px solid #d0d7ff;border-radius:6px;padding:10px;font-size:12px;color:#888">📊 即时分析中…</div>';
+  try{
+    const r=await fetch(API+'/selection-analysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    const d=await r.json();
+    if(!r.ok){box.innerHTML='<div class="em">分析失败</div>';return}
+    if(!d.count){box.style.display='none';return}
+    const COLORS=['#667eea','#16a085','#e67e22','#9b59b6','#e74c3c','#3498db','#1abc9c','#f39c12'];
+    const barRow=(items,max)=>items.map((it,i)=>`<div class="hbar"><span class="lb">${esc(it.name)}</span><div class="track"><div class="fill" style="width:${Math.round((it.count/max)*100)}%;background:${COLORS[i%COLORS.length]}"></div></div><span class="val">${it.count}</span></div>`).join('');
+    const maxC=Math.max(1,...(d.by_classification||[]).map(x=>x.count));
+    const maxT=Math.max(1,...(d.by_material_type||[]).map(x=>x.count));
+    const cls2=(d.by_classification2||[]).map(x=>`${esc(x.name)} ${x.count}`).join(' · ');
+    box.innerHTML=`
+      <div style="background:#fff;border:1px solid #e8ebf7;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <b style="color:#555;font-size:13px">📊 选中物料即时分析</b>
+          <span style="font-size:11px;color:#999">已选 ${d.count} 项 · 实时</span>
+        </div>
+        <div class="sg" style="margin-bottom:10px">
+          <div class="sc"><div class="n">${d.count}</div><div class="l">选中物料</div></div>
+          <div class="sc"><div class="n" style="color:#16a085">${d.with_stock||0}</div><div class="l">有库存</div></div>
+          <div class="sc"><div class="n" style="color:#667eea">${(d.total_qty||0).toLocaleString()}</div><div class="l">库存总数量</div></div>
+          <div class="sc"><div class="n" style="color:#e67e22">¥${(d.total_value||0).toLocaleString()}</div><div class="l">库存总值</div></div>
+          <div class="sc"><div class="n" style="color:#9b59b6">¥${(d.avg_cost||0).toFixed(2)}</div><div class="l">平均成本</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div><div class="inv-sub-title">分类1 分布</div><div class="hbar-list">${barRow(d.by_classification||[],maxC)}</div></div>
+          <div><div class="inv-sub-title">物料类型 TOP</div><div class="hbar-list">${barRow(d.by_material_type||[],maxT)}</div></div>
+        </div>
+        <div style="font-size:12px;color:#666;margin-top:8px">分类2：${cls2||'-'} · 状态：启用 ${d.by_status.active} / 禁用 ${d.by_status.inactive}</div>
+      </div>`;
+  }catch(e){box.innerHTML='<div class="em">分析失败: '+esc(e.message)+'</div>'}
 }
 async function batchSetStatus(status){
   const ids=[...matSel];
