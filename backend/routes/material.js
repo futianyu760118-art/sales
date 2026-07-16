@@ -221,7 +221,7 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
   const procurementDueItems = [];
   materials.forEach(m => {
     const inv = Number(m.inventory_qty) || 0;
-    procurementInventoryValue += inv * (Number(m.standard_cost) || 0);
+    procurementInventoryValue += inv * (Number(m.unit_price) || 0);
     if (Number(m.procurement_enabled) === 1) {
       procurementEnabledCount++;
       const next = m.next_purchase_date || computeNextPurchaseDate(m);
@@ -351,7 +351,7 @@ function snapshotAt(materials, asOf) {
     const cat = m.category || '未分类';
     byCategory[cat] = (byCategory[cat] || 0) + 1;
     const inv = Number(m.inventory_qty) || 0;
-    const cost = Number(m.standard_cost) || 0;
+    const cost = Number(m.unit_price) || 0;
     inventoryValue += inv * cost;
     if ((Number(m.min_inventory) || 0) > 0 && inv <= Number(m.min_inventory)) lowStock++;
     if (Number(m.procurement_enabled) === 1) {
