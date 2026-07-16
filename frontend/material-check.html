@@ -58,7 +58,9 @@ tr.resolved td{opacity:.55}
 <div style="display:flex;gap:8px">
 <button class="btn b4" onclick="previewCheck()">👁 试运行（不写库）</button>
 <button class="btn b2" onclick="runCheck()">▶ 运行自检</button>
+<button class="btn" style="background:#2ecc71;color:#fff" onclick="smartFixAll()">🔧 智能修复</button>
 <button class="btn b1" onclick="loadIssues()">刷新</button>
+<button class="btn" style="background:#8e44ad;color:#fff" onclick="openRuleEditor()">⚙ 标准配置</button>
 <a class="btn bs" href="material.html" style="background:#e8ebf7;color:#444;text-decoration:none">返回物料库</a>
 </div>
 </div>
@@ -205,16 +207,35 @@ async function loadStats(){
     const bs=d.byStatus||{},sv=d.bySeverity||{};
     const total=d.total||0;
     const open=bs.open||0,in_progress=bs.in_progress||0,resolved=bs.resolved||0;
-    document.getElementById('statsGrid').innerHTML=[
-      `<div class="stat-card ok"><div class="stat-num">${total}</div><div class="stat-l">问题总数</div></div>`,
-      `<div class="stat-card med"><div class="stat-num">${open}</div><div class="stat-l">待处理</div></div>`,
-      `<div class="stat-card"><div class="stat-num" style="color:#004085">${in_progress}</div><div class="stat-l">跟进中</div></div>`,
-      `<div class="stat-card crit"><div class="stat-num" style="color:#155724">${resolved}</div><div class="stat-l">已解决</div></div>`,
-      `<div class="stat-card crit"><div class="stat-num" style="color:#c0392b">${sv.critical||0}</div><div class="stat-l">严重问题</div></div>`,
-      `<div class="stat-card high"><div class="stat-num" style="color:#e74c3c">${sv.high||0}</div><div class="stat-l">高级问题</div></div>`
-    ].join('');
+    const ignored=bs.ignored||0,wont_fix=bs.wont_fix||0;
+    const totalActive=open+in_progress+resolved+ignored+wont_fix;
+    const pct = n => totalActive>0 ? Math.round(n/totalActive*100) : 0;
+    const crit=sv.critical||0,high=sv.high||0,med=sv.medium||0,low=sv.low||0;
     const last=d.lastRun;
-    if(last)document.getElementById('statsGrid').innerHTML+=`<div class="stat-card"><div class="stat-num" style="font-size:14px">${last.last_run||'-'}</div><div class="stat-l">上次自检（${last.materials_scanned||0} 物料）</div></div>`;
+    const lastStr=last?(last.last_run||'未知'):'从未运行';
+    let ageStr='从无';
+    if(last&&last.last_run){
+      const age=Math.round((Date.now()-new Date(last.last_run.replace(/-/g,'/')).getTime())/60000);
+      if(age<60)ageStr=age+'分钟前';
+      else if(age<1440)ageStr=Math.round(age/60)+'小时前';
+      else ageStr=Math.round(age/1440)+'天前';
+    }
+    document.getElementById('statsGrid').innerHTML=
+      '<div style="grid-column:1/-1;font-size:12px;color:#667eea;font-weight:600;margin-top:4px">📊 状态分布（合计 '+totalActive+'）</div>'+
+      '<div class="stat-card med" title="尚未开始处理的问题"><div class="stat-num">'+open+'</div><div class="stat-l">待处理 ('+pct(open)+'%)</div></div>'+
+      '<div class="stat-card" title="已指派处理人但未完成"><div class="stat-num" style="color:#004085">'+in_progress+'</div><div class="stat-l">跟进中 ('+pct(in_progress)+'%)</div></div>'+
+      '<div class="stat-card ok" title="已修复完成"><div class="stat-num" style="color:#155724">'+resolved+'</div><div class="stat-l">已解决 ('+pct(resolved)+'%)</div></div>'+
+      '<div class="stat-card" title="忽略（规则不适用等）"><div class="stat-num" style="color:#999">'+ignored+'</div><div class="stat-l">已忽略 ('+pct(ignored)+'%)</div></div>'+
+      '<div class="stat-card" title="暂不修复（标记为暂搁）"><div class="stat-num" style="color:#999">'+wont_fix+'</div><div class="stat-l">暂不修 ('+pct(wont_fix)+'%)</div></div>'+
+      '<div style="grid-column:1/-1;font-size:12px;color:#667eea;font-weight:600;margin-top:8px">⚠️ 严重度分布（待处理 + 跟进中 共 '+(open+in_progress)+' 条）</div>'+
+      '<div class="stat-card crit" title="必须立即处理"><div class="stat-num" style="color:#c0392b">'+crit+'</div><div class="stat-l">严重 critical</div></div>'+
+      '<div class="stat-card high" title="需优先处理"><div class="stat-num" style="color:#e74c3c">'+high+'</div><div class="stat-l">高级 high</div></div>'+
+      '<div class="stat-card" title="中等优先级"><div class="stat-num" style="color:#f39c12">'+med+'</div><div class="stat-l">中 medium</div></div>'+
+      '<div class="stat-card" title="建议改进"><div class="stat-num" style="color:#3498db">'+low+'</div><div class="stat-l">低 low</div></div>'+
+      '<div style="grid-column:1/-1;font-size:12px;color:#667eea;font-weight:600;margin-top:8px">⏱ 运行信息</div>'+
+      '<div class="stat-card" title="上次自检的物料数量"><div class="stat-num" style="font-size:18px;color:#555">'+(last?(last.materials_scanned||0):'-')+'</div><div class="stat-l">扫描物料数</div></div>'+
+      '<div class="stat-card" title="'+lastStr+' ('+ageStr+') — 周期调度已禁用，需手动触发"><div class="stat-num" style="font-size:14px;color:#888">'+lastStr+'</div><div class="stat-l">上次自检 · '+ageStr+'</div></div>'+
+      '<div class="stat-card" title="点击「▶ 运行自检」立即触发新一次自检"><div class="stat-num" style="font-size:18px;color:#16a085">▶ 手动</div><div class="stat-l">需手动触发</div></div>';
   }catch(e){console.error(e)}
 }
 async function loadIssues(){
@@ -425,6 +446,159 @@ function toast(m){
   toastEl.textContent=m;toastEl.style.display='block';
   clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.style.display='none',2500);
 }
+
+// ==================== 标准配置（规则增删改）====================
+function openRuleEditor(){
+  const mo=document.createElement('div');
+  mo.className='mo show';
+  mo.innerHTML=`
+  <div class="mb" style="width:900px;max-width:95%">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0">⚙ 自检标准配置</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn b2 bs" onclick="showRuleForm()">+ 新增规则</button>
+        <span class="close-btn" style="cursor:pointer;font-size:22px;color:#999" onclick="this.closest('.mo').remove()">&times;</span>
+      </div>
+    </div>
+    <div id="ruleEditList" style="max-height:60vh;overflow-y:auto"></div>
+    <div id="ruleFormBox" style="display:none;margin-top:14px;border-top:2px solid #eee;padding-top:14px"></div>
+  </div>`;
+  document.body.appendChild(mo);
+  renderRuleEditList();
+}
+function renderRuleEditList(){
+  const box=document.getElementById('ruleEditList');
+  if(!box)return;
+  const rules=(allRules.rules||[]);
+  box.innerHTML=`<table style="font-size:12px"><thead><tr>
+    <th>ID</th><th>名称</th><th>类别</th><th>严重度</th><th>检查类型</th><th>字段</th><th>自动修复</th><th>启用</th><th>操作</th>
+  </tr></thead><tbody>
+  ${rules.map(r=>`<tr>
+    <td><b>${esc(r.id)}</b></td>
+    <td>${esc(r.name||'')}</td>
+    <td>${esc(r.category||'')}</td>
+    <td><span class="sev sev-${r.severity||'medium'}">${r.severity||'medium'}</span></td>
+    <td>${esc(r.check_type||'')}</td>
+    <td>${esc(r.field||'-')}</td>
+    <td>${r.auto_fix?`<span style="color:#27ae60">${esc(r.auto_fix)}</span>`:'-'}</td>
+    <td>${r.enabled!==false?'✅':'❌'}</td>
+    <td>
+      <button class="btn bs b1" onclick="showRuleForm('${r.id}')">编辑</button>
+      <button class="btn bs" style="background:${r.enabled!==false?'#e0e0e0':'#27ae60'};color:${r.enabled!==false?'#666':'#fff'}" onclick="toggleRule('${r.id}',${r.enabled===false})">${r.enabled!==false?'禁用':'启用'}</button>
+      <button class="btn bs b3" onclick="deleteRule('${r.id}')">删除</button>
+    </td>
+  </tr>`).join('')}
+  </tbody></table>`;
+}
+function showRuleForm(id){
+  const box=document.getElementById('ruleFormBox');
+  if(!box)return;
+  const r=id?(allRules.rules||[]).find(x=>x.id===id):{};
+  const CHECK_TYPES=['regex','length_range','forbidden_contains','forbidden_chars','forbidden_value','enum','field_present','numeric_gt','field_audit_only','unique','bom_orphan_code'];
+  const AUTO_FIXES=['','unify_unit','infer_from_code_segment','infer_from_code','sync_cost_from_bom','rename_by_rule','fill_from_bom','infer_classification','fill_default_unit','auto_complete_name'];
+  const CATEGORIES=['code','name','unit','classification','bom','integrity'];
+  const SEVERITIES=['critical','high','medium','low'];
+  box.style.display='block';
+  box.innerHTML=`
+    <h4 style="margin:0 0 10px">${id?'编辑规则 '+id:'新增规则'}</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="fg"><label>规则ID *</label><input id="rf_id" value="${esc(r.id||'')}" ${id?'disabled':''} placeholder="如 CODE-003"></div>
+      <div class="fg"><label>规则名称 *</label><input id="rf_name" value="${esc(r.name||'')}"></div>
+      <div class="fg"><label>类别</label><select id="rf_category">${CATEGORIES.map(c=>`<option ${r.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="fg"><label>严重度</label><select id="rf_severity">${SEVERITIES.map(s=>`<option ${r.severity===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="fg"><label>检查类型 *</label><select id="rf_check_type">${CHECK_TYPES.map(c=>`<option ${r.check_type===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="fg"><label>检查字段</label><input id="rf_field" value="${esc(r.field||'')}" placeholder="如 material_code, unit"></div>
+      <div class="fg"><label>正则/最小值</label><input id="rf_pattern" value="${esc(r.pattern||r.min||'')}" placeholder="正则表达式 或 最小长度"></div>
+      <div class="fg"><label>最大值</label><input id="rf_max" value="${esc(r.max||'')}" placeholder="最大长度/数值"></div>
+      <div class="fg"><label>允许值(逗号分隔)</label><input id="rf_allowed" value="${esc((r.allowed||[]).join(','))}" placeholder="如 PCS,g,kg"></div>
+      <div class="fg"><label>禁止值(逗号分隔)</label><input id="rf_forbidden" value="${esc((r.forbidden||[]).join(','))}" placeholder="如 未确认,待定"></div>
+      <div class="fg"><label>自动修复策略</label><select id="rf_auto_fix">${AUTO_FIXES.map(a=>`<option value="${a}" ${r.auto_fix===a?'selected':''}>${a||'无'}</option>`).join('')}</select></div>
+      <div class="fg"><label>修复建议</label><input id="rf_remediation" value="${esc(r.remediation||'')}"></div>
+    </div>
+    <div class="fg"><label>描述</label><input id="rf_description" value="${esc(r.description||'')}"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn b2" onclick="saveRuleForm(${id?`'${id}'`:'null'})">保存</button>
+      <button class="btn" style="background:#e0e0e0" onclick="document.getElementById('ruleFormBox').style.display='none'">取消</button>
+    </div>
+  `;
+}
+async function saveRuleForm(id){
+  const body={
+    id:document.getElementById('rf_id').value.trim(),
+    name:document.getElementById('rf_name').value.trim(),
+    category:document.getElementById('rf_category').value,
+    severity:document.getElementById('rf_severity').value,
+    check_type:document.getElementById('rf_check_type').value,
+    field:document.getElementById('rf_field').value.trim(),
+    pattern:document.getElementById('rf_pattern').value.trim(),
+    max:document.getElementById('rf_max').value.trim()||null,
+    allowed:document.getElementById('rf_allowed').value.split(',').map(s=>s.trim()).filter(Boolean),
+    forbidden:document.getElementById('rf_forbidden').value.split(',').map(s=>s.trim()).filter(Boolean),
+    auto_fix:document.getElementById('rf_auto_fix').value,
+    remediation:document.getElementById('rf_remediation').value.trim(),
+    description:document.getElementById('rf_description').value.trim()
+  };
+  if(!body.id||!body.name||!body.check_type){alert('ID、名称、检查类型为必填');return}
+  if(body.pattern){const n=Number(body.pattern);if(!isNaN(n))body.min=n;}
+  try{
+    const url=id?API+'/rules/'+id:API+'/rules';
+    const method=id?'PUT':'POST';
+    const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){alert(d.error||'保存失败');return}
+    toast(d.message);
+    await loadRules();
+    renderRuleEditList();
+    document.getElementById('ruleFormBox').style.display='none';
+  }catch(e){alert('请求失败: '+e.message)}
+}
+async function toggleRule(id,on){
+  try{
+    const r=await fetch(API+'/rules/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:on})});
+    const d=await r.json();
+    if(!r.ok){alert(d.error||'操作失败');return}
+    toast(d.message);
+    await loadRules();
+    renderRuleEditList();
+  }catch(e){alert('请求失败: '+e.message)}
+}
+async function deleteRule(id){
+  if(!confirm(`确定删除规则 ${id}？此操作不可撤销。`))return;
+  try{
+    const r=await fetch(API+'/rules/'+id,{method:'DELETE'});
+    const d=await r.json();
+    if(!r.ok){alert(d.error||'删除失败');return}
+    toast(d.message);
+    await loadRules();
+    renderRuleEditList();
+  }catch(e){alert('请求失败: '+e.message)}
+}
+async function loadRules(){
+  try{
+    const r=await fetch(API+'/rules');
+    allRules=await r.json();
+    renderRules();
+  }catch(e){}
+}
+
+// ==================== 智能修复（批量执行所有可自动修复的规则）====================
+async function smartFixAll(){
+  const fixable=(allRules.rules||[]).filter(r=>r.auto_fix&&r.enabled!==false);
+  if(!fixable.length){toast('没有可自动修复的规则');return}
+  if(!confirm(`将对 ${fixable.length} 条规则执行智能修复，可能修改大量物料数据。\n确定继续？`))return;
+  toast('智能修复中…');
+  let totalUpdated=0;
+  for(const r of fixable){
+    try{
+      const res=await fetch(API+'/auto-fix',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rule_id:r.id})});
+      const d=await res.json();
+      if(res.ok&&d.updated)totalUpdated+=d.updated;
+    }catch(e){}
+  }
+  toast(`智能修复完成：共修改 ${totalUpdated} 条物料`);
+  loadIssues();loadStats();
+}
+
 init();
 </script>
 <script src="chat-widget.js"></script>
