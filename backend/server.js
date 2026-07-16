@@ -69,9 +69,15 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 物料库自检调度器（启动 5 分钟首次，之后每 6 小时）
-// 已禁用：周期写 85MB 的 issues.json 阻塞事件循环；要自检请手动访问 /api/material-check/run
-// try { require('./lib/material-check-scheduler').startScheduler(); } catch (e) { console.error('[material-check] 调度器启动失败:', e.message); }
+// 物料库自检调度器 —— 默认禁用（手动触发）
+// 启用：环境变量 ENABLE_PERIODIC_TASKS=1 启动服务
+// 手动触发：访问 /api/material-check/run 或在物料库自检待办页点「▶ 运行自检」
+if (process.env.ENABLE_PERIODIC_TASKS === '1') {
+  try { require('./lib/material-check-scheduler').startScheduler(); console.log('[material-check] 周期自检已启用（环境变量 ENABLE_PERIODIC_TASKS=1）'); }
+  catch (e) { console.error('[material-check] 调度器启动失败:', e.message); }
+} else {
+  console.log('[material-check] 周期自检已禁用（默认）。如需启用：set ENABLE_PERIODIC_TASKS=1 启动服务。或访问 /api/material-check/run 手动触发。');
+}
 
 // ===== 物料数据完整性自愈 =====
 // 检测到 materials.json < 50KB → 自动从外部 API 拉回
