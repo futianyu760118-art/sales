@@ -22,15 +22,35 @@ function loadIssuesFromDisk() {
   }
 }
 function saveIssuesToDisk(data) {
-  fs.writeFileSync(ISSUES_FILE, JSON.stringify(data, null, 2), 'utf8');
+  // 紧凑写入（不缩进），大幅减小文件体积（85MB→~55MB）
+  fs.writeFileSync(ISSUES_FILE, JSON.stringify(data), 'utf8');
 }
 function getIssues() {
   if (!_issuesCache) _issuesCache = loadIssuesFromDisk();
   return _issuesCache;
 }
+// 异步持久化：不阻塞事件循环
+function persistIssuesAsync() {
+  if (!_issuesCache) return Promise.resolve();
+  const data = _issuesCache;
+  return fs.promises.writeFile(ISSUES_FILE, JSON.stringify(data), 'utf8').catch(e => {
+    console.error('[material-check] persist error:', e.message);
+  });
+}
 function persistIssues() {
   if (_issuesCache) saveIssuesToDisk(_issuesCache);
-  // 注意：不要清缓存，否则大表每次都从 15MB JSON 重新加载
+}
+// 裁剪：保留全部 open/in_progress + 最近 N 条 resolved/ignored，避免无限膨胀
+function pruneIssues(cap = 2000) {
+  if (!_issuesCache) return;
+  const keep = [];
+  const closed = [];
+  for (const r of _issuesCache.records) {
+    if (r.status === 'open' || r.status === 'in_progress') keep.push(r);
+    else closed.push(r);
+  }
+  closed.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+  _issuesCache.records = [...keep, ...closed.slice(0, cap)];
 }
 
 // 索引已禁用 - 使用内存对象
@@ -98,11 +118,9 @@ router.post('/run', requirePerm('material:view'), async (req, res) => {
         kept++;
       }
     }
-    // 异步持久化，不阻塞响应
-    await new Promise((resolve, reject) => {
-      persistIssues();
-      process.nextTick(resolve);
-    });
+    // 裁剪 + 异步持久化，不阻塞响应
+    pruneIssues();
+    persistIssuesAsync();
 
     const report = {
       last_run: now(), trigger: 'manual',
@@ -205,7 +223,7 @@ router.patch('/issues/:id', requirePerm('material:edit'), (req, res) => {
   if (req.body.status === 'resolved') row.resolved_at = now();
   if (req.body.status && req.body.status !== 'resolved') row.resolved_at = '';
   row.updated_at = now();
-  persistIssues();
+  persistIssuesAsync();
   res.json({ message: '已更新', data: row });
 });
 
@@ -227,7 +245,7 @@ router.post('/issues/batch', requirePerm('material:edit'), (req, res) => {
     row.updated_at = ts;
     n++;
   }
-  if (n) persistIssues();
+  if (n) persistIssuesAsync();
   res.json({ message: `批量更新 ${n} 条`, updated: n });
 });
 
@@ -247,8 +265,77 @@ router.patch('/rules/:id', requirePerm('material:edit'), (req, res) => {
   res.json({ message: '已更新', rule });
 });
 
+// 新增规则
+router.post('/rules', requirePerm('material:edit'), (req, res) => {
+  const rules = loadRules();
+  const body = req.body || {};
+  if (!body.id || !body.name || !body.check_type) {
+    return res.status(400).json({ error: 'id、name、check_type 为必填' });
+  }
+  if ((rules.rules || []).some(r => r.id === body.id)) {
+    return res.status(400).json({ error: '规则ID已存在' });
+  }
+  const rule = {
+    id: body.id,
+    name: body.name,
+    category: body.category || 'integrity',
+    severity: body.severity || 'medium',
+    check_type: body.check_type,
+    field: body.field || '',
+    scope: body.scope || 'material',
+    enabled: body.enabled !== false,
+    description: body.description || '',
+    remediation: body.remediation || '',
+    auto_fix: body.auto_fix || '',
+    auto_fix_map: body.auto_fix_map || null,
+    auto_fix_segment: body.auto_fix_segment || null,
+    pattern: body.pattern || '',
+    min: body.min || null,
+    max: body.max || null,
+    empty_ok: body.empty_ok !== false,
+    forbidden: body.forbidden || [],
+    forbidden_values: body.forbidden_values || [],
+    allowed: body.allowed || [],
+    expected_choices: body.expected_choices || [],
+    field_value: body.field_value || null
+  };
+  rules.rules = rules.rules || [];
+  rules.rules.push(rule);
+  rules.updated_at = now();
+  fs.writeFileSync(RULES_FILE, JSON.stringify(rules, null, 2), 'utf8');
+  res.json({ message: '规则已创建', rule });
+});
+
+// 编辑规则（全量覆盖字段）
+router.put('/rules/:id', requirePerm('material:edit'), (req, res) => {
+  const rules = loadRules();
+  const idx = (rules.rules || []).findIndex(r => r.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: '规则不存在' });
+  const body = req.body || {};
+  const old = rules.rules[idx];
+  const allowedKeys = ['name','category','severity','check_type','field','scope','enabled','description','remediation','auto_fix','auto_fix_map','auto_fix_segment','pattern','min','max','empty_ok','forbidden','forbidden_values','allowed','expected_choices','field_value'];
+  const updated = { ...old };
+  allowedKeys.forEach(k => { if (body[k] !== undefined) updated[k] = body[k]; });
+  rules.rules[idx] = updated;
+  rules.updated_at = now();
+  fs.writeFileSync(RULES_FILE, JSON.stringify(rules, null, 2), 'utf8');
+  res.json({ message: '规则已更新', rule: updated });
+});
+
+// 删除规则
+router.delete('/rules/:id', requirePerm('material:edit'), (req, res) => {
+  const rules = loadRules();
+  const before = (rules.rules || []).length;
+  rules.rules = (rules.rules || []).filter(r => r.id !== req.params.id);
+  if (rules.rules.length === before) return res.status(404).json({ error: '规则不存在' });
+  rules.updated_at = now();
+  fs.writeFileSync(RULES_FILE, JSON.stringify(rules, null, 2), 'utf8');
+  res.json({ message: '规则已删除' });
+});
+
 // 一次性自动修复（执行规则上声明的 auto_fix）
-router.post('/auto-fix', requirePerm('material:edit'), (req, res) => {
+router.post('/auto-fix', requirePerm('material:edit'), async (req, res) => {
+  try {
   const rulesDoc = loadRules();
   const rule = (rulesDoc.rules || []).find(r => r.id === req.body.rule_id);
   if (!rule || !rule.auto_fix) return res.status(400).json({ error: '该规则无可自动修复' });
@@ -274,13 +361,19 @@ router.post('/auto-fix', requirePerm('material:edit'), (req, res) => {
     }
   } else if (rule.auto_fix === 'infer_from_code_segment' || rule.auto_fix === 'infer_from_code') {
     // 按编码第 N 段反推
+    // seg=1 取第 1 段 (1/2/3/4)；seg=2 取前 2 段 (1.6/1.7 等)；seg=3 取前 3 段
     const seg = rule.auto_fix_segment || 1;
     const map = rule.auto_fix_map || { '1': '外购', '2': '自制', '3': '委外加工', '4': '辅料' };
+    const fallback = rule.auto_fix_fallback || map.default || null;
     for (const m of materials) {
       const code = m.material_code || '';
       const parts = code.split('.');
-      const k = parts[seg - 1];
-      const target = map[k];
+      let k;
+      if (seg === 1) k = parts[0];
+      else if (seg === 2) k = parts[0] + '.' + parts[1];
+      else k = parts.slice(0, seg).join('.');
+      let target = map[k];
+      if (!target && fallback) target = fallback;
       if (target) {
         const field = rule.field || (rule.auto_fix === 'infer_from_code' ? 'classification' : 'material_type');
         if ((m[field] || '') !== target) {
@@ -324,11 +417,153 @@ router.post('/auto-fix', requirePerm('material:edit'), (req, res) => {
         }
       }
     }
+  } else if (rule.auto_fix === 'fill_from_bom') {
+    // 从 BOM 补充缺失字段（供应商、规格、分类等）
+    const bomTable = getTable('product_bom');
+    bomTable._invalidate();
+    const bomByCode = {};
+    for (const b of bomTable.all()) {
+      const c = (b.material_code || '').trim();
+      if (!c) continue;
+      if (!bomByCode[c]) bomByCode[c] = b;
+    }
+    const fillFields = rule.auto_fix_fields || ['supplier', 'specs'];
+    for (const m of materials) {
+      const code = (m.material_code || '').trim();
+      const b = bomByCode[code];
+      if (!b) continue;
+      let changed = false;
+      const patch = { updated_at: ts };
+      for (const f of fillFields) {
+        if ((!m[f] || m[f] === '') && b[f]) {
+          patch[f] = b[f];
+          changed = true;
+        }
+      }
+      if (changed) { Object.assign(m, patch); updated++; }
+    }
+  } else if (rule.auto_fix === 'infer_classification') {
+    // 根据物料名称关键词推断分类
+    const rules = {
+      '结构类物料': ['外壳', '支架', '底座', '面板', '灯罩', '透镜', '散热器', '框架', '盖板', '螺丝', '螺母', '垫片'],
+      '电子类物料': ['LED', '芯片', '电阻', '电容', '电感', '二极管', '三极管', 'MOS', 'IC', 'PCB', '驱动', '电源', '电池', '太阳能板'],
+      '包材类物料': ['包装盒', '纸箱', '泡沫', '标签', '说明书', '保修卡', '彩盒', '珍珠棉', '胶带'],
+      '附件类物料': ['遥控器', '适配器', '数据线', '连接线', '插头', '插座', '开关', '按钮'],
+      '通用物料': ['螺丝', '螺母', '垫圈', '弹簧', '密封圈', 'O型圈']
+    };
+    for (const m of materials) {
+      if (m.classification && m.classaction !== '') continue;
+      const name = (m.material_name || '').toLowerCase();
+      let matched = '';
+      for (const [cls, keywords] of Object.entries(rules)) {
+        if (keywords.some(kw => name.includes(kw.toLowerCase()))) { matched = cls; break; }
+      }
+      if (matched) { Object.assign(m, { classification: matched, updated_at: ts }); updated++; }
+    }
+  } else if (rule.auto_fix === 'fill_default_unit') {
+    // 根据分类设置默认单位
+    const us = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'database', 'material_unit_standards.json'), 'utf8'));
+    const catRules = us.category_rules || {};
+    const defaultUnit = us.default_unit || 'PCS';
+    for (const m of materials) {
+      if (m.unit && m.unit !== '') continue;
+      const cat = m.category || m.classification || '';
+      const target = catRules[cat] || defaultUnit;
+      if (target) { Object.assign(m, { unit: target, updated_at: ts }); updated++; }
+    }
+  } else if (rule.auto_fix === 'auto_complete_name') {
+    // 根据编码模式补充/修正物料名称
+    const codingRules = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'database', 'material_coding_rules.json'), 'utf8'));
+    const segments = codingRules.segments || [];
+    for (const m of materials) {
+      const name = (m.material_name || '').trim();
+      if (name && name.length >= 3 && !['未确认', '待定', 'TBD', 'TODO', '占位', '未知'].some(w => name.includes(w))) continue;
+      const code = (m.material_code || '').trim();
+      if (!code) continue;
+      // 尝试从编码段推断名称
+      const parts = code.split('.');
+      let inferred = '';
+      for (let si = 0; si < parts.length && si < segments.length; si++) {
+        const seg = segments[si];
+        if (seg && seg.mapping && seg.mapping[parts[si]]) {
+          inferred = seg.mapping[parts[si]];
+          break;
+        }
+      }
+      if (inferred && inferred !== name) {
+        Object.assign(m, { material_name: inferred, updated_at: ts });
+        updated++;
+      }
+    }
   }
 
-  matTable.saveNow();
+  // 异步写盘（13MB materials.json 用 sync 写会阻塞事件循环约 10 秒）
+  // 但这里的 _cache 是经过 _invalidate 的，写盘后再 read 才能保证一致。
+  // 解决：先等同步写完成（必须），然后强制 _invalidate 重建缓存
+  const fsPromises = require('fs').promises;
+  const filePath = matTable.filePath;
+  const tmp = filePath + '.tmp';
+  const content = JSON.stringify(matTable._cache, null, 2);
+  await fsPromises.writeFile(tmp, content, 'utf8');
+  await fsPromises.rename(tmp, filePath);
   matTable._invalidate();
-  res.json({ message: `自动修复完成：${updated} 条`, updated });
+
+  // === 同步关闭已不满足规则的问题（issues 状态化）===
+  // 智能修复后，物料数据已变；旧 issue 中那些字段已被修好的，需要标为 resolved
+  const issuesStore = getIssues();
+  const existingIssues = issuesStore.records;
+  // 用同一条规则轻量判定：检查修复后的字段是否在白名单
+  const runner = require('../lib/material-check-runner');
+  const rulesDoc2 = runner.loadRules();
+  const singleRule = rulesDoc2.rules.find(r => r.id === rule.id);
+  if (singleRule) {
+    const stillOffending = new Set();
+    for (const m of materials) {
+      if (!m.id) continue;
+      const f = singleRule.field;
+      const v = m[f];
+      if (singleRule.check_type === 'field_present') {
+        if (!v || v === '' || (singleRule.expected_choices && !singleRule.expected_choices.includes(v))) stillOffending.add(m.id);
+      } else if (singleRule.check_type === 'enum') {
+        if (singleRule.empty_ok === false && (!v || v === '')) stillOffending.add(m.id);
+        else if (v && !(singleRule.allowed || []).includes(v)) stillOffending.add(m.id);
+      } else if (singleRule.check_type === 'numeric_gt') {
+        if (!(Number(v) > (singleRule.field_value || 0))) stillOffending.add(m.id);
+      } else if (singleRule.check_type === 'forbidden_value') {
+        if (v && (singleRule.forbidden_values || []).includes(String(v))) stillOffending.add(m.id);
+      } else if (singleRule.check_type === 'length_range') {
+        const len = String(v || '').length;
+        if (len < (singleRule.min || 0) || len > (singleRule.max || 9999)) stillOffending.add(m.id);
+      }
+    }
+    let closed = 0;
+    for (const iss of existingIssues) {
+      if (iss.rule_id !== rule.id) continue;
+      if (iss.status !== 'open' && iss.status !== 'in_progress') continue;
+      if (iss.target_id && !stillOffending.has(iss.target_id)) {
+        iss.status = 'resolved';
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        iss.resolved_at = now;
+        iss.updated_at = now;
+        iss.resolution_notes = (iss.resolution_notes || '') + '\n[auto-fix] 字段已修正，自动关闭';
+        closed++;
+      }
+    }
+    if (closed > 0) {
+      try {
+        const f = require('fs').promises;
+        const issueFile = require('path').join(__dirname, '..', '..', 'database', 'material_check_issues.json');
+        await f.writeFile(issueFile, JSON.stringify({ records: existingIssues, nextId: issuesStore.nextId, updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19) }));
+      } catch (e) {}
+    }
+    console.log('[auto-fix] ' + rule.id + ': 关闭了 ' + closed + ' 条已修复的 issue');
+  }
+
+  res.json({ message: `自动修复完成：${updated} 条物料（同时关闭已修复的 issue）`, updated });
+  } catch (e) {
+    console.error('[auto-fix] 异常:', e.message);
+    res.status(500).json({ error: '自动修复失败: ' + e.message });
+  }
 });
 
 module.exports = router;

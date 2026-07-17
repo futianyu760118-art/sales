@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-07-14",
+  "updated_at": "2026-07-15 12:34:50",
   "description": "物料库自检规则库。每条规则对应一类问题；运行后产生问题记录入库（material_check_issues.json），责任人跟进到闭环。",
   "severity_levels": {
     "critical": "严重：影响业务正确性（如编码重复、关键字段缺失）",
@@ -63,7 +63,14 @@
       "field": "material_name",
       "description": "名称不得含「未确认」「待定」「TBD」「TODO」等占位词",
       "check_type": "forbidden_contains",
-      "forbidden": ["未确认", "待定", "TBD", "TODO", "占位", "未知"],
+      "forbidden": [
+        "未确认",
+        "待定",
+        "TBD",
+        "TODO",
+        "占位",
+        "未知"
+      ],
       "remediation": "移除占位词，补全实际名称；若信息不完整，先修改备注而不是名称",
       "enabled": true
     },
@@ -76,7 +83,13 @@
       "field": "material_name",
       "description": "名称不得含 < > / \\ | 等特殊字符，会破坏搜索和导出",
       "check_type": "forbidden_chars",
-      "forbidden": ["<", ">", "/", "\\", "|"],
+      "forbidden": [
+        "<",
+        ">",
+        "/",
+        "\\",
+        "|"
+      ],
       "remediation": "替换为中文标点（（）《》／）或移除",
       "enabled": true
     },
@@ -89,7 +102,14 @@
       "field": "unit",
       "description": "单位必须是 6 个标准枚举之一：PCS / g / kg / ml / m / t",
       "check_type": "enum",
-      "allowed": ["PCS", "g", "kg", "ml", "m", "t"],
+      "allowed": [
+        "PCS",
+        "g",
+        "kg",
+        "ml",
+        "m",
+        "t"
+      ],
       "empty_ok": false,
       "remediation": "按 database/material_unit_standards.json 的 unit_unify 映射自动转换（同义词归一）",
       "auto_fix": "unify_unit",
@@ -104,7 +124,12 @@
       "field": "unit",
       "description": "加工费/服务费等价格类物料不应使用「人民币」等单位，应使用专门的 cost_unit 字段",
       "check_type": "forbidden_value",
-      "forbidden_values": ["人民币", "元", "$", "RMB"],
+      "forbidden_values": [
+        "人民币",
+        "元",
+        "$",
+        "RMB"
+      ],
       "remediation": "把单位改为「次」「PCS」等度量单位，价格放到 standard_cost 字段",
       "enabled": true
     },
@@ -117,10 +142,41 @@
       "field": "classification",
       "description": "classification 字段不得为「通用物料」兜底（除非真的属于通用类）或为空",
       "check_type": "field_present",
-      "expected_choices": ["结构类物料","电子类物料","包材类物料","附件类物料","光学件","五金件","紧固件","线材类","辅料","通用物料","常用物料","定制物料","专用物料"],
+      "expected_choices": [
+        "结构类物料",
+        "电子类物料",
+        "包材类物料",
+        "附件类物料",
+        "光学件",
+        "五金件",
+        "紧固件",
+        "线材类",
+        "辅料",
+        "通用物料",
+        "常用物料",
+        "定制物料",
+        "专用物料"
+      ],
       "remediation": "按编码第2段（中类小类）反推。详见 material_coding_rules.json",
-      "auto_fix": "infer_from_code",
-      "enabled": true
+      "auto_fix": "infer_from_code_segment",
+      "enabled": true,
+      "auto_fix_segment": 2,
+      "auto_fix_map": {
+        "1.1": "光学件",
+        "1.2": "光学件",
+        "1.3": "光学件",
+        "1.4": "五金件",
+        "1.5": "紧固件",
+        "1.6": "电子类物料",
+        "1.7": "包材类物料",
+        "1.8": "线材类",
+        "2.3": "结构类物料",
+        "2.4": "结构类物料",
+        "2.6": "结构类物料",
+        "4.9": "辅料",
+        "default": "通用物料"
+      },
+      "auto_fix_fallback": "通用物料"
     },
     {
       "id": "CLASS-002",
@@ -131,11 +187,20 @@
       "field": "material_type",
       "description": "material_type 必须是「外购 / 委外加工 / 自制」之一，对应编码第1段",
       "check_type": "enum",
-      "allowed": ["外购", "委外加工", "自制"],
+      "allowed": [
+        "外购",
+        "委外加工",
+        "自制"
+      ],
       "remediation": "按编码第1段：1→外购，2→自制，3→委外加工，4→辅料",
       "auto_fix": "infer_from_code_segment",
       "auto_fix_segment": 1,
-      "auto_fix_map": { "1": "外购", "2": "自制", "3": "委外加工", "4": "辅料" },
+      "auto_fix_map": {
+        "1": "外购",
+        "2": "自制",
+        "3": "委外加工",
+        "4": "辅料"
+      },
       "enabled": true
     },
     {
@@ -150,7 +215,12 @@
       "remediation": "同步 BOM 的 material_attr 字段，或从编码第1段反推",
       "auto_fix": "infer_from_code_segment",
       "auto_fix_segment": 1,
-      "auto_fix_map": { "1": "外购", "2": "自制", "3": "委外加工", "4": "辅料" },
+      "auto_fix_map": {
+        "1": "外购",
+        "2": "自制",
+        "3": "委外加工",
+        "4": "辅料"
+      },
       "enabled": true
     },
     {
