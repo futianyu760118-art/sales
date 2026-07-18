@@ -376,7 +376,13 @@ router.post('/auto-fix', requirePerm('material:edit'), async (req, res) => {
       if (!target && fallback) target = fallback;
       if (target) {
         const field = rule.field || (rule.auto_fix === 'infer_from_code' ? 'classification' : 'material_type');
-        if ((m[field] || '') !== target) {
+        // 如果当前值已在白名单中（用户手动设置的合法值），不要覆盖
+        const currentVal = m[field] || '';
+        const expectedChoices = rule.expected_choices || [];
+        if (expectedChoices.length && expectedChoices.includes(currentVal)) {
+          continue; // 用户已手动设置了合法分类，跳过
+        }
+        if (currentVal !== target) {
           Object.assign(m, { [field]: target, updated_at: ts });
           updated++;
         }

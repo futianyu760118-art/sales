@@ -265,7 +265,7 @@ let mPage=1;
 // ===== 分类双维度 =====
 // 分类1（classification 物理属性）：电子/结构/包材/附件，按物料名称自动识别
 // 分类2（classification2 管理属性）：通用/专用，按自制/外购自动识别
-const CLASSIFICATION_OPTIONS=['电子物料','结构物料','包材物料','附件物料'];
+const CLASSIFICATION_OPTIONS=['电子类物料','结构类物料','包材类物料','附件类物料','光学件','五金件','紧固件','线材类','辅料','通用物料','常用物料','定制物料','专用物料'];
 const CLASSIFICATION2_OPTIONS=['通用物料','专用物料'];
 // 物料类型：标准项 + 数据现有值动态补充（数据里实际有 包材/光电类/光源/支架 等 18+ 种）
 const MATERIAL_TYPE_OPTIONS=['外购','委外加工','自制','未分类'];
@@ -1285,7 +1285,7 @@ async function batchDelete(){
 
 // 批量修改：勾选需要修改的字段，仅提交勾选项，统一应用到所选物料
 const BATCH_FIELDS=[
-  ['classification','分类1(物理)','select:电子物料,结构物料,包材物料,附件物料'],
+  ['classification','分类1(物理)','select:电子类物料,结构类物料,包材类物料,附件类物料,光学件,五金件,紧固件,线材类,辅料,通用物料,常用物料,定制物料,专用物料'],
   ['classification2','分类2(管理)','select:通用物料,专用物料'],
   ['material_type','物料类型','select:外购,委外加工,自制'],
   ['category','类别','text'],
@@ -1487,7 +1487,7 @@ function openAddMaterial(){
     ['material_purpose','用途','select:产品类,设备工具类,后勤用'],
     ['standard_cost','标准成本','number'],['processing_cost','加工成本','number'],
     ['processing_loss','加工损耗','text'],['unit_price','单价','number'],
-    ['quantity','数量','number'],['classification','分类1(物理)','select:电子物料,结构物料,包材物料,附件物料'],['classification2','分类2(管理)','select:通用物料,专用物料'],
+    ['quantity','数量','number'],['classification','分类1(物理)','select:电子类物料,结构类物料,包材类物料,附件类物料,光学件,五金件,紧固件,线材类,辅料,通用物料,常用物料,定制物料,专用物料'],['classification2','分类2(管理)','select:通用物料,专用物料'],
     ['inventory_qty','库存数量','number'],['min_inventory','最小库存','number'],
     ['volume','体积(m³)','number'],
     ['procurement_enabled','启用周期采购','select:0,1'],['procurement_cycle','采购周期(天)','number'],
