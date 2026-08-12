@@ -93,7 +93,7 @@ function swTab(name,btn){
 
 async function loadSpecSheets(page){
   sPage=page||1;
-  const p=new URLSearchParams({page:sPage,limit:20});
+  const p=new URLSearchParams({page:sPage,limit:(window._pageSize||20)});
   const kw=document.getElementById('sKw').value,st=document.getElementById('sStatus').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);
   try{
@@ -121,7 +121,7 @@ async function loadSpecSheets(page){
 
 async function loadConfigSheets(page){
   cPage=page||1;
-  const p=new URLSearchParams({page:cPage,limit:20});
+  const p=new URLSearchParams({page:cPage,limit:(window._pageSize||20)});
   const kw=document.getElementById('cKw').value,st=document.getElementById('cStatus').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);
   try{
@@ -147,7 +147,7 @@ async function loadConfigSheets(page){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=20,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 20),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;

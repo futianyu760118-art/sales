@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>订单自检待办</title><link rel="stylesheet" href="common.css">
+<style>
+.wrap{max-width:1400px;margin:0 auto;padding:18px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:4px solid #ccc}
+.stat-card.crit{border-left-color:#c0392b}
+.stat-card.high{border-left-color:#e74c3c}
+.stat-card.med{border-left-color:#f39c12}
+.stat-card.low{border-left-color:#3498db}
+.stat-card.ok{border-left-color:#27ae60}
+.stat-num{font-size:24px;font-weight:700;color:#333}
+.stat-l{font-size:12px;color:#888;margin-top:2px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:12px}
+.toolbar select,.toolbar input{padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}
+.b2{background:#27ae60;color:#fff}
+.b3{background:#e74c3c;color:#fff}
+.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sev{display:inline-block;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:600;color:#fff}
+.sev-critical{background:#c0392b}
+.sev-high{background:#e74c3c}
+.sev-medium{background:#f39c12}
+.sev-low{background:#3498db}
+.status{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-open{background:#fff3cd;color:#856404}
+.st-in_progress{background:#cce5ff;color:#004085}
+.st-resolved{background:#d4edda;color:#155724}
+.st-ignored{background:#f0f0f0;color:#666}
+.st-wont_fix{background:#f8d7da;color:#721c24}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+tr.resolved td{opacity:.55}
+.batch-bar{display:none;background:#f8f9ff;border:1px solid #d0d7ff;border-radius:6px;padding:8px 12px;margin-bottom:10px;align-items:center;gap:8px;flex-wrap:wrap}
+.batch-bar.show{display:flex}
+.row-check{width:18px;height:18px;cursor:pointer}
+.tbl-wrap{overflow-x:auto;max-height:70vh;overflow-y:auto;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:60px}
+.mo.show{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:80vh;overflow:auto}
+.fg{margin-bottom:10px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:60px}
+.dash-panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.rule-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.rule-card{background:#fafbff;padding:8px 10px;border-radius:6px;border:1px solid #e8ebf7;font-size:12px}
+.rule-card b{color:#667eea}
+</style></head><body>
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content">
+<div class="wrap">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<h2>订单自检待办</h2>
+<div style="display:flex;gap:8px">
+<button class="btn b4" onclick="previewCheck()">👁 试运行（不写库）</button>
+<button class="btn b2" onclick="runCheck()">▶ 运行自检</button>
+<button class="btn" style="background:#2ecc71;color:#fff" onclick="smartFixAll()">🔧 智能修复</button>
+<button class="btn b1" onclick="loadIssues()">刷新</button>
+<button class="btn" style="background:#8e44ad;color:#fff" onclick="openRuleEditor()">⚙ 标准配置</button>
+<a class="btn bs" href="order-analysis.html" style="background:#e8ebf7;color:#444;text-decoration:none">返回订单分析库</a>
+</div>
+</div>
+
+<div class="stats-grid" id="statsGrid"></div>
+
+<div class="dash-panel">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+  <div style="font-weight:600;color:#555;font-size:13px">📋 选择本次要执行的检查指令</div>
+  <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn bs" style="background:#eaf2ff;color:#3b5998" onclick="selectPreset('all')">全选</button>
+    <button class="btn bs" style="background:#eaf2ff;color:#3b5998" onclick="selectPreset('enabled')">仅已启用</button>
+    <button class="btn bs" style="background:#fff3e0;color:#e67e22" onclick="selectPreset('critical')">仅严重（critical）</button>
+    <button class="btn bs" style="background:#e8f5e9;color:#27ae60" onclick="selectPreset('none')">清空</button>
+  </div>
+</div>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;font-size:12px;color:#666">
+  <span style="font-weight:600">快捷分类：</span>
+  <label><input type="checkbox" id="cat-code" onchange="applyCategoryFilter()"> 代码 code</label>
+  <label><input type="checkbox" id="cat-integrity" onchange="applyCategoryFilter()"> 完整性 integrity</label>
+  <label><input type="checkbox" id="cat-bom" onchange="applyCategoryFilter()"> BOM bom</label>
+  <label><input type="checkbox" id="cat-cost" onchange="applyCategoryFilter()"> 成本 cost</label>
+</div>
+<div class="rule-list" id="ruleList"></div>
+<div style="margin-top:8px;font-size:12px;color:#888">已选 <b id="selRuleCnt">0</b> / 共 <b id="totalRuleCnt">0</b> 条规则</div>
+</div>
+
+<div id="previewResult" style="display:none;margin-bottom:14px"></div>
+
+<div class="toolbar">
+<input type="text" id="q" placeholder="搜索订单号/描述" style="width:200px" onkeydown="if(event.key==='Enter')loadIssues()">
+<select id="fStatus" onchange="loadIssues()">
+<option value="">全部状态</option>
+<option value="open">待处理</option>
+<option value="in_progress">跟进中</option>
+<option value="resolved">已解决</option>
+<option value="ignored">已忽略</option>
+<option value="wont_fix">暂不修复</option>
+</select>
+<select id="fSev" onchange="loadIssues()">
+<option value="">全部严重度</option>
+<option value="critical">严重</option>
+<option value="high">高</option>
+<option value="medium">中</option>
+<option value="low">低</option>
+</select>
+<select id="fRule" onchange="loadIssues()"><option value="">全部规则</option></select>
+<button class="btn b1 bs" onclick="loadIssues()">查询</button>
+<span style="margin-left:auto;font-size:12px;color:#999">共 <b id="totalN">0</b> 条</span>
+</div>
+
+<div class="batch-bar" id="batchBar">
+<span style="font-weight:600;color:#667eea">已选 <b id="selN">0</b> 项</span>
+<select id="batchStatus" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px">
+<option value="">改状态为…</option>
+<option value="open">待处理</option>
+<option value="in_progress">跟进中</option>
+<option value="resolved">已解决</option>
+<option value="ignored">已忽略</option>
+</select>
+<input type="text" id="batchAssignee" placeholder="指派人" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px">
+<button class="btn b1 bs" onclick="batchUpdate()">应用</button>
+<button class="btn bs" style="background:#eee;color:#666" onclick="clearSel()">取消选择</button>
+</div>
+
+<div class="tbl-wrap">
+<table><thead><tr>
+<th style="width:26px"><input type="checkbox" id="chkAll" onchange="toggleSelAll(this)"></th>
+<th style="width:60px">严重度</th>
+<th style="width:90px">规则</th>
+<th style="width:90px">状态</th>
+<th style="width:130px">订单/BOM编号</th>
+<th>问题描述</th>
+<th style="width:200px">整改建议</th>
+<th style="width:90px">指派人</th>
+<th style="width:90px">截止</th>
+<th style="width:140px">发现时间</th>
+<th style="width:80px">操作</th>
+</tr></thead><tbody id="issTb"><tr><td colspan="11" style="text-align:center;color:#999;padding:30px">加载中…</td></tr></tbody></table>
+</div>
+<div id="pgBar" style="margin-top:10px;text-align:center"></div>
+</div>
+</div>
+
+<div class="mo" id="editMo"><div class="mb" id="editMoBody"></div></div>
+
+<script>
+const API='/api/order-check';
+let allIssues=[];
+let page=1; const ps=50;
+let allRules=[];
+
+function staggeredRefresh(fn, baseSec, jitterSec){
+  const tick=()=>{
+    try{fn()}catch(e){console.error(e)}
+    const next=(baseSec+(Math.random()*2-1)*jitterSec)*1000;
+    setTimeout(tick,Math.max(2000,next));
+  };
+  setTimeout(tick, 1500+Math.random()*2500);
+}
+
+async function init(){
+  document.getElementById('sidebar').innerHTML=window.parent?'':'';
+  await loadRules();
+  loadIssues();
+  loadStats();
+  staggeredRefresh(loadStats, 30, 8);
+}
+async function loadRules(){
+  const r=await fetch(API+'/rules'); allRules=await r.json();
+  const select=document.getElementById('fRule');
+  select.innerHTML='<option value="">全部规则</option>'+(allRules.rules||[]).map(r=>`<option value="${r.id}">${r.id} ${r.name}</option>`).join('');
+  const list=document.getElementById('ruleList');
+  list.innerHTML=(allRules.rules||[]).map(r=>{
+    const isEnabled=r.enabled!==false;
+    return `
+    <div class="rule-card" data-category="${r.category||''}" data-severity="${r.severity||''}" style="display:flex;align-items:center;gap:6px;padding:6px 8px">
+      <input type="checkbox" class="ruleChk" data-id="${r.id}" data-cat="${r.category||''}" data-sev="${r.severity||''}" ${isEnabled?'checked':''} onchange="updateSelCount()" title="勾选后纳入本次自检">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <b>${r.id}</b>
+          <span class="sev sev-${r.severity||'medium'}" title="严重度">${r.severity||'medium'}</span>
+          <span style="color:#888;font-size:11px">${r.category||''}</span>
+          ${!isEnabled?'<span style="color:#999;font-size:11px">（已停用）</span>':''}
+        </div>
+        <div style="margin-top:2px;font-size:12px">${r.name}</div>
+        <div style="color:#999;font-size:10px;margin-top:2px">${r.check_type}</div>
+      </div>
+      <label style="font-size:11px;white-space:nowrap" title="启用/停用规则"><input type="checkbox" ${isEnabled?'checked':''} onchange="toggleRule('${r.id}',this.checked)">${isEnabled?'启用':'停用'}</label>
+    </div>`;
+  }).join('');
+  updateSelCount();
+}
+function updateSelCount(){
+  document.getElementById('selRuleCnt').textContent=document.querySelectorAll('.ruleChk:checked').length;
+  document.getElementById('totalRuleCnt').textContent=document.querySelectorAll('.ruleChk').length;
+}
+function selectPreset(p){
+  const chks=document.querySelectorAll('.ruleChk');
+  if(p==='none') chks.forEach(c=>c.checked=false);
+  else if(p==='all') chks.forEach(c=>c.checked=true);
+  else if(p==='enabled') chks.forEach(c=>c.checked=c.parentElement.querySelector('label input').checked);
+  else if(p==='critical') chks.forEach(c=>c.checked=c.dataset.sev==='critical');
+  updateSelCount();
+}
+function applyCategoryFilter(){
+  const cats=[];
+  if(document.getElementById('cat-code').checked) cats.push('code');
+  if(document.getElementById('cat-integrity').checked) cats.push('integrity');
+  if(document.getElementById('cat-bom').checked) cats.push('bom');
+  if(document.getElementById('cat-cost').checked) cats.push('cost');
+  if(cats.length===0){
+    document.querySelectorAll('.rule-card').forEach(c=>c.style.display='');
+    return;
+  }
+  document.querySelectorAll('.rule-card').forEach(c=>{
+    c.style.display=cats.includes(c.dataset.cat)?'':'none';
+  });
+}
+async function toggleRule(id, enabled){
+  await fetch(API+'/rules/'+id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled})});
+  await loadRules();
+}
+async function runCheck(){
+  const ruleIds=[...document.querySelectorAll('.ruleChk:checked')].map(c=>c.dataset.id);
+  const btn=event.target;
+  const orig=btn.textContent;
+  btn.textContent='运行中…'; btn.disabled=true;
+  try{
+    const r=await fetch(API+'/run', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rule_ids:ruleIds})});
+    const d=await r.json();
+    alert(d.message);
+    loadIssues(); loadStats();
+  }catch(e){alert('运行失败: '+e.message)}
+  finally{btn.textContent=orig;btn.disabled=false}
+}
+async function previewCheck(){
+  const ruleIds=[...document.querySelectorAll('.ruleChk:checked')].map(c=>c.dataset.id);
+  const btn=event.target;
+  const orig=btn.textContent;
+  btn.textContent='运行中…'; btn.disabled=true;
+  try{
+    const r=await fetch(API+'/preview', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rule_ids:ruleIds,limit:100})});
+    const d=await r.json();
+    const el=document.getElementById('previewResult');
+    el.style.display='block';
+    el.innerHTML=`
+    <div style="background:#f8f9ff;border:1px solid #d0d7ff;border-radius:8px;padding:12px">
+    <div style="font-weight:600;color:#667eea;margin-bottom:8px">👁 试运行结果（未写库）</div>
+    <div style="font-size:12px;color:#666;margin-bottom:8px">扫描 ${d.orders_scanned} 条订单 / ${d.bom_scanned} 行BOM，发现 ${d.total_found} 个问题（仅展示前100条）</div>
+    <table style="width:100%;font-size:12px"><thead><tr><th>严重度</th><th>规则</th><th>目标编号</th><th>描述</th></tr></thead>
+    <tbody>${(d.issues||[]).map(i=>`<tr><td><span class="sev sev-${i.severity}">${i.severity}</span></td><td>${i.rule_id}</td><td>${i.target_code||'-'}</td><td>${esc(i.description)}</td></tr>`).join('')}</tbody></table>
+    </div>`;
+  }catch(e){alert('试运行失败: '+e.message)}
+  finally{btn.textContent=orig;btn.disabled=false}
+}
+async function smartFixAll(){
+  if(!confirm('确定要对所有可自动修复的问题执行智能修复吗？')) return;
+  const r=await fetch(API+'/issues?status=open');
+  const d=await r.json();
+  let fixed=0, failed=0;
+  for(const issue of d.issues){
+    try{
+      const rule=(allRules.rules||[]).find(r=>r.id===issue.rule_id);
+      if(!rule||!rule.auto_fix) continue;
+      const fr=await fetch(API+'/fix/'+issue.id, {method:'POST'});
+      const fd=await fr.json();
+      if(fd.success) fixed++; else failed++;
+    }catch(e){failed++}
+  }
+  alert(`智能修复完成：成功 ${fixed} 个，失败 ${failed} 个`);
+  loadIssues(); loadStats();
+}
+async function loadIssues(){
+  const q=document.getElementById('q').value.trim();
+  const status=document.getElementById('fStatus').value;
+  const sev=document.getElementById('fSev').value;
+  const rule=document.getElementById('fRule').value;
+  const url=new URL(API+'/issues',window.location.origin);
+  if(q) url.searchParams.set('q',q);
+  if(status) url.searchParams.set('status',status);
+  if(sev) url.searchParams.set('severity',sev);
+  if(rule) url.searchParams.set('rule_id',rule);
+  url.searchParams.set('page',page);
+  url.searchParams.set('page_size',ps);
+  const r=await fetch(url);
+  const d=await r.json();
+  allIssues=d.issues||[];
+  document.getElementById('totalN').textContent=d.total||0;
+  document.getElementById('issTb').innerHTML=allIssues.length?renderIssues(allIssues):'<tr><td colspan="11" style="text-align:center;color:#999;padding:30px">无数据</td></tr>';
+  renderPagination(d.total,d.page);
+}
+function renderIssues(items){
+  return items.map(i=>{
+    const isRes=i.status==='resolved'||i.status==='ignored'||i.status==='wont_fix';
+    return `<tr ${isRes?'class="resolved"':''} data-id="${i.id}">
+    <td><input type="checkbox" class="row-check" onchange="updateSelN()"></td>
+    <td><span class="sev sev-${i.severity}">${i.severity}</span></td>
+    <td>${i.rule_id}</td>
+    <td><span class="status st-${i.status}">${statusLabel(i.status)}</span></td>
+    <td><a href="order-analysis.html" target="_blank" style="color:#667eea">${esc(i.target_code||'-')}</a></td>
+    <td>${esc(i.description)}</td>
+    <td style="color:#666;font-size:12px">${esc(i.suggested_action||'')}</td>
+    <td>${esc(i.assignee||'-')}</td>
+    <td>${i.due_date||'-'}</td>
+    <td>${i.detected_at||'-'}</td>
+    <td style="white-space:nowrap">
+    <button class="btn bs" style="background:#667eea;color:#fff" onclick="editIssue(${i.id})">编辑</button>
+    ${i.status!=='resolved'&&i.status!=='ignored'?`<button class="btn bs" style="background:#27ae60;color:#fff" onclick="markResolved(${i.id})">解决</button>`:''}
+    </td></tr>`;
+  }).join('');
+}
+function statusLabel(s){
+  const m={open:'待处理',in_progress:'跟进中',resolved:'已解决',ignored:'已忽略',wont_fix:'暂不修复'};
+  return m[s]||s;
+}
+function renderPagination(total,p){
+  const totalPages=Math.ceil(total/ps);
+  if(totalPages<=1){document.getElementById('pgBar').innerHTML='';return}
+  let html='<span style="font-size:12px;color:#666">';
+  if(p>1) html+=`<button class="btn bs" onclick="goPage(${p-1})">上一页</button>`;
+  for(let i=1;i<=totalPages;i++){
+    if(Math.abs(i-p)<=3||i===1||i===totalPages){
+      if(i===p) html+=`<span style="padding:3px 8px;font-weight:600;color:#667eea">${i}</span>`;
+      else html+=`<button class="btn bs" onclick="goPage(${i})">${i}</button>`;
+    }else if(Math.abs(i-p)===4){
+      html+='...';
+    }
+  }
+  if(p<totalPages) html+=`<button class="btn bs" onclick="goPage(${p+1})">下一页</button>`;
+  html+='</span>';
+  document.getElementById('pgBar').innerHTML=html;
+}
+function goPage(p){page=p;loadIssues()}
+function toggleSelAll(cb){document.querySelectorAll('.row-check').forEach(c=>c.checked=cb.checked);updateSelN()}
+function updateSelN(){
+  const n=document.querySelectorAll('.row-check:checked').length;
+  document.getElementById('selN').textContent=n;
+  document.getElementById('batchBar').classList.toggle('show',n>0);
+}
+function clearSel(){document.querySelectorAll('.row-check').forEach(c=>c.checked=false);updateSelN()}
+async function batchUpdate(){
+  const ids=[...document.querySelectorAll('.row-check:checked')].map(c=>c.parentElement.parentElement.dataset.id);
+  const status=document.getElementById('batchStatus').value;
+  const assignee=document.getElementById('batchAssignee').value.trim();
+  if(!status&&!assignee){alert('请选择要修改的内容');return}
+  await fetch(API+'/issues/batch', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids,status,assignee})});
+  clearSel(); loadIssues();
+}
+async function loadStats(){
+  const r=await fetch(API+'/stats');
+  const d=await r.json();
+  const total=Number(d.by_status.open||0)+Number(d.by_status.in_progress||0);
+  document.getElementById('statsGrid').innerHTML=`
+  <div class="stat-card ${total>0?'crit':'ok'}"><div class="stat-num">${total}</div><div class="stat-l">待处理总数</div></div>
+  <div class="stat-card crit"><div class="stat-num">${d.by_severity.critical||0}</div><div class="stat-l">严重(critical)</div></div>
+  <div class="stat-card high"><div class="stat-num">${d.by_severity.high||0}</div><div class="stat-l">高(high)</div></div>
+  <div class="stat-card med"><div class="stat-num">${d.by_severity.medium||0}</div><div class="stat-l">中(medium)</div></div>
+  <div class="stat-card low"><div class="stat-num">${d.by_severity.low||0}</div><div class="stat-l">低(low)</div></div>
+  <div class="stat-card ok"><div class="stat-num">${d.by_status.resolved||0}</div><div class="stat-l">已解决</div></div>`;
+}
+async function markResolved(id){
+  await fetch(API+'/issues/'+id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'resolved'})});
+  loadIssues(); loadStats();
+}
+async function editIssue(id){
+  const r=await fetch(API+'/issues/'+id);
+  const i=await r.json();
+  const rule=(allRules.rules||[]).find(r=>r.id===i.rule_id);
+  document.getElementById('editMoBody').innerHTML=`
+  <h3 style="margin-top:0">编辑问题 #${i.id}</h3>
+  <div class="fg"><label>规则</label><input type="text" value="${esc(i.rule_id+' '+i.rule_name)}" disabled></div>
+  <div class="fg"><label>严重度</label><span class="sev sev-${i.severity}">${i.severity}</span></div>
+  <div class="fg"><label>目标编号</label><input type="text" value="${esc(i.target_code||'')}" disabled></div>
+  <div class="fg"><label>问题描述</label><textarea>${esc(i.description)}</textarea></div>
+  <div class="fg"><label>整改建议</label><textarea>${esc(i.suggested_action||'')}</textarea></div>
+  <div class="fg"><label>状态</label>
+  <select id="editStatus">
+  <option value="open" ${i.status==='open'?'selected':''}>待处理</option>
+  <option value="in_progress" ${i.status==='in_progress'?'selected':''}>跟进中</option>
+  <option value="resolved" ${i.status==='resolved'?'selected':''}>已解决</option>
+  <option value="ignored" ${i.status==='ignored'?'selected':''}>已忽略</option>
+  <option value="wont_fix" ${i.status==='wont_fix'?'selected':''}>暂不修复</option>
+  </select></div>
+  <div class="fg"><label>指派人</label><input type="text" id="editAssignee" value="${esc(i.assignee||'')}"></div>
+  <div class="fg"><label>截止日期</label><input type="date" id="editDue" value="${(i.due_date||'').substring(0,10)}"></div>
+  <div class="fg"><label>备注</label><textarea id="editComment">${esc(i.comment||'')}</textarea></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+  ${rule&&rule.auto_fix?`<button class="btn" style="background:#2ecc71;color:#fff" onclick="applyFix(${i.id})">🔧 智能修复</button>`:''}
+  <button class="btn" style="background:#eee;color:#666" onclick="closeMo()">取消</button>
+  <button class="btn b1" onclick="saveIssue(${i.id})">保存</button>
+  </div>`;
+  document.getElementById('editMo').classList.add('show');
+}
+function closeMo(){document.getElementById('editMo').classList.remove('show')}
+async function saveIssue(id){
+  const status=document.getElementById('editStatus').value;
+  const assignee=document.getElementById('editAssignee').value.trim();
+  const due_date=document.getElementById('editDue').value;
+  const comment=document.getElementById('editComment').value.trim();
+  await fetch(API+'/issues/'+id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status,assignee,due_date,comment})});
+  closeMo(); loadIssues(); loadStats();
+}
+async function applyFix(id){
+  const r=await fetch(API+'/fix/'+id, {method:'POST'});
+  const d=await r.json();
+  alert(d.success?'修复成功：'+d.message:'修复失败：'+d.message);
+  closeMo(); loadIssues(); loadStats();
+}
+function openRuleEditor(){
+  alert('规则配置已在上方规则列表中展示，可直接启用/停用');
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+init();
+</script></body></html>

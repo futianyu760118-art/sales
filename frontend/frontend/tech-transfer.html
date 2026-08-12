@@ -209,7 +209,7 @@ function switchSub(id,btn){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -236,7 +236,7 @@ async function loadDocStats(){
 }
 async function loadDocs(page){
   page=page||1;
-  const p=new URLSearchParams({page,limit:50});
+  const p=new URLSearchParams({page,limit:(window._pageSize||50)});
   const kw=VAL('dKw'),cat=VAL('dCat'),lv=VAL('dLevel'),st=VAL('dStatus'),pj=VAL('dProj');
   if(kw)p.set('keyword',kw);if(cat)p.set('category',cat);if(lv)p.set('level',lv);if(st)p.set('status',st);if(pj)p.set('project_no',pj);
   try{
@@ -444,7 +444,7 @@ function flowBar(f){
 }
 async function loadFlows(page){
   page=page||1;
-  const p=new URLSearchParams({page,limit:50});
+  const p=new URLSearchParams({page,limit:(window._pageSize||50)});
   const kw=VAL('fKw'),st=VAL('fStage');
   if(kw)p.set('keyword',kw);if(st)p.set('current_stage',st);
   try{
@@ -560,7 +560,7 @@ async function auditHandover(id,status){
 // ============ Tab3 技术变更 ============
 async function loadChanges(page){
   page=page||1;
-  const p=new URLSearchParams({page,limit:50});
+  const p=new URLSearchParams({page,limit:(window._pageSize||50)});
   const kw=VAL('cKw'),tp=VAL('cType'),st=VAL('cStatus');
   if(kw)p.set('keyword',kw);if(tp)p.set('change_type',tp);if(st)p.set('status',st);
   try{
@@ -634,7 +634,7 @@ async function openChange(){
 // ============ Tab4 复盘与案例 ============
 async function loadReviews(page){
   page=page||1;
-  const p=new URLSearchParams({page,limit:50});
+  const p=new URLSearchParams({page,limit:(window._pageSize||50)});
   const dm=VAL('rDim'),st=VAL('rStatus');
   if(dm)p.set('dimension',dm);if(st)p.set('status',st);
   try{
@@ -701,7 +701,7 @@ async function promoteCase(id){
 
 async function loadCases(page){
   page=page||1;
-  const p=new URLSearchParams({page,limit:50});
+  const p=new URLSearchParams({page,limit:(window._pageSize||50)});
   const kw=VAL('caKw'),tp=VAL('caType');
   if(kw)p.set('keyword',kw);if(tp)p.set('problem_type',tp);
   try{
@@ -765,7 +765,7 @@ async function loadAlerts(){
 }
 async function loadLogs(page){
   page=page||1;
-  const p=new URLSearchParams({page,limit:50});
+  const p=new URLSearchParams({page,limit:(window._pageSize||50)});
   const act=VAL('aAction'),rs=VAL('aResult'),uid=VAL('aUser');
   if(act)p.set('action',act);if(rs)p.set('result',rs);if(uid)p.set('user_id',uid);
   try{

@@ -5,6 +5,7 @@ router.use('/inquiries', require('./inquiry'));
 router.use('/products', require('./product'));
 router.use('/customers', require('./customer'));
 router.use('/materials', require('./material'));
+router.use('/material-costs', require('./material-costs'));
 router.use('/materials-ext', require('./material-ext'));
 router.use('/procurement', require('./procurement'));
 router.use('/suppliers', require('./supplier'));
@@ -13,6 +14,7 @@ router.use('/orders', require('./order'));
 router.use('/samples', require('./sample'));
 router.use('/projects', require('./project'));
 router.use('/annual-plan', require('./annual-plan'));
+router.use('/amiba', require('./amiba'));
 router.use('/products/bom-types', require('./bom-type'));
 router.use('/products/bom-issues', require('./bom-issue'));
 router.use('/pricing', require('./pricing'));
@@ -33,9 +35,20 @@ router.use('/data-clean', require('./data-clean'));
 router.use('/ai-assistant', require('./ai-assistant'));
 router.use('/bom', require('./bom'));
 router.use('/external-sync', require('./external-sync'));
+router.use('/external', require('./external-service'));
 router.use('/tech', require('./tech-transfer'));
 router.use('/organization', require('./organization'));
 router.use('/data-scope', require('./data-scope'));
 router.use('/material-check', require('./material-check'));
+router.use('/expenses', require('./expense'));
+router.use('/labor', require('./labor'));
+router.use('/product-labor-rate', require('./product-labor-rate'));
+router.use('/material-issues', require('./material-issue'));
+router.use('/order-analysis', require('./order-analysis'));
+
+router.use('/order-check', require('./order-check'));
+
+router.use('/sop', require('./sop'));
+router.use('/im', require('./im'));
 
 module.exports = router;

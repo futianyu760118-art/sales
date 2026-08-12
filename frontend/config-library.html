@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>配置表库</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 配置表库</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;border-bottom:2px solid #eee;margin-bottom:16px}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
@@ -24,7 +24,7 @@ tr:hover td{background:#f8f9ff}
 .fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
 .fg textarea{resize:vertical;min-height:50px}
 .gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-</style></head><body>
+</style></head><body data-page-title="配置表库" data-page-perm="config-lib:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -93,7 +93,7 @@ async function loadConfigTypes(){
 
 async function loadConfigs(page){
   cfgPage=page||1;
-  const p=new URLSearchParams({page:cfgPage,limit:20});
+  const p=new URLSearchParams({page:cfgPage,limit:(window._pageSize||20)});
   const kw=document.getElementById('cfgKw').value,st=document.getElementById('cfgStatus').value,tp=document.getElementById('cfgType').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(tp)p.set('config_type',tp);
   try{
@@ -120,7 +120,7 @@ async function loadConfigs(page){
 }
 
 function renderPg(total){
-  const ps=20,pages=Math.ceil(total/ps),el=document.getElementById('cfgPg');
+  var ps = (window._pageSize || 20),pages=Math.ceil(total/ps),el=document.getElementById('cfgPg');
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(cfgPage>1)h+=`<button class="btn bs" onclick="loadConfigs(${cfgPage-1})">上一页</button> `;
@@ -222,6 +222,7 @@ async function batchExport(format){
 
 loadConfigs(1);loadConfigTypes();
 </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body></html>

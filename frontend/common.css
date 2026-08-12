@@ -1,43 +1,312 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f0f2f5; min-height: 100vh; }
 
+/* ============================================================
+ * 现代企业 ERP 双列导航（feishu / sap fiori / odoo 风格）
+ * sidebar 顶部：品牌条
+ * sidebar 主体：左侧一级导航(rail) + 右侧二级菜单(panel)
+ * ============================================================ */
 .sidebar {
-  width: 250px;
+  width: 292px;
   background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
   height: 100vh;
   position: fixed;
   left: 0;
   top: 0;
-  padding: 20px;
   color: white;
   z-index: 100;
-  overflow-y: auto;
-}
-.sidebar h1 {
-  font-size: 18px;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-.sidebar ul { list-style: none; }
-.sidebar li { margin-bottom: 6px; }
-.sidebar a {
-  display: block;
-  padding: 11px 15px;
-  color: #b8c5d6;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.3s;
-  font-size: 14px;
-}
-.sidebar a:hover, .sidebar a.active {
-  background: rgba(102, 126, 234, 0.3);
-  color: white;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
+/* —— 品牌条 —— */
+.sidebar .lms-brandbar {
+  height: 52px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+}
+.sidebar .lms-brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  line-height: 1.3;
+}
+
+/* —— 当前登录账号：紧凑条（位于一级导航轨上方） —— */
+.sidebar .lms-userstrip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  transition: background 0.18s;
+}
+.sidebar .lms-userstrip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.sidebar .lms-brand-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  user-select: none;
+  letter-spacing: 0;
+}
+.sidebar .lms-brand-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.sidebar .lms-brand-uname {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.2px;
+}
+.sidebar .lms-brand-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+.sidebar .lms-brand-role {
+  display: inline-block;
+  padding: 0 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.5;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sidebar .lms-brand-role.admin {
+  background: rgba(245, 158, 11, 0.85);
+  color: #fff;
+}
+.sidebar .lms-brand-username {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'SF Mono', Consolas, Monaco, monospace;
+  font-size: 9px;
+  min-width: 0;
+}
+.sidebar .lms-brand-logout {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
+  font-family: inherit;
+}
+.sidebar .lms-brand-logout:hover {
+  background: rgba(231, 76, 60, 0.9);
+  color: #fff;
+  transform: scale(1.06);
+}
+.sidebar .lms-brand-logout-icon {
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 600;
+}
+
+/* 极窄侧栏（≤1280px）下隐藏 @登录账号，保留姓名/角色/退出 */
+@media (max-width: 1280px) {
+  .sidebar .lms-brand-username { display: none; }
+}
+
+/* —— 一级 + 二级 主体 —— */
+.sidebar .lms-body {
+  flex: 1;
+  display: flex;
+  min-height: 0; /* 让内部可滚动 */
+}
+
+/* —— 一级导航轨 —— */
+.sidebar .lms-topnav {
+  width: 72px;
+  background: rgba(0, 0, 0, 0.20);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 10px 0;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.sidebar .lms-group-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 4px;
+  margin: 1px 0;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  color: rgba(255,255,255,0.55);
+  font-family: inherit;
+  font-size: 11px;
+  text-align: center;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  outline: none;
+}
+.sidebar .lms-group-item:hover {
+  background: rgba(102,126,234,0.18);
+  color: rgba(255,255,255,0.92);
+}
+.sidebar .lms-group-item:focus-visible {
+  background: rgba(102,126,234,0.22);
+  color: #fff;
+}
+.sidebar .lms-group-item.active {
+  background: rgba(102,126,234,0.28);
+  color: #fff;
+  border-left-color: #667eea;
+  font-weight: 500;
+}
+.sidebar .lms-group-item.lms-empty-group {
+  opacity: 0.45;
+}
+.sidebar .lms-group-icon {
+  font-size: 20px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.sidebar .lms-group-label {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* —— 二级菜单面板 —— */
+.sidebar .lms-secondary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: opacity 200ms ease;
+}
+.sidebar .lms-secondary.lms-fading {
+  opacity: 0;
+}
+.sidebar .lms-secondary-header {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.sidebar .lms-secondary-list {
+  flex: 1;
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+  overflow-y: auto;
+}
+.sidebar .lms-secondary-item {
+  display: block;
+  padding: 10px 16px 10px 22px;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+  transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar .lms-secondary-item:hover {
+  background: rgba(102,126,234,0.15);
+  color: #fff;
+}
+.sidebar .lms-secondary-item.active {
+  background: rgba(102,126,234,0.24);
+  color: #fff;
+  border-left-color: #667eea;
+  font-weight: 500;
+}
+.sidebar .lms-empty {
+  padding: 28px 20px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  list-style: none;
+}
+
+/* scrollbar 美化（深色侧栏内的滚动条） */
+.sidebar .lms-topnav::-webkit-scrollbar,
+.sidebar .lms-secondary-list::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar .lms-topnav::-webkit-scrollbar-thumb,
+.sidebar .lms-secondary-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+}
+
+/* 响应式：1366 及以下自动收窄 */
+@media (max-width: 1366px) {
+  .sidebar { width: 252px; }
+  .sidebar .lms-topnav { width: 60px; }
+  .main-content { margin-left: 252px !important; }
+}
+@media (max-width: 1280px) {
+  .sidebar { width: 224px; }
+  .sidebar .lms-topnav { width: 56px; }
+  .sidebar .lms-brand-name { font-size: 13px; }
+  .main-content { margin-left: 224px !important; }
+}
+
+/* —— 主区域 —— */
 .main-content {
-  margin-left: 250px;
+  margin-left: 292px;
   padding: 20px;
+  min-height: 100vh;
 }
 
 .header {
@@ -350,3 +619,97 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial
 /* 隐藏未使用区块以保持紧凑 */
 .cmp-panel.cmp-compact { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+
+/* ============================================================
+ * 可搜索下拉（fuzzy searchable select）
+ * ------------------------------------------------------------
+ * 用法：
+ *   <select id="foo" data-searchable="1">
+ *     <option value="1">销售中心</option>
+ *   </select>
+ * 浏览器渲染后由 enhanceSelectable() 包裹一层；保持原生 <select>
+ * 在 DOM 中（隐藏），表单提交/校验兼容；fillSelect() 重建 options
+ * 后会自动调用 SSelect.refresh() 同步下拉面板。
+ * ============================================================ */
+.ss-wrap { position: relative; display: inline-block; width: 100%; vertical-align: middle; }
+.ss-wrap select.ss-hidden { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
+.ss-display {
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 28px 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23999' d='M0 0l5 6 5-6z'/></svg>") no-repeat right 10px center;
+  background-size: 10px 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.ss-display:focus, .ss-display:hover { border-color: #667eea; outline: none; }
+.ss-display.placeholder { color: #aaa; }
+.ss-display.disabled { background-color: #f5f5f5; color: #999; cursor: not-allowed; }
+.ss-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  background: #fff;
+  border: 1px solid #667eea;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  padding: 6px;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+.ss-search {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+.ss-search:focus { border-color: #667eea; }
+.ss-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 0; }
+.ss-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+  margin: 1px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ss-item:hover, .ss-item.active { background: #eef2ff; color: #3949ab; }
+.ss-item.selected { background: #e8eaf6; color: #3949ab; font-weight: 600; }
+.ss-item mark { background: #fff3a0; color: #333; padding: 0; }
+.ss-empty { padding: 14px; text-align: center; color: #999; font-size: 12px; }
+.ss-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px 2px;
+  border-top: 1px dashed #eee;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #999;
+  flex-shrink: 0;
+}
+.ss-footer kbd {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-family: inherit;
+}

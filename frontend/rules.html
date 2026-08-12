@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>流程规则</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 流程规则</title><link rel="stylesheet" href="common.css">
 <style>
 .sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
@@ -31,7 +31,7 @@ tr:hover td{background:#f8f9ff}
 .tab-nav button{padding:8px 20px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
 .tab-nav button.active{color:#667eea;border-bottom-color:#667eea;font-weight:600}
 .tab-nav button:hover{color:#667eea}
-</style></head><body>
+</style></head><body data-page-title="流程规则" data-page-perm="rules:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -311,6 +311,7 @@ async function batchToggleAll(enabled){
 
 loadList();
 </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body></html>

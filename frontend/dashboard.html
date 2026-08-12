@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 仪表盘</title>
+  <title>企业经营管理平台（EBMS）-HJ - 仪表盘</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
@@ -130,17 +130,90 @@
       .rd-panels { grid-template-columns: 1fr; }
       .rd-insight-grid { grid-template-columns: 1fr; }
     }
+
+    /* 仪表盘筛选条 */
+    .filter-bar { background: white; padding: 14px 16px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 16px; }
+    .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .filter-row > input, .filter-row > select { padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .filter-sep { color: #888; font-size: 12px; padding: 0 4px; }
+    .filter-status { color: #888; font-size: 12px; padding: 0 8px; }
+    .filter-status.active { color: #27ae60; }
+
+    /* 订单分析：产品/客户维度 */
+    .order-analysis-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .order-analysis-section .oa-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .order-analysis-section .oa-header h3 { color: #333; font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .order-analysis-section .oa-header h3::before { content: ''; width: 4px; height: 18px; background: linear-gradient(180deg,#667eea,#764ba2); border-radius: 2px; display: inline-block; }
+    .oa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .oa-card { background: #fafbff; border: 1px solid #eef0f7; border-radius: 10px; padding: 14px; }
+    .oa-card h4 { font-size: 13px; color: #555; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .oa-card h4::before { content: ''; width: 4px; height: 14px; border-radius: 2px; display: inline-block; }
+    .oa-card.amt h4::before { background: #667eea; }
+    .oa-card.cnt h4::before { background: #27ae60; }
+    .oa-list { max-height: 360px; overflow-y: auto; }
+    .oa-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 12px; }
+    .oa-row:last-child { border-bottom: none; }
+    .oa-row .rank { width: 18px; height: 18px; border-radius: 50%; background: #667eea; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .oa-row:nth-child(1) .rank { background: #f39c12; }
+    .oa-row:nth-child(2) .rank { background: #95a5a6; }
+    .oa-row:nth-child(3) .rank { background: #cd7f32; }
+    .oa-row .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #333; }
+    .oa-row .name small { color: #999; font-size: 10px; margin-left: 4px; }
+    .oa-row .bar-wrap { width: 80px; height: 8px; background: #f0f2f8; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+    .oa-row .bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; }
+    .oa-card.cnt .oa-row .bar { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+    .oa-row .val { font-weight: 600; color: #333; width: 80px; text-align: right; flex-shrink: 0; font-size: 12px; }
+    .oa-empty { color: #bbb; font-size: 12px; text-align: center; padding: 18px 0; }
+    .oa-subtitle { color: #888; font-size: 11px; margin-left: 8px; }
+    @media (max-width: 768px) { .oa-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
-<body>
+<body data-page-title="仪表盘">
   <div class="sidebar" id="sidebar"></div>
 
   <div class="main-content" data-module="dashboard">
     <div class="header">
       <h2>欢迎回来</h2>
-      <div class="user-info">
-        <span id="userName">当前用户</span>
-        <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+
+    <!-- 仪表盘筛选：日期范围 / 客户 / 产品 / 订单状态 / 风险 / 审核状态 / 超支 -->
+    <div class="filter-bar" data-feature="dashboard_filters">
+      <div class="filter-row">
+        <input type="date" id="dashDateFrom" title="起始日期（订单创建/承诺交期起）" />
+        <span class="filter-sep">至</span>
+        <input type="date" id="dashDateTo" title="结束日期" />
+        <input type="text" id="dashCustomer" placeholder="客户名" style="width:140px" />
+        <input type="text" id="dashProduct" placeholder="产品编码/名称" style="width:160px" />
+        <select id="dashStatus" title="订单状态">
+          <option value="">全部状态</option>
+          <option value="open">待确认</option>
+          <option value="confirmed">已确认</option>
+          <option value="shipped">已发货</option>
+          <option value="completed">已完成</option>
+          <option value="closed">已关闭</option>
+          <option value="cancelled">已取消</option>
+        </select>
+        <select id="dashRisk" title="风险等级">
+          <option value="">全部风险</option>
+          <option value="high">高风险</option>
+          <option value="medium">中风险</option>
+          <option value="low">低风险</option>
+        </select>
+        <select id="dashRv" title="审核状态">
+          <option value="">全部审核</option>
+          <option value="none">未提交</option>
+          <option value="pending">待审核</option>
+          <option value="approved">已通过</option>
+          <option value="rejected">已驳回</option>
+        </select>
+        <select id="dashOverrun" title="超支">
+          <option value="">全部</option>
+          <option value="1">仅超支</option>
+          <option value="0">仅未超支</option>
+        </select>
+        <button class="btn bs" onclick="resetDashFilter()" style="background:#eee;color:#555">重置</button>
+        <span style="flex:1"></span>
+        <span class="filter-status" id="dashFilterStatus">实时筛选 · 300ms 防抖</span>
       </div>
     </div>
 
@@ -250,6 +323,32 @@
         <h3>\u4f9b\u5e94\u5546\u7ba1\u7406</h3>
         <p id="supplierTotal" style="color:#e67e22;">-</p>
         <div class="sub" id="supplierSub"></div>
+      </div>
+    </div>
+
+    <!-- 订单分析：产品/客户维度（来自订单分析库/审核台） -->
+    <div class="order-analysis-section" data-feature="order_analysis">
+      <div class="oa-header">
+        <h3>订单分析（产品 / 客户维度）<span class="oa-subtitle">数据源：订单分析库 · 审核台</span></h3>
+        <a href="order-analysis.html" class="rd-more">进入审核台 »</a>
+      </div>
+      <div class="oa-grid">
+        <div class="oa-card amt">
+          <h4>Top 客户（按订单金额）</h4>
+          <div id="oaCustAmt" class="oa-list"><div class="oa-empty">加载中…</div></div>
+        </div>
+        <div class="oa-card cnt">
+          <h4>Top 客户（按订单数）</h4>
+          <div id="oaCustCnt" class="oa-list"><div class="oa-empty">加载中…</div></div>
+        </div>
+        <div class="oa-card amt">
+          <h4>Top 产品（按订单金额）</h4>
+          <div id="oaProdAmt" class="oa-list"><div class="oa-empty">加载中…</div></div>
+        </div>
+        <div class="oa-card cnt">
+          <h4>Top 产品（按订单数）</h4>
+          <div id="oaProdCnt" class="oa-list"><div class="oa-empty">加载中…</div></div>
+        </div>
       </div>
     </div>
 
@@ -470,6 +569,9 @@
 
       // 研发交付与变更分析
       loadRdDelivery();
+
+      // 订单分析：产品/客户 Top N（来自订单分析库/审核台）
+      loadOrderAnalysis();
     }
 
     function getWeekCount(status) {
@@ -584,7 +686,7 @@
         const issuesData = await issuesRes.json();
         const reviewsData = await reviewsRes.json();
         let initStats = { total: 0, draft: 0, submitted: 0, approved: 0, rejected: 0 };
-        try { const is = await initStatsRes.json(); initStats = is; } catch(e) {}
+        try { const is = await initStatsRes.json(); if (is && typeof is === 'object') initStats = is; } catch(e) {}
         const bs = stats.by_status || {}, bt = stats.by_type || {};
         const totalAmt = Math.round(stats.total_amount || 0).toLocaleString();
         const orderAmt = Math.round(stats.order_amount || 0).toLocaleString();
@@ -648,6 +750,102 @@
       } catch (e) {
         console.error('交付变更分析加载失败', e);
       }
+    }
+
+    // ===== 订单分析：产品/客户 Top N（订单分析库 /api/order-analysis/report/summary）=====
+    // 仪表盘筛选参数：日期 / 客户 / 产品 / 状态 / 风险 / 审核 / 超支
+    // 通过 date_from / date_to / customer / product / status / risk_level / review_status / has_overrun
+    // 传给 /api/order-analysis/report/summary，所有 TopN 卡片即时按筛选刷新
+    function dashFilterQs() {
+      const p = new URLSearchParams();
+      const v = id => (document.getElementById(id)?.value || '').trim();
+      const df = v('dashDateFrom'), dt = v('dashDateTo');
+      const cust = v('dashCustomer'), prod = v('dashProduct');
+      const st = v('dashStatus'), rk = v('dashRisk'), rv = v('dashRv'), ov = v('dashOverrun');
+      if (df) p.set('date_from', df);
+      if (dt) p.set('date_to', dt);
+      if (cust) p.set('customer', cust);
+      if (prod) p.set('product', prod);
+      if (st) p.set('status', st);
+      if (rk) p.set('risk_level', rk);
+      if (rv) p.set('review_status', rv);
+      if (ov) p.set('has_overrun', ov);
+      return p;
+    }
+    let _dashTimer = null;
+    function scheduleDashFilterRefresh() {
+      const st = document.getElementById('dashFilterStatus');
+      if (st) { st.classList.add('active'); st.textContent = '筛选中…'; }
+      clearTimeout(_dashTimer);
+      _dashTimer = setTimeout(() => {
+        loadOrderAnalysis();
+        if (st) { st.classList.remove('active'); st.textContent = '已应用筛选'; setTimeout(()=>{ if(st)st.textContent='实时筛选 · 300ms 防抖'; }, 1500); }
+      }, 300);
+    }
+    function resetDashFilter() {
+      ['dashDateFrom','dashDateTo','dashCustomer','dashProduct','dashStatus','dashRisk','dashRv','dashOverrun'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      scheduleDashFilterRefresh();
+    }
+    function bindDashFilters() {
+      ['dashDateFrom','dashDateTo','dashCustomer','dashProduct','dashStatus','dashRisk','dashRv','dashOverrun'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const evt = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
+        el.addEventListener(evt, scheduleDashFilterRefresh);
+      });
+    }
+
+    async function loadOrderAnalysis() {
+      try {
+        const q = dashFilterQs().toString();
+        const q1 = dashFilterQs(); q1.set('group_by','customer'); const q2 = dashFilterQs(); q2.set('group_by','product');
+        // 并发拉取"按客户"和"按产品"两个聚合（带筛选）
+        const [custRes, prodRes] = await Promise.all([
+          fetch(`${API}/order-analysis/report/summary?` + q1.toString()),
+          fetch(`${API}/order-analysis/report/summary?` + q2.toString())
+        ]);
+        const custData = custRes.ok ? await custRes.json() : { groups: [] };
+        const prodData = prodRes.ok ? await prodRes.json() : { groups: [] };
+        const topBy = (arr, key, n) => (arr || []).slice().sort((a, b) => (b[key] || 0) - (a[key] || 0)).slice(0, n);
+        // 显示当前筛选条件
+        const empty = (!custData.groups || custData.groups.length === 0) && (!prodData.groups || prodData.groups.length === 0);
+        renderOaList('oaCustAmt', topBy(custData.groups, 'order_amount', 10), 'order_amount', empty);
+        renderOaList('oaCustCnt', topBy(custData.groups, 'order_count', 10), 'order_count', empty);
+        renderOaList('oaProdAmt', topBy(prodData.groups, 'order_amount', 10), 'order_amount', empty);
+        renderOaList('oaProdCnt', topBy(prodData.groups, 'order_count', 10), 'order_count', empty);
+      } catch (e) {
+        ['oaCustAmt','oaCustCnt','oaProdAmt','oaProdCnt'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = '<div class="oa-empty">加载失败：'+ esc(e.message) +'</div>';
+        });
+      }
+    }
+    function renderOaList(elId, rows, metricKey, allEmpty) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      if (!rows.length) {
+        const hint = allEmpty ? '当前筛选条件下无数据' : '暂无数据';
+        el.innerHTML = '<div class="oa-empty">'+ hint +'</div>';
+        return;
+      }
+      const max = Math.max(...rows.map(r => Number(r[metricKey]) || 0), 1);
+      const isAmt = metricKey === 'order_amount';
+      el.innerHTML = rows.map((r, idx) => {
+        const v = Number(r[metricKey]) || 0;
+        const pct = Math.max((v / max) * 100, 6);
+        const disp = isAmt ? '¥' + Math.round(v).toLocaleString() : (v + ' 单');
+        const sub = isAmt
+          ? `<small>${r.order_count||0}单 · 毛利率${(Number(r.gross_rate)||0).toFixed(1)}%</small>`
+          : `<small>¥${Math.round(Number(r.order_amount)||0).toLocaleString()} · 毛利率${(Number(r.gross_rate)||0).toFixed(1)}%</small>`;
+        return `<div class="oa-row" title="${esc(r.name||'')}">
+          <div class="rank">${idx+1}</div>
+          <div class="name">${esc(r.name||'未填')}${sub}</div>
+          <div class="bar-wrap"><div class="bar" style="width:${pct}%"></div></div>
+          <div class="val">${disp}</div>
+        </div>`;
+      }).join('');
     }
 
     // ===== 数据穿透下钻 =====
@@ -765,16 +963,19 @@
       event.target.value = '';
     }
 
-    // 显示当前用户
+    // 显示当前用户（右上角卡片由 permission-check.js 渲染）
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.name) {
       document.querySelector('.header h2').textContent = `欢迎回来，${user.name}`;
-      document.getElementById('userName').textContent = user.name;
     }
+
+    // 绑定仪表盘筛选事件
+    bindDashFilters();
 
     loadDashboard();
   </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
   <script src="feature-gate.js"></script>
   <script>FeatureGate.init();</script>

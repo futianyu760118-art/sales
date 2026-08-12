@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 组织模块</title>
+  <title>企业经营管理平台（EBMS）-HJ - 组织模块</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .org-tabs { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
@@ -16,7 +16,7 @@
     .stat-card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
     .stat-card .num { font-size: 24px; font-weight: 700; color: #667eea; }
     .stat-card .lbl { font-size: 12px; color: #888; margin-top: 4px; }
-    .toolbar { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+    .toolbar { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: nowrap; overflow-x: auto; }
     .toolbar input, .toolbar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
     .toolbar input { min-width: 180px; }
     table { width: 100%; border-collapse: collapse; background: white; }
@@ -63,9 +63,21 @@
     .perm-cell-grant { background: #d4edda; color: #155724; }
     .perm-cell-deny { background: #f8d7da; color: #721c24; text-decoration: line-through; }
     .help-text { font-size: 11px; color: #999; margin-top: 4px; }
+    .matrix-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .matrix-table th, .matrix-table td { padding:10px 14px; border:1px solid #eee; text-align:center; font-size:13px; }
+    .matrix-table th { background:#f5f6fa; font-weight:600; color:#555; white-space:nowrap; }
+    .matrix-table th:first-child, .matrix-table td:first-child { text-align:left; font-weight:600; }
+    .matrix-cell { display:inline-flex; align-items:center; justify-content:center; min-width:48px; height:36px; border-radius:8px; cursor:pointer; font-weight:700; font-size:14px; transition:all .15s; padding:0 14px; }
+    .matrix-cell:hover { transform:scale(1.12); box-shadow:0 3px 10px rgba(0,0,0,0.15); }
+    .matrix-cell-zero { background:#f5f5f5; color:#bbb; cursor:default; }
+    .matrix-cell-zero:hover { transform:none; box-shadow:none; }
+    .matrix-summary { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:10px; margin-bottom:14px; }
+    .matrix-summary-card { background:white; padding:14px 18px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.06); display:flex; align-items:center; gap:14px; }
+    .matrix-summary-card .num { font-size:26px; font-weight:700; }
+    .matrix-summary-card .lbl { font-size:13px; color:#888; }
   </style>
 </head>
-<body>
+<body data-page-title="组织模块" data-page-perm="org:view">
   <div class="sidebar" id="sidebar"></div>
 
   <div class="main-content">
@@ -81,6 +93,7 @@
       <button class="active" onclick="switchOrgTab('dept', this)">部门管理</button>
       <button onclick="switchOrgTab('pos', this)">岗位管理</button>
       <button onclick="switchOrgTab('per', this)">人员管理</button>
+      <button onclick="switchOrgTab('role', this)">角色管理</button>
       <button onclick="switchOrgTab('perm', this)">权限分配</button>
     </div>
 
@@ -98,10 +111,10 @@
     </div>
 
     <!-- 部门管理 -->
-    <div class="org-tab active" id="tab-dept">
+    <div class="org-tab active" id="tab-dept" data-section-perm="org:view">
       <div class="toolbar">
         <input type="text" id="deptKw" placeholder="搜索部门名称/编码" onkeydown="if(event.key==='Enter')loadDepartments()">
-        <select id="deptStatus" onchange="loadDepartments()">
+        <select data-searchable="1" id="deptStatus" onchange="loadDepartments()">
           <option value="">全部状态</option><option value="active">启用</option><option value="inactive">停用</option>
         </select>
         <button class="btn btn-primary" onclick="loadDepartments()">查询</button>
@@ -130,11 +143,11 @@
     </div>
 
     <!-- 岗位管理 -->
-    <div class="org-tab" id="tab-pos">
+    <div class="org-tab" id="tab-pos" data-section-perm="org:view">
       <div class="toolbar">
         <input type="text" id="posKw" placeholder="搜索岗位名称/编码" onkeydown="if(event.key==='Enter')loadPositions()">
-        <select id="posDept" onchange="loadPositions()"><option value="">全部部门</option></select>
-        <select id="posStatus" onchange="loadPositions()">
+        <select data-searchable="1" id="posDept" onchange="loadPositions()"><option value="">全部部门</option></select>
+        <select data-searchable="1" id="posStatus" onchange="loadPositions()">
           <option value="">全部状态</option><option value="active">启用</option><option value="inactive">停用</option>
         </select>
         <button class="btn btn-primary" onclick="loadPositions()">查询</button>
@@ -162,29 +175,38 @@
     </div>
 
     <!-- 人员管理 -->
-    <div class="org-tab" id="tab-per">
+    <div class="org-tab" id="tab-per" data-section-perm="org:view">
       <div class="toolbar">
         <input type="text" id="perKw" placeholder="搜索姓名/工号/手机号" onkeydown="if(event.key==='Enter')loadPersonnel()">
-        <select id="perDept" onchange="onPerDeptChange()"><option value="">全部部门</option></select>
-        <select id="perPos" onchange="loadPersonnel()"><option value="">全部岗位</option></select>
-        <select id="perWorkRole" onchange="loadPersonnel()">
+        <select data-searchable="1" id="perDept" onchange="onPerDeptChange()"><option value="">全部部门</option></select>
+        <select data-searchable="1" id="perPos" onchange="loadPersonnel()"><option value="">全部岗位</option></select>
+        <select data-searchable="1" id="perWorkRole" onchange="loadPersonnel()">
           <option value="">全部工作角色</option><option value="leader">负责人</option><option value="admin">管理员</option><option value="operator">操作员</option>
         </select>
-        <select id="perStatus" onchange="loadPersonnel()">
+        <select data-searchable="1" id="perSyncExempt" onchange="loadPersonnel()" title="免外部同步：标记后外部同步脚本不会覆盖手工修改">
+          <option value="">全部（同步状态）</option><option value="1">🔒 仅免同步</option><option value="0">正常同步</option>
+        </select>
+        <select data-searchable="1" id="perStatus" onchange="loadPersonnel()">
           <option value="">全部状态</option><option value="active">在职</option><option value="inactive">离职</option>
         </select>
         <button class="btn btn-primary" onclick="loadPersonnel()">查询</button>
+        <button class="btn btn-default btn-sm" onclick="syncPersonnelDept()" title="重新拉取部门/岗位数据，确保人员信息与部门管理一致">↻ 同步部门信息</button>
         <button class="btn btn-success" data-perm="org:personnel:manage" onclick="showPerModal()">+ 新增人员</button>
+        <span style="flex:1;"></span>
+        <span id="perSelCount" style="font-size:12px;color:#666;display:none;">已选 <b id="perSelNum">0</b> 人</span>
+        <button class="btn btn-default btn-sm" id="perSelClear" style="display:none;" onclick="clearPerSelection()">清除选择</button>
+        <button class="btn btn-warning" id="perBatchBtn" style="display:none;" data-perm="org:personnel:manage" onclick="showBatchPerModal()">批量修改</button>
       </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
+              <th class="col-seq" style="width:32px;"><input type="checkbox" id="perCheckAll" onchange="togglePerCheckAll(this.checked)"></th>
               <th class="col-seq">#</th>
               <th>工号</th>
               <th>姓名</th>
               <th>性别</th>
-              <th>所属部门</th>
+              <th>所属部门 <span style="font-size:10px;font-weight:400;color:#888;">（编码/上级/负责人）</span></th>
               <th>岗位</th>
               <th>工作角色</th>
               <th>手机号</th>
@@ -193,23 +215,34 @@
               <th>操作</th>
             </tr>
           </thead>
-          <tbody id="perTable"><tr><td colspan="11" class="empty">加载中...</td></tr></tbody>
+          <tbody id="perTable"><tr><td colspan="12" class="empty">加载中...</td></tr></tbody>
         </table>
       </div>
     </div>
 
     <!-- 权限分配 -->
-    <div class="org-tab" id="tab-perm">
+    <div class="org-tab" id="tab-perm" data-section-perm="system:permission">
       <div class="toolbar">
-        <select id="permTargetType" onchange="onPermTargetChange()">
+        <select data-searchable="1" id="permTargetType" onchange="onPermTargetChange()">
           <option value="position">按岗位分配默认权限</option>
           <option value="personnel">按人员调整权限</option>
         </select>
-        <select id="permTarget" onchange="loadPermissionEditor()"><option value="">请选择...</option></select>
+        <select data-searchable="1" id="permTarget" onchange="loadPermissionEditor()"><option value="">请选择...</option></select>
         <button class="btn btn-primary" data-perm="org:position:manage" id="permSaveBtn" onclick="savePermissionEditor()">保存</button>
       </div>
       <div id="permEditor" style="background:white;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
         <div class="empty">请选择岗位或人员以调整权限</div>
+      </div>
+    </div>
+
+    <!-- 角色管理 -->
+    <div class="org-tab" id="tab-role" data-section-perm="system:permission">
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="loadRoleMatrix()">刷新矩阵</button>
+        <span style="font-size:12px;color:#888;margin-left:8px;">展示各中心（4个）× 工作角色（3级）的人员分布，点击数字查看明细</span>
+      </div>
+      <div id="roleMatrixContainer">
+        <div class="empty">加载中...</div>
       </div>
     </div>
   </div>
@@ -228,18 +261,18 @@
         <div class="form-row">
           <div class="form-group">
             <label>上级部门</label>
-            <select id="dParent"><option value="">（无）</option></select>
+            <select data-searchable="1" id="dParent"><option value="">（无）</option></select>
           </div>
           <div class="form-group">
             <label>负责人</label>
-            <select id="dManager"><option value="">（无）</option></select>
+            <select data-searchable="1" id="dManager"><option value="">（无）</option></select>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group"><label>排序</label><input type="number" id="dSort" value="0"></div>
           <div class="form-group">
             <label>状态</label>
-            <select id="dStatus"><option value="active">启用</option><option value="inactive">停用</option></select>
+            <select data-searchable="1" id="dStatus"><option value="active">启用</option><option value="inactive">停用</option></select>
           </div>
         </div>
         <div class="form-group"><label>描述</label><textarea id="dDesc" rows="2"></textarea></div>
@@ -265,7 +298,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>所属部门 *</label>
-            <select id="pDept" required><option value="">请选择部门</option></select>
+            <select data-searchable="1" id="pDept" required><option value="">请选择部门</option></select>
           </div>
           <div class="form-group"><label>级别</label><input type="text" id="pLevel" placeholder="如 P5/M1"></div>
         </div>
@@ -273,7 +306,7 @@
           <div class="form-group"><label>排序</label><input type="number" id="pSort" value="0"></div>
           <div class="form-group">
             <label>状态</label>
-            <select id="pStatus"><option value="active">启用</option><option value="inactive">停用</option></select>
+            <select data-searchable="1" id="pStatus"><option value="active">启用</option><option value="inactive">停用</option></select>
           </div>
         </div>
         <div class="form-group"><label>描述</label><textarea id="pDesc" rows="2"></textarea></div>
@@ -297,6 +330,87 @@
     </div>
   </div>
 
+  <!-- 人员批量修改弹窗 -->
+  <div class="modal" id="perBatchModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('perBatchModal')">&times;</span>
+      <h3>批量修改人员 <span id="perBatchTitleCount" style="color:#f39c12;"></span></h3>
+      <div class="help-text" style="margin-bottom:10px;">仅勾选并填写的字段会被更新；未勾选的字段保持原值。</div>
+      <form id="perBatchForm">
+        <div class="form-group" style="border:1px solid #eee;border-radius:6px;padding:10px;">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="batchChkDept" onchange="toggleBatchField('dept', this.checked)">
+            <b>修改所属部门</b>
+          </label>
+          <select data-searchable="1" id="batchDept" disabled><option value="">（不修改）</option></select>
+          <div style="margin-top:6px;">
+            <label style="font-size:11px;color:#666;">
+              <input type="radio" name="batchDeptMode" value="set" checked> 设为新部门
+              <input type="radio" name="batchDeptMode" value="clear" style="margin-left:10px;"> 清空所属部门
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="border:1px solid #eee;border-radius:6px;padding:10px;">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="batchChkPos" onchange="toggleBatchField('pos', this.checked)">
+            <b>修改岗位</b>
+          </label>
+          <select data-searchable="1" id="batchPos" disabled><option value="">（不修改）</option></select>
+          <div style="margin-top:6px;">
+            <label style="font-size:11px;color:#666;">
+              <input type="radio" name="batchPosMode" value="set" checked> 设为新岗位
+              <input type="radio" name="batchPosMode" value="clear" style="margin-left:10px;"> 清空岗位
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="border:1px solid #eee;border-radius:6px;padding:10px;">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="batchChkWr" onchange="toggleBatchField('wr', this.checked)">
+            <b>修改工作角色</b>
+          </label>
+          <select data-searchable="1" id="batchWr" disabled>
+            <option value="operator">操作员</option>
+            <option value="admin">管理员</option>
+            <option value="leader">负责人</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="border:1px solid #eee;border-radius:6px;padding:10px;">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="batchChkStatus" onchange="toggleBatchField('status', this.checked)">
+            <b>修改在职状态</b>
+          </label>
+          <select data-searchable="1" id="batchStatus" disabled>
+            <option value="active">在职</option>
+            <option value="inactive">离职</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="border:1px solid #eee;border-radius:6px;padding:10px;">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="batchChkSyncExempt" onchange="toggleBatchField('syncExempt', this.checked)">
+            <b>🔒 免外部同步</b>
+          </label>
+          <select data-searchable="1" id="batchSyncExempt" disabled>
+            <option value="true">设为免同步（保护手工编辑）</option>
+            <option value="false">取消免同步（恢复跟随外部）</option>
+          </select>
+        </div>
+
+        <div id="perBatchPreview" style="background:#fafafa;border:1px dashed #ddd;border-radius:6px;padding:10px;max-height:160px;overflow:auto;margin:10px 0;">
+          <div style="color:#999;font-size:12px;">预览待修改人员...</div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-default" onclick="closeModal('perBatchModal')">取消</button>
+          <button type="submit" class="btn btn-warning">确认修改</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 人员弹窗 -->
   <div class="modal" id="perModal">
     <div class="modal-content">
@@ -311,7 +425,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>性别</label>
-            <select id="perGender"><option value="">未知</option><option value="男">男</option><option value="女">女</option></select>
+            <select data-searchable="1" id="perGender"><option value="">未知</option><option value="男">男</option><option value="女">女</option></select>
           </div>
           <div class="form-group"><label>手机号</label><input type="text" id="perPhone"></div>
         </div>
@@ -319,32 +433,48 @@
         <div class="form-row">
           <div class="form-group">
             <label>所属部门</label>
-            <select id="perDeptSel"><option value="">（无）</option></select>
+            <select data-searchable="1" id="perDeptSel"><option value="">（无）</option></select>
           </div>
           <div class="form-group">
             <label>岗位</label>
-            <select id="perPosSel"><option value="">（无）</option></select>
+            <select data-searchable="1" id="perPosSel"><option value="">（无）</option></select>
           </div>
         </div>
         <div class="form-group">
           <label>关联系统用户</label>
-          <select id="perUserSel"><option value="">（无）</option></select>
+          <select data-searchable="1" id="perUserSel"><option value="">（无）</option></select>
           <div class="help-text">关联后，该人员的有效权限会与系统用户角色权限合并计算</div>
         </div>
         <div class="form-group">
           <label>工作角色 *</label>
-          <select id="perWorkRoleSel" required>
+          <select data-searchable="1" id="perWorkRoleSel" required>
             <option value="operator">操作员（日常业务操作）</option>
             <option value="admin">管理员（本中心数据与权限管理）</option>
             <option value="leader">负责人（本中心全面负责：审批 + 业务 + 管理）</option>
           </select>
           <div class="help-text">工作角色用于在"所属中心"范围内控制数据可见性与操作权限，负责人 &gt; 管理员 &gt; 操作员</div>
         </div>
+
+        <div class="form-group" style="background:#fff8e1;border:1px solid #ffe0b2;border-radius:6px;padding:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="perSyncExemptSel" style="width:16px;height:16px;">
+            <span><b>🔒 免外部同步</b></span>
+          </label>
+          <div class="help-text" style="margin-top:4px;">勾选后，外部数据同步脚本（如从其它 HR 系统导入）<b>不会覆盖本条人员的姓名、部门、岗位、手机号等字段</b>，保护手工编辑。需要时可以再取消勾选让同步生效。</div>
+        </div>
+
+        <div class="form-group" id="perDeptInfoPanel" style="background:#fafafa;border:1px solid #e8e8e8;border-radius:6px;padding:10px;">
+          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+            <span>📋 所在部门信息 <span style="font-weight:400;color:#999;">（实时来自部门管理）</span></span>
+            <button type="button" class="btn btn-default btn-sm" onclick="refreshPerDeptInfoPanel()">↻ 刷新</button>
+          </div>
+          <div id="perDeptInfoBody" style="font-size:12px;color:#666;line-height:1.7;">选择所属部门后展示</div>
+        </div>
         <div class="form-row">
           <div class="form-group"><label>排序</label><input type="number" id="perSort" value="0"></div>
           <div class="form-group">
             <label>状态</label>
-            <select id="perStatusSel"><option value="active">在职</option><option value="inactive">离职</option></select>
+            <select data-searchable="1" id="perStatusSel"><option value="active">在职</option><option value="inactive">离职</option></select>
           </div>
         </div>
         <div class="form-group"><label>描述</label><textarea id="perDesc" rows="2"></textarea></div>
@@ -380,6 +510,7 @@ function switchOrgTab(name, btn) {
   if (name === 'dept') loadDepartments();
   else if (name === 'pos') loadPositions();
   else if (name === 'per') loadPersonnel();
+  else if (name === 'role') loadRoleMatrix();
   else if (name === 'perm') onPermTargetChange();
 }
 
@@ -767,6 +898,7 @@ async function loadPersonnel() {
   const dept = document.getElementById('perDept').value;
   const pos = document.getElementById('perPos').value;
   const wr = document.getElementById('perWorkRole').value;
+  const syncExempt = document.getElementById('perSyncExempt').value;
   const status = document.getElementById('perStatus').value;
   const tbody = document.getElementById('perTable');
   try {
@@ -775,22 +907,40 @@ async function loadPersonnel() {
     if (dept) url.searchParams.set('department_id', dept);
     if (pos) url.searchParams.set('position_id', pos);
     if (wr) url.searchParams.set('work_role', wr);
+    if (syncExempt) url.searchParams.set('sync_exempt', syncExempt);
     if (status) url.searchParams.set('status', status);
     const res = await fetch(url);
     const data = await res.json();
     const list = data.data || [];
-    if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="11" class="empty">暂无人员</td></tr>'; return; }
+    if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="12" class="empty">暂无人员</td></tr>'; return; }
+    selectedPerIds.clear();
+    updatePerSelectionUI();
     let html = '';
     list.forEach((p, idx) => {
       const roleCode = p.work_role || 'operator';
       const roleName = p.work_role_name || '操作员';
       const roleColor = p.work_role_color || '#3498db';
+      const di = p.department_info || null;
+      const isMgr = !!p.is_department_manager;
+      const star = isMgr ? '<span title="本人为该部门负责人" style="color:#f39c12;margin-left:4px;">★</span>' : '';
+      const exemptBadge = p.sync_exempt
+        ? '<span title="已免同步：外部同步不会覆盖手工修改" style="display:inline-block;margin-left:4px;padding:1px 6px;border-radius:8px;font-size:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;">🔒 免同步</span>'
+        : '';
+      const deptHtml = di ? `
+        <div><strong>${escapeHtml(di.name || '-')}</strong> <code style="background:#eef;color:#556;font-size:10px;padding:1px 5px;border-radius:3px;">${escapeHtml(di.code || '')}</code>${star}</div>
+        <div style="font-size:11px;color:#888;line-height:1.5;">
+          ${di.parent_name ? `↑ ${escapeHtml(di.parent_name)}（${escapeHtml(di.parent_code || '')}）<br/>` : '<span style="color:#bbb;">一级部门</span><br/>'}
+          👤 ${escapeHtml(di.manager_name || '（未设置）')}${di.manager_emp_code ? ' <span style="color:#aaa;">·' + escapeHtml(di.manager_emp_code) + '</span>' : ''}
+        </div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">${di.active_personnel_count} 人 / ${di.position_count} 岗位${di.child_count ? ' · ' + di.child_count + ' 子部门' : ''}</div>
+      ` : '<span style="color:#bbb;">（未分配）</span>';
       html += `<tr>
+        <td style="text-align:center;"><input type="checkbox" class="per-check" data-id="${p.id}" onchange="onPerCheckChange()"></td>
         <td class="col-seq">${idx + 1}</td>
         <td><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:11px;">${escapeHtml(p.emp_code || '-')}</code></td>
-        <td><strong>${escapeHtml(p.name)}</strong></td>
+        <td><strong>${escapeHtml(p.name)}</strong>${star}${exemptBadge}</td>
         <td>${escapeHtml(p.gender || '-')}</td>
-        <td>${escapeHtml(p.department_name || '-')}</td>
+        <td style="min-width:200px;">${deptHtml}</td>
         <td>${escapeHtml(p.position_name || '-')}</td>
         <td><span class="badge" style="background:${roleColor}22;color:${roleColor};border:1px solid ${roleColor};">${escapeHtml(roleName)}</span></td>
         <td>${escapeHtml(p.phone || '-')}</td>
@@ -808,7 +958,7 @@ async function loadPersonnel() {
     tbody.innerHTML = html;
     loadStats();
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="11" class="empty">加载失败</td></tr>';
+tbody.innerHTML = '<tr><td colspan="12" class="empty">加载失败</td></tr>';
     console.error(e);
   }
 }
@@ -823,15 +973,221 @@ function onPerDeptChange() {
   loadPersonnel();
 }
 
+// ===== 人员管理 ↔ 部门管理 同步 =====
+async function syncPersonnelDept() {
+  const btn = event && event.target ? event.target : null;
+  const oldText = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; btn.textContent = '同步中...'; }
+  try {
+    // 强制重拉部门、岗位、人员三表
+    await Promise.all([
+      fetch(`${API_BASE}/departments?flat=1&limit=500`).then(r => r.json()).then(d => { allDepartments = d.data || []; }),
+      fetch(`${API_BASE}/positions?limit=500`).then(r => r.json()).then(d => { allPositions = d.data || d || []; }),
+      fetch(`${API_BASE}/personnel?limit=500`).then(r => r.json()).then(d => { allPersonnel = d.data || d || []; })
+    ]);
+    // 重建下拉
+    fillSelect('pDept', allDepartments.map(d => ({ id: d.id, name: d.name })), '请选择部门');
+    fillSelect('dParent', allDepartments.map(d => ({ id: d.id, name: d.name })), '（无）');
+    fillSelect('dManager', allPersonnel.filter(p => p.status === 'active').map(p => ({ id: p.id, name: p.name })), '（无）');
+    fillSelect('posDept', allDepartments.map(d => ({ id: d.id, name: d.name })), '全部部门', true);
+    fillSelect('perDept', allDepartments.map(d => ({ id: d.id, name: d.name })), '全部部门', true);
+    fillSelect('perDeptSel', allDepartments.map(d => ({ id: d.id, name: d.name })), '（无）');
+    fillSelect('perPosSel', allPositions.filter(p => p.status === 'active').map(p => ({ id: p.id, name: p.name + (p.department_name ? ' / ' + p.department_name : '') })), '（无）');
+    await loadPersonnel();
+    flashSyncHint('已与部门管理同步');
+  } catch (e) {
+    alert('同步失败：' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = oldText || '↻ 同步部门信息'; }
+  }
+}
+
+function flashSyncHint(msg) {
+  let hint = document.getElementById('syncHint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'syncHint';
+    hint.style.cssText = 'position:fixed;top:20px;right:20px;background:#27ae60;color:#fff;padding:10px 18px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:2000;font-size:13px;transition:opacity .3s;';
+    document.body.appendChild(hint);
+  }
+  hint.textContent = '✓ ' + msg;
+  hint.style.opacity = '1';
+  clearTimeout(hint._t);
+  hint._t = setTimeout(() => { hint.style.opacity = '0'; }, 1800);
+}
+
+// ===== 人员批量选择 =====
+const selectedPerIds = new Set();
+
+function onPerCheckChange() {
+  const checks = document.querySelectorAll('.per-check');
+  selectedPerIds.clear();
+  checks.forEach(c => { if (c.checked) selectedPerIds.add(Number(c.dataset.id)); });
+  updatePerSelectionUI();
+}
+
+function togglePerCheckAll(checked) {
+  const checks = document.querySelectorAll('.per-check');
+  checks.forEach(c => { c.checked = checked; });
+  onPerCheckChange();
+}
+
+function clearPerSelection() {
+  selectedPerIds.clear();
+  document.querySelectorAll('.per-check').forEach(c => { c.checked = false; });
+  const all = document.getElementById('perCheckAll'); if (all) all.checked = false;
+  updatePerSelectionUI();
+}
+
+function updatePerSelectionUI() {
+  const n = selectedPerIds.size;
+  const cnt = document.getElementById('perSelCount');
+  const num = document.getElementById('perSelNum');
+  const clr = document.getElementById('perSelClear');
+  const btn = document.getElementById('perBatchBtn');
+  if (n > 0) {
+    cnt.style.display = 'inline-block'; num.textContent = n;
+    clr.style.display = 'inline-block';
+    btn.style.display = 'inline-block'; btn.textContent = `批量修改 (${n})`;
+  } else {
+    cnt.style.display = 'none';
+    clr.style.display = 'none';
+    btn.style.display = 'none';
+  }
+}
+
+// ===== 批量修改弹窗 =====
+function showBatchPerModal() {
+  if (selectedPerIds.size === 0) { alert('请先勾选要修改的人员'); return; }
+  document.getElementById('perBatchTitleCount').textContent = `(共 ${selectedPerIds.size} 人)`;
+  // 填充部门 / 岗位下拉（保留原有"不修改"项）
+  fillSelect('batchDept', allDepartments.map(d => ({ id: d.id, name: d.name })), '（不修改）');
+  fillSelect('batchPos', allPositions.filter(p => p.status === 'active').map(p => ({ id: p.id, name: p.name + (p.department_name ? ' / ' + p.department_name : '') })), '（不修改）');
+  // 复位表单
+  ['batchChkDept','batchChkPos','batchChkWr','batchChkStatus','batchChkSyncExempt'].forEach(id => { document.getElementById(id).checked = false; });
+  toggleBatchField('dept', false);
+  toggleBatchField('pos', false);
+  toggleBatchField('wr', false);
+  toggleBatchField('status', false);
+  toggleBatchField('syncExempt', false);
+  document.querySelectorAll('input[name=batchDeptMode]').forEach(r => r.checked = r.value === 'set');
+  document.querySelectorAll('input[name=batchPosMode]').forEach(r => r.checked = r.value === 'set');
+  renderBatchPreview();
+  openModal('perBatchModal');
+}
+
+function toggleBatchField(field, enabled) {
+  const map = {
+    dept:       { chk: 'batchChkDept',       sel: 'batchDept',       radios: 'batchDeptMode' },
+    pos:        { chk: 'batchChkPos',        sel: 'batchPos',        radios: 'batchPosMode' },
+    wr:         { chk: 'batchChkWr',         sel: 'batchWr' },
+    status:     { chk: 'batchChkStatus',     sel: 'batchStatus' },
+    syncExempt: { chk: 'batchChkSyncExempt', sel: 'batchSyncExempt' }
+  }[field];
+  document.getElementById(map.sel).disabled = !enabled;
+  if (map.radios) {
+    document.querySelectorAll(`input[name=${map.radios}]`).forEach(r => { r.disabled = !enabled; });
+  }
+  renderBatchPreview();
+}
+
+function renderBatchPreview() {
+  const preview = document.getElementById('perBatchPreview');
+  const ids = [...selectedPerIds];
+  const people = allPersonnel.filter(p => ids.includes(p.id));
+  const lines = people.slice(0, 50).map(p => {
+    const deptName = p.department_name || '（无部门）';
+    const posName = p.position_name || '（无岗位）';
+    const wrName = p.work_role_name || '操作员';
+    return `<div>· ${escapeHtml(p.name)}（${escapeHtml(p.emp_code || '-')}） · 部门：${escapeHtml(deptName)} · 岗位：${escapeHtml(posName)} · 角色：${escapeHtml(wrName)}</div>`;
+  }).join('');
+  preview.innerHTML = `
+    <div style="color:#666;font-size:12px;margin-bottom:6px;">已选 <b>${people.length}</b> 人${people.length > 50 ? '（仅展示前 50 人）' : ''}</div>
+    <div style="font-size:12px;line-height:1.6;">${lines || '<span style="color:#999;">无数据</span>'}</div>
+  `;
+}
+
+document.getElementById('perBatchForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const ids = [...selectedPerIds];
+  if (ids.length === 0) { alert('请先勾选要修改的人员'); return; }
+  const updates = {};
+  const labels = [];
+
+  if (document.getElementById('batchChkDept').checked) {
+    const mode = (document.querySelector('input[name=batchDeptMode]:checked') || {}).value;
+    if (mode === 'clear') { updates.department_id = null; labels.push('所属部门 → 清空'); }
+    else {
+      const v = document.getElementById('batchDept').value;
+      if (!v) { alert('请选择新部门，或切换为"清空所属部门"'); return; }
+      updates.department_id = Number(v);
+      const dept = allDepartments.find(d => d.id === Number(v));
+      labels.push('所属部门 → ' + (dept ? dept.name : v));
+    }
+  }
+
+  if (document.getElementById('batchChkPos').checked) {
+    const mode = (document.querySelector('input[name=batchPosMode]:checked') || {}).value;
+    if (mode === 'clear') { updates.position_id = null; labels.push('岗位 → 清空'); }
+    else {
+      const v = document.getElementById('batchPos').value;
+      if (!v) { alert('请选择新岗位，或切换为"清空岗位"'); return; }
+      updates.position_id = Number(v);
+      const pos = allPositions.find(p => p.id === Number(v));
+      labels.push('岗位 → ' + (pos ? pos.name : v));
+    }
+  }
+
+  if (document.getElementById('batchChkWr').checked) {
+    updates.work_role = document.getElementById('batchWr').value;
+    labels.push('工作角色 → ' + ({ leader:'负责人', admin:'管理员', operator:'操作员' }[updates.work_role] || updates.work_role));
+  }
+
+  if (document.getElementById('batchChkStatus').checked) {
+    updates.status = document.getElementById('batchStatus').value;
+    labels.push('状态 → ' + (updates.status === 'active' ? '在职' : '离职'));
+  }
+
+  if (document.getElementById('batchChkSyncExempt').checked) {
+    updates.sync_exempt = document.getElementById('batchSyncExempt').value === 'true';
+    labels.push('免同步 → ' + (updates.sync_exempt ? '开启（保护手工编辑）' : '关闭（恢复跟随外部同步）'));
+  }
+
+  if (Object.keys(updates).length === 0) {
+    alert('请至少勾选一个修改字段');
+    return;
+  }
+  if (!confirm(`确认批量修改 ${ids.length} 名人员？\n\n修改项：\n· ${labels.join('\n· ')}`)) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/personnel/batch-update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personnel_ids: ids, updates })
+    });
+    const r = await res.json();
+    if (res.ok) {
+      alert(`批量修改完成：实际更新 ${r.updated} 人${r.missing && r.missing.length ? `（${r.missing.length} 个 ID 不存在已跳过）` : ''}`);
+      closeModal('perBatchModal');
+      clearPerSelection();
+      await loadPersonnel();
+    } else {
+      alert(r.error || '批量修改失败');
+    }
+  } catch (e) { alert('批量修改失败：' + e.message); }
+});
+
 async function showPerModal(id) {
   await loadAuxData();
   document.getElementById('perForm').reset();
   document.getElementById('perEditId').value = '';
   document.getElementById('perModalTitle').textContent = '新增人员';
   document.getElementById('perWorkRoleSel').value = 'operator';
+  let currentPersonnel = null;
   if (id) {
     const res = await fetch(`${API_BASE}/personnel/${id}`);
     const p = await res.json();
+    currentPersonnel = p;
     document.getElementById('perModalTitle').textContent = '编辑人员';
     document.getElementById('perEditId').value = p.id;
     document.getElementById('perCode').value = p.emp_code || '';
@@ -846,8 +1202,42 @@ async function showPerModal(id) {
     document.getElementById('perStatusSel').value = p.status || 'active';
     document.getElementById('perDesc').value = p.description || '';
     document.getElementById('perWorkRoleSel').value = p.work_role || 'operator';
+    document.getElementById('perSyncExemptSel').checked = !!p.sync_exempt;
+  } else {
+    document.getElementById('perSyncExemptSel').checked = false;
   }
+  // 渲染所在部门信息面板
+  renderPerDeptInfoPanel(document.getElementById('perDeptSel').value, currentPersonnel ? currentPersonnel.id : null);
   openModal('perModal');
+}
+
+// 部门下拉变化时同步刷新右侧面板
+document.getElementById('perDeptSel').addEventListener('change', function () {
+  renderPerDeptInfoPanel(this.value, document.getElementById('perEditId').value || null);
+});
+
+function renderPerDeptInfoPanel(deptId, personnelId) {
+  const body = document.getElementById('perDeptInfoBody');
+  if (!deptId) { body.innerHTML = '<span style="color:#bbb;">请先选择所属部门</span>'; return; }
+  const dept = allDepartments.find(d => String(d.id) === String(deptId));
+  if (!dept) { body.innerHTML = '<span style="color:#e74c3c;">部门不存在（可能已被删除）</span>'; return; }
+  const parent = dept.parent_id ? allDepartments.find(d => d.id === dept.parent_id) : null;
+  const manager = dept.manager_id ? allPersonnel.find(p => p.id === dept.manager_id) : null;
+  const childCount = allDepartments.filter(d => d.parent_id === dept.id).length;
+  const posCount = allPositions.filter(p => p.department_id === dept.id).length;
+  const perCount = allPersonnel.filter(p => p.department_id === dept.id).length;
+  const isMgr = manager && personnelId && Number(manager.id) === Number(personnelId);
+  body.innerHTML = `
+    <div><b>${escapeHtml(dept.name)}</b> <code style="background:#eef;color:#556;font-size:10px;padding:1px 5px;border-radius:3px;">${escapeHtml(dept.code || '')}</code></div>
+    <div>上级部门：${parent ? escapeHtml(parent.name) + '（' + escapeHtml(parent.code || '') + '）' : '<span style="color:#888;">一级部门</span>'}</div>
+    <div>部门负责人：${manager ? '<b style="' + (isMgr ? 'color:#f39c12;' : '') + '">' + escapeHtml(manager.name) + '</b>（工号 ' + escapeHtml(manager.emp_code || '-') + '）' + (isMgr ? ' ⭐ 当前编辑人' : '') : '<span style="color:#bbb;">未设置</span>'}</div>
+    <div>实时统计：在职 ${perCount} 人 · ${posCount} 个岗位${childCount ? ' · ' + childCount + ' 个子部门' : ''} · 状态 ${dept.status === 'inactive' ? '<span style="color:#e74c3c;">停用</span>' : '<span style="color:#27ae60;">启用</span>'}</div>
+  `;
+}
+
+async function refreshPerDeptInfoPanel() {
+  await loadAuxData();
+  renderPerDeptInfoPanel(document.getElementById('perDeptSel').value, document.getElementById('perEditId').value || null);
 }
 
 document.getElementById('perForm').addEventListener('submit', async function (e) {
@@ -863,6 +1253,7 @@ document.getElementById('perForm').addEventListener('submit', async function (e)
     position_id: document.getElementById('perPosSel').value || null,
     linked_user_id: document.getElementById('perUserSel').value || null,
     work_role: document.getElementById('perWorkRoleSel').value || 'operator',
+    sync_exempt: document.getElementById('perSyncExemptSel').checked,
     sort: Number(document.getElementById('perSort').value) || 0,
     status: document.getElementById('perStatusSel').value,
     description: document.getElementById('perDesc').value.trim()
@@ -870,12 +1261,25 @@ document.getElementById('perForm').addEventListener('submit', async function (e)
   if (!data.name) { alert('人员姓名为必填'); return; }
   const url = id ? `${API_BASE}/personnel/${id}` : `${API_BASE}/personnel`;
   const method = id ? 'PUT' : 'POST';
+  // 找到保存按钮以便在保存期间禁用并显示 loading
+  const saveBtn = document.querySelector('#perForm button[type="submit"]');
+  const origText = saveBtn ? saveBtn.textContent : '保存';
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '保存中…'; }
   try {
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const r = await res.json();
-    if (res.ok) { closeModal('perModal'); await loadPersonnel(); }
-    else alert(r.error || '操作失败');
+    if (res.ok) {
+      closeModal('perModal');
+      // 重新拉取，保证列表与详情完全同步
+      await loadPersonnel();
+      // 顶部同步一次基础数据（部门/岗位/人员），让其他页面的缓存也保持新鲜
+      try { await loadAuxData(); } catch (_) {}
+      flashSyncHint(id ? '已保存' : '已创建：' + (r.data && r.data.name || ''));
+    } else {
+      alert(r.error || '操作失败');
+    }
   } catch (e) { alert('操作失败: ' + e.message); }
+  finally { if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origText; } }
 });
 
 async function deletePer(id) {
@@ -893,13 +1297,31 @@ async function viewPerPerms(id, name) {
     const res = await fetch(`${API_BASE}/personnel/${id}/effective-permissions`);
     const data = await res.json();
     const perms = data.effective_permissions || [];
+    const roles = data.effective_roles || [];
+    const linkedUser = data.linked_user || null;
     const source = data.source || {};
     const grouped = {};
     perms.forEach(p => { (grouped[p.module] = grouped[p.module] || []).push(p); });
-    let body = `<div style="font-size:12px;color:#666;margin-bottom:8px;">
-      来源岗位：<b>${escapeHtml(source.position_name || '-')}</b>，
-      个性化调整：${source.overrides_count || 0} 项
-    </div>`;
+
+    // 来源信息（关联权限管理）
+    let body = '<div style="font-size:12px;color:#555;margin-bottom:10px;line-height:1.9;background:#f8f9ff;border:1px solid #e8ecff;border-radius:6px;padding:10px;">';
+    body += `<div>来源岗位：<b>${escapeHtml(source.position_name || '-')}</b></div>`;
+    if (linkedUser) {
+      body += `<div>关联系统用户：<b>${escapeHtml(linkedUser.name || linkedUser.username || '-')}</b>${linkedUser.username ? ' (' + escapeHtml(linkedUser.username) + ')' : ''}</div>`;
+    } else {
+      body += '<div style="color:#e65100;">关联系统用户：<b>未关联</b>（需在人员编辑中绑定系统用户，才能继承权限管理中的角色权限）</div>';
+    }
+    if (roles.length > 0) {
+      body += '<div>来源角色（来自权限管理）：';
+      body += roles.map(r => `<span class="perm-cell" style="background:#e8eaf6;color:#283593;cursor:pointer;border:1px solid #c5cae9;" onclick="goPermRole('${escapeHtml(String(r.id))}')" title="点击前往权限管理查看该角色">${escapeHtml(r.name || r.code || '?')}</span>`).join(' ');
+      body += '</div>';
+    } else {
+      body += '<div style="color:#999;">来源角色：无（可在权限管理为关联用户分配角色）</div>';
+    }
+    body += `<div>个性化调整：${source.overrides_count || 0} 项</div>`;
+    body += `<div style="margin-top:6px;"><a href="permission.html" style="color:#667eea;font-size:12px;text-decoration:none;">前往权限管理调整角色权限 →</a></div>`;
+    body += '</div>';
+
     if (perms.length === 0) body += '<div class="empty">该人员当前无有效权限</div>';
     else {
       body += '<div style="display:flex;flex-direction:column;gap:10px;">';
@@ -911,6 +1333,10 @@ async function viewPerPerms(id, name) {
     }
     showInfoModal(`人员有效权限 - ${name}`, body);
   } catch (e) { alert('加载失败'); }
+}
+
+function goPermRole(roleId) {
+  window.open('permission.html#role=' + encodeURIComponent(roleId), '_blank');
 }
 
 // ===== 权限分配 Tab =====
@@ -947,7 +1373,7 @@ async function editPositionPerms(id) {
   const res = await fetch(`${API_BASE}/positions/${id}/permissions`);
   const data = await res.json();
   const selected = new Set((data.data || []).map(x => x.id));
-  renderEditorPicker('editorPicker', selected, 'grant');
+  renderEditorPicker('editorPicker', selected, new Set());
 }
 
 async function editPersonnelPerms(id) {
@@ -1074,13 +1500,157 @@ async function savePermissionEditor() {
   }
 }
 
+// ===== 角色管理（中心×角色矩阵） =====
+
+async function loadRoleMatrix() {
+  const container = document.getElementById('roleMatrixContainer');
+  container.innerHTML = '<div class="empty">加载中...</div>';
+  try {
+    const [centersRes, matrixRes] = await Promise.all([
+      fetch(`${API_BASE}/centers`).then(r => r.json()),
+      fetch(`${API_BASE}/center-role-matrix`).then(r => r.json())
+    ]);
+    const centers = (centersRes.data || []);
+    const matrix = (matrixRes.data || []);
+    const workRoles = matrixRes.work_roles || [
+      { code:'leader', name:'负责人', color:'#e74c3c', order:1 },
+      { code:'admin', name:'管理员', color:'#f39c12', order:2 },
+      { code:'operator', name:'操作员', color:'#3498db', order:3 }
+    ];
+
+    // 摘要行
+    const totalPersonnel = centers.reduce((s, c) => s + (c.personnel_count || 0), 0);
+    const totalDepts = centers.filter(c => c.exists).length;
+    let summaryHtml = `<div class="matrix-summary">
+      <div class="matrix-summary-card"><div class="num" style="color:#667eea;">${totalDepts}</div><div class="lbl">已识别中心</div></div>
+      <div class="matrix-summary-card"><div class="num" style="color:#667eea;">${totalPersonnel}</div><div class="lbl">中心总人数</div></div>`;
+    workRoles.forEach(wr => {
+      const cnt = matrix.filter(r => r.role_code === wr.code).reduce((s, r) => s + r.count, 0);
+      summaryHtml += `<div class="matrix-summary-card"><div class="num" style="color:${wr.color};">${cnt}</div><div class="lbl">${wr.name}</div></div>`;
+    });
+    summaryHtml += '</div>';
+
+    // 矩阵表
+    let html = '<table class="matrix-table"><thead><tr><th>中心</th>';
+    workRoles.sort((a, b) => a.order - b.order).forEach(wr => {
+      html += `<th style="color:${wr.color};">${wr.name}</th>`;
+    });
+    html += '<th style="color:#888;">合计</th></tr></thead><tbody>';
+
+    centers.forEach(c => {
+      html += `<tr><td><strong>${escapeHtml(c.name)}</strong> <span style="font-size:11px;color:#999;">(${c.personnel_count || 0}人)</span></td>`;
+      let rowTotal = 0;
+      workRoles.forEach(wr => {
+        const cell = matrix.find(r => r.center_code === c.code && r.role_code === wr.code);
+        const cnt = cell ? cell.count : 0;
+        rowTotal += cnt;
+        if (cnt > 0) {
+          html += `<td><span class="matrix-cell" style="background:${wr.color}22;color:${wr.color};border:2px solid ${wr.color};" onclick="showRolePersonnel(${c.department_id},'${wr.code}','${escapeHtml(c.name)}','${escapeHtml(wr.name)}')">${cnt}</span></td>`;
+        } else {
+          html += `<td><span class="matrix-cell matrix-cell-zero">0</span></td>`;
+        }
+      });
+      html += `<td style="font-weight:700;color:#667eea;">${rowTotal}</td></tr>`;
+    });
+    html += '</tbody></table>';
+
+    // 底部说明
+    html += `<div style="margin-top:12px;font-size:12px;color:#999;display:flex;gap:16px;align-items:center;">
+      <span>🖱 点击数字查看该中心该角色下的人员明细</span>
+      <span>• 可在此直接调整人员工作角色</span>
+    </div>`;
+
+    container.innerHTML = summaryHtml + html;
+  } catch (e) {
+    container.innerHTML = '<div class="empty">加载失败: ' + e.message + '</div>';
+    console.error(e);
+  }
+}
+
+let _rolePersonnelData = [];
+
+async function showRolePersonnel(deptId, roleCode, centerName, roleName) {
+  try {
+    const res = await fetch(`${API_BASE}/centers/${deptId}/personnel?role_code=${roleCode}&status=active`);
+    const data = await res.json();
+    const list = data.data || [];
+    _rolePersonnelData = list;
+
+    const wrNames = { leader:'负责人', admin:'管理员', operator:'操作员' };
+    let bodyHtml = `<div style="margin-bottom:10px;font-size:13px;color:#666;">
+      <b>${escapeHtml(centerName)}</b> · <b>${escapeHtml(roleName)}</b> · 共 ${list.length} 人
+    </div>`;
+
+    if (list.length === 0) {
+      bodyHtml += '<div class="empty">暂无人员</div>';
+    } else {
+      bodyHtml += `<div style="max-height:400px;overflow-y:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr>
+            <th style="background:#f5f6fa;padding:8px;text-align:left;border-bottom:2px solid #eee;">姓名</th>
+            <th style="background:#f5f6fa;padding:8px;text-align:left;border-bottom:2px solid #eee;">工号</th>
+            <th style="background:#f5f6fa;padding:8px;text-align:left;border-bottom:2px solid #eee;">部门</th>
+            <th style="background:#f5f6fa;padding:8px;text-align:left;border-bottom:2px solid #eee;">岗位</th>
+            <th style="background:#f5f6fa;padding:8px;text-align:left;border-bottom:2px solid #eee;">调整角色</th>
+          </tr></thead>
+          <tbody>`;
+      list.forEach(p => {
+        const currRole = p.work_role || 'operator';
+        bodyHtml += `<tr>
+          <td style="padding:8px;border-bottom:1px solid #f0f0f0;"><strong>${escapeHtml(p.name)}</strong></td>
+          <td style="padding:8px;border-bottom:1px solid #f0f0f0;"><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:11px;">${escapeHtml(p.emp_code || '-')}</code></td>
+          <td style="padding:8px;border-bottom:1px solid #f0f0f0;">${escapeHtml(p.department_name || '-')}</td>
+          <td style="padding:8px;border-bottom:1px solid #f0f0f0;">${escapeHtml(p.position_name || '-')}</td>
+          <td style="padding:8px;border-bottom:1px solid #f0f0f0;">
+            <select onchange="changeWorkRoleInMatrix(${p.id}, this.value)" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+              <option value="operator" ${currRole === 'operator' ? 'selected' : ''}>操作员</option>
+              <option value="admin" ${currRole === 'admin' ? 'selected' : ''}>管理员</option>
+              <option value="leader" ${currRole === 'leader' ? 'selected' : ''}>负责人</option>
+            </select>
+          </td>
+        </tr>`;
+      });
+      bodyHtml += '</tbody></table></div>';
+    }
+
+    showInfoModal(`中心×角色明细 - ${centerName} / ${roleName}`, bodyHtml);
+  } catch (e) {
+    alert('加载失败: ' + e.message);
+  }
+}
+
+async function changeWorkRoleInMatrix(personnelId, newRole) {
+  if (!confirm(`确认将该人员的工作角色调整为「${({leader:'负责人',admin:'管理员',operator:'操作员'})[newRole]}」？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/personnel/${personnelId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ work_role: newRole })
+    });
+    const r = await res.json();
+    if (res.ok) {
+      alert('调整成功');
+      closeModal('infoModal');
+      loadRoleMatrix();
+    } else {
+      alert(r.error || '调整失败');
+    }
+  } catch (e) {
+    alert('调整失败: ' + e.message);
+  }
+}
+
 // 初始化
 (async function init() {
   await loadAuxData();
+  // 先把数据填好，再升级可搜索下拉（避免空下拉被包）
+  SSelect.upgradeAll();
   loadStats();
   loadDepartments();
 })();
 </script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body>

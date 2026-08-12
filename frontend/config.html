@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 产品配置表</title>
+  <title>企业经营管理平台（EBMS）-HJ - 产品配置表</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
@@ -26,7 +26,7 @@
     .import-zone input { display: none; }
   </style>
 </head>
-<body>
+<body data-page-title="产品配置表" data-page-perm="config:view">
   <div class="sidebar" id="sidebar"></div>
   <div class="main-content">
     <!-- 流程指示 -->
@@ -365,7 +365,7 @@ async function doCfgImportFromPricing() {
 
 // ===== 加载配置表列表 =====
 async function loadConfigs(page = 1) {
-  const params = new URLSearchParams({ page, limit: 15 });
+  const params = new URLSearchParams({ page, limit:(window._pageSize||15) });
   const keyword = document.getElementById('keywordInput').value;
   const model = document.getElementById('modelInput').value;
   const status = document.getElementById('statusFilter').value;
@@ -798,6 +798,7 @@ function toggleCheckAll(el) {
 loadConfigs();
 </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 </body>
 </html>

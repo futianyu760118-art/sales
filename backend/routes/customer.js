@@ -6,6 +6,8 @@ const fs = require('fs');
 const path = require('path');
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const { resolveDataScope, isInScope } = require('../data-scope');
+const { resolveDataScopeV2, buildScopeFilter, combineFilter, logDataPermission } = require('../data-scope-v2');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -39,7 +41,41 @@ const CUSTOMER_FIELDS = [
 router.get('/', requirePerm('customer:view'), (req, res) => {
   const { page = 1, limit = 15, keyword, customer_level, sales_mode, customer_status, sales_person } = req.query;
   const table = getTable('customers');
-  const filter = (r) => {
+  const scope = resolveDataScopeV2(req);
+
+  // 兼容模式：旧接口（resolveDataScope）也保留一份返回，确保原 UI 仍可见 owner 名称
+  const scopeLegacy = resolveDataScope(req);
+
+  // v2 数据权限过滤函数
+  const scopeFilter = buildScopeFilter(scope, 'customers');
+
+  // 预计算：客户的可访问销售员集合（兼容 v1 字符串匹配）
+  //   - 直接：客户记录自身的 sales_person 字段
+  //   - 间接：通过任意关联询价的 sales_person 反查
+  let allowedByCustomer = null;
+  if (scopeLegacy.enabled) {
+    allowedByCustomer = new Map();
+    const inqTable = getTable('inquiries');
+    inqTable.all().forEach(iq => {
+      const cn = String(iq.customer_name || '').trim();
+      const sp = String(iq.sales_person || '').trim();
+      if (!cn || !sp) return;
+      if (!scopeLegacy.ownerNames.has(sp)) return;
+      if (!allowedByCustomer.has(cn)) allowedByCustomer.set(cn, new Set());
+      allowedByCustomer.get(cn).add(sp);
+    });
+  }
+
+  // 旧匹配模式：当记录 owner_id / sales_id 未填时，按字符串 sales_person 兼容匹配
+  const legacyMatch = (r) => {
+    if (!scopeLegacy.enabled) return true;
+    const cn = String(r.name || '').trim();
+    const directSp = String(r.sales_person || '').trim();
+    return (directSp && scopeLegacy.ownerNames.has(directSp)) ||
+           (cn && allowedByCustomer && allowedByCustomer.has(cn));
+  };
+
+  const filter = combineFilter((r) => {
     if (customer_level && r.customer_level !== customer_level) return false;
     if (sales_mode && r.sales_mode !== sales_mode) return false;
     if (customer_status && r.customer_status !== customer_status) return false;
@@ -53,10 +89,44 @@ router.get('/', requirePerm('customer:view'), (req, res) => {
       if (!searchStr.includes(kw)) return false;
     }
     return true;
-  };
+  }, (r) => {
+    // v2 数据权限启用时，完全以 v2 为准（owner_id / department_id / create_by）
+    // 不再回退到旧字符串匹配——旧版基于 personnel.name 匹配 sales_person，
+    // 会把同部门他人（如管丽艳）的数据误放行给当前用户。
+    if (scope.enabled) {
+      return scopeFilter(r);
+    }
+    // admin / 未受限用户：旧接口放行
+    return legacyMatch(r);
+  });
   const { records, total } = table.findWhere(filter, 'created_at', 'DESC', parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
-  res.json({ data: records, total, page: parseInt(page), limit: parseInt(limit) });
+  logDataPermission(req, 'customer.list', { table: 'customers', count: total, scope_mode: scope.mode || 'all' });
+  // 判定当前响应是否被数据权限过滤：scope.enabled = true 表示受限；否则 all（admin / 无需受限）
+  const effectiveMode = scope.enabled ? scope.mode : (scope.mode === 'all' ? 'all' : 'none');
+  res.json({
+    data: records,
+    total,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    scope: {
+      mode: effectiveMode,
+      label: labelOfMode(effectiveMode),
+      enabled: scope.enabled,
+      owner_count: scope.ownerIds ? scope.ownerIds.length : 0
+    }
+  });
 });
+
+function labelOfMode(mode) {
+  return {
+    all: '全部数据',
+    self: '我的客户',
+    dept: '本部门客户',
+    dept_and_child: '本部门及下级部门客户',
+    custom: '自定义范围客户',
+    none: '全部数据'
+  }[mode] || '全部数据';
+}
 
 // ===== Excel批量导入外贸客户资料 - 必须在 /:id 之前 =====
 router.post('/import-xlsx', upload.single('file'), requirePerm('customer:create'), (req, res) => {
@@ -1014,8 +1084,30 @@ router.post('/', requirePerm('customer:create'), (req, res) => {
   if (!record.sales_mode) record.sales_mode = '外销';
   if (!record.customer_status) record.customer_status = '潜在客户';
 
+  // 数据权限相关字段
+  const operatorId = Number(req.body.user_id || req.headers['x-user-id'] || req.headers['x-user']) || null;
+  if (operatorId) {
+    record.create_by = operatorId;
+    // 若前端未指定 owner_id / department_id，则默认为创建人
+    if (record.owner_id === undefined || record.owner_id === '') {
+      record.owner_id = operatorId;
+    }
+    if ((!record.sales_person) && operatorId) {
+      const operatorUser = getTable('users').findById(operatorId);
+      record.sales_person = operatorUser ? (operatorUser.name || operatorUser.username) : '';
+    }
+  }
+  if ((record.department_id === undefined || record.department_id === '' || record.department_id == null) && record.owner_id) {
+    const personnel = getTable('org_personnel').all().find(p => Number(p.linked_user_id) === Number(record.owner_id));
+    if (personnel && personnel.department_id) {
+      record.department_id = Number(personnel.department_id);
+    }
+  }
+
   const result = table.insert(record);
   const created = table.findById(result.lastID);
+
+  logDataPermission(req, 'customer.create', { table: 'customers', record_id: created.id, scope_mode: 'self' });
 
   // 通知所有PC端客户端数据变更
   const broadcast = req.app.get('broadcastDataChange');
@@ -1067,7 +1159,24 @@ router.get('/export', requirePerm('customer:view'), (req, res) => {
 
 // ===== 客户多维度分析仪表盘 =====  必须在 /:id 之前
 router.get('/analytics', requirePerm('customer:view'), (req, res) => {
-  const customers = getTable('customers').all();
+  const { sales_person, customer_level, customer_status, sales_mode, customer_source, country_region } = req.query;
+  const allCustomers = getTable('customers').all();
+
+  // 多维度过滤
+  const dimensionFilter = (r) => {
+    if (sales_person && r.sales_person !== sales_person) return false;
+    if (customer_level) {
+      const lv = (r.customer_level || '').trim();
+      if (lv !== customer_level && !lv.includes(customer_level)) return false;
+    }
+    if (customer_status && r.customer_status !== customer_status) return false;
+    if (sales_mode && r.sales_mode !== sales_mode) return false;
+    if (customer_source && r.customer_source !== customer_source) return false;
+    if (country_region && r.country_region !== country_region) return false;
+    return true;
+  };
+  const customers = sales_person || customer_level || customer_status || sales_mode || customer_source || country_region
+    ? allCustomers.filter(dimensionFilter) : allCustomers;
 
   // 按某字段聚合计数
   const groupBy = (arr, field) => {
@@ -1083,6 +1192,9 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit || 9999)
     .map(([label, value]) => ({ label, value }));
+
+  // 过滤后的客户名集合（用于关联表筛选）
+  const customerNames = new Set(customers.map(c => c.name).filter(Boolean));
 
   const byLevelRaw = groupBy(customers, 'customer_level');
   // 规范化客户等级（合并 A/B/C/D 的各种写法），便于图表展示
@@ -1111,10 +1223,11 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
   try {
     const inqByCust = {};
     getTable('inquiries').all().forEach(i => {
+      const cn = (i.customer_name || '').toString().trim();
+      if (customerNames.size && !customerNames.has(cn)) return;
       inquiry.total++;
       const st = i.status || 'unknown';
       inquiry.byStatus[st] = (inquiry.byStatus[st] || 0) + 1;
-      const cn = (i.customer_name || '').toString().trim();
       if (cn) { inqByCust[cn] = (inqByCust[cn] || 0) + 1; bizNames.add(cn); }
     });
     inquiry.customerCount = Object.keys(inqByCust).length;
@@ -1128,11 +1241,12 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
   try {
     const amtByCust = {};
     getTable('orders').all().forEach(o => {
+      const cn = (o.customer_name || '').toString().trim();
+      if (customerNames.size && !customerNames.has(cn)) return;
       order.total++;
       const st = o.status || 'unknown';
       order.byStatus[st] = (order.byStatus[st] || 0) + 1;
       order.totalAmount += Number(o.order_amount) || 0;
-      const cn = (o.customer_name || '').toString().trim();
       if (cn) { amtByCust[cn] = (amtByCust[cn] || 0) + (Number(o.order_amount) || 0); bizNames.add(cn); }
     });
     order.customerCount = Object.keys(amtByCust).length;
@@ -1147,10 +1261,11 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
   try {
     const custSet = new Set();
     getTable('samples').all().forEach(s => {
+      const cn = (s.customer_name || '').toString().trim();
+      if (customerNames.size && !customerNames.has(cn)) return;
       sample.total++;
       const st = s.status || 'unknown';
       sample.byStatus[st] = (sample.byStatus[st] || 0) + 1;
-      const cn = (s.customer_name || '').toString().trim();
       if (cn) { custSet.add(cn); bizNames.add(cn); }
     });
     sample.customerCount = custSet.size;
@@ -1177,6 +1292,7 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
 
   res.json({
     kpi,
+    filters: { sales_person, customer_level, customer_status, sales_mode, customer_source, country_region },
     byLevel: toSorted(byLevel),
     byStatus: toSorted(byStatus),
     byMode: toSorted(byMode),
@@ -1276,6 +1392,31 @@ router.get('/:id', requirePerm('customer:view'), (req, res) => {
   const table = getTable('customers');
   const row = table.findById(req.params.id);
   if (!row) return res.status(404).json({ error: '客户不存在' });
+  const scope = resolveDataScopeV2(req);
+  if (scope.enabled) {
+    const scopeFilter = buildScopeFilter(scope, 'customers');
+    let inScope = scopeFilter(row);
+    if (!inScope) {
+      // v1 兼容：sales_person 字符串匹配
+      const scopeLegacy = resolveDataScope(req);
+      if (scopeLegacy.enabled) {
+        const directSp = String(row.sales_person || '').trim();
+        inScope = directSp && scopeLegacy.ownerNames.has(directSp);
+        if (!inScope) {
+          const cn = String(row.name || '').trim();
+          if (cn) {
+            const inqTable = getTable('inquiries');
+            inScope = inqTable.all().some(iq =>
+              String(iq.customer_name || '').trim() === cn &&
+              scopeLegacy.ownerNames.has(String(iq.sales_person || '').trim())
+            );
+          }
+        }
+      }
+    }
+    if (!inScope) return res.status(403).json({ error: '无访问该客户的权限', code: 'DATA_SCOPE_DENIED' });
+  }
+  logDataPermission(req, 'customer.detail', { table: 'customers', record_id: row.id, scope_mode: scope.mode || 'none' });
   res.json(row);
 });
 
@@ -1313,12 +1454,16 @@ router.get('/:id/inquiries', requirePerm('customer:view'), (req, res) => {
   if (!customer) return res.status(404).json({ error: '客户不存在' });
 
   const inqTable = getTable('inquiries');
-  const { records } = inqTable.findWhere(r => r.customer_name === customer.name, 'inquiry_time', 'DESC');
+  let { records } = inqTable.findWhere(r => r.customer_name === customer.name, 'inquiry_time', 'DESC');
+  const scope = resolveDataScope(req);
+  if (scope.enabled) {
+    records = records.filter(r => isInScope(scope, r, { ownerField: 'sales_person' }));
+  }
   res.json(records);
 });
 
 // 客户管理 → 发起立项申请书（预填客户信息）
-router.post('/:id/create-initiation', requirePerm('project:create'), (req, res) => {
+router.post('/:id/create-initiation', requirePerm('initiation:apply'), (req, res) => {
   const table = getTable('customers');
   const customer = table.findById(req.params.id);
   if (!customer) return res.status(404).json({ error: '客户不存在' });
@@ -1352,6 +1497,10 @@ router.post('/:id/create-initiation', requirePerm('project:create'), (req, res) 
     apply_date: now().substring(0, 10),
     approval_status: 'draft',
     approver: '', approval_date: '', approval_opinion: '',
+    // 5阶段流程：发起阶段
+    workflow_stage: 'apply',
+    step1_applicant: b.applicant || (customer.sales_person || ''),
+    step1_apply_date: now().substring(0, 10),
     remarks: '由客户管理发起（客户：' + (customer.name || '') + '）',
     created_at: now(),
     updated_at: now()

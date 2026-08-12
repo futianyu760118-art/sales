@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 客户管理</title>
+  <title>企业经营管理平台（EBMS）-HJ - 客户管理</title>
   <link rel="stylesheet" href="common.css">
   <style>
-    .search-bar select { min-width: 120px; }
+    .search-bar { flex-wrap: nowrap; }
+    .search-bar select { min-width: 100px; }
+    #searchInput { min-width: 140px; flex: 1; }
+    .view-toggle { flex-shrink: 0; }
     .table-container table { min-width: 1200px; }
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
     .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
@@ -44,7 +47,13 @@
     th.sorted-asc .sort-arrow { color: #667eea; }
     th.sorted-desc .sort-arrow { color: #667eea; }
 
-    .table-scroll-bar { display: flex; align-items: center; gap: 8px; padding: 8px 0; margin-top: 4px; }
+    .table-scroll-bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; margin-top: 4px;
+      position: sticky; bottom: 0;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 -4px 14px rgba(0,0,0,0.10);
+      z-index: 30;
+    }
     .scroll-btn { background: #667eea; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 14px; transition: all 0.2s; white-space: nowrap; }
     .scroll-btn:hover { background: #5a6fd6; }
     .scroll-btn:active { transform: scale(0.95); }
@@ -52,6 +61,8 @@
     .scroll-thumb { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; position: absolute; left: 0; width: 30%; min-width: 40px; transition: left 0.1s; cursor: grab; }
     .scroll-thumb:active { cursor: grabbing; }
     #tableContainer { overflow-x: auto; overflow-y: visible; }
+    /* 确保主内容容器允许 sticky 生效（不可设置 overflow:hidden/auto）*/
+    .main-content { position: relative; }
 
     /* ===== 客户分析仪表盘 ===== */
     .cust-dash { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); margin-bottom:14px; overflow:hidden; }
@@ -67,6 +78,17 @@
     .dh-settings-panel label input { margin:0; }
     .cust-dash-body { padding:14px 16px; }
     .cust-dash-body.collapsed { display:none; }
+    .dash-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center; background:#f8f9fc; border-radius:8px; padding:10px 12px; }
+    .dash-filters select { padding:4px 10px; border:1px solid #d0d5e0; border-radius:6px; font-size:12px; background:#fff; max-width:140px; }
+    .dash-filters .dh-btn { background:#e8ecf5; color:#333; border:1px solid #d0d5e0; padding:4px 14px; border-radius:6px; font-size:12px; cursor:pointer; }
+    .dash-filters .dh-btn:hover { background:#dce0ef; }
+    .dash-table-wrap { margin-bottom:14px; display:none; }
+    .dash-table-wrap.show { display:block; }
+    .dash-table-wrap table { width:100%; border-collapse:collapse; font-size:12px; }
+    .dash-table-wrap th, .dash-table-wrap td { padding:6px 10px; border:1px solid #e0e4ec; text-align:center; white-space:nowrap; }
+    .dash-table-wrap th { background:#f0f2f7; font-weight:600; position:sticky; top:0; }
+    .dash-table-wrap td.l { text-align:left; }
+    .dash-table-wrap tr:hover td { background:#f5f7ff; }
     .dash-kpi { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:14px; }
     .kpi-card { border-radius:10px; padding:12px 14px; color:#fff; position:relative; overflow:hidden; }
     .kpi-card .kpi-num { font-size:24px; font-weight:700; line-height:1.1; }
@@ -136,11 +158,23 @@
     .fa-row .fa-size { color:#aaa; font-size:11px; }
     .fa-row .fa-del { background:none; border:none; color:#e74c3c; cursor:pointer; font-size:14px; padding:0 4px; }
 
-    /* ===== 客户矩阵/卡片视图 ===== */
+    /* ===== 客户矩阵/透视分析 ===== */
     .view-toggle { display:inline-flex; border:1px solid #ddd; border-radius:6px; overflow:hidden; }
     .view-toggle button { padding:5px 12px; border:none; background:#fff; cursor:pointer; font-size:12px; color:#666; }
     .view-toggle button.active { background:#667eea; color:#fff; }
-    .matrix-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; padding:4px 0; }
+    .matrix-controls { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; font-size:13px; }
+    .matrix-controls label { display:flex; align-items:center; gap:4px; color:#555; }
+    .matrix-controls select { padding:4px 8px; border:1px solid #ddd; border-radius:4px; font-size:12px; }
+    .mx-table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,0.06); font-size:12px; }
+    .mx-table th, .mx-table td { padding:8px 10px; border:1px solid #eee; text-align:center; }
+    .mx-table th { background:#f5f6fa; font-weight:600; color:#555; }
+    .mx-table th:first-child, .mx-table td:first-child { text-align:left; font-weight:600; }
+    .mx-table .total-row { background:#fafafa; font-weight:600; }
+    .mx-table .total-col { background:#fafafa; font-weight:600; }
+    .mx-cell { display:inline-flex; align-items:center; justify-content:center; min-width:40px; height:32px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px; transition:all .15s; padding:0 10px; }
+    .mx-cell:hover { transform:scale(1.15); box-shadow:0 2px 8px rgba(0,0,0,0.12); }
+    .mx-cell-zero { background:#f5f5f5; color:#bbb; cursor:default; }
+    .mx-cell-zero:hover { transform:none; box-shadow:none; }
     .cust-card { background:#fff; border:1px solid #eee; border-radius:10px; padding:12px 14px; box-shadow:0 1px 6px rgba(0,0,0,0.05); position:relative; transition:all .2s; }
     .cust-card:hover { box-shadow:0 4px 16px rgba(102,126,234,0.15); transform:translateY(-2px); border-color:#c7d2fe; }
     .cust-card .cc-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
@@ -160,8 +194,8 @@
   <script src="common.js"></script>
   <script src="import-dropzone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-</head>
-<body>
+<script src="fetch-auth.js"></script></head>
+<body data-page-title="客户管理" data-page-perm="customer:view">
   <div class="sidebar" id="sidebar"></div>
 
   <div class="main-content" data-module="customer">
@@ -193,35 +227,46 @@
         </div>
       </div>
       <div class="cust-dash-body" id="dashBody">
+      <div class="dash-filters" id="dashFilters">
+        <select id="dfSales" onchange="CustDash.onFilterChange()"><option value="">全部业务员</option></select>
+        <select id="dfLevel" onchange="CustDash.onFilterChange()"><option value="">全部等级</option></select>
+        <select id="dfStatus" onchange="CustDash.onFilterChange()"><option value="">全部状态</option></select>
+        <select id="dfMode" onchange="CustDash.onFilterChange()"><option value="">全部模式</option></select>
+        <select id="dfSource" onchange="CustDash.onFilterChange()"><option value="">全部来源</option></select>
+        <select id="dfRegion" onchange="CustDash.onFilterChange()"><option value="">全部地区</option></select>
+        <button class="dh-btn" onclick="CustDash.resetFilters()">重置</button>
+        <span id="dfUserHint" style="font-size:11px;color:rgba(0,0,0,0.4);margin-left:4px;"></span>
+      </div>
       <div class="dash-kpi" id="dashKpi"></div>
       <div class="dash-insights" id="dashInsights"></div>
+      <div class="dash-table-wrap" id="dashTableWrap"></div>
       <div class="dash-charts" id="dashCharts"></div>
       </div>
     </div>
 
     <div class="search-bar" data-feature="filter">
       <input type="text" id="searchInput" placeholder="搜索客户名称/编号/联系人..." style="min-width:220px;">
-      <select id="levelFilter">
+      <select data-searchable="1" id="levelFilter">
         <option value="">全部等级</option>
         <option value="A级（核心大客户）">A级（核心大客户）</option>
         <option value="B级（普通大客户）">B级（普通大客户）</option>
         <option value="C级（中小客户）">C级（中小客户）</option>
         <option value="D级（新客/休眠客）">D级（新客/休眠客）</option>
       </select>
-      <select id="modeFilter">
+      <select data-searchable="1" id="modeFilter">
         <option value="">全部模式</option>
         <option value="外销">外销</option>
         <option value="内销">内销</option>
         <option value="外贸公司">外贸公司</option>
       </select>
-      <select id="statusFilter">
+      <select data-searchable="1" id="statusFilter">
         <option value="">全部状态</option>
         <option value="大货合作客户">大货合作客户</option>
         <option value="样品单客户">样品单客户</option>
         <option value="潜在客户">潜在客户</option>
         <option value="未合作休眠客户">未合作休眠客户</option>
       </select>
-      <select id="salesFilter">
+      <select data-searchable="1" id="salesFilter">
         <option value="">全部业务员</option>
       </select>
       <button class="btn btn-primary" onclick="searchCustomers()">查询</button>
@@ -235,6 +280,7 @@
     <div class="batch-bar" id="batchBar">
       <span id="batchCount">已选 0 条</span>
       <button class="btn btn-sm btn-primary" onclick="showBatchEditModal()" data-feature="batch">批量修改</button>
+      <button class="btn btn-sm" style="background:#17a2b8;color:#fff;" data-perm="customer:edit" onclick="batchTransferCustomer()">转移客户</button>
       <button class="btn btn-sm btn-danger" onclick="batchDelete()" data-feature="batch">批量删除</button>
       <button class="btn btn-sm" style="background:#eee;" onclick="clearSelection()">取消选择</button>
     </div>
@@ -275,8 +321,15 @@
 
     <div class="pagination" id="pagination"></div>
 
-    <!-- 客户矩阵/卡片视图 -->
+    <!-- 客户矩阵/透视分析 -->
     <div id="matrixView" style="display:none;">
+      <div class="matrix-controls">
+        <label>行维度 <select id="mxRowDim"><option value="customer_level">客户等级</option><option value="sales_mode">销售模式</option><option value="customer_status">客户状态</option><option value="sales_person">业务员</option><option value="country_region">国家/地区</option></select></label>
+        <label>列维度 <select id="mxColDim"><option value="customer_level">客户等级</option><option value="sales_mode">销售模式</option><option value="customer_status">客户状态</option><option value="sales_person">业务员</option><option value="country_region">国家/地区</option></select></label>
+        <label>显示 <select id="mxMetric"><option value="count">客户数量</option></select></label>
+        <button class="btn btn-sm btn-primary" onclick="CustView.renderMatrix()">刷新分析</button>
+        <span style="font-size:12px;color:#999;margin-left:8px;">点击数字查看对应客户</span>
+      </div>
       <div class="matrix-grid" id="matrixGrid"></div>
       <div class="pagination" id="matrixPagination"></div>
     </div>
@@ -291,15 +344,15 @@
       <div class="form-section">
         <div class="form-row">
           <div class="form-group"><label><input type="checkbox" id="beLevelCheck" onchange="toggleBatchField('beLevel')"> 客户等级</label>
-            <select id="beLevel" disabled><option value="">请选择</option><option value="A级（核心大客户）">A级（核心大客户）</option><option value="B级（普通大客户）">B级（普通大客户）</option><option value="C级（中小客户）">C级（中小客户）</option><option value="D级（新客/休眠客）">D级（新客/休眠客）</option></select>
+            <select data-searchable="1" id="beLevel" disabled><option value="">请选择</option><option value="A级（核心大客户）">A级（核心大客户）</option><option value="B级（普通大客户）">B级（普通大客户）</option><option value="C级（中小客户）">C级（中小客户）</option><option value="D级（新客/休眠客）">D级（新客/休眠客）</option></select>
           </div>
           <div class="form-group"><label><input type="checkbox" id="beModeCheck" onchange="toggleBatchField('beMode')"> 销售模式</label>
-            <select id="beMode" disabled><option value="">请选择</option><option value="外销">外销</option><option value="内销">内销</option><option value="外贸公司">外贸公司</option></select>
+            <select data-searchable="1" id="beMode" disabled><option value="">请选择</option><option value="外销">外销</option><option value="内销">内销</option><option value="外贸公司">外贸公司</option></select>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group"><label><input type="checkbox" id="beStatusCheck" onchange="toggleBatchField('beStatus')"> 客户状态</label>
-            <select id="beStatus" disabled><option value="">请选择</option><option value="大货合作客户">大货合作客户</option><option value="样品单客户">样品单客户</option><option value="潜在客户">潜在客户</option><option value="未合作休眠客户">未合作休眠客户</option></select>
+            <select data-searchable="1" id="beStatus" disabled><option value="">请选择</option><option value="大货合作客户">大货合作客户</option><option value="样品单客户">样品单客户</option><option value="潜在客户">潜在客户</option><option value="未合作休眠客户">未合作休眠客户</option></select>
           </div>
           <div class="form-group"><label><input type="checkbox" id="beSalesCheck" onchange="toggleBatchField('beSales')"> 所属业务员</label>
             <input type="text" id="beSales" disabled placeholder="业务员姓名">
@@ -333,7 +386,7 @@
           </div>
           <div class="form-row">
             <div class="form-group"><label>客户等级 *</label>
-              <select id="fCustomerLevel">
+              <select data-searchable="1" id="fCustomerLevel">
                 <option value="">请选择</option>
                 <option value="A级（核心大客户）">A级（核心大客户）</option>
                 <option value="B级（普通大客户）">B级（普通大客户）</option>
@@ -342,7 +395,7 @@
               </select>
             </div>
             <div class="form-group"><label>销售模式 *</label>
-              <select id="fSalesMode">
+              <select data-searchable="1" id="fSalesMode">
                 <option value="">请选择</option>
                 <option value="外销">外销</option>
                 <option value="内销">内销</option>
@@ -352,7 +405,7 @@
           </div>
           <div class="form-row">
             <div class="form-group"><label>客户状态 *</label>
-              <select id="fCustomerStatus">
+              <select data-searchable="1" id="fCustomerStatus">
                 <option value="">请选择</option>
                 <option value="大货合作客户">大货合作客户</option>
                 <option value="样品单客户">样品单客户</option>
@@ -406,8 +459,8 @@
           <div class="form-row">
             <div class="form-group"><label>银行账号</label><input type="text" id="fBankAccount"></div>
             <div class="form-group"><label>地址</label><input type="text" id="fAddress"></div>
-            <div class="form-group"><label>客户来源</label><select id="fCustomerSource"><option value="">请选择</option></select></div>
-            <div class="form-group"><label>国家/地区</label><select id="fCountryRegion"><option value="">请选择</option></select></div>
+            <div class="form-group"><label>客户来源</label><select data-searchable="1" id="fCustomerSource"><option value="">请选择</option></select></div>
+            <div class="form-group"><label>国家/地区</label><select data-searchable="1" id="fCountryRegion"><option value="">请选择</option></select></div>
           </div>
         </div>
 
@@ -582,9 +635,9 @@
     // ===== 加载业务员列表 =====
     async function loadSalesOptions() {
       try {
-        const res = await fetch(`${API}/users?role=sales&limit=100`);
-        const data = await res.json();
-        const users = data.data || data || [];
+        const res = await fetch(`${API}/users/names`);
+        const data = res.ok ? await res.json() : [];
+        const users = (Array.isArray(data) ? data : (data.data || [])).filter(u => u.role === 'sales' || u.role === 'admin');
         const salesFilter = document.getElementById('salesFilter');
         users.forEach(u => {
           const opt = document.createElement('option');
@@ -604,7 +657,7 @@
       const customer_status = document.getElementById('statusFilter').value;
       const sales_person = document.getElementById('salesFilter').value;
 
-      const params = new URLSearchParams({ page, limit: 20 });
+      const params = new URLSearchParams({ page, limit:(window._pageSize||20) });
       if (keyword) params.set('keyword', keyword);
       if (customer_level) params.set('customer_level', customer_level);
       if (sales_mode) params.set('sales_mode', sales_mode);
@@ -904,6 +957,16 @@
         if (res.ok) { alert(data.message); clearSelection(); loadCustomers(currentPage); }
         else { alert(data.error || '批量删除失败'); }
       } catch(e) { alert('批量删除失败: ' + e.message); }
+    }
+
+    // ===== 批量转移客户（数据权限模块） =====
+    async function batchTransferCustomer() {
+      if (selectedIds.size === 0) { alert('请先选择客户'); return; }
+      if (!window.DataScope) { alert('数据权限模块未加载'); return; }
+      await window.DataScope.openTransferDialog([...selectedIds], () => {
+        clearSelection();
+        loadCustomers(currentPage);
+      });
     }
 
     // ===== 客户详情 =====
@@ -2169,41 +2232,87 @@
       },
       renderMatrix() {
         const grid = document.getElementById('matrixGrid');
-        if (customerData.length === 0) { grid.innerHTML = '<div style="color:#999;padding:30px;text-align:center;grid-column:1/-1;">暂无客户数据</div>'; return; }
-        grid.innerHTML = customerData.map(item => {
-          const lvl = item.customer_level || '';
-          const lvlShort = lvl ? lvl.charAt(0) + '级' : '';
-          const web = item.website ? formatWebsite(item.website) : '<span style="color:#ccc;">-</span>';
-          return `<div class="cust-card">
-            ${item._attCount ? `<span class="cc-att-tag" title="附件">📎 ${item._attCount}</span>` : ''}
-            <div class="cc-head">
-              <div>
-                <div class="cc-name" onclick="showDetail(${item.id})">${this.esc(item.name || '未命名')}</div>
-                <div class="cc-code">${this.esc(item.customer_code || '')}</div>
-              </div>
-            </div>
-            <div class="cc-badges">
-              ${item.customer_level ? renderBadge('level', item.customer_level) : ''}
-              ${item.sales_mode ? renderBadge('mode', item.sales_mode) : ''}
-              ${item.customer_status ? renderBadge('status', item.customer_status) : ''}
-            </div>
-            <div class="cc-grid">
-              <div class="cc-field"><span class="cc-lbl">联系人</span><span class="cc-val">${this.esc(item.contact_person || '-')}</span></div>
-              <div class="cc-field"><span class="cc-lbl">电话</span><span class="cc-val">${this.esc(item.phone || '-')}</span></div>
-              <div class="cc-field"><span class="cc-lbl">邮箱</span><span class="cc-val">${this.esc(item.email || '-')}</span></div>
-              <div class="cc-field"><span class="cc-lbl">地区</span><span class="cc-val">${this.esc(item.country_region || '-')}</span></div>
-              <div class="cc-field"><span class="cc-lbl">业务员</span><span class="cc-val">${this.esc(item.sales_person || '-')}</span></div>
-              <div class="cc-field"><span class="cc-lbl">网址</span><span class="cc-val">${web}</span></div>
-            </div>
-            <div class="cc-acts">
-              <button class="btn-success" style="color:#fff;" onclick="createInquiryForCustomerById(${item.id})">询价</button>
-              <button class="btn-primary" style="color:#fff;" onclick="showEditModal(${item.id})">编辑</button>
-              <button style="background:#eee;" onclick="showDetail(${item.id})">详情</button>
-              <button class="btn-danger" style="color:#fff;" onclick="deleteCustomer(${item.id})">删除</button>
-            </div>
-          </div>`;
-        }).join('');
+        if (customerData.length === 0) { grid.innerHTML = '<div style="color:#999;padding:30px;text-align:center;">暂无客户数据</div>'; return; }
+
+        const rowDim = document.getElementById('mxRowDim').value;
+        const colDim = document.getElementById('mxColDim').value;
+        const rowLabel = {customer_level:'客户等级',sales_mode:'销售模式',customer_status:'客户状态',sales_person:'业务员',country_region:'国家/地区'}[rowDim];
+        const colLabel = {customer_level:'客户等级',sales_mode:'销售模式',customer_status:'客户状态',sales_person:'业务员',country_region:'国家/地区'}[colDim];
+
+        const pivot = {};
+        const rowValues = new Set();
+        const colValues = new Set();
+
+        customerData.forEach(item => {
+          const rv = item[rowDim] || '(空)';
+          const cv = item[colDim] || '(空)';
+          rowValues.add(rv); colValues.add(cv);
+          const key = rv + '||' + cv;
+          pivot[key] = (pivot[key] || 0) + 1;
+        });
+
+        const rows = [...rowValues].sort();
+        const cols = [...colValues].sort();
+
+        const cellColor = (count, max) => {
+          if (count === 0) return 'mx-cell-zero';
+          const ratio = count / max;
+          if (ratio > 0.66) return '#667eea';
+          if (ratio > 0.33) return '#8b9cf7';
+          return '#b0bcf9';
+        };
+
+        const rowTotals = {};
+        const colTotals = {};
+        rows.forEach(r => rowTotals[r] = 0);
+        cols.forEach(c => colTotals[c] = 0);
+        let grandTotal = 0;
+
+        rows.forEach(r => { cols.forEach(c => {
+          const cnt = pivot[r + '||' + c] || 0;
+          rowTotals[r] += cnt; colTotals[c] += cnt; grandTotal += cnt;
+        }); });
+        const maxVal = Math.max(1, ...Object.values(pivot).filter(v => v > 0));
+
+        let html = '<table class="mx-table"><thead><tr><th>' + rowLabel + ' \\ ' + colLabel + '</th>';
+        cols.forEach(c => html += '<th>' + this.esc(c) + '</th>');
+        html += '<th>合计</th></tr></thead><tbody>';
+
+        rows.forEach(r => {
+          html += '<tr><td>' + this.esc(r) + '</td>';
+          cols.forEach(c => {
+            const cnt = pivot[r + '||' + c] || 0;
+            const color = cellColor(cnt, maxVal);
+            if (cnt > 0) {
+              html += '<td><span class="mx-cell" style="background:' + color + '22;color:' + color + ';border:2px solid ' + color + ';" onclick="CustView.drillDown(\'' + rowDim + '\',\'' + this.escQ(r) + '\',\'' + colDim + '\',\'' + this.escQ(c) + '\')">' + cnt + '</span></td>';
+            } else {
+              html += '<td><span class="mx-cell mx-cell-zero">0</span></td>';
+            }
+          });
+          html += '<td class="total-col">' + rowTotals[r] + '</td></tr>';
+        });
+
+        html += '<tr class="total-row"><td>合计</td>';
+        cols.forEach(c => html += '<td>' + colTotals[c] + '</td>');
+        html += '<td>' + grandTotal + '</td></tr>';
+        html += '</tbody></table>';
+        grid.innerHTML = html;
       },
+      drillDown(rowDim, rowVal, colDim, colVal) {
+        const matches = customerData.filter(item => {
+          const rv = item[rowDim] || '(空)';
+          const cv = item[colDim] || '(空)';
+          return rv === rowVal && cv === colVal;
+        });
+        if (matches.length === 0) return;
+        if (matches.length === 1) { showDetail(matches[0].id); return; }
+        const names = matches.map((m, i) => (i + 1) + '. ' + (m.name || '未命名') + ' (' + (m.customer_code || '') + ')').join('\n');
+        const choice = prompt('匹配 ' + matches.length + ' 条客户，输入序号查看详情，或取消：\n\n' + names);
+        if (choice === null) return;
+        const idx = parseInt(choice) - 1;
+        if (idx >= 0 && idx < matches.length) showDetail(matches[idx].id);
+      },
+      escQ(s) { return String(s == null ? '' : s).replace(/'/g,"\\'"); },
       esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     };
 
@@ -2437,6 +2546,7 @@
     PANELS: [
       {key:'kpi', label:'关键指标卡片'},
       {key:'insights', label:'📈 智能文字分析'},
+      {key:'table', label:'📋 多维分析表格'},
       {key:'level', label:'客户等级分布'},
       {key:'status', label:'客户状态分布'},
       {key:'mode', label:'销售模式分布'},
@@ -2491,6 +2601,12 @@
           panel.classList.remove('show');
         }
       });
+      // 识别登录用户
+      this._user = null;
+      try {
+        const u = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+        if (u && u.name) this._user = u;
+      } catch(e) {}
     },
 
     _visible() { try { return JSON.parse(localStorage.getItem(this._store) || '{}'); } catch(e) { return {}; } },
@@ -2511,9 +2627,14 @@
 
     async load() {
       try {
-        const res = await fetch(`${API}/customers/analytics`);
+        const params = this.getFilterParams();
+        const qs = Object.entries(params).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+        const url = `${API}/customers/analytics` + (qs ? '?' + qs : '');
+        const res = await fetch(url);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         this._data = await res.json();
+        // 首次加载时填充筛选下拉（从无过滤的 analytics 数据取选项）
+        if (!this._filtersPopulated) this._populateFilters();
         this.render();
       } catch (e) {
         const el = document.getElementById('dashCharts');
@@ -2525,7 +2646,130 @@
       if (!this._data) return;
       this.renderKpi();
       this.renderInsights();
+      this.renderAnalysisTable();
       this.renderCharts();
+    },
+
+    getFilterParams() {
+      const id = x => document.getElementById(x)?.value || '';
+      const params = {};
+      ['dfSales','dfLevel','dfStatus','dfMode','dfSource','dfRegion'].forEach(k => {
+        const v = id(k);
+        if (v) params[k.replace('df','').toLowerCase()] = v;
+      });
+      return params;
+    },
+    _populateFilters() {
+      this._filtersPopulated = true;
+      const setOpts = (id, opts, selected) => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const label = sel.options[0]?.text.replace('全部','') || '';
+        sel.innerHTML = '<option value="">全部' + label + '</option>' +
+          opts.map(v => `<option value="${this._esc(v)}">${this._esc(v)}</option>`).join('');
+        if (selected) sel.value = selected;
+      };
+      const extract = (arr) => [...new Set((arr||[]).map(x => x.label).filter(Boolean))].sort();
+      if (this._data) {
+        setOpts('dfSales', extract(this._data.bySales));
+        setOpts('dfLevel', extract(this._data.byLevel));
+        setOpts('dfStatus', extract(this._data.byStatus));
+        setOpts('dfMode', extract(this._data.byMode));
+        setOpts('dfSource', extract(this._data.bySource));
+        setOpts('dfRegion', extract(this._data.byRegion));
+      } else {
+        // fallback: 获取一次无过滤数据填充下拉
+        fetch(`${API}/customers/analytics`).then(r => r.json()).then(data => {
+          if (!data) return;
+          setOpts('dfSales', extract(data.bySales));
+          setOpts('dfLevel', extract(data.byLevel));
+          setOpts('dfStatus', extract(data.byStatus));
+          setOpts('dfMode', extract(data.byMode));
+          setOpts('dfSource', extract(data.bySource));
+          setOpts('dfRegion', extract(data.byRegion));
+        }).catch(() => {});
+      }
+      // 自动设置当前登录人为业务员筛选
+      if (this._user && this._user.name) {
+        const sel = document.getElementById('dfSales');
+        if (sel && [...sel.options].some(o => o.value === this._user.name)) {
+          sel.value = this._user.name;
+          document.getElementById('dfUserHint').textContent = '当前用户: ' + this._user.name;
+        }
+      }
+    },
+    onFilterChange() {
+      this.load();
+    },
+    resetFilters() {
+      ['dfSales','dfLevel','dfStatus','dfMode','dfSource','dfRegion'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('dfUserHint').textContent = '';
+      this.load();
+    },
+
+    renderAnalysisTable() {
+      const wrap = document.getElementById('dashTableWrap');
+      if (!wrap) return;
+      if (!this.isVisible('table')) { wrap.classList.remove('show'); wrap.innerHTML = ''; return; }
+      wrap.classList.add('show');
+      const d = this._data;
+      if (!d) { wrap.innerHTML = '<div style="padding:8px;color:#999;">暂无数据</div>'; return; }
+
+      // 构建多维交叉分析表: 维度 vs 计数
+      const dims = [
+        { label: '客户等级', key: 'byLevel' },
+        { label: '客户状态', key: 'byStatus' },
+        { label: '销售模式', key: 'byMode' },
+        { label: '客户来源', key: 'bySource' },
+      ];
+      const bizMetrics = [
+        { label: '总客户数', val: d.kpi.total },
+        { label: '询价客户', val: d.kpi.inquiryCustomers },
+        { label: '订单客户', val: d.kpi.orderCustomers },
+        { label: '样品客户', val: d.kpi.sampleCustomers },
+        { label: '大货合作', val: d.kpi.activeCustomers },
+      ];
+      let html = '<div style="display:flex;gap:20px;flex-wrap:wrap;">';
+
+      // 左侧：维度分布表
+      html += '<div style="flex:1;min-width:280px;"><h4 style="margin:0 0 6px;font-size:13px;">📊 维度分布</h4><div style="max-height:360px;overflow-y:auto;border:1px solid #e0e4ec;border-radius:6px;">';
+      html += '<table><thead><tr><th>维度</th><th>分类</th><th>客户数</th></tr></thead><tbody>';
+      dims.forEach(dim => {
+        const items = d[dim.key] || [];
+        items.forEach((item, i) => {
+          const label = this._esc(item.label || '未知');
+          const val = Number(item.value) || 0;
+          html += `<tr><td>${i === 0 ? dim.label : ''}</td><td class="l">${label}</td><td>${val}</td></tr>`;
+        });
+      });
+      html += '</tbody></table></div></div>';
+
+      // 右侧：关键指标表
+      html += '<div style="flex:1;min-width:220px;"><h4 style="margin:0 0 6px;font-size:13px;">📈 关键指标速览</h4><div style="border:1px solid #e0e4ec;border-radius:6px;overflow:hidden;">';
+      html += '<table><thead><tr><th>指标</th><th>数值</th></tr></thead><tbody>';
+      bizMetrics.forEach(m => {
+        html += `<tr><td class="l">${m.label}</td><td>${Number(m.val).toLocaleString()}</td></tr>`;
+      });
+      // 业务往来明细
+      html += `<tr><td class="l">询价总数</td><td>${Number(d.kpi.inquiryTotal).toLocaleString()}</td></tr>`;
+      html += `<tr><td class="l">订单总数</td><td>${Number(d.kpi.orderTotal).toLocaleString()}</td></tr>`;
+      html += `<tr><td class="l">样品总数</td><td>${Number(d.kpi.sampleTotal).toLocaleString()}</td></tr>`;
+      html += `<tr><td class="l">订单总金额</td><td>¥${Number(d.kpi.orderAmount).toLocaleString()}</td></tr>`;
+      html += '</tbody></table></div></div>';
+
+      // 右侧扩展: 区域 TOP 与 业务员 TOP
+      html += '<div style="flex:1;min-width:200px;"><h4 style="margin:0 0 6px;font-size:13px;">🌍 地区 TOP6</h4><div style="max-height:360px;overflow-y:auto;border:1px solid #e0e4ec;border-radius:6px;">';
+      html += '<table><thead><tr><th>地区</th><th>客户数</th></tr></thead><tbody>';
+      (d.byRegion || []).slice(0, 6).forEach(r => {
+        html += `<tr><td class="l">${this._esc(r.label)}</td><td>${r.value}</td></tr>`;
+      });
+      html += '</tbody></table></div></div>';
+
+      html += '</div>';
+      wrap.innerHTML = html;
     },
 
     // ===== 智能文字分析：根据数据自动生成分析结论 =====
@@ -2676,7 +2920,9 @@
   <script>
     ImportDropzone.init('importDropzoneContainer', 'customers', () => { loadCustomers(); CustDash.load(); });
   </script>
-<script src="dict-loader.js"></script><script src="permission-check.js"></script><script>PermissionCheck.init();DictLoader.fillAll([{select:'fCustomerSource',group:'customer_source',placeholder:'请选择'},{select:'fCountryRegion',group:'country_region',placeholder:'请选择'}]);</script>
+<script src="dict-loader.js"></script><script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();DictLoader.fillAll([{select:'fCustomerSource',group:'customer_source',placeholder:'请选择'},{select:'fCountryRegion',group:'country_region',placeholder:'请选择'}]);</script>
+<script src="data-scope.js"></script><script>(async()=>{await window.DataScope.load();try{window.DataScope.renderBanner('.search-bar');}catch(e){console.warn('scope banner',e);}})();</script>
 <script src="chat-widget.js"></script>
 <script src="feature-gate.js"></script><script>FeatureGate.init();</script>
 </body>

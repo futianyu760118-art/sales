@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）- S&OP产销协调会</title><script src="fetch-auth.js"></script>
+<link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 16px;border:none;background:none;cursor:pointer;font-size:13px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}.b5{background:#8e44ad;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sc{background:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700}.sc .l{font-size:11px;color:#999;margin-top:3px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.panel h3{margin:0 0 10px;font-size:14px;color:#444}
+.tbl-wrap{overflow:auto;max-height:62vh;border-radius:8px}
+.em{text-align:center;color:#999;padding:30px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:30px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:640px;max-width:95%;max-height:88vh;overflow:auto}
+.fg{margin-bottom:10px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:60px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.st-R{background:#ffebee;color:#c62828}.st-Y{background:#fff9c4;color:#f57f17}.st-G{background:#e8f5e9;color:#2e7d32}
+.st-BLOCK{background:#3e2723;color:#fff}
+.pr-P0{background:#c62828;color:#fff}.pr-P1{background:#e65100;color:#fff}.pr-P2{background:#1565c0;color:#fff}
+.as-PENDING{background:#eee;color:#666}.as-IN_PROGRESS{background:#e3f2fd;color:#1565c0}.as-VERIFYING{background:#fff9c4;color:#f57f17}.as-CLOSED{background:#e8f5e9;color:#2e7d32}
+.row-R td{background:#fff5f5!important}.row-Y td{background:#fffde7!important}
+.ov{color:#c62828;font-weight:600}
+.toggle{position:relative;display:inline-block;width:42px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:22px;transition:.3s}
+.toggle .slider:before{content:"";position:absolute;height:16px;width:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.slider{background:#27ae60}
+.toggle input:checked+.slider:before{transform:translateX(20px)}
+.kpi-cat{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-right:4px}
+.kpi-KPI{background:#667eea;color:#fff}.kpi-PI{background:#27ae60;color:#fff}.kpi-MI{background:#f39c12;color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+select:disabled,input:disabled{background:#f5f5f5;color:#999}
+.tbl-tools{float:right;font-size:12px;font-weight:400;display:flex;gap:4px;align-items:center}
+.panel.fs{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:#fff;overflow:auto;border-radius:0;padding:20px;box-sizing:border-box}
+.panel.fs .tbl-wrap{max-height:none !important;height:calc(100vh - 100px)}
+.panel.collapsed .tbl-wrap,.panel.collapsed .grid2{display:none}
+.tbl-analysis{background:#f8faff;border:1px solid #e2e7f5;border-radius:8px;margin-top:8px}
+.tbl-analysis .ta-head{padding:8px 12px;cursor:pointer;font-size:13px;font-weight:600;color:#444;display:flex;align-items:center;gap:8px;user-select:none}
+.tbl-analysis .ta-badge{background:#ffebee;color:#c62828;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;white-space:nowrap}
+.tbl-analysis .ta-badge.good{background:#e8f5e9;color:#2e7d32}
+.tbl-analysis .ta-arrow{margin-left:auto;font-size:11px;color:#999;transition:transform .2s}
+.tbl-analysis.open .ta-arrow{transform:rotate(180deg)}
+.tbl-analysis .ta-body{display:none;padding:0 12px 10px}
+.tbl-analysis.open .ta-body{display:block}
+.tbl-analysis .ta-tbl{font-size:12px;margin-top:6px}
+.tbl-analysis .ta-tbl th{background:#eef2ff;padding:5px 8px;font-size:11px;white-space:nowrap}
+.tbl-analysis .ta-tbl td{padding:5px 8px;border-bottom:1px solid #eef1f8;vertical-align:top;line-height:1.5}
+.panel.collapsed .tbl-analysis{display:none}
+.ta-chart{margin:6px 0 2px}
+.ta-chart .bar-row{display:flex;align-items:center;gap:6px;margin:3px 0}
+.ta-chart .bar-lbl{width:130px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#555}
+.ta-chart .bar-track{flex:1;background:#f0f0f0;border-radius:3px;height:16px;min-width:40px}
+.ta-chart .bar-fill{height:100%;border-radius:3px}
+.ta-chart .bar-val{width:96px;font-size:11px;text-align:right;font-weight:600;color:#333;white-space:nowrap}
+.ta-cat-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}
+.ta-cat-row .dot{width:10px;height:10px;border-radius:2px}
+.ta-iss{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px dashed #eef1f8}
+.ta-iss:last-child{border-bottom:none}
+.ta-iss .act{color:#2e7d32;margin-top:3px;font-size:11px}
+</style></head><body data-page-title="S&OP产销协调会" data-page-perm="prod-coord:view">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="sop">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+<h2>S&OP 产销协调会</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<span style="font-size:13px;color:#666">📅 周期：</span>
+<select id="gPeriod" onchange="setGlobalPeriod()" style="padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px"></select>
+<button class="btn b3" onclick="runAlertEngine()">▶ 运行预警引擎</button>
+<button class="btn b4" onclick="runSelfCheck()">▶ 每周自检</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('dash',this)">驾驶舱</button>
+<button onclick="swTab('kpi',this)">KPI指标</button>
+<button onclick="swTab('psi',this)">PSI产销存</button>
+<button onclick="swTab('supply',this)">供应评审</button>
+<button onclick="swTab('forecast',this)">需求预测</button>
+<button onclick="swTab('meeting',this)">会议管理</button>
+<button onclick="swTab('action',this)">待办Action</button>
+<button onclick="swTab('alert',this)">预警中心</button>
+<button onclick="swTab('selfchk',this)">每周自检</button>
+<button onclick="swTab('fetch',this)">数据获取</button>
+<button onclick="swTab('ebms',this)">EBMS关联数据</button>
+<button onclick="swTab('audit',this)">稽核报告</button>
+<button onclick="swTab('dept',this)">部门报告</button>
+</div>
+
+<!-- ===== 驾驶舱：本月复盘 → 下月预测 → 规划调整 ===== -->
+<div class="tc ac" id="tab-dash">
+<div class="panel" style="background:#f0f4ff;border:1px solid #dbe4ff">
+<b>🔗 产销协调会相互关系：</b><span style="color:#555">本月实绩（EBMS订单/交付/KPI）</span> → <b style="color:#667eea">下月预测（订单管线+预测）</b> → <b style="color:#27ae60">规划调整（生产/采购/产能/行动）</b> → 会议决议/待办闭环。EBMS 真实数据同时喂给 PSI、预测、供应各表单。
+</div>
+
+<div class="panel"><h3>📋 本月复盘 · 公司这个月做得怎么样 <span id="rvPeriod" style="font-size:12px;color:#999;font-weight:400"></span></h3>
+<div class="sg" id="rvCards"></div>
+<div class="grid2">
+<div><h4 style="margin:6px 0">本月重点产品需求（BOM）</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>名称</th><th>数量</th><th>金额</th><th>单数</th></tr></thead><tbody id="rvProdBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">⚠️ 逾期未交付订单</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>订单号</th><th>客户</th><th>逾期天</th><th>数量</th><th>已完成</th></tr></thead><tbody id="rvOverdueBody"></tbody></table></div></div>
+</div>
+</div>
+
+<div class="panel"><h3>🔮 下月预测 · 接下来一个月做什么 <span id="fcP" style="font-size:12px;color:#999;font-weight:400"></span></h3>
+<div class="sg" id="fcNextCards"></div>
+<div class="grid2">
+<div><h4 style="margin:6px 0">下月重点产品（订单管线）</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>名称</th><th>客户</th><th>数量</th><th>金额</th></tr></thead><tbody id="fcProdBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">下月重点客户</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>客户</th><th>金额</th></tr></thead><tbody id="fcCustBody"></tbody></table></div></div>
+</div>
+<div class="panel" style="background:#f8f9fa"><h4 style="margin:4px 0">✅ 推荐预测量（锁定订单 + 已有预测合并，供 PSI/预测/供应共享）</h4>
+<div class="tbl-wrap" style="max-height:20vh"><table><thead><tr><th>BOM编码</th><th>名称</th><th>锁定订单</th><th>已有预测</th><th>合计预测量</th><th>来源</th></tr></thead><tbody id="fcRecBody"></tbody></table></div></div>
+</div>
+
+<div class="panel"><h3>🔧 规划调整 · 根据下月预测调整计划</h3>
+<div class="grid2">
+<div><h4 style="margin:6px 0">🏭 生产计划建议（PSI M+1：需求+安全库存-期初）</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>产品</th><th>期初</th><th>下月需求</th><th>安全库存</th><th>建议生产</th><th>期末</th></tr></thead><tbody id="planProdBody"></tbody></table></div></div>
+<div>
+<h4 style="margin:6px 0">🛒 供应/采购（齐套风险）</h4><div id="planSupply" style="font-size:13px"></div>
+<h4 style="margin:8px 0 4px">🏭 产能负荷（下月，&gt;85% 标红）</h4><div class="tbl-wrap" style="max-height:16vh"><table><thead><tr><th>产线</th><th>月份</th><th>可用天</th><th>负荷率</th><th>瓶颈</th></tr></thead><tbody id="planCapBody"></tbody></table></div>
+</div>
+</div>
+<div class="panel" style="background:#fff5f5;border:1px solid #ffcdd2;margin-top:10px"><h4 style="margin:0 0 6px">⛔ 本月红灯KPI → 下月需制定对策</h4><div id="planRedBody"></div></div>
+</div>
+</div>
+
+<!-- ===== KPI ===== -->
+<div class="tc" id="tab-kpi">
+<div class="sb">
+<select id="kpiCat" onchange="loadKpi()"><option value="">全部分类</option><option value="KPI">结果指标(KPI)</option><option value="PI">过程指标(PI)</option><option value="MI">领先指标(MI)</option></select>
+<span style="font-size:12px;color:#999">周期取顶部全局选择</span>
+<button class="btn b1 bs" onclick="loadKpi()">刷新</button>
+</div>
+<div class="sg" id="kpiSummary"></div>
+<div class="panel"><h3>KPI 实绩明细</h3><div class="tbl-wrap"><table><thead><tr><th>编码</th><th>分类</th><th>指标名称</th><th>目标</th><th>警告</th><th>危险</th><th>实际</th><th>状态</th><th>取数来源</th></tr></thead><tbody id="kpiBody"></tbody></table></div></div>
+</div>
+
+<!-- ===== PSI ===== -->
+<div class="tc" id="tab-psi">
+<div class="sb">
+<select id="psiHeader" onchange="loadPsi()"></select>
+<button class="btn b5 bs" onclick="rollForward()">⏩ 滚动刷新(M+2→M+1)</button>
+<button class="btn b2 bs" onclick="savePsi()">💾 保存修改</button>
+<button class="btn b5 bs" onclick="addBomProductToPsi()">＋ 从BOM添加产品</button>
+<button class="btn b2 bs" onclick="prefillPsi()">📥 从EBMS订单预填销售计划</button>
+<span style="color:#999;font-size:12px">期末=期初+生产-销售，红黄绿自动计算；预填=本月实订单→M，下月实订单→M+1</span>
+</div>
+<div class="tbl-wrap"><table id="psiTbl"><thead><tr><th>产品</th><th>月</th><th>期初</th><th>销售</th><th>生产</th><th>期末</th><th>安全库存</th><th>灯</th></tr></thead><tbody id="psiBody"></tbody></table></div>
+</div>
+
+<!-- ===== 供应评审 ===== -->
+<div class="tc" id="tab-supply">
+<div class="grid2">
+<div class="panel"><h3>产能负荷（>85% 标红）</h3><div class="tbl-wrap"><table><thead><tr><th>产线</th><th>月份</th><th>可用天</th><th>实际UPPH</th><th>目标</th><th>负荷率</th><th>瓶颈</th></tr></thead><tbody id="capBody"></tbody></table></div></div>
+<div class="panel"><h3>MRP齐套短缺清单</h3><div class="tbl-wrap"><table><thead><tr><th>产品</th><th>物料</th><th>需求日</th><th>需求量</th><th>已到</th><th>短缺</th><th>供应商</th></tr></thead><tbody id="mrpBody"></tbody></table></div></div>
+</div>
+<div class="panel"><h3>⛔ 硬拦截检查（BOM/模具未归档）</h3><div id="blockBody"></div></div>
+</div>
+
+<!-- ===== 需求预测 ===== -->
+<div class="tc" id="tab-forecast">
+<div class="sb">
+<button class="btn b1 bs" onclick="openForecastModal()">＋ 新增预测</button>
+<button class="btn b4 bs" onclick="autoCalc()">🤖 系统推荐</button>
+<button class="btn b2 bs" onclick="genForecast()">📥 从EBMS订单生成下月预测</button>
+<input type="text" id="fcCust" placeholder="按客户筛选" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;width:140px" onkeyup="if(event.key==='Enter')loadForecast()">
+<button class="btn bs" style="background:#eee" onclick="loadForecast()">查询</button>
+<span style="color:#999;font-size:12px">周期：上月16日~当月15日 ｜ 当前周期 <b id="fcCurPeriod">-</b></span>
+</div>
+<div class="panel"><h3 style="color:#27ae60">📅 未来预测（计划）</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcFuture"></tbody></table></div></div>
+<div class="panel"><h3 style="color:#f39c12">📌 当前周期（执行中）</h3><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcCurrent"></tbody></table></div></div>
+<div class="panel"><h3 style="color:#999">📊 过去实绩（历史）</h3><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcPast"></tbody></table></div></div>
+</div>
+
+<!-- ===== 会议管理 ===== -->
+<div class="tc" id="tab-meeting">
+<div class="sb">
+<button class="btn b1 bs" onclick="openMeetingModal()">＋ 新建会议</button>
+<select id="mtgType" onchange="loadMeetings()"><option value="">全部类型</option><option value="PRE_SOP">预备会</option><option value="EXECUTIVE">高层决策会</option><option value="WEEKLY">每周碰头</option><option value="AD_HOC">专题会</option></select>
+</div>
+<div class="tbl-wrap"><table><thead><tr><th>编号</th><th>类型</th><th>时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="mtgBody"></tbody></table></div>
+</div>
+
+<!-- ===== 待办Action ===== -->
+<div class="tc" id="tab-action">
+<div class="sb">
+<select id="actStatus" onchange="loadActions()"><option value="">全部状态</option><option value="PENDING">待开始</option><option value="IN_PROGRESS">进行中</option><option value="VERIFYING">待验证</option><option value="CLOSED">已闭环</option></select>
+<select id="actPri" onchange="loadActions()"><option value="">全部优先级</option><option value="P0">P0-立即</option><option value="P1">P1-本周</option><option value="P2">P2-本月</option></select>
+<label><input type="checkbox" id="actOverdue" onchange="loadActions()"> 仅逾期</label>
+<button class="btn b1 bs" onclick="openActionModal()">＋ 新建Action</button>
+</div>
+<div class="sg" id="actSummary"></div>
+<div class="tbl-wrap"><table><thead><tr><th>编号</th><th>描述</th><th>责任人</th><th>截止</th><th>优先级</th><th>状态</th><th>升级</th><th>操作</th></tr></thead><tbody id="actBody"></tbody></table></div>
+</div>
+
+<!-- ===== 预警中心 ===== -->
+<div class="tc" id="tab-alert">
+<div class="grid2">
+<div class="panel"><h3>预警规则（11条）</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>编码</th><th>名称</th><th>级别</th><th>条件</th></tr></thead><tbody id="ruleBody"></tbody></table></div></div>
+<div class="panel"><h3>预警日志 <button class="btn b3 bs" onclick="runAlertEngine()">▶ 运行引擎</button></h3><div class="tbl-wrap" style="max-height:40vh"><table><thead><tr><th>时间</th><th>规则</th><th>级别</th><th>内容</th><th>状态</th></tr></thead><tbody id="alertLogBody"></tbody></table></div></div>
+</div>
+</div>
+
+<!-- ===== 每周自检 ===== -->
+<div class="tc" id="tab-selfchk">
+<div class="sb"><button class="btn b4 bs" onclick="runSelfCheck()">▶ 立即运行自检</button></div>
+<div id="selfchkResult"></div>
+<div class="panel"><h3>历史自检记录</h3><div class="tbl-wrap"><table><thead><tr><th>周次</th><th>评分</th><th>等级</th><th>通过项</th><th>问题</th></tr></thead><tbody id="selfchkBody"></tbody></table></div></div>
+</div>
+
+<!-- ===== 数据获取 ===== -->
+<div class="tc" id="tab-fetch">
+<div class="panel"><h3>数据获取开关（16项，时间窗口：上月16日~当月15日）</h3>
+<div class="tbl-wrap"><table><thead><tr><th>编码</th><th>名称</th><th>来源</th><th>目标</th><th>模式</th><th>开关</th><th>状态</th><th>操作</th></tr></thead><tbody id="fetchBody"></tbody></table></div></div>
+</div>
+
+<!-- ===== EBMS 关联数据（真实业务系统数据） ===== -->
+<div class="tc" id="tab-ebms">
+<div class="sg" id="ebmsCards"></div>
+<div class="grid2">
+<div class="panel"><h3>📦 外购物料 → 采购单 → 供应商（齐套关联）</h3>
+<div style="margin-bottom:8px;font-size:12px;color:#666">采购单确认率（齐套率）：<b id="ebmsKitRate">-</b> · 外购物料 <b id="ebmsPurMat">-</b> 种 · 采购单 <b id="ebmsPo">-</b> 单</div>
+<div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>物料编码</th><th>物料名称</th><th>单价</th><th>需求量</th><th>状态</th></tr></thead><tbody id="ebmsMatBody"></tbody></table></div></div>
+<div class="panel"><h3>🏭 供应商采购表现（按采购单汇总）</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>供应商</th><th>等级</th><th>采购单数</th><th>总数量</th><th>总金额</th><th>已确认</th></tr></thead><tbody id="ebmsSupBody"></tbody></table></div></div>
+</div>
+<div class="panel"><h3>📈 销售需求/OTD（真实订单汇总） <select id="ebmsYear" onchange="loadEbmsDemand()" style="float:right;padding:3px 6px;font-size:12px"></select></h3>
+<div style="margin-bottom:8px;font-size:12px;color:#666"><span id="ebmsYearLbl"></span> 订单 <b id="ebmsOrd">-</b> · 已交付 <b id="ebmsShip">-</b> · OTD <b id="ebmsOtd">-</b> · 逾期 <b id="ebmsOverdue">-</b> · 总需求量 <b id="ebmsDemandQty">-</b></div>
+<div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>产品名称</th><th>订单数</th><th>需求量</th><th>已完成</th><th>完成率</th><th>金额</th></tr></thead><tbody id="ebmsDemandBody"></tbody></table></div></div>
+<div class="panel"><h3>⚠️ 逾期未交付订单 Top20</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>订单号</th><th>BOM编码</th><th>BOM号</th><th>客户</th><th>承诺日期</th><th>逾期天数</th><th>数量</th><th>已完成</th></tr></thead><tbody id="ebmsOverdueBody"></tbody></table></div></div>
+<div class="panel"><h3>📊 周期对比分析（上月 vs 当月 vs 下月，聚焦下月做计划）<span id="cmpPeriodLbl" style="font-size:12px;color:#666;font-weight:400"></span></h3>
+<div class="grid2">
+<div><div id="cmpChart" style="padding:6px 0"></div></div>
+<div><h4 style="margin:4px 0">🎯 下月里程碑计划</h4><div id="cmpMilestone" style="display:flex;flex-wrap:wrap;gap:6px;padding:6px 0"></div>
+<h4 style="margin:8px 0 4px">下月重点产品需求</h4><div class="tbl-wrap" style="max-height:18vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>产品名称</th><th>数量</th><th>金额</th><th>单数</th></tr></thead><tbody id="cmpNextProd"></tbody></table></div>
+<h4 style="margin:8px 0 4px">下月重点客户</h4><div class="tbl-wrap" style="max-height:14vh"><table><thead><tr><th>客户</th><th>金额</th></tr></thead><tbody id="cmpNextCust"></tbody></table></div></div>
+</div></div>
+<div class="panel"><h3>📋 项目进度节点（上月节点 + 下月节点）<span id="projSummary" style="font-size:12px;color:#666;font-weight:400"></span></h3>
+<div class="grid2">
+<div><h4 style="color:#999;margin:6px 0">⬅ 上月进度节点（<b id="lastPeriodLbl">-</b>）</h4><div class="tbl-wrap" style="max-height:28vh"><table><thead><tr><th>项目号</th><th>项目名</th><th>客户</th><th>上月节点</th><th>负责人</th></tr></thead><tbody id="projLastNode"></tbody></table></div></div>
+<div><h4 style="color:#27ae60;margin:6px 0">➡ 下月进度节点（<b id="nextPeriodLbl">-</b>）</h4><div class="tbl-wrap" style="max-height:28vh"><table><thead><tr><th>项目号</th><th>项目名</th><th>客户</th><th>当前阶段</th><th>下月节点</th><th>负责人</th></tr></thead><tbody id="projNextNode"></tbody></table></div></div>
+</div></div>
+</div>
+
+</div>
+
+<!-- ===== 稽核报告 ===== -->
+<div class="tc" id="tab-audit">
+<div class="sb">
+<span style="color:#999;font-size:12px">取数周期：<b id="auditPeriod">-</b>（上月16日~当月15日）</span>
+<button class="btn b1 bs" onclick="loadAudit()">刷新</button>
+</div>
+<div class="sg" id="auditCards"></div>
+<div class="panel"><h3>📊 事项达成率</h3>
+<div class="tbl-wrap"><table><thead><tr><th>到期数</th><th>达成数</th><th>达成率</th><th>上月达成率</th><th>环比变化</th></tr></thead><tbody id="auditSummaryBody"></tbody></table></div></div>
+<div class="grid2">
+<div class="panel"><h3>❌ 未完成项检讨</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>编号</th><th>描述</th><th>责任人</th><th>截止日</th><th>逾期天</th><th>优先级</th><th>状态</th></tr></thead><tbody id="auditUncompBody"></tbody></table></div></div>
+<div class="panel"><h3>🔄 持续项及未回复项</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>编号</th><th>描述</th><th>责任人</th><th>截止日</th><th>状态</th><th>最后更新</th></tr></thead><tbody id="auditOngoingBody"></tbody></table></div></div>
+</div>
+<div class="panel"><h3>📋 取数标准总览</h3>
+<div class="tbl-wrap"><table><thead><tr><th>序号</th><th>部门</th><th>取数标准</th><th>数据来源</th></tr></thead><tbody id="auditStdBody"></tbody></table></div></div>
+</div>
+
+<!-- ===== 部门报告 ===== -->
+<div class="tc" id="tab-dept">
+<div class="sb">
+<span style="color:#999;font-size:12px">取数周期：<b id="deptPeriod">-</b>（上月16日~当月15日）</span>
+<button class="btn b1 bs" onclick="loadDept()">刷新</button>
+</div>
+
+<!-- 销售中心 -->
+<div class="panel"><h3 style="color:#667eea">📈 销售中心报告</h3>
+<div class="sg" id="salesCards"></div>
+<div class="grid2">
+<div><h4 style="margin:6px 0;color:#27ae60">常规类预测达成</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>计划数量</th><th>实际数量</th><th>数量达成率</th><th>客户预测达成率</th></tr></thead><tbody id="salesRegularBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0;color:#f39c12">项目类预测达成</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>计划数量</th><th>实际数量</th><th>数量达成率</th><th>备注</th></tr></thead><tbody id="salesProjectBody"></tbody></table></div></div>
+</div>
+<div><h4 style="margin:6px 0;color:#8e44ad">客户达成明细</h4><div class="tbl-wrap" style="max-height:20vh"><table><thead><tr><th>客户</th><th>计划量</th><th>实际量</th><th>达成率</th></tr></thead><tbody id="salesCustBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0;color:#2980b9">下月预测</h4><div class="tbl-wrap" style="max-height:20vh"><table><thead><tr><th>客户</th><th>产品</th><th>数量</th><th>类型</th></tr></thead><tbody id="salesNextBody"></tbody></table></div></div>
+<div style="font-size:11px;color:#999;margin-top:4px" id="salesSource"></div>
+</div>
+
+<!-- 研发中心 -->
+<div class="panel"><h3 style="color:#9b59b6">🔬 研发中心报告</h3>
+<div class="sg" id="rdCards"></div>
+<div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>项目号</th><th>项目名</th><th>客户</th><th>当前阶段</th><th>负责人</th><th>立项日</th><th>状态</th></tr></thead><tbody id="rdProjBody"></tbody></table></div>
+<div style="font-size:11px;color:#999;margin-top:4px" id="rdSource"></div>
+</div>
+
+<!-- 计划部 -->
+<div class="panel"><h3 style="color:#e67e22">📋 计划部报告</h3>
+<div class="sg" id="planCards"></div>
+<div class="grid2">
+<div><h4 style="margin:6px 0">销售出货分析</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>订单号</th><th>产品</th><th>客户</th><th>数量</th><th>已完成</th><th>承诺日</th><th>未发原因</th></tr></thead><tbody id="planShipBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">入库准交率</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>计划数量</th><th>实际完成</th><th>达成率</th></tr></thead><tbody id="planDeliveryBody"></tbody></table></div></div>
+</div>
+<div class="grid2">
+<div><h4 style="margin:6px 0">下月出货计划</h4><div class="tbl-wrap" style="max-height:20vh"><table><thead><tr><th>总数量</th><th>已完成</th><th>剩余</th><th>订单数</th></tr></thead><tbody id="planNextBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">产能负荷</h4><div class="tbl-wrap" style="max-height:20vh"><table><thead><tr><th>产线</th><th>月份</th><th>可用天</th><th>负荷率</th><th>瓶颈</th></tr></thead><tbody id="planCapBody"></tbody></table></div></div>
+</div>
+<div style="font-size:11px;color:#999;margin-top:4px" id="planSource"></div>
+</div>
+
+<!-- 采购部 -->
+<div class="panel"><h3 style="color:#16a085">🛒 采购部报告</h3>
+<div class="sg" id="purCards"></div>
+<div style="margin-bottom:8px;font-size:12px;color:#666">齐套标准：<b id="purStandard">-</b></div>
+<div class="grid2">
+<div><h4 style="margin:6px 0">物料齐套明细</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>物料编码</th><th>物料名称</th><th>需求量</th><th>单价</th><th>状态</th></tr></thead><tbody id="purMatBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">供应商表现</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>供应商</th><th>等级</th><th>采购单数</th><th>总金额</th><th>已确认</th></tr></thead><tbody id="purSupBody"></tbody></table></div></div>
+</div>
+<div style="font-size:11px;color:#999;margin-top:4px" id="purSource"></div>
+</div>
+
+<!-- 品质部 -->
+<div class="panel"><h3 style="color:#c0392b">✅ 品质部报告</h3>
+<div class="sg" id="qtyCards"></div>
+<div class="grid2">
+<div><h4 style="margin:6px 0">检验合格率</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>检验类型</th><th>总批次</th><th>合格批次</th><th>合格率</th><th>公式</th><th>来源</th></tr></thead><tbody id="qtyInspectBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">品质异常</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>时间</th><th>内容</th><th>级别</th><th>状态</th></tr></thead><tbody id="qtyAlertBody"></tbody></table></div></div>
+</div>
+<div class="grid2">
+<div class="panel" style="background:#f8f9fa"><h4>订单标准</h4><div style="font-size:13px" id="qtyOrderStd"></div></div>
+<div class="panel" style="background:#f8f9fa"><h4>客诉闭环</h4><div style="font-size:13px" id="qtyComplaint"></div></div>
+</div>
+<div class="panel" style="background:#f8f9fa"><h4>异常成本分析</h4><div style="font-size:13px" id="qtyCost"></div></div>
+<div style="font-size:11px;color:#999;margin-top:4px" id="qtySource"></div>
+</div>
+
+<!-- 工程/仓库 -->
+<div class="panel"><h3 style="color:#7f8c8d">🔧 工程/仓库报告</h3>
+<div class="grid2">
+<div><h4 style="margin:6px 0">工程数据</h4><div class="tbl-wrap"><table><thead><tr><th>指标</th><th>描述</th><th>数值</th><th>来源</th></tr></thead><tbody id="engBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">仓库/供应链</h4><div class="tbl-wrap"><table><thead><tr><th>指标</th><th>描述</th><th>来源</th></tr></thead><tbody id="whBody"></tbody></table></div></div>
+</div>
+</div>
+
+</div>
+
+<!-- ===== Modals ===== -->
+<div class="mo" id="mo"><div class="mb" id="mb"></div></div>
+
+<script src="common.js"></script>
+<script src="table-sort-filter.js"></script>
+<script>
+const API='/api/sop';
+function uid(){return localStorage.getItem('currentUserId')||1;}
+async function api(path,opts){opts=opts||{};const r=await fetch(API+path,Object.assign({headers:{'x-user-id':uid(),'Content-Type':'application/json'}},opts));return r.json();}
+function swTab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));document.getElementById('tab-'+id).classList.add('ac');btn.classList.add('ac');}
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function openModal(html){document.getElementById('mb').innerHTML=html;document.getElementById('mo').classList.add('ac');}
+function closeModal(){document.getElementById('mo').classList.remove('ac');}
+
+// ===== 表格增强：收起/全屏 + 排序筛选（复用 TableSortFilter）=====
+const _tblInited=new Set();
+function enhanceTable(tbodyId){
+  const tbody=document.getElementById(tbodyId);if(!tbody)return;
+  const table=tbody.closest('table');if(!table)return;
+  if(!table.id)table.id='tbl_'+tbodyId;
+  const tid=table.id;
+  const panel=table.closest('.panel');
+  // 给面板加 搜索框/收起/全屏 按钮（仅一次）
+  if(panel&&!panel.querySelector('.tbl-tools')){
+    const h3=panel.querySelector('h3');
+    if(h3){const t=document.createElement('span');t.className='tbl-tools';
+      t.innerHTML='<input type="text" class="tbl-search" placeholder="🔍 输入模糊搜索…" oninput="tblSearch(this,\''+tid+'\')" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:150px"><button class="btn bs" style="background:#eee;color:#555" onclick="tblCollapse(this)">收起</button><button class="btn bs" style="background:#eee;color:#555" onclick="tblFullscreen(this)">⤢ 全屏</button>';
+      h3.appendChild(t);}
+  }
+  // 仅排序（表头点击），筛选用全局搜索框
+  const ths=table.querySelectorAll('thead tr:first-child th');
+  const sf={};ths.forEach((th,i)=>{sf[i]='c'+i;});
+  if(_tblInited.has(tid)){TableSortFilter.refresh(tid);}else{TableSortFilter.init(tid,{sortFields:sf});_tblInited.add(tid);}
+}
+function tblSearch(input,tid){
+  const kw=input.value.trim().toLowerCase();
+  const table=document.getElementById(tid);if(!table)return;
+  const tbody=table.querySelector('tbody');if(!tbody)return;
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    if(tr.querySelector('.em'))return; // 跳过"无数据"占位行
+    if(!kw){tr.style.display='';return;}
+    tr.style.display=tr.textContent.toLowerCase().includes(kw)?'':'none';
+  });
+  computeTotals(table);
+}
+function tblCollapse(btn){
+  const panel=btn.closest('.panel');
+  if(panel.classList.contains('collapsed')){panel.classList.remove('collapsed');btn.textContent='收起';}
+  else{panel.classList.add('collapsed');btn.textContent='展开 ▼';}
+}
+function tblFullscreen(btn){
+  const panel=btn.closest('.panel');
+  if(panel.classList.contains('fs')){panel.classList.remove('fs');btn.textContent='⤢ 全屏';}
+  else{panel.classList.add('fs');btn.textContent='✕ 退出全屏';}
+}
+
+// ===== 表格合计：每个表格底部自动追加"合计"行 =====
+function computeTotals(table){
+  if(!table)return;
+  const tbody=table.querySelector('tbody');if(!tbody)return;
+  const rows=[...tbody.querySelectorAll(':scope > tr')].filter(tr=>!tr.querySelector('.em')&&tr.style.display!=='none');
+  const headRow=table.querySelector('thead tr:first-child');
+  const ths=headRow?headRow.children:[];
+  const ncol=ths.length;
+  if(!ncol)return;
+  // 单元格取值：输入框取 value，否则取文本
+  const cellT=td=>{const inp=td.querySelector('input,select');if(inp)return (inp.value||'').trim();return (td.textContent||'').trim();};
+  // 判定数值列：单元格整体是数字(可带千分位/小数)，不含 %，且多数行可解析
+  const isNum=[],sums=[];
+  for(let c=0;c<ncol;c++){
+    let any=0,num=0;
+    rows.forEach(tr=>{const td=tr.children[c];if(!td)return;const t=cellT(td);if(!t)return;any++;if(/^[\d,]+(\.\d+)?$/.test(t.replace(/,/g,'')))num++;});
+    isNum[c]=any>0&&num/any>=0.6;
+    sums[c]=0;
+  }
+  rows.forEach(tr=>{for(let c=0;c<ncol;c++){if(!isNum[c])continue;const td=tr.children[c];if(!td)return;const t=cellT(td).replace(/,/g,'');if(/^\d+(\.\d+)?$/.test(t))sums[c]+=parseFloat(t);}});
+  const hasNum=isNum.some(x=>x);
+  let tf=table.querySelector('tfoot');
+  if(!tf){tf=document.createElement('tfoot');table.appendChild(tf);}
+  let html='<tr class="tot-row"><td style="background:#eef2ff;font-weight:600;color:#333">合计'+(hasNum?'':'（'+rows.length+' 行）')+'</td>';
+  for(let c=1;c<ncol;c++){
+    html+='<td style="background:#eef2ff;font-weight:600;color:#333">'+(isNum[c]?sums[c].toLocaleString():'-')+'</td>';
+  }
+  html+='</tr>';
+  tf.innerHTML=html;
+}
+// 监听表格数据变化 → 自动重算合计（只响应 tbody/tr 变化，避免自身循环）
+const _totObserver=new MutationObserver(muts=>{
+  const seen=new Set();
+  for(const m of muts){
+    if(m.type!=='childList')continue;
+    const t=m.target;
+    if(t.tagName!=='TBODY'&&t.tagName!=='TR')continue;
+    const table=t.closest('table');
+    if(table&&!seen.has(table)){seen.add(table);computeTotals(table);analyzeTable(table);}
+  }
+});
+function initTotalsObserver(){_totObserver.observe(document.body,{subtree:true,childList:true});}
+initTotalsObserver();
+
+// ===== 表格自动分析（图表 + 问题 + 对策）=====
+// 规则引擎：解析表格已渲染 DOM，输出 Top 柱状图/分布图 + 问题清单 + 对策建议
+function _parseNumText(s){if(s==null)return null;s=String(s).replace(/,/g,'').trim();if(!s)return null;const m=s.match(/-?\d+(\.\d+)?/);return m?parseFloat(m[0]):null;}
+function _colNums(R,c){return R.map(r=>r.n[c]||0);}
+function colSum(R,c){return _colNums(R,c).reduce((a,b)=>a+b,0);}
+function colMax(R,c){return R.length?Math.max(..._colNums(R,c)):0;}
+function colMin(R,c){return R.length?Math.min(..._colNums(R,c)):0;}
+function colCountPred(R,c,pred){return R.filter(r=>pred(r.n[c],r.c[c])).length;}
+function topShare(R,c){const t=colSum(R,c);return t?colMax(R,c)/t:0;}
+function catDist(R,c){const m=new Map();R.forEach(r=>{const k=(r.c[c]||'-').trim()||'-';m.set(k,(m.get(k)||0)+1);});return [...m.entries()].sort((a,b)=>b[1]-a[1]);}
+function _fmtVal(v,fmt,unit){v=Number(v)||0;if(fmt==='pct')return v.toFixed(0)+(unit||'%');if(fmt==='money')return v>=10000?(v/10000).toFixed(1)+'万':Math.round(v).toLocaleString();return Math.round(v).toLocaleString()+(unit||'');}
+const PAL=['#667eea','#27ae60','#f39c12','#e74c3c','#8e44ad','#16a085','#2980b9','#e67e22','#c0392b','#7f8c8d'];
+const STATUS_COL={'R':'#e74c3c','Y':'#f39c12','G':'#27ae60'};
+
+function renderAnalysis(table,cfg,R){
+  const wrap=table.closest('.tbl-wrap')||table;
+  // 移除旧分析块
+  let box=wrap.nextElementSibling;
+  if(box&&box.classList&&box.classList.contains('tbl-analysis')&&box._tb===table){box.remove();}
+  box=document.createElement('div');box.className='tbl-analysis';box._tb=table;
+  wrap.parentNode.insertBefore(box,wrap.nextSibling);
+  // 问题清单
+  const issues=[];
+  (cfg.rules||[]).forEach(rule=>{try{if(rule.t(R))issues.push({level:rule.level||'Y',problem:rule.p(R),action:rule.a(R)});}catch(e){}});
+  // 图表
+  let chartHtml='';
+  if(R.length){
+    if(cfg.distCol!=null){
+      const dist=catDist(R,cfg.distCol).slice(0,6);
+      const max=Math.max(...dist.map(d=>d[1]),1);
+      chartHtml='<div class="ta-chart"><div style="font-size:12px;font-weight:600;color:#444;margin-bottom:4px">📊 '+(cfg.distName||'分布')+'</div>'+dist.map((d,i)=>{
+        const col=cfg.distColor?cfg.distColor(d[0]):PAL[i%PAL.length];
+        const w=Math.round(d[1]/max*100);
+        return '<div class="ta-cat-row"><span class="dot" style="background:'+col+'"></span><span style="flex:1">'+esc(d[0])+'</span><div class="bar-track" style="max-width:160px"><div class="bar-fill" style="width:'+Math.max(4,w)+'%;background:'+col+'"></div></div><b style="width:34px;text-align:right">'+d[1]+'</b></div>';
+      }).join('')+'</div>';
+    }else if(cfg.metricCol!=null){
+      const sorted=[...R].sort((a,b)=>(b.n[cfg.metricCol]||0)-(a.n[cfg.metricCol]||0)).slice(0,cfg.maxBars||6);
+      const max=Math.max(...sorted.map(r=>r.n[cfg.metricCol]||0),1);
+      chartHtml='<div class="ta-chart"><div style="font-size:12px;font-weight:600;color:#444;margin-bottom:4px">📊 '+(cfg.chartTitle||'Top 分布')+'</div>'+sorted.map(r=>{
+        const v=r.n[cfg.metricCol]||0;const w=Math.max(2,Math.round(v/max*100));
+        const lbl=cfg.labelCol!=null?(r.c[cfg.labelCol]||'-'):'';
+        return '<div class="bar-row"><span class="bar-lbl">'+esc(lbl)+'</span><div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+(cfg.color||'#667eea')+'"></div></div><span class="bar-val">'+_fmtVal(v,cfg.fmt,cfg.unit)+'</span></div>';
+      }).join('')+'</div>';
+    }
+  }
+  // 问题展示
+  const rN=issues.filter(i=>i.level==='R').length;
+  let probHtml;
+  if(!issues.length){probHtml='<div style="font-size:12px;color:'+(R.length?'#2e7d32':'#999')+';padding:4px 0">'+(R.length?'✅ 未发现明显问题':'— 暂无数据待分析')+'</div>';}
+  else{probHtml='<div style="font-size:12px;font-weight:600;color:#444;margin:6px 0 2px">⚠️ 问题与对策</div>'+issues.map(i=>'<div class="ta-iss"><span class="badge '+(i.level==='R'?'st-R':'st-Y')+'">'+(i.level==='R'?'问题':'关注')+'</span><div style="flex:1"><div style="color:#444;line-height:1.5">'+esc(i.problem)+'</div><div class="act">✅ '+esc(i.action)+'</div></div></div>').join('');}
+  const badge=rN?'<span class="ta-badge">'+rN+' 红灯</span>':(issues.length?'<span class="ta-badge" style="background:#fff9c4;color:#f57f17">'+issues.length+' 关注</span>':'<span class="ta-badge good">正常</span>');
+  box.innerHTML='<div class="ta-head" onclick="this.parentNode.classList.toggle(\'open\')"><span>📊 自动分析：'+esc(cfg.title||'')+'</span>'+badge+'<span class="ta-arrow">▼</span></div><div class="ta-body">'+chartHtml+probHtml+'</div>';
+}
+
+// 各表格分析规则配置（列索引对应 thead 顺序）
+const ANALYZE={
+  // —— 驾驶舱 ——
+  rvProdBody:{title:'本月重点产品需求',labelCol:0,metricCol:4,fmt:'money',color:'#667eea',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'本月无重点产品需求数据',a:()=>'检查本月订单/BOM 数据是否同步'},
+    {level:'Y',t:R=>R.length&&topShare(R,4)>0.6,p:R=>'Top1 产品占本月重点产品金额 '+Math.round(topShare(R,4)*100)+'%，依赖度偏高',a:()=>'关注单一产品需求波动，提前储备产能与物料'},
+    {level:'Y',t:R=>colMax(R,5)>20,p:R=>'单个产品订单最密达 '+colMax(R,5)+' 单，需求集中',a:()=>'评估该产品齐套与交付压力'}]},
+  rvOverdueBody:{title:'本月逾期未交付订单',labelCol:0,metricCol:2,fmt:'int',unit:'天',color:'#e74c3c',rules:[
+    {level:'R',t:R=>R.length>0,p:R=>'本月有 '+R.length+' 张逾期未交付订单，合计逾期 '+colSum(R,2)+' 天',a:()=>'重新排产插单、与客户协商新交期、加急齐套采购'},
+    {level:'R',t:R=>colMax(R,2)>30,p:R=>'存在严重逾期（>30 天）订单，最大逾期 '+colMax(R,2)+' 天',a:()=>'升级至生产总监专项跟进，必要时启动客户预警'}]},
+  fcProdBody:{title:'下月重点产品（订单管线）',labelCol:0,metricCol:5,fmt:'money',color:'#27ae60',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'下月暂无订单管线',a:()=>'提醒销售补充下月订单/预测，避免计划空窗'},
+    {level:'Y',t:R=>R.length&&topShare(R,5)>0.5,p:R=>'下月 Top1 产品金额占比 '+Math.round(topShare(R,5)*100)+'%，集中度偏高',a:()=>'提前锁定该产品物料与产能'}]},
+  fcCustBody:{title:'下月重点客户',labelCol:0,metricCol:1,fmt:'money',color:'#f39c12',rules:[
+    {level:'Y',t:R=>R.length&&topShare(R,1)>0.6,p:R=>'下月 Top1 客户金额占比 '+Math.round(topShare(R,1)*100)+'%，客户集中度风险',a:()=>'拓展备选客户分散风险，保障该客户交付'},
+    {level:'Y',t:R=>R.length===0,p:()=>'下月暂无重点客户',a:()=>'推进销售线索转化'}]},
+  fcRecBody:{title:'推荐预测量',labelCol:0,metricCol:4,fmt:'int',color:'#16a085',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'无推荐预测量',a:()=>'运行系统推荐或从 EBMS 订单生成下月预测'},
+    {level:'Y',t:R=>R.filter(r=>(r.n[4]||0)>(r.n[2]||0)).length>0,p:R=>R.filter(r=>(r.n[4]||0)>(r.n[2]||0)).length+' 个产品预测量高于锁定订单，下单波动风险',a:()=>'结合销售确认订单口径，滚动修正预测'}]},
+  planProdBody:{title:'生产计划建议（PSI M+1）',labelCol:0,metricCol:4,fmt:'int',color:'#1565c0',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'无 PSI 计划',a:()=>'先在 PSI 页从 EBMS 预填销售计划'},
+    {level:'R',t:R=>colMin(R,4)<0,p:()=>'存在负值生产建议，需求/安全库存异常',a:()=>'核对期初库存与需求口径'},
+    {level:'Y',t:R=>R.filter(r=>(r.n[5]||0)<(r.n[3]||0)).length>0,p:R=>R.filter(r=>(r.n[5]||0)<(r.n[3]||0)).length+' 个产品期末低于安全库存，断货风险',a:()=>'上调生产计划或紧急补库'}]},
+  planCapBody:{title:'产能负荷（下月）',labelCol:0,metricCol:3,fmt:'pct',unit:'',color:'#e74c3c',rules:[
+    {level:'R',t:R=>colCountPred(R,3,v=>v>85)>0,p:R=>colCountPred(R,3,v=>v>85)+' 条产线产能超负荷（>85%）',a:()=>'增加班次/外协/临时增线，瓶颈环节优先排产'},
+    {level:'Y',t:R=>colCountPred(R,3,v=>v>70&&v<=85)>0,p:R=>colCountPred(R,3,v=>v>70&&v<=85)+' 条产线接近产能瓶颈（70~85%）',a:()=>'监控负荷变化，预留弹性产能'}]},
+  // —— KPI ——
+  kpiBody:{title:'KPI 实绩',distCol:7,distName:'状态分布',distColor:k=>STATUS_COL[k]||'#999',rules:[
+    {level:'R',t:R=>colCountPred(R,7,v=>v==='R')>0,p:R=>'本月有 '+colCountPred(R,7,v=>v==='R')+' 项红灯 KPI',a:()=>'逐项制定对策并纳入 Action 跟踪闭环'},
+    {level:'Y',t:R=>colCountPred(R,7,v=>v==='Y')>0,p:R=>colCountPred(R,7,v=>v==='Y')+' 项黄灯 KPI 需关注',a:()=>'密切监控趋势，防止转红'}]},
+  // —— PSI ——
+  psiBody:{title:'PSI 产销存',distCol:7,distName:'灯分布',distColor:k=>STATUS_COL[k]||'#999',rules:[
+    {level:'R',t:R=>colCountPred(R,7,v=>v==='R')>0,p:R=>colCountPred(R,7,v=>v==='R')+' 项 PSI 库存红灯（期末低于安全库存）',a:()=>'上调生产计划或紧急采购补库'},
+    {level:'Y',t:R=>colCountPred(R,7,v=>v==='Y')>0,p:R=>colCountPred(R,7,v=>v==='Y')+' 项黄灯需关注',a:()=>'滚动校准销售/生产计划'}]},
+  // —— 供应 ——
+  capBody:{title:'产能负荷',labelCol:0,metricCol:5,fmt:'pct',unit:'',color:'#e74c3c',rules:[
+    {level:'R',t:R=>colCountPred(R,5,v=>v>85)>0,p:R=>colCountPred(R,5,v=>v>85)+' 条产线超负荷（>85%）',a:()=>'安排加班/外协/增线，优先排产瓶颈'},
+    {level:'Y',t:R=>colCountPred(R,5,v=>v>70&&v<=85)>0,p:R=>colCountPred(R,5,v=>v>70&&v<=85)+' 条产线接近瓶颈',a:()=>'预留弹性产能'}]},
+  mrpBody:{title:'MRP 齐套短缺',labelCol:0,metricCol:5,fmt:'int',unit:'',color:'#c62828',rules:[
+    {level:'R',t:R=>colCountPred(R,5,v=>v>0)>0,p:R=>colCountPred(R,5,v=>v>0)+' 项物料短缺，影响生产齐套',a:()=>'跟进采购交期、启动替代料评审、催供应商'},
+    {level:'Y',t:R=>R.length&&colCountPred(R,5,v=>v===0)===0,p:()=>'全部物料均有缺口',a:()=>'全面复盘采购计划'}]},
+  // —— 预测 ——
+  fcFuture:{title:'未来预测（计划）',labelCol:2,metricCol:4,fmt:'int',color:'#27ae60',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'无未来预测',a:()=>'系统推荐或人工补充下月预测'},
+    {level:'Y',t:R=>colCountPred(R,7,v=>v>15)>0,p:R=>colCountPred(R,7,v=>v>15)+' 条预测 MAPE>15%，偏差偏大',a:()=>'结合滚动订单与销售反馈修正预测'}]},
+  fcCurrent:{title:'当前周期预测',labelCol:2,metricCol:4,fmt:'int',color:'#f39c12',rules:[
+    {level:'Y',t:R=>colCountPred(R,7,v=>v>15)>0,p:R=>colCountPred(R,7,v=>v>15)+' 条预测 MAPE>15%',a:()=>'校准执行期预测'}]},
+  fcPast:{title:'过去实绩预测',labelCol:2,metricCol:4,fmt:'int',color:'#999',rules:[
+    {level:'Y',t:R=>colCountPred(R,7,v=>v>15)>0,p:R=>colCountPred(R,7,v=>v>15)+' 条历史预测偏差偏大',a:()=>'复盘偏差原因，优化预测方法'}]},
+  // —— 会议 ——
+  mtgBody:{title:'会议管理',distCol:1,distName:'类型分布',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'暂无会议安排',a:()=>'建议召开 S&OP 预备会/高层决策会'}]},
+  // —— Action ——
+  actBody:{title:'待办 Action',distCol:5,distName:'状态分布',rules:[
+    {level:'R',t:R=>colCountPred(R,6,v=>/L\d/.test(String(v)))>0,p:R=>colCountPred(R,6,v=>/L\d/.test(String(v)))+' 项 Action 已升级，需高层介入',a:()=>'立即督办责任人，必要时调整资源'},
+    {level:'Y',t:R=>colCountPred(R,5,v=>v!=='CLOSED')>0,p:R=>'仍有 '+colCountPred(R,5,v=>v!=='CLOSED')+' 项未闭环 Action',a:()=>'按截止日推进闭环'}]},
+  // —— 预警 ——
+  ruleBody:{title:'预警规则',distCol:2,distName:'级别分布',distColor:k=>STATUS_COL[k]||'#999',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'未配置预警规则',a:()=>'维护预警规则库以支撑自动巡检'}]},
+  alertLogBody:{title:'预警日志',distCol:2,distName:'级别分布',distColor:k=>STATUS_COL[k]||'#999',rules:[
+    {level:'R',t:R=>R.filter(r=>(r.c[4]||'').includes('待处理')).length>0,p:R=>R.filter(r=>(r.c[4]||'').includes('待处理')).length+' 条预警待处理',a:()=>'立即处理高危预警并闭环确认'}]},
+  // —— 自检 ——
+  selfchkBody:{title:'每周自检记录',labelCol:0,metricCol:1,fmt:'int',color:'#8e44ad',chartTitle:'历次评分',rules:[
+    {level:'Y',t:R=>R.length&&colMax(R,1)<80,p:R=>'最高评分 '+colMax(R,1)+' 分，整体偏低',a:()=>'针对未通过项制定整改 Action'}]},
+  // —— 数据获取 ——
+  fetchBody:{title:'数据获取开关',distCol:6,distName:'状态分布',rules:[
+    {level:'Y',t:R=>R.filter(r=>{const cb=r.tr&&r.tr.querySelector('input[type=checkbox]');return cb&&!cb.checked;}).length>0,p:R=>{const k=R.filter(r=>{const cb=r.tr&&r.tr.querySelector('input[type=checkbox]');return cb&&!cb.checked;}).length;return '有 '+k+' 项数据获取开关未开启'},a:()=>'开启全部取数开关确保数据完整'}]},
+  // —— EBMS ——
+  ebmsMatBody:{title:'外购物料齐套',labelCol:0,metricCol:3,fmt:'int',color:'#16a085',rules:[
+    {level:'Y',t:R=>colCountPred(R,4,v=>String(v).includes('待')||String(v).includes('缺'))>0,p:R=>colCountPred(R,4,v=>String(v).includes('待')||String(v).includes('缺'))+' 种物料待采购',a:()=>'按需求量及时下达采购单'}]},
+  ebmsSupBody:{title:'供应商采购表现',labelCol:0,metricCol:4,fmt:'money',color:'#2980b9',rules:[
+    {level:'Y',t:R=>colCountPred(R,5,v=>String(v).includes('否'))>0,p:R=>colCountPred(R,5,v=>String(v).includes('否'))+' 家供应商采购单未确认，齐套风险',a:()=>'跟进供应商确认交期'}]},
+  ebmsDemandBody:{title:'销售需求/OTD',labelCol:0,metricCol:7,fmt:'money',color:'#667eea',rules:[
+    {level:'Y',t:R=>colCountPred(R,6,v=>v<80)>0,p:R=>colCountPred(R,6,v=>v<80)+' 个产品完成率低于 80%',a:()=>'排查产能/物料瓶颈，加速交付'}]},
+  ebmsOverdueBody:{title:'逾期未交付 Top20',labelCol:0,metricCol:5,fmt:'int',unit:'天',color:'#e74c3c',rules:[
+    {level:'R',t:R=>R.length>0,p:R=>'共 '+R.length+' 张逾期订单，累计逾期 '+colSum(R,5)+' 天',a:()=>'插单排产、催齐套、与客户协商交期'}]},
+  cmpNextProd:{title:'下月重点产品需求',labelCol:0,metricCol:4,fmt:'money',color:'#27ae60',rules:[
+    {level:'Y',t:R=>R.length&&topShare(R,4)>0.6,p:R=>'下月 Top1 产品占比 '+Math.round(topShare(R,4)*100)+'%',a:()=>'提前锁定物料与产能'}]},
+  cmpNextCust:{title:'下月重点客户',labelCol:0,metricCol:1,fmt:'money',color:'#f39c12',rules:[
+    {level:'Y',t:R=>R.length&&topShare(R,1)>0.6,p:R=>'下月 Top1 客户占比 '+Math.round(topShare(R,1)*100)+'%',a:()=>'分散客户集中度风险'}]},
+  projLastNode:{title:'上月项目进度节点',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'上月无活跃项目节点',a:()=>'核对项目阶段与进度录入'}]},
+  projNextNode:{title:'下月项目进度节点',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'下月无项目推进节点',a:()=>'梳理活跃项目下月里程碑'}]},
+  // —— 稽核 ——
+  auditSummaryBody:{title:'事项达成率',labelCol:0,metricCol:2,fmt:'pct',color:'#27ae60',rules:[
+    {level:'R',t:R=>R.length&&colMin(R,2)<50,p:R=>'本期达成率仅 '+colMin(R,2)+'%，过低',a:()=>'针对未完成项制定改善 Action'},
+    {level:'Y',t:R=>R.length&&colMin(R,2)<80&&colMin(R,2)>=50,p:R=>'本期达成率 '+colMin(R,2)+'%，未达标',a:()=>'复盘未完成原因并跟进闭环'}]},
+  auditUncompBody:{title:'未完成项检讨',labelCol:0,metricCol:4,fmt:'int',unit:'天',color:'#e74c3c',rules:[
+    {level:'R',t:R=>colCountPred(R,4,v=>v>0)>0,p:R=>colCountPred(R,4,v=>v>0)+' 项未完成事项已逾期',a:()=>'督办责任人限期完成或调整计划'}]},
+  auditOngoingBody:{title:'持续/未回复项',rules:[
+    {level:'Y',t:R=>R.length>0,p:R=>'仍有 '+R.length+' 项事项持续跟进中',a:()=>'定期跟进直至闭环'}]},
+  // —— 部门报告 ——
+  salesCustBody:{title:'客户达成明细',labelCol:0,metricCol:2,fmt:'int',color:'#27ae60',rules:[
+    {level:'Y',t:R=>colCountPred(R,3,v=>v<80)>0,p:R=>colCountPred(R,3,v=>v<80)+' 个客户达成率低于 80%',a:()=>'逐客户核对缺口原因'}]},
+  salesNextBody:{title:'下月预测',labelCol:1,metricCol:2,fmt:'int',color:'#8e44ad',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'无下月预测明细',a:()=>'补充下月销售预测'}]},
+  rdProjBody:{title:'研发项目',distCol:3,distName:'阶段分布',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'本期无项目',a:()=>'检查项目立项数据'}]},
+  planShipBody:{title:'销售出货分析',labelCol:0,metricCol:3,fmt:'int',color:'#e67e22',rules:[
+    {level:'R',t:R=>R.length>0,p:R=>'有 '+R.length+' 张订单未发货',a:()=>'跟进未发原因，协调生产/交期'},
+    {level:'Y',t:R=>R.filter(r=>(r.c[6]||'').trim()).length>0,p:R=>R.filter(r=>(r.c[6]||'').trim()).length+' 单存在未发原因说明',a:()=>'逐单核实并推动解决'}]},
+  planDeliveryBody:{title:'入库准交率',labelCol:0,metricCol:2,fmt:'pct',color:'#27ae60',rules:[
+    {level:'R',t:R=>R.length&&colMin(R,2)<80,p:R=>'入库准交率 '+colMin(R,2)+'%，偏低',a:()=>'排查生产入库瓶颈'},
+    {level:'Y',t:R=>R.length&&colMin(R,2)<95&&colMin(R,2)>=80,p:R=>'入库准交率 '+colMin(R,2)+'%，未达标',a:()=>'提升生产交付准时率'}]},
+  planNextBody:{title:'下月出货计划',labelCol:0,metricCol:2,fmt:'int',color:'#1565c0',rules:[
+    {level:'Y',t:R=>R.length&&colMax(R,2)>0,p:R=>'下月仍有 '+colMax(R,2)+' 剩余量待出货',a:()=>'排产确保按期出货'}]},
+  purMatBody:{title:'物料齐套明细',labelCol:0,metricCol:2,fmt:'int',color:'#16a085',rules:[
+    {level:'Y',t:R=>colCountPred(R,4,v=>!/齐套|已到|完成|是|绿|G/.test(String(v)))>0,p:R=>colCountPred(R,4,v=>!/齐套|已到|完成|是|绿|G/.test(String(v)))+' 种物料未齐套',a:()=>'催供应商交期，启动替代料评审'}]},
+  purSupBody:{title:'供应商表现',labelCol:0,metricCol:3,fmt:'money',color:'#2980b9',rules:[
+    {level:'Y',t:R=>colCountPred(R,4,v=>String(v).includes('否'))>0,p:R=>colCountPred(R,4,v=>String(v).includes('否'))+' 家供应商采购单未确认',a:()=>'跟进供应商确认交期'}]},
+  qtyInspectBody:{title:'检验合格率',labelCol:0,metricCol:3,fmt:'pct',color:'#27ae60',rules:[
+    {level:'R',t:R=>colCountPred(R,3,v=>v<85)>0,p:R=>colCountPred(R,3,v=>v<85)+' 项检验合格率低于 85%',a:()=>'组织品质改善，根因分析'},
+    {level:'Y',t:R=>colCountPred(R,3,v=>v<95&&v>=85)>0,p:R=>colCountPred(R,3,v=>v<95&&v>=85)+' 项合格率 85~95%，需关注',a:()=>'加强过程管控'}]},
+  qtyAlertBody:{title:'品质异常',distCol:2,distName:'级别分布',distColor:k=>STATUS_COL[k]||'#999',rules:[
+    {level:'R',t:R=>R.filter(r=>(r.c[2]||'').includes('R')&&!/闭环|关闭|解决/.test(r.c[3]||'')).length>0,p:R=>R.filter(r=>(r.c[2]||'').includes('R')&&!/闭环|关闭|解决/.test(r.c[3]||'')).length+' 条红灯品质异常未闭环',a:()=>'成立专案立即处置'}]},
+  engBody:{title:'工程数据',labelCol:0,metricCol:2,fmt:'int',color:'#7f8c8d',rules:[
+    {level:'Y',t:R=>R.length===0,p:()=>'无工程数据',a:()=>'维护工装/BOM/SOP 数据'}]}
+};
+// whBody 无数值列，单独配
+ANALYZE.whBody={title:'仓库/供应链',rules:[{level:'Y',t:R=>R.length===0,p:()=>'无仓库数据',a:()=>'维护仓库与供应链基础数据'}]};
+
+function analyzeTable(table){
+  if(!table)return;
+  const tbody=table.querySelector('tbody');if(!tbody)return;
+  const tid=tbody.id;if(!tid||!ANALYZE[tid])return;
+  const headRow=table.querySelector('thead tr:first-child');
+  const ncol=headRow?headRow.children.length:0;if(!ncol)return;
+  const R=[];
+  tbody.querySelectorAll(':scope > tr').forEach(tr=>{
+    if(tr.querySelector('.em'))return;
+    const c=[],n=[];
+    for(let i=0;i<ncol;i++){const td=tr.children[i];const t=td?(td.textContent||'').trim():'';c.push(t);n.push(_parseNumText(t));}
+    R.push({c,n,tr});
+  });
+  try{renderAnalysis(table,ANALYZE[tid],R);}catch(e){console.warn('[analyze]',tid,e);}
+}
+
+// ===== 全局时间周期选择 =====
+let GLOBAL_PERIOD='';
+async function loadGlobalPeriods(){
+  const d=await api('/sop/periods');
+  const sel=document.getElementById('gPeriod');if(!sel)return;
+  sel.innerHTML=d.periods.map(p=>`<option value="${p}" ${p===d.current?'selected':''}>${p}</option>`).join('');
+  GLOBAL_PERIOD=d.current;
+}
+function setGlobalPeriod(){
+  const sel=document.getElementById('gPeriod');if(!sel)return;
+  GLOBAL_PERIOD=sel.value;
+  reloadAll();
+}
+function reloadAll(){
+  loadDash();loadKpi();loadPsi();loadSupply();loadForecast();loadMeetings();loadActions();loadAlerts();loadSelfChk();loadFetch();loadEbms();loadAudit();loadDept();
+}
+
+// ===== BOM 产品编码选择器（取系统内 BOM 编码）=====
+let _bomPickCb=null;
+function openBomPicker(cb){
+  _bomPickCb=cb;
+  openModal('<h3>选择 BOM 产品 <span id="bp_total" style="font-size:12px;color:#999;font-weight:400"></span></h3>'+
+    '<input id="bp_kw" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;margin-bottom:8px;font-size:13px" placeholder="输入 BOM 编码或产品名称搜索…" oninput="searchBom()">'+
+    '<div id="bp_list" style="max-height:50vh;overflow:auto;border:1px solid #eee;border-radius:4px"></div>'+
+    '<button class="btn" style="background:#eee;margin-top:10px" onclick="closeModal()">取消</button>');
+  setTimeout(()=>{const e=document.getElementById('bp_kw');if(e)e.focus();},50);
+  searchBom();
+}
+async function searchBom(){
+  const kw=document.getElementById('bp_kw')?document.getElementById('bp_kw').value:'';
+  const url='/ebms/bom-products?limit=100'+(kw?('&keyword='+encodeURIComponent(kw)):'');
+  const d=await api(url);
+  const tot=document.getElementById('bp_total');if(tot)tot.textContent='（库内共 '+d.total+' 个 BOM 编码）';
+  document.getElementById('bp_list').innerHTML=d.data.length?d.data.map(p=>{
+    const code=p.product_code.replace(/'/g,"\\'");
+    return '<div onclick="pickBom(\''+code+'\')" style="padding:8px 10px;border-bottom:1px solid #eee;cursor:pointer;font-size:13px" onmouseover="this.style.background=\'#f5f6fa\'" onmouseout="this.style.background=\'\'"><b>'+esc(p.product_code)+'</b><div style="font-size:11px;color:#999">'+esc(p.product_name||'').slice(0,60)+'</div></div>';
+  }).join(''):'<div class="em">无匹配编码</div>';
+}
+function pickBom(code){if(_bomPickCb)_bomPickCb(code);closeModal();}
+
+// ===== 驾驶舱：本月复盘 → 下月预测 → 规划调整 =====
+const money=n=>n>=10000?(n/10000).toFixed(1)+'万':n;
+async function loadDash(){
+const d=await api('/sop/plan?period_month='+GLOBAL_PERIOD);
+const rv=d.review,fc=d.forecast_next,pl=d.plan;
+document.getElementById('rvPeriod').textContent='（'+d.period_desc+' · 当前周期 '+d.current_period+'）';
+document.getElementById('fcP').textContent='（'+fc.period+'）';
+// ① 本月复盘
+const rvO=rv.orders;
+document.getElementById('rvCards').innerHTML=[
+{c:'#667eea',n:rvO.total,l:'本月订单'},
+{c:'#27ae60',n:rvO.shipped,l:'已交付'},
+{c:rvO.otd>=85?'#27ae60':'#e74c3c',n:rvO.otd+'%',l:'OTD达成率'},
+{c:'#c62828',n:rvO.overdue,l:'逾期订单'},
+{c:'#8e44ad',n:rvO.qty.toLocaleString(),l:'总需求数量'},
+{c:'#16a085',n:rv.forecast_accuracy.rate+'%',l:'预测达成率(实/预测)'},
+{c:rv.kpi.red>0?'#e74c3c':'#27ae60',n:rv.kpi.red,l:'本月红灯KPI'},
+{c:'#f39c12',n:rv.kpi.yellow,l:'黄灯KPI'},
+{c:'#7f8c8d',n:money(rvO.amount),l:'订单金额'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('rvProdBody').innerHTML=rv.product_list&&rv.product_list.length?rv.product_list.map(p=>`<tr><td style="font-size:11px">${esc(p.product_code)}</td><td style="font-size:11px;color:#667eea">${esc(p.bom_no||'-')}</td><td style="font-size:11px">${esc(p.product_name||'-').slice(0,16)}</td><td>${p.qty}</td><td>${p.amount.toFixed(0)}</td><td>${p.order_count}</td></tr>`).join(''):'<tr><td colspan=6 class="em">无</td></tr>';
+document.getElementById('rvOverdueBody').innerHTML=rv.overdue_orders.length?rv.overdue_orders.map(o=>`<tr style="background:#fff5f5"><td>${esc(o.order_no)}</td><td>${esc(o.customer)}</td><td><b class="ov">${o.overdue_days}天</b></td><td>${o.qty}</td><td>${o.completed}</td></tr>`).join(''):'<tr><td colspan=5 class="em">本月无逾期</td></tr>';
+enhanceTable('rvProdBody');enhanceTable('rvOverdueBody');
+// ② 下月预测
+const pp=fc.pipeline;
+document.getElementById('fcNextCards').innerHTML=[
+{c:'#667eea',n:pp.orders,l:'下月订单'},
+{c:'#27ae60',n:pp.qty.toLocaleString(),l:'下月需求量'},
+{c:'#f39c12',n:pp.customer_count,l:'下月客户数'},
+{c:'#8e44ad',n:money(pp.amount),l:'下月订单金额'},
+{c:'#16a085',n:fc.existing_forecast.qty.toLocaleString(),l:'已有预测量'},
+{c:'#e74c3c',n:fc.existing_forecast.count,l:'预测条目'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('fcProdBody').innerHTML=fc.product_top.length?fc.product_top.map(p=>`<tr><td style="font-size:11px">${esc(p.product_code)}</td><td style="font-size:11px;color:#667eea">${esc(p.bom_no||'-')}</td><td style="font-size:11px">${esc(p.product_name||'-').slice(0,16)}</td><td>${esc(p.customer||'-')}</td><td>${p.qty}</td><td>${p.amount.toFixed(0)}</td></tr>`).join(''):'<tr><td colspan=6 class="em">下月暂无订单管线</td></tr>';
+document.getElementById('fcCustBody').innerHTML=fc.customer_top.length?fc.customer_top.map(c=>`<tr><td>${esc(c.customer)}</td><td>${c.amount.toFixed(0)}</td></tr>`).join(''):'<tr><td colspan=2 class="em">无</td></tr>';
+document.getElementById('fcRecBody').innerHTML=fc.recommended.length?fc.recommended.map(r=>`<tr><td style="font-size:11px">${esc(r.product_code)}</td><td style="font-size:11px">${esc(r.product_name||'').slice(0,16)}</td><td>${r.locked_qty}</td><td>${r.forecast_qty-r.locked_qty}</td><td style="font-weight:600;color:#27ae60">${r.forecast_qty}</td><td><span class="badge ${r.source==='订单管线'?'st-G':'st-Y'}">${esc(r.source)}</span></td></tr>`).join(''):'<tr><td colspan=6 class="em">无推荐</td></tr>';
+enhanceTable('fcProdBody');enhanceTable('fcCustBody');enhanceTable('fcRecBody');
+// ③ 规划调整
+document.getElementById('planProdBody').innerHTML=pl.production.length?pl.production.map(p=>`<tr><td style="font-size:11px">${esc(p.product_code)}</td><td>${p.begin}</td><td>${p.next_demand}</td><td>${p.safety}</td><td style="font-weight:600;color:#1565c0">${p.suggest_production}</td><td>${p.end}</td></tr>`).join(''):'<tr><td colspan=6 class="em">无PSI计划（请先在PSI页从EBMS预填销售计划）</td></tr>';
+const su=pl.supply;
+const kitCol=su.kit_rate>=80?'#27ae60':su.kit_rate>=50?'#f39c12':'#e74c3c';
+document.getElementById('planSupply').innerHTML=`外购物料 <b>${su.purchased_material_count}</b> 种 · 采购单 <b>${su.po_total}</b> 单（draft <b class="${su.po_draft>0?'ov':''}">${su.po_draft}</b>）· 齐套率 <b style="color:${kitCol}">${su.kit_rate}%</b><div style="color:#999;font-size:11px;margin-top:3px">${esc(su.note)}</div>`;
+document.getElementById('planCapBody').innerHTML=pl.capacity.length?pl.capacity.map(c=>`<tr style="${c.overload?'background:#fff5f5':''}"><td>${esc(c.line_code)}</td><td>${c.period}</td><td>${c.available_days}</td><td style="font-weight:600;color:${c.overload?'#c62828':'#2e7d32'}">${c.load_rate}%</td><td style="font-size:11px">${esc(c.bottleneck||'-')}</td></tr>`).join(''):'<tr><td colspan=5 class="em">无产能数据</td></tr>';
+document.getElementById('planRedBody').innerHTML=pl.red_actions.length?pl.red_actions.map(r=>`<div style="padding:6px 0;border-bottom:1px dashed #ffcdd2;font-size:13px">🔴 <b>${esc(r.kpi_name)}</b>（${esc(r.kpi_code)}）实际 ${r.actual} vs 目标 ${r.target} ${r.has_action?'<span class="badge st-G">已有Action</span>':'<span class="badge st-R">未制定对策</span>'}</div>`).join(''):'<div style="color:#2e7d32;padding:4px">✅ 本月无红灯KPI</div>';
+enhanceTable('planProdBody');enhanceTable('planCapBody');
+}
+
+// ===== KPI =====
+async function loadKpi(){
+const cat=document.getElementById('kpiCat').value,period=GLOBAL_PERIOD||'';
+const d=await api('/kpi/actuals?period_month='+period+(cat?'&status=':''));
+const all=await api('/kpi/standards'+(cat?'?category='+cat:''));
+const stdMap={};all.data.forEach(s=>stdMap[s.kpi_code]=s);
+let rows=d.data;
+if(cat)rows=rows.filter(r=>stdMap[r.kpi_code]&&stdMap[r.kpi_code].category===cat);
+const red=rows.filter(r=>r.status==='R').length,yel=rows.filter(r=>r.status==='Y').length,grn=rows.filter(r=>r.status==='G').length;
+document.getElementById('kpiSummary').innerHTML=`<div class="sc"><div class="n" style="color:#e74c3c">${red}</div><div class="l">红灯</div></div><div class="sc"><div class="n" style="color:#f39c12">${yel}</div><div class="l">黄灯</div></div><div class="sc"><div class="n" style="color:#27ae60">${grn}</div><div class="l">绿灯</div></div>`;
+document.getElementById('kpiBody').innerHTML=rows.length?rows.map(r=>{const s=stdMap[r.kpi_code]||{};return `<tr class="row-${r.status}"><td>${esc(r.kpi_code)}</td><td><span class="kpi-cat kpi-${s.category||r.category||''}">${s.category||r.category||''}</span></td><td>${esc(s.kpi_name||r.kpi_name)}</td><td>${s.target_value||r.target_value}</td><td>${s.warning_threshold||r.warning_threshold}</td><td>${s.critical_threshold||r.critical_threshold}</td><td style="font-weight:600">${r.actual_value}</td><td><span class="badge st-${r.status}">${r.status}</span></td><td style="font-size:11px;color:#999">${esc(s.data_source||'')}</td></tr>`;}).join(''):'<tr><td colspan=9 class="em">无数据</td></tr>';
+}
+
+// ===== PSI =====
+let psiData=[],psiHeaderId=null;
+async function loadPsi(){
+const hs=await api('/psi/headers?period_month='+GLOBAL_PERIOD);
+const sel=document.getElementById('psiHeader');
+sel.innerHTML=hs.data.map(h=>`<option value="${h.id}">${esc(h.psi_code)} | ${h.period_month} | ${h.status} v${h.version_no}</option>`).join('');
+if(hs.data.length){psiHeaderId=hs.data[0].id;sel.value=psiHeaderId;loadPsiLines();}
+}
+async function loadPsiLines(){
+if(!psiHeaderId)return;
+const d=await api('/psi/headers/'+psiHeaderId+'/lines');
+psiData=d.data;
+const offLabel={0:'M(锁定)',1:'M+1(弹性)',2:'M+2(参考)'};
+document.getElementById('psiBody').innerHTML=psiData.length?psiData.map(l=>`<tr class="row-${l.color_status}"><td>${esc(l.product_code)}</td><td>${offLabel[l.month_offset]||l.month_offset}</td><td>${l.inventory_begin}</td><td>${l.month_offset===0?l.sales_plan:`<input type="number" value="${l.sales_plan}" style="width:70px" data-id="${l.id}" data-f="sales_plan">`}</td><td>${l.month_offset===0?l.production_plan:`<input type="number" value="${l.production_plan}" style="width:70px" data-id="${l.id}" data-f="production_plan">`}</td><td><b>${l.inventory_end}</b></td><td>${l.month_offset===0?l.safety_stock:`<input type="number" value="${l.safety_stock}" style="width:70px" data-id="${l.id}" data-f="safety_stock">`}</td><td><span class="badge st-${l.color_status}">${l.color_status}</span></td></tr>`).join(''):'<tr><td colspan=8 class="em">无PSI数据</td></tr>';
+}
+async function savePsi(){
+const lines=[];
+document.querySelectorAll('#psiBody input[data-id]').forEach(inp=>{const id=inp.dataset.id,f=inp.dataset.f;let ln=lines.find(x=>x.id==id);if(!ln){ln=psiData.find(x=>x.id==id);ln={id:id,inventory_begin:ln.inventory_begin,sales_plan:ln.sales_plan,production_plan:ln.production_plan,safety_stock:ln.safety_stock};lines.push(ln);}ln[f]=Number(inp.value);});
+const r=await api('/psi/headers/'+psiHeaderId+'/lines',{method:'POST',body:JSON.stringify({lines})});
+alert(r.message);loadPsiLines();
+}
+async function rollForward(){
+if(!confirm('确认滚动？M+1→M，M+2→M+1，新建空M+2'))return;
+const r=await api('/psi/headers/'+psiHeaderId+'/roll-forward',{method:'POST'});
+alert(r.message);loadPsi();
+}
+function addBomProductToPsi(){
+if(!psiHeaderId){alert('请先选择PSI');return;}
+openBomPicker(async(code)=>{
+// 检查是否已存在
+if(psiData.some(l=>l.product_code===code)){alert('该产品已在PSI中');return;}
+// 新增3个月明细（默认0值，可编辑）
+const lines=[0,1,2].map(off=>({product_code:code,month_offset:off,inventory_begin:0,sales_plan:0,production_plan:0,safety_stock:0}));
+const r=await api('/psi/headers/'+psiHeaderId+'/lines',{method:'POST',body:JSON.stringify({lines})});
+alert('已从BOM添加产品：'+code);loadPsiLines();
+});
+}
+async function prefillPsi(){
+if(!psiHeaderId){alert('请先选择PSI');return;}
+if(!confirm('将从EBMS订单管线预填销售计划（本月实订单→M，下月实订单→M+1），并自动补入真实BOM产品，是否继续？'))return;
+const r=await api('/psi/headers/'+psiHeaderId+'/prefill-sales',{method:'POST'});
+alert(r.message);loadPsiLines();
+}
+
+// ===== 供应 =====
+async function loadSupply(){
+const cap=await api('/supply/capacity?period_month='+GLOBAL_PERIOD);
+document.getElementById('capBody').innerHTML=cap.data.length?cap.data.map(c=>`<tr style="${c.load_rate>85?'background:#fff5f5':''}"><td>${esc(c.line_code)}</td><td>${c.period_month}</td><td>${c.available_days}</td><td>${c.upph_actual}</td><td>${c.upph_target}</td><td style="font-weight:600;color:${c.load_rate>85?'#c62828':'#2e7d32'}">${c.load_rate}%</td><td>${esc(c.bottleneck||'-')}</td></tr>`).join(''):'<tr><td colspan=7 class="em">无数据</td></tr>';
+const mrp=await api('/supply/mrp-check');
+document.getElementById('mrpBody').innerHTML=mrp.data.length?mrp.data.map(r=>`<tr style="${r.shortage_qty>0?'background:#fff5f5':''}"><td>${esc(r.product_code)}</td><td>${esc(r.material_code)}</td><td>${r.demand_date}</td><td>${r.required_qty}</td><td>${r.arrived_qty}</td><td style="color:${r.shortage_qty>0?'#c62828':'#999'};font-weight:600">${r.shortage_qty}</td><td>${esc(r.supplier_code||'-')}</td></tr>`).join(''):'<tr><td colspan=7 class="em">无数据</td></tr>';
+const blk=await api('/supply/block-check');
+document.getElementById('blockBody').innerHTML=blk.is_blocked?blk.blocks.map(b=>`<div style="padding:8px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:6px;margin-bottom:6px"><b>⛔ ${esc(b.block_type)}</b> - ${esc(b.product_code)}：${esc(b.reason)}</div>`).join(''):'<div style="color:#2e7d32;padding:8px">✅ 无硬拦截，所有BOM已归档</div>';
+}
+
+// ===== 预测 =====
+async function loadForecast(){
+const cust=document.getElementById('fcCust')?document.getElementById('fcCust').value:'';
+let q='?period_month='+GLOBAL_PERIOD;
+if(cust)q+='&customer_name='+encodeURIComponent(cust);
+const d=await api('/forecast/by-period'+q);
+document.getElementById('fcCurPeriod').textContent=d.current_period;
+const offLbl={0:'M锁定',1:'M+1弹性',2:'M+2参考'};
+const methodLbl={MOVING_AVG:'移动平均',EXP_SMOOTH:'指数平滑',QUALITATIVE:'定性',REGRESSION:'回归',LIFE_CYCLE:'生命周期'};
+const row=r=>`<tr><td>${r.period_month}</td><td>${esc(r.customer_name||'-')}</td><td>${esc(r.product_code)}</td><td>${offLbl[r.month_offset]}</td><td>${r.forecast_qty}</td><td>${r.forecast_type}</td><td>${methodLbl[r.method]||r.method}</td><td style="color:${r.mape_reference>15?'#c62828':'#999'}">${r.mape_reference}</td><td>${r.currency_amount}</td><td style="font-size:11px">${esc(r.remark||'')}</td></tr>`;
+document.getElementById('fcFuture').innerHTML=d.future.length?d.future.map(row).join(''):'<tr><td colspan=10 class="em">无未来预测</td></tr>';
+document.getElementById('fcCurrent').innerHTML=d.current.length?d.current.map(row).join(''):'<tr><td colspan=10 class="em">无</td></tr>';
+document.getElementById('fcPast').innerHTML=d.past.length?d.past.map(row).join(''):'<tr><td colspan=10 class="em">无历史</td></tr>';
+}
+function openForecastModal(){
+openModal(`<h3>新增需求预测</h3>
+<div class="fg"><label>客户名称</label><input id="fc_cust" placeholder="如 HJ006.10-187-1"></div>
+<div class="fg"><label>产品编码（取自系统 BOM）</label><div style="display:flex;gap:4px"><input id="fc_pc" placeholder="点击右侧从BOM选择" style="flex:1"><button type="button" class="btn bs" style="background:#eee" onclick="openBomPicker(c=>{document.getElementById('fc_pc').value=c;})">🔍 BOM</button></div></div>
+<div class="fg"><label>周期(YYYY-MM，上月16~当月15)</label><input id="fc_pm" value="2026-08"></div>
+<div class="fg"><label>月份偏移</label><select id="fc_off"><option value=1>M+1(弹性)</option><option value=2>M+2(参考)</option><option value=0>M(锁定)</option></select></div>
+<div class="fg"><label>预测数量</label><input id="fc_qty" type="number"></div>
+<div class="fg"><label>预测方法</label><select id="fc_method"><option value="QUALITATIVE">定性</option><option value="MOVING_AVG">移动平均</option><option value="EXP_SMOOTH">指数平滑</option></select></div>
+<div class="fg"><label>备注</label><textarea id="fc_remark"></textarea></div>
+<button class="btn b1" onclick="submitForecast()">提交</button> <button class="btn" style="background:#eee" onclick="closeModal()">取消</button>`);
+}
+async function submitForecast(){
+await api('/forecast',{method:'POST',body:JSON.stringify({customer_name:fc_cust.value,product_code:fc_pc.value,period_month:fc_pm.value,month_offset:Number(fc_off.value),forecast_qty:Number(fc_qty.value),method:fc_method.value,remark:fc_remark.value})});
+closeModal();loadForecast();
+}
+async function autoCalc(){
+const pc=prompt('输入产品编码：','3.1.JFS24-B1WA50-Z-003');if(!pc)return;
+const r=await api('/forecast/auto-calc',{method:'POST',body:JSON.stringify({product_code:pc,method:'MOVING_AVG',periods:3})});
+alert(`系统推荐 ${pc} 预测量：${r.recommended_qty}（基于${r.basis_count}期数据，${r.method}）`);
+}
+async function genForecast(){
+const r=await api('/forecast/generate-from-orders',{method:'POST',body:JSON.stringify({})});
+alert(r.message);loadForecast();
+}
+
+// ===== 会议 =====
+async function loadMeetings(){
+const type=document.getElementById('mtgType').value;
+const d=await api('/meetings'+(type?'?meeting_type='+type:''));
+const typeLbl={PRE_SOP:'预备会',EXECUTIVE:'高层决策会',WEEKLY:'每周碰头',AD_HOC:'专题会'};
+document.getElementById('mtgBody').innerHTML=d.data.length?d.data.map(m=>`<tr><td>${esc(m.meeting_code)}</td><td>${typeLbl[m.meeting_type]||m.meeting_type}</td><td>${esc((m.meeting_date||'').slice(0,16))}</td><td><span class="badge as-${m.status==='SCHEDULED'?'PENDING':m.status==='IN_PROGRESS'?'IN_PROGRESS':m.status==='DECIDED'?'VERIFYING':'CLOSED'}">${m.status}</span></td><td><button class="btn b1 bs" onclick="viewMeeting(${m.id})">详情</button> <button class="btn b4 bs" onclick="autoGenActions(${m.id})">生成Action</button></td></tr>`).join(''):'<tr><td colspan=5 class="em">无会议</td></tr>';
+}
+function openMeetingModal(){
+openModal(`<h3>新建S&OP会议</h3><div class="fg"><label>会议类型</label><select id="mt"><option value="PRE_SOP">预备会(Pre-S&OP)</option><option value="EXECUTIVE" selected>高层决策会</option><option value="WEEKLY">每周碰头</option><option value="AD_HOC">专题会</option></select></div>
+<div class="fg"><label>会议时间</label><input id="md" type="datetime-local"></div>
+<div class="fg"><label>关联PSI编号(可选)</label><input id="mp" type="number" placeholder="PSI header id"></div>
+<button class="btn b1" onclick="submitMeeting()">创建</button> <button class="btn" style="background:#eee" onclick="closeModal()">取消</button>`);
+}
+async function submitMeeting(){
+await api('/meetings',{method:'POST',body:JSON.stringify({meeting_type:mt.value,meeting_date:md.value,psi_header_id:mp.value})});
+closeModal();loadMeetings();
+}
+async function viewMeeting(id){
+const m=await api('/meetings/'+id);
+const agenda=typeof m.agenda_json==='string'?JSON.parse(m.agenda_json):m.agenda_json;
+openModal(`<h3>${esc(m.meeting_code)} | ${esc((m.meeting_date||'').slice(0,16))}</h3>
+<div style="margin:10px 0"><b>状态：</b>${m.status} | <b>关联PSI：</b>${m.psi_header_id||'-'}</div>
+<h4>标准议程(10项)</h4><div style="max-height:40vh;overflow:auto">${agenda.map(a=>`<div style="padding:4px 0;border-bottom:1px dashed #eee;font-size:12px"><b>${a.no}.</b> ${esc(a.name)} <span style="color:#999">(${esc(a.responsible)})</span></div>`).join('')}</div>
+${m.attendees&&m.attendees.length?`<h4>RAPID出席人</h4>${m.attendees.map(a=>`<span class="badge" style="background:#e3f2fd;margin:2px">${a.rapid_role} ${esc(a.user_name||'')} ${a.vote_result?'('+a.vote_result+')':''}</span>`).join('')}`:''}
+${m.actions&&m.actions.length?`<h4>关联Action(${m.actions.length})</h4>${m.actions.map(a=>`<div style="font-size:12px;padding:3px 0">${esc(a.description)}</div>`).join('')}`:''}
+<button class="btn" style="background:#eee" onclick="closeModal()">关闭</button>`);
+}
+async function autoGenActions(id){
+const r=await api('/meetings/'+id+'/auto-generate-actions',{method:'POST'});
+alert(r.message);loadActions();
+}
+
+// ===== Action =====
+async function loadActions(){
+const st=document.getElementById('actStatus').value,pri=document.getElementById('actPri').value,od=document.getElementById('actOverdue').checked;
+let q='';
+if(st)q+='&status='+st;if(pri)q+='&priority='+pri;if(od)q+='&overdue_only=true';
+const d=await api('/actions'+(q?'?'+q.slice(1):''));
+document.getElementById('actSummary').innerHTML=`<div class="sc"><div class="n" style="color:#1565c0">${d.total}</div><div class="l">总数</div></div><div class="sc"><div class="n" style="color:#c62828">${d.overdue_count}</div><div class="l">逾期</div></div>`;
+document.getElementById('actBody').innerHTML=d.data.length?d.data.map(a=>`<tr style="${a.overdue_flag?'background:#fff5f5':''}"><td>${esc(a.action_code)}</td><td>${esc(a.description).slice(0,50)}</td><td>${esc(a.owner_name||a.owner_role||'')}</td><td class="${a.overdue_flag?'ov':''}">${a.due_date||'-'}</td><td><span class="badge pr-${a.priority}">${a.priority}</span></td><td><span class="badge as-${a.status}">${a.status}</span></td><td>${a.escalation_level>0?'<b style="color:#c62828">L'+a.escalation_level+'</b>':'-'}</td><td><select onchange="updActStatus(${a.id},this.value)" style="padding:3px;font-size:11px"><option value="">改状态</option><option value="IN_PROGRESS">进行中</option><option value="VERIFYING">待验证</option><option value="CLOSED">已闭环</option></select></td></tr>`).join(''):'<tr><td colspan=8 class="em">无Action</td></tr>';
+}
+async function updActStatus(id,status){if(!status)return;await api('/actions/'+id+'/status',{method:'PUT',body:JSON.stringify({status})});loadActions();}
+function openActionModal(){
+openModal(`<h3>新建Action</h3><div class="fg"><label>任务描述</label><textarea id="ac_desc"></textarea></div>
+<div class="fg"><label>责任人</label><input id="ac_owner" placeholder="如 沈建凯"></div>
+<div class="fg"><label>角色</label><select id="ac_role"><option value="PURCHASE_HEAD">采购主管</option><option value="QUALITY_HEAD">品质主管</option><option value="PROD_DIRECTOR">生产总监</option><option value="ENGINEER_HEAD">工程主管</option><option value="DEPT_HEAD">部门主管</option></select></div>
+<div class="fg"><label>截止日期</label><input id="ac_due" type="date"></div>
+<div class="fg"><label>优先级</label><select id="ac_pri"><option value="P0">P0-立即</option><option value="P1" selected>P1-本周</option><option value="P2">P2-本月</option></select></div>
+<button class="btn b1" onclick="submitAction()">创建</button> <button class="btn" style="background:#eee" onclick="closeModal()">取消</button>`);
+}
+async function submitAction(){
+await api('/actions',{method:'POST',body:JSON.stringify({description:ac_desc.value,owner_name:ac_owner.value,owner_role:ac_role.value,due_date:ac_due.value,priority:ac_pri.value})});
+closeModal();loadActions();
+}
+
+// ===== 预警 =====
+async function loadAlerts(){
+const r=await api('/alerts/rules');
+document.getElementById('ruleBody').innerHTML=r.data.map(x=>`<tr><td>${esc(x.rule_code)}</td><td>${esc(x.rule_name)}</td><td><span class="badge st-${x.alert_level}">${x.alert_level}</span></td><td style="font-size:11px">${esc(x.condition)}</td></tr>`).join('');
+const l=await api('/alerts/logs');
+document.getElementById('alertLogBody').innerHTML=l.data.length?l.data.map(x=>`<tr><td style="font-size:11px">${esc((x.triggered_at||'').slice(0,16))}</td><td>${esc(x.rule_name)}</td><td><span class="badge st-${x.level}">${x.level}</span></td><td style="font-size:11px">${esc(x.message).slice(0,50)}</td><td>${x.is_resolved?'已处理':(x.is_acknowledged?'已确认':'<b style="color:#c62828">待处理</b>')}</td></tr>`).join(''):'<tr><td colspan=5 class="em">暂无预警日志，点"运行引擎"生成</td></tr>';
+}
+async function runAlertEngine(){const r=await api('/alerts/engine/run',{method:'POST'});alert(r.message);loadAlerts();loadDash();}
+
+// ===== 自检 =====
+async function runSelfCheck(){
+const r=await api('/self-check/auto-run',{method:'POST'});
+const color=r.grade==='A'?'#2e7d32':r.grade==='B'?'#27ae60':r.grade==='C'?'#f39c12':'#c62828';
+document.getElementById('selfchkResult').innerHTML=`<div class="panel" style="border-left:4px solid ${color}"><h3>本周自检结果：${r.score}分 / 等级 ${r.grade}（通过 ${r.passed}/${r.total}）</h3>${r.results.map(x=>`<div style="padding:5px 0;border-bottom:1px dashed #eee;font-size:13px">${x.pass?'✅':'❌'} <b>${x.no}.${esc(x.item)}</b> <span style="color:#999">${esc(x.detail)}</span></div>`).join('')}</div>`;
+loadSelfChk();
+}
+async function loadSelfChk(){
+const d=await api('/self-check/records');
+document.getElementById('selfchkBody').innerHTML=d.data.length?d.data.map(r=>`<tr><td>${esc(r.week_no)}</td><td><b>${r.total_score}</b></td><td><span class="badge st-${r.grade==='A'||r.grade==='B'?'G':r.grade==='C'?'Y':'R'}">${r.grade}</span></td><td>${r.is_passed?'通过':'未通过'}</td><td style="font-size:11px">${esc(r.issues_found||'').slice(0,40)}</td></tr>`).join(''):'<tr><td colspan=5 class="em">暂无记录，点"运行自检"生成</td></tr>';
+}
+
+// ===== 数据获取 =====
+async function loadFetch(){
+const d=await api('/data-fetch/configs');
+document.getElementById('fetchBody').innerHTML=d.data.map(c=>`<tr><td>${esc(c.config_code)}</td><td>${esc(c.config_name)}</td><td>${c.source_system}</td><td style="font-size:11px">${esc(c.target_desc||'')}</td><td>${c.fetch_mode}</td><td><label class="toggle"><input type="checkbox" ${Number(c.is_enabled)?'checked':''} onchange="toggleFetch('${c.config_code}',this.checked)"><span class="slider"></span></label></td><td><span class="badge ${c.last_status==='SUCCESS'?'st-G':'st-Y'}">${c.last_status||'-'}</span></td><td><button class="btn b1 bs" onclick="runFetch('${c.config_code}')">执行</button></td></tr>`).join('');
+}
+async function toggleFetch(code,en){await api('/data-fetch/configs/'+code+'/toggle',{method:'PUT',body:JSON.stringify({is_enabled:en})});loadFetch();}
+async function runFetch(code){const r=await api('/data-fetch/configs/'+code+'/run-now',{method:'POST'});alert(code+' '+r.message+'，获取'+r.rows_fetched+'行');loadFetch();}
+
+// ===== EBMS 关联数据（真实业务系统） =====
+async function loadEbms(){
+const o=await api('/ebms/overview');
+const money=n=>n>=10000?(n/10000).toFixed(1)+'万':n;
+document.getElementById('ebmsCards').innerHTML=[
+{c:'#667eea',n:o.orders.total,l:'订单总数'},
+{c:'#27ae60',n:o.orders.shipped,l:'已交付'},
+{c:'#e74c3c',n:o.orders.overdue,l:'逾期订单'},
+{c:'#f39c12',n:o.orders.otd+'%',l:'OTD达成率'},
+{c:'#8e44ad',n:o.materials.total,l:'物料总数'},
+{c:'#16a085',n:o.materials.purchased,l:'外购物料'},
+{c:'#2980b9',n:o.suppliers.total,l:'供应商'},
+{c:'#c0392b',n:o.customers.total,l:'客户'},
+{c:'#d35400',n:o.products.total,l:'产品种类'},
+{c:'#7f8c8d',n:money(o.orders.amount),l:'订单金额(元)'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('ebmsKitRate').textContent=o.kit_rate+'%';
+document.getElementById('ebmsPurMat').textContent=o.materials.purchased;
+document.getElementById('ebmsPo').textContent=o.purchase_orders.total;
+// 供应链
+const sc=await api('/ebms/supply-chain');
+  document.getElementById('ebmsMatBody').innerHTML=sc.purchased_materials.items.map(m=>`<tr><td>${esc(m.material_code)}</td><td>${esc(m.material_name)}</td><td>${m.unit_price}</td><td>${m.qty}</td><td><span class="badge st-Y">待采购</span></td></tr>`).join('')||'<tr><td colspan=5 class="em">无</td></tr>';
+  document.getElementById('ebmsSupBody').innerHTML=sc.suppliers.map(s=>`<tr><td>${esc(s.supplier)}</td><td>${esc(s.supplier_level||'-')}</td><td>${s.po_count}</td><td>${s.total_qty}</td><td>${s.total_amount.toFixed(0)}</td><td>${s.confirmed?'<span class="badge st-G">是</span>':'<span class="badge st-R">否</span>'}</td></tr>`).join('')||'<tr><td colspan=6 class="em">无</td></tr>';
+  enhanceTable('ebmsMatBody');enhanceTable('ebmsSupBody');
+  // 年度筛选下拉 + 需求/项目
+  const d0=await api('/ebms/demand');
+  const ysel=document.getElementById('ebmsYear');
+  ysel.innerHTML=d0.years.map(y=>`<option value="${y}" ${y===d0.current_year?'selected':''}>${y}年</option>`).join('')+'<option value="all">全部年份</option>';
+  loadEbmsDemand();loadEbmsProjects();
+}
+async function loadEbmsDemand(){
+const y=document.getElementById('ebmsYear').value;
+const d=await api('/ebms/demand'+(y?('?year='+y):''));
+document.getElementById('ebmsYearLbl').textContent=(y==='all'?'全部年份':y+'年')+'：';
+document.getElementById('ebmsOrd').textContent=d.otd.total;
+document.getElementById('ebmsShip').textContent=d.otd.shipped;
+document.getElementById('ebmsOtd').innerHTML=`<span style="color:${d.otd.rate>=85?'#2e7d32':'#c62828'}">${d.otd.rate}%</span>`;
+document.getElementById('ebmsOverdue').textContent=d.otd.overdue;
+document.getElementById('ebmsDemandQty').textContent=d.total_demand_qty.toLocaleString();
+document.getElementById('ebmsDemandBody').innerHTML=d.product_demand.length?d.product_demand.map(p=>`<tr><td style="font-size:11px">${esc(p.product_code)}</td><td style="font-size:11px;color:#667eea">${esc(p.bom_no||'-')}</td><td>${esc(p.product_name||'-').slice(0,18)}</td><td>${p.order_count}</td><td>${p.total_qty}</td><td>${p.completed_qty}</td><td style="color:${p.fulfillment>=80?'#2e7d32':'#c62828'}">${p.fulfillment}%</td><td>${p.amount.toFixed(0)}</td></tr>`).join(''):'<tr><td colspan=8 class="em">无</td></tr>';
+document.getElementById('ebmsOverdueBody').innerHTML=d.overdue_orders.length?d.overdue_orders.map(o=>`<tr style="background:#fff5f5"><td>${esc(o.order_no)}</td><td style="font-size:11px">${esc(o.product_code)}</td><td style="font-size:11px;color:#667eea">${esc(o.bom_no||'-')}</td><td>${esc(o.customer)}</td><td>${o.promised_date}</td><td><b class="ov">${o.overdue_days}天</b></td><td>${o.qty}</td><td>${o.completed}</td></tr>`).join(''):'<tr><td colspan=8 class="em">无逾期</td></tr>';
+  enhanceTable('ebmsDemandBody');enhanceTable('ebmsOverdueBody');
+}
+async function loadEbmsProjects(){
+// 周期对比分析（含图表）
+const cmp=await api('/ebms/period-compare?period_month='+GLOBAL_PERIOD);
+document.getElementById('cmpPeriodLbl').textContent='周期：'+cmp.periods.map(p=>p.label+'('+p.period+')').join(' / ');
+const colors=['#999','#f39c12','#27ae60'];
+const metrics=[
+ {k:'orders',name:'订单数',col:'#667eea'},
+ {k:'order_qty',name:'订单量',col:'#8e44ad'},
+ {k:'projects',name:'新立项',col:'#e67e22'},
+ {k:'forecast_count',name:'预测数',col:'#16a085'}
+];
+const maxV=Math.max(...cmp.periods.map(p=>Math.max(p.orders,p.order_qty,p.projects,p.forecast_count)),1);
+let chartHtml='<div style="display:flex;gap:24px;flex-wrap:wrap">';
+metrics.forEach(m=>{
+  chartHtml+='<div style="flex:1;min-width:200px"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:'+m.col+'">'+m.name+'</div>';
+  cmp.periods.forEach((p,i)=>{
+    const v=p[m.k]||0;const h=Math.round(v/maxV*100);
+    const isNext=i===2;
+    chartHtml+='<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="width:36px;font-size:11px;color:'+(isNext?'#27ae60':'#999')+';font-weight:'+ (isNext?'700':'400')+'">'+p.label+'</span><div style="flex:1;background:#f0f0f0;border-radius:3px;height:16px;position:relative"><div style="width:'+h+'%;height:100%;background:'+m.col+';border-radius:3px;opacity:'+(isNext?'1':'0.6')+'"></div></div><span style="width:50px;font-size:11px;text-align:right;font-weight:'+ (isNext?'700':'400')+'">'+v.toLocaleString()+'</span></div>';
+  });
+  chartHtml+='</div>';
+});
+chartHtml+='</div><div style="font-size:11px;color:#999;margin-top:6px">📊 绿色加粗为<b>下月</b>（计划重点关注），可据此安排产能/物料/人员</div>';
+document.getElementById('cmpChart').innerHTML=chartHtml;
+// 下月里程碑
+const ms=cmp; // 里程碑在 project-nodes 里，下面加载
+// 下月重点产品/客户
+document.getElementById('cmpNextProd').innerHTML=cmp.next_month_focus.product_top.length?cmp.next_month_focus.product_top.map(p=>`<tr><td style="font-size:11px">${esc(p.product_code)}</td><td style="font-size:11px;color:#667eea">${esc(p.bom_no||'-')}</td><td style="font-size:11px">${esc(p.product_name||'-').slice(0,16)}</td><td>${p.qty}</td><td>${p.amount.toFixed(0)}</td><td>${p.count}</td></tr>`).join(''):'<tr><td colspan=6 class="em">无</td></tr>';
+document.getElementById('cmpNextCust').innerHTML=cmp.next_month_focus.customer_top.length?cmp.next_month_focus.customer_top.map(c=>`<tr><td>${esc(c.customer)}</td><td>${c.amount.toFixed(0)}</td></tr>`).join(''):'<tr><td colspan=2 class="em">无</td></tr>';
+enhanceTable('cmpNextProd');enhanceTable('cmpNextCust');
+// 项目节点
+const n=await api('/ebms/project-nodes?period_month='+GLOBAL_PERIOD);
+document.getElementById('projSummary').textContent=' ｜ 总'+n.summary.total+' 活跃'+n.summary.active+' 上月活跃'+n.summary.last_month+' 下月将推进'+n.summary.will_advance;
+document.getElementById('lastPeriodLbl').textContent=n.last_period;
+document.getElementById('nextPeriodLbl').textContent=n.next_period;
+// 上月节点
+document.getElementById('projLastNode').innerHTML=n.last_month_active.length?n.last_month_active.slice(0,50).map(p=>`<tr><td>${esc(p.project_no)}</td><td>${esc(p.project_name||'').slice(0,16)}</td><td>${esc(p.customer_name||'-')}</td><td><span class="badge st-Y">${esc(p.last_month_node)}</span></td><td>${esc(p.owner||'-')}</td></tr>`).join(''):'<tr><td colspan=5 class="em">无</td></tr>';
+// 下月节点（活跃项目，按推进优先级）
+const nextPlan=n.next_month_plan.filter(p=>p.next_month_node&&p.next_month_node!==p.current_stage).slice(0,50);
+document.getElementById('projNextNode').innerHTML=nextPlan.length?nextPlan.map(p=>`<tr><td>${esc(p.project_no)}</td><td>${esc(p.project_name||'').slice(0,16)}</td><td>${esc(p.customer_name||'-')}</td><td>${esc(p.current_stage||'-')}</td><td><span class="badge st-G">${esc(p.next_month_node)}</span></td><td>${esc(p.owner||'-')}</td></tr>`).join(''):'<tr><td colspan=6 class="em">无</td></tr>';
+enhanceTable('projLastNode');enhanceTable('projNextNode');
+// 下月里程碑汇总卡片
+const msEntries=Object.entries(n.next_milestone_summary).sort((a,b)=>b[1]-a[1]);
+const msColors={'方案':'#3498db','手样':'#9b59b6','模具样':'#e67e22','工试':'#e74c3c','首次封样':'#1abc9c','技转':'#16a085','完成':'#27ae60','预项目':'#95a5a6'};
+document.getElementById('cmpMilestone').innerHTML=msEntries.map(([k,v])=>`<div style="background:${msColors[k]||'#666'};color:#fff;padding:6px 12px;border-radius:6px;font-size:12px"><b>${v}</b> ${esc(k)}</div>`).join('')||'<span style="color:#999">无</span>';
+}
+
+// ===== 稽核报告 =====
+async function loadAudit(){
+const d=await api('/audit/report?period_month='+GLOBAL_PERIOD);
+const s=d.summary;
+document.getElementById('auditPeriod').textContent=d.period_desc||d.period;
+const changeColor=s.rate_change>=0?'#27ae60':'#e74c3c';
+const changeStr=s.rate_change>=0?'+'+s.rate_change+'%':s.rate_change+'%';
+document.getElementById('auditCards').innerHTML=[
+{c:'#1565c0',n:s.due_count,l:'到期事项'},
+{c:'#27ae60',n:s.completed_count,l:'达成事项'},
+{c:'#667eea',n:s.achievement_rate+'%',l:'达成率'},
+{c:changeColor,n:changeStr,l:'环比变化'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('auditSummaryBody').innerHTML=`<tr><td><b>${s.due_count}</b></td><td><b style="color:#27ae60">${s.completed_count}</b></td><td><b style="color:${s.achievement_rate>=80?'#27ae60':s.achievement_rate>=50?'#f39c12':'#e74c3c'}">${s.achievement_rate}%</b></td><td>${s.last_month_rate}%</td><td style="color:${changeColor};font-weight:600">${changeStr}</td></tr>`;
+document.getElementById('auditUncompBody').innerHTML=d.uncompleted.length?d.uncompleted.map(a=>`<tr style="${a.days_overdue>0?'background:#fff5f5':''}"><td>${esc(a.action_code)}</td><td>${esc(a.description).slice(0,40)}</td><td>${esc(a.owner_name)}</td><td>${a.due_date||'-'}</td><td class="${a.days_overdue>0?'ov':''}">${a.days_overdue}天</td><td><span class="badge pr-${a.priority}">${a.priority}</span></td><td><span class="badge as-${a.status}">${a.status}</span></td></tr>`).join(''):'<tr><td colspan=7 class="em">无未完成项</td></tr>';
+document.getElementById('auditOngoingBody').innerHTML=d.ongoing.length?d.ongoing.map(a=>`<tr><td>${esc(a.action_code)}</td><td>${esc(a.description).slice(0,40)}</td><td>${esc(a.owner_name)}</td><td>${a.due_date||'-'}</td><td><span class="badge as-${a.status}">${a.status}</span></td><td style="font-size:11px">${esc((a.last_updated||'').slice(0,16))}</td></tr>`).join(''):'<tr><td colspan=6 class="em">无持续项</td></tr>';
+// 取数标准
+const std=await api('/audit/data-standard');
+document.getElementById('auditStdBody').innerHTML=std.standards.map(s=>`<tr><td><b>${s.no}</b></td><td><span class="badge" style="background:#e3f2fd;color:#1565c0">${esc(s.dept)}</span></td><td style="font-size:12px">${esc(s.desc)}</td><td style="font-size:11px;color:#999">${esc(s.source)}</td></tr>`).join('');
+}
+
+// ===== 部门报告 =====
+async function loadDept(){
+const period=await api('/dashboard');
+document.getElementById('deptPeriod').textContent=period.current_period||'-';
+// 并行加载所有部门
+await Promise.all([loadDeptSales(),loadDeptRd(),loadDeptPlan(),loadDeptPur(),loadDeptQty(),loadDeptEng()]);
+}
+
+async function loadDeptSales(){
+const d=await api('/dept/sales?period_month='+GLOBAL_PERIOD);
+const r=d.regular,p=d.project;
+document.getElementById('salesCards').innerHTML=[
+{c:'#27ae60',n:r.plan_qty,l:'常规计划量'},
+{c:'#667eea',n:r.actual_qty,l:'常规实际量'},
+{c:r.qty_rate>=80?'#27ae60':r.qty_rate>=50?'#f39c12':'#e74c3c',n:r.qty_rate+'%',l:'常规达成率'},
+{c:'#f39c12',n:p.plan_qty,l:'项目计划量'},
+{c:'#e67e22',n:p.actual_qty,l:'项目实际量'},
+{c:p.qty_rate>=80?'#27ae60':'#e74c3c',n:p.qty_rate+'%',l:'项目达成率'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('salesRegularBody').innerHTML=`<tr><td>${r.plan_qty}</td><td>${r.actual_qty}</td><td style="color:${r.qty_rate>=80?'#27ae60':'#e74c3c'};font-weight:600">${r.qty_rate}%</td><td>${r.cust_rate}%</td></tr>`;
+document.getElementById('salesProjectBody').innerHTML=`<tr><td>${p.plan_qty}</td><td>${p.actual_qty}</td><td style="font-weight:600">${p.qty_rate}%</td><td style="font-size:11px;color:#999">${esc(p.note)}</td></tr>`;
+document.getElementById('salesCustBody').innerHTML=r.cust_detail.length?r.cust_detail.map(c=>`<tr><td>${esc(c.customer)}</td><td>${c.plan_qty}</td><td>${c.actual_qty}</td><td style="color:${c.rate>=80?'#27ae60':c.rate>=50?'#f39c12':'#e74c3c'};font-weight:600">${c.rate}%</td></tr>`).join(''):'<tr><td colspan=4 class="em">无客户明细</td></tr>';
+const nf=d.next_forecast;
+document.getElementById('salesNextBody').innerHTML=nf.detail.length?nf.detail.map(f=>`<tr><td>${esc(f.customer)}</td><td>${esc(f.product)}</td><td>${f.qty}</td><td>${esc(f.type)}</td></tr>`).join(''):`<tr><td colspan=4 class="em">常规${nf.regular_qty} 项目${nf.project_qty}</td></tr>`;
+document.getElementById('salesSource').textContent='数据来源：'+d.data_source;
+}
+
+async function loadDeptRd(){
+const d=await api('/dept/rd?period_month='+GLOBAL_PERIOD);
+document.getElementById('rdCards').innerHTML=[
+{c:'#9b59b6',n:d.project_count,l:'本期项目'},
+{c:'#8e44ad',n:d.active_count,l:'活跃项目'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('rdProjBody').innerHTML=d.projects.length?d.projects.map(p=>`<tr><td>${esc(p.project_no)}</td><td>${esc(p.project_name).slice(0,20)}</td><td>${esc(p.customer)}</td><td>${esc(p.current_stage)}</td><td>${esc(p.owner)}</td><td>${esc((p.start_date||'').slice(0,10))}</td><td>${esc(p.status)}</td></tr>`).join(''):'<tr><td colspan=7 class="em">无本期项目</td></tr>';
+document.getElementById('rdSource').textContent='数据来源：'+d.data_source;
+}
+
+async function loadDeptPlan(){
+const d=await api('/dept/planning?period_month='+GLOBAL_PERIOD);
+const s=d.shipping,dl=d.delivery,np=d.next_plan;
+document.getElementById('planCards').innerHTML=[
+{c:'#e67e22',n:s.total_orders,l:'总订单数'},
+{c:'#27ae60',n:s.shipped_orders,l:'已发货'},
+{c:s.shipping_rate>=80?'#27ae60':'#e74c3c',n:s.shipping_rate+'%',l:'发货达成率'},
+{c:s.on_time_rate>=80?'#27ae60':'#f39c12',n:s.on_time_rate+'%',l:'准时交付率'},
+{c:'#1565c0',n:np.order_count,l:'下月订单数'},
+{c:'#8e44ad',n:np.remaining,l:'下月剩余量'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('planShipBody').innerHTML=s.detail.length?s.detail.map(o=>`<tr><td>${esc(o.order_no)}</td><td>${esc(o.product)}</td><td>${esc(o.customer)}</td><td>${o.qty}</td><td>${o.completed}</td><td>${o.promised||'-'}</td><td style="font-size:11px">${esc(o.reason)}</td></tr>`).join(''):'<tr><td colspan=7 class="em">无未发货订单</td></tr>';
+document.getElementById('planDeliveryBody').innerHTML=`<tr><td>${dl.plan_qty}</td><td>${dl.actual_qty}</td><td style="font-weight:600;color:${dl.achievement_rate>=80?'#27ae60':'#e74c3c'}">${dl.achievement_rate}%</td></tr>`;
+document.getElementById('planNextBody').innerHTML=`<tr><td>${np.total_qty}</td><td>${np.completed_qty}</td><td>${np.remaining}</td><td>${np.order_count}</td></tr>`;
+document.getElementById('planCapBody').innerHTML=d.capacity.length?d.capacity.map(c=>`<tr style="${c.load_rate>85?'background:#fff5f5':''}"><td>${esc(c.line_code)}</td><td>${c.period}</td><td>${c.available_days}</td><td style="font-weight:600;color:${c.load_rate>85?'#c62828':'#2e7d32'}">${c.load_rate}%</td><td style="font-size:11px">${esc(c.bottleneck)}</td></tr>`).join(''):'<tr><td colspan=5 class="em">无产能数据</td></tr>';
+document.getElementById('planSource').textContent='数据来源：'+d.data_source;
+}
+
+async function loadDeptPur(){
+const d=await api('/dept/procurement?period_month='+GLOBAL_PERIOD);
+document.getElementById('purCards').innerHTML=[
+{c:'#16a085',n:d.total_materials,l:'外购物料'},
+{c:'#27ae60',n:d.achieved_materials,l:'已齐套'},
+{c:'#e74c3c',n:d.shortage_materials,l:'未齐套'},
+{c:d.kit_rate>=80?'#27ae60':'#e74c3c',n:d.kit_rate+'%',l:'齐套率'}
+].map(x=>`<div class="sc"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+document.getElementById('purStandard').textContent=d.standard;
+document.getElementById('purMatBody').innerHTML=d.detail.length?d.detail.map(m=>`<tr><td>${esc(m.material_code)}</td><td>${esc(m.material_name)}</td><td>${m.qty}</td><td>${m.unit_price}</td><td><span class="badge st-Y">${esc(m.status)}</span></td></tr>`).join(''):'<tr><td colspan=5 class="em">无物料</td></tr>';
+document.getElementById('purSupBody').innerHTML=d.suppliers.length?d.suppliers.map(s=>`<tr><td>${esc(s.supplier)}</td><td>${esc(s.supplier_level)}</td><td>${s.po_count}</td><td>${s.total_amount.toFixed(0)}</td><td>${s.confirmed?'<span class="badge st-G">是</span>':'<span class="badge st-R">否</span>'}</td></tr>`).join(''):'<tr><td colspan=5 class="em">无供应商</td></tr>';
+document.getElementById('purSource').textContent='数据来源：'+d.data_source;
+}
+
+async function loadDeptQty(){
+const d=await api('/dept/quality?period_month='+GLOBAL_PERIOD);
+document.getElementById('qtyCards').innerHTML=d.inspections.map(q=>`<div class="sc"><div class="n" style="color:${q.rate>=95?'#27ae60':q.rate>=85?'#f39c12':'#e74c3c'}">${q.rate}%</div><div class="l">${q.category}</div></div>`).join('');
+document.getElementById('qtyInspectBody').innerHTML=d.inspections.map(q=>`<tr><td>${esc(q.category)}</td><td>${q.total}</td><td>${q.passed}</td><td style="font-weight:600;color:${q.rate>=95?'#27ae60':q.rate>=85?'#f39c12':'#e74c3c'}">${q.rate}%</td><td style="font-size:11px;color:#999">${esc(q.formula)}</td><td style="font-size:11px;color:#999">${esc(q.source)}</td></tr>`).join('');
+document.getElementById('qtyAlertBody').innerHTML=d.quality_incidents.detail.length?d.quality_incidents.detail.map(a=>`<tr><td style="font-size:11px">${esc((a.time||'').slice(0,16))}</td><td style="font-size:12px">${esc(a.message).slice(0,50)}</td><td><span class="badge st-${a.level}">${a.level}</span></td><td>${esc(a.status)}</td></tr>`).join(''):'<tr><td colspan=4 class="em">无品质异常</td></tr>';
+document.getElementById('qtyOrderStd').textContent=d.order_standard.desc+'（来源：'+d.order_standard.source+'）';
+document.getElementById('qtyComplaint').innerHTML=d.customer_complaint.desc+'<br>'+d.customer_complaint.closure_rate_desc+'<br><span style="color:#999;font-size:11px">来源：'+d.customer_complaint.source+'</span>';
+const c=d.cost_analysis;
+document.getElementById('qtyCost').innerHTML=`外部费用：${c.external_cost}元 | 内部费用：${c.internal_cost}元 | <b style="color:#c62828">异常总损失：${c.total_loss}元</b><br><span style="color:#999;font-size:11px">${esc(c.desc)}</span>`;
+document.getElementById('qtySource').textContent='数据来源：'+d.data_source;
+}
+
+async function loadDeptEng(){
+const d=await api('/dept/engineering?period_month='+GLOBAL_PERIOD);
+const e=d.engineering;
+document.getElementById('engBody').innerHTML=[
+{label:'工装治具',desc:e.tooling.desc,val:e.tooling.count,src:e.tooling.source},
+{label:'客户BOM',desc:e.customer_bom.desc,val:e.customer_bom.count,src:e.customer_bom.source},
+{label:'SOP',desc:e.sop.desc,val:e.sop.count,src:e.sop.source}
+].map(x=>`<tr><td><b>${x.label}</b></td><td style="font-size:12px">${x.desc}</td><td style="font-weight:600">${x.val}</td><td style="font-size:11px;color:#999">${x.src}</td></tr>`).join('');
+const w=d.warehouse,sc=d.supply_chain;
+document.getElementById('whBody').innerHTML=[
+{desc:w.desc,src:w.source},{desc:sc.desc,src:sc.source}
+].map(x=>`<tr><td style="font-size:12px">${x.desc}</td><td style="font-size:12px">${x.desc}</td><td style="font-size:11px;color:#999">${x.src}</td></tr>`).join('');
+}
+
+// ===== 初始化 =====
+document.getElementById('mo').addEventListener('click',e=>{if(e.target.id==='mo')closeModal();});
+(async()=>{await loadGlobalPeriods();reloadAll();})();
+</script>
+<script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="feature-gate.js"></script><script>FeatureGate.init();</script>
+</body></html>

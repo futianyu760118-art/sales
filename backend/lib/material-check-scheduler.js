@@ -46,9 +46,17 @@ async function loadTableData(tableName) {
 }
 
 async function persistIssues(store) {
-  // 异步写入，不阻塞事件循环
+  // 紧凑写入（不缩进）+ 裁剪：只保留 open + 最近 2000 条已关闭
+  const keep = [];
+  const closed = [];
+  for (const r of store.records) {
+    if (r.status === 'open' || r.status === 'in_progress') keep.push(r);
+    else closed.push(r);
+  }
+  closed.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+  const pruned = { records: [...keep, ...closed.slice(0, 2000)], nextId: store.nextId };
   const file = path.join(__dirname, '..', '..', 'database', 'material_check_issues.json');
-  await fs.promises.writeFile(file, JSON.stringify(store, null, 2));
+  await fs.promises.writeFile(file, JSON.stringify(pruned));
 }
 
 async function persistLastRun(report) {

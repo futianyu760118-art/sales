@@ -430,7 +430,7 @@ function buildBusinessContext(contextType, contextId, message) {
 }
 
 function buildSystemPrompt(context, user) {
-  let prompt = `你是销售快捷服务系统的AI助手，帮助销售团队分析业务数据、解决问题、制定策略。
+  let prompt = `你是企业经营管理平台（EBMS）的AI助手，帮助销售团队分析业务数据、解决问题、制定策略。
 
 你的能力：
 1. 查询和分析询价、核价、客户、产品数据
@@ -753,7 +753,7 @@ function generateLocalResponse(message, context, user) {
   }
 
   if (hasKeyword(['帮助', '你能做什么', '功能', 'help'])) {
-    return `我是销售快捷服务系统AI助手，可以帮你：
+    return `我是企业经营管理平台（EBMS）AI助手，可以帮你：
 
 📋 数据查询 - 询价、核价、客户、产品、项目、订单、样品、物料、供应商
 🔍 型号查询 - 输入型号查价格，如"JFS04B-B1WA100价格"
@@ -781,7 +781,7 @@ function generateLocalResponse(message, context, user) {
     return `我已了解当前业务上下文。\n\n关于你的问题"${message}"：\n\n基于当前数据分析，建议你：\n1. 检查相关业务数据的完整性\n2. 关注关键时间节点\n3. 及时跟进待处理事项\n\n如需更详细的分析，请提供更具体的问题描述。\n\n【行动】@${user || '销售'} 中 跟进当前业务事项`;
   }
 
-  return `你好！我是销售快捷服务系统AI助手。\n\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\n\n输入"帮助"查看我能做什么。`;
+  return `你好！我是企业经营管理平台（EBMS）AI助手。\n\n你可以问我关于询价、核价、客户、产品等业务问题，我会自动分析数据并提供建议。\n\n输入"帮助"查看我能做什么。`;
 }
 
 function extractActionItems(reply) {

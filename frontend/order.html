@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>订单管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 订单管理</title><link rel="stylesheet" href="common.css">
 <style>
 .sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
@@ -30,32 +30,83 @@ tr:hover td{background:#f8f9ff}
 .risk-h{background:#f8d7da;color:#721c24;padding:1px 6px;border-radius:8px;font-size:10px}
 .risk-m{background:#fff3cd;color:#856404;padding:1px 6px;border-radius:8px;font-size:10px}
 .risk-l{background:#d4edda;color:#155724;padding:1px 6px;border-radius:8px;font-size:10px}
+.rv-none{background:#eee;color:#999;padding:1px 6px;border-radius:8px;font-size:10px}
+.rv-pending{background:#fff3cd;color:#856404;padding:1px 6px;border-radius:8px;font-size:10px}
+.rv-approved{background:#d4edda;color:#155724;padding:1px 6px;border-radius:8px;font-size:10px}
+.rv-rejected{background:#f8d7da;color:#721c24;padding:1px 6px;border-radius:8px;font-size:10px}
+.rv-reviewing{background:#d1ecf1;color:#0c5460;padding:1px 6px;border-radius:8px;font-size:10px}
+.overrun-tag{background:#f8d7da;color:#721c24;padding:1px 5px;border-radius:6px;font-size:10px;font-weight:600}
+.overrun-ok{background:#d4edda;color:#155724;padding:1px 5px;border-radius:6px;font-size:10px}
+.r{text-align:right}
+.profit-pos{color:#27ae60;font-weight:600}
+.profit-neg{color:#e74c3c;font-weight:700}
 .tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
-</style></head><body>
+.expand-icon{cursor:pointer;color:#667eea;font-size:14px;user-select:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;transition:all .2s}
+.expand-icon:hover{background:#e8eaf6}
+.expand-icon.expanded{transform:rotate(90deg)}
+.group-row{background:#f0f4ff!important;font-weight:500}
+.group-row:hover{background:#e8edff!important}
+.group-row td{border-bottom:2px solid #c5cae9!important}
+.sub-row{display:none}
+.sub-row.visible{display:table-row}
+.sub-row td:first-child{padding-left:28px}
+.seq-col{width:32px;text-align:center}
+.sub-count{display:inline-block;margin-left:6px;background:#667eea;color:#fff;border-radius:10px;padding:0 7px;font-size:11px;font-weight:600}
+.date-cell{font-size:12px;white-space:nowrap}
+.date-cell.filled{color:#333}
+.date-cell.empty{color:#bbb}
+.date-cell.late{color:#e74c3c;font-weight:600}
+.prod-expand-box{background:#fafbff;border:1px solid #e8ebf7;border-radius:8px;padding:12px;margin:4px 0}
+.prod-expand-box table{font-size:12px}
+.prod-expand-box th{background:#f0f3ff;font-size:11px;padding:6px 6px;position:static;font-weight:600}
+.prod-expand-box td{padding:5px 6px;font-size:12px}
+.lock-badge{display:inline-block;background:#fff3cd;color:#856404;padding:1px 5px;border-radius:6px;font-size:10px;font-weight:600;margin-left:4px;cursor:help}
+.batch-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+</style><script src="fetch-auth.js"></script></head><body data-page-title="订单管理" data-page-perm="order:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
 <h2>订单管理</h2>
-<button class="btn b1" onclick="openAddOrder()">新增订单</button>
+<div style="display:flex;gap:8px">
+  <button class="btn b4" id="syncOrderBtn" onclick="syncOrderFromErp()">同步订单（产品/状态/计划/上线）</button>
+  <button class="btn b1" onclick="openAddOrder()">新增订单</button>
+</div>
 </div>
 <div class="sg" id="oStats"></div>
 <div class="sb">
 <input type="text" id="oKw" placeholder="搜索订单号/客户/产品" style="width:220px" onkeydown="if(event.key==='Enter')loadOrders(1)">
 <select id="oStatus"><option value="">全部状态</option>
 <option value="open">待确认</option><option value="confirmed">已确认</option>
-<option value="procurement_ready">采购就绪</option><option value="material_ready">物料就绪</option>
-<option value="packaging_done">包装完成</option><option value="shipped">已发货</option>
-<option value="completed">已完成</option><option value="closed">已关闭</option><option value="cancelled">已取消</option>
+<option value="shipped">已发货</option><option value="completed">已完成</option><option value="closed">已关闭</option><option value="cancelled">已取消</option>
 </select>
-<select id="oRisk"><option value="">全部风险</option><option value="high">高风险</option><option value="medium">中风险</option><option value="low">低风险</option></select>
+<select id="oRisk"><option value="">全部风险</option><option value="high">高风险</option><option value="medium">中风险</option><option value="low">低风险</option><option value="blue">蓝</option><option value="yellow">黄</option><option value="red">红</option></select>
 <button class="btn b1" onclick="loadOrders(1)">搜索</button>
 <button class="btn b2" onclick="exportOrders()">导出数据</button>
-<span style="margin-left:auto">共 <b id="oTc">0</b> 条</span>
+<span style="margin-left:auto;color:#888;font-size:12px">数据源：外部 ERP（orders.list + order_details.list）</span>
+<span style="margin-left:8px">共 <b id="oTc">0</b> 条</span>
+</div>
+<div id="batchBar" style="padding:8px 12px;display:none;align-items:center;gap:10px;flex-wrap:wrap;background:#f5f6fa;border-radius:6px;margin-bottom:8px">
+<b id="batchCount" style="color:#667eea">已选 0 单</b>
+<div class="batch-bar">
+<select id="batchStatusSel" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">
+<option value="">批量改为状态…</option>
+<option value="open">待确认</option><option value="confirmed">已确认</option>
+<option value="procurement_ready">采购就绪</option><option value="material_ready">物料就绪</option>
+<option value="packaging_done">包装完成</option><option value="shipped">已发货</option>
+<option value="completed">已完成</option><option value="closed">已关闭</option>
+<option value="cancelled">已取消</option>
+</select>
+<button class="btn b1" onclick="batchChangeStatus()" data-perm="order:edit">批量改状态（锁定防覆盖）</button>
+</div>
+<button class="btn b3" onclick="batchDeleteOrders()" data-perm="order:delete">批量删除</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="clearSel()">取消选择</button>
+<span style="font-size:11px;color:#888;margin-left:auto">提示：批量改状态后，下次同步 ERP 时这些状态不会被覆盖（已加锁）</span>
 </div>
 <div class="tbl-wrap">
 <table><thead><tr>
-<th>订单号</th><th>行号</th><th>客户</th><th>产品代码</th><th>产品名称</th><th>数量</th><th>完成数</th><th>金额</th><th>状态</th><th>风险</th><th>承诺交期</th><th>计划交期</th><th>上线时间</th><th>备注</th><th>操作</th>
-</tr></thead><tbody id="oTb"><tr><td colspan="15" class="em">暂无数据</td></tr></tbody></table>
+<th class="seq-col">&nbsp;</th><th style="width:30px"><input type="checkbox" id="selAll" onclick="toggleSelAll(this)"></th><th>订单号</th><th>客户</th><th>产品代码</th><th>产品名称</th><th class="r">数量</th><th class="r">完成数</th><th class="r">金额</th><th>状态</th><th>风险</th><th>承诺交期</th><th>计划上线</th><th>入库时间</th><th>发货时间</th><th>交付时间</th><th>操作</th>
+</tr></thead>
+<tbody id="oTb"><tr><td colspan="16" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="oPg" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -71,24 +122,71 @@ tr:hover td{background:#f8f9ff}
 <div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
 
 <script>
+// 数据源说明：
+//   - LIST_API: 列表数据直接读外部 ERP /api/external-api/orders-with-progress（orders.list + 4 个完成时间聚合）
+//   - PROD_API: 订单下产品从 /api/external-api/orders/:order_no/products（order_details.list）
+//   - API: 业务流程（编辑/状态流转/删除/同步ERP/统计）继续走本地 /api/orders（本地库先同步，外部只读）
+// 4 个完成时间在外部 API 暂无精确字段时按以下规则派生：
+//   - 计划上线时间 = orders.list.planned_start_date
+//   - 入库时间     = max(purchase_orders.actual_arrival_date) 按 order_no 聚合
+//   - 发货时间     = status 在 shipped/completed/closed 时取 orders.updated_at 日期
+//   - 交付时间     = status 在 completed/closed 时取 orders.updated_at 日期
 const API='/api/orders';
+const LIST_API='/api/external-api/orders-with-progress';
+const PROD_API='/api/external-api/orders';   // /:order_no/products
 const statusMap={open:'待确认',confirmed:'已确认',procurement_ready:'采购就绪',material_ready:'物料就绪',packaging_done:'包装完成',shipped:'已发货',completed:'已完成',closed:'已关闭',cancelled:'已取消'};
 const statusCls={open:'st-open',confirmed:'st-confirmed',procurement_ready:'st-proc',material_ready:'st-ready',packaging_done:'st-pkg',shipped:'st-shipped',completed:'st-completed',closed:'st-closed',cancelled:'st-cancelled'};
 const statusFlow=['open','confirmed','procurement_ready','material_ready','packaging_done','shipped','completed'];
 let oPage=1;
+let oPageSize=50;
+let oExtTotal=0;       // 外部 API 实际总数（用于提示）
+let oHasMore=false;    // 是否还有下一页
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtMoney(n){if(n==null||n==='')return '-';return '¥'+Math.round((Number(n)||0)*100)/100 .toLocaleString()}
+function fmtDate(s){return s?String(s):''}
+function isLate(promised, finished){
+  // 承诺交期已过但尚未交付
+  if(!promised || finished) return false;
+  return String(promised).substring(0,10) < new Date().toISOString().substring(0,10);
+}
+function renderDate(v, kind){
+  if(!v) return `<span class="date-cell empty">-</span>`;
+  return `<span class="date-cell filled" title="${kind}: ${esc(v)}">${esc(v)}</span>`;
+}
+function renderDateLate(promised, finished, val, kind){
+  if(!val) return `<span class="date-cell empty">-</span>`;
+  if(isLate(promised, finished)) return `<span class="date-cell late" title="${kind}（已逾期）">${esc(val)}</span>`;
+  return `<span class="date-cell filled">${esc(val)}</span>`;
+}
 
 async function loadStats(){
   try{
     const r=await fetch(API+'/stats');const d=await r.json();
     document.getElementById('oStats').innerHTML=`
-      <div class="sc"><div class="n">${d.total||0}</div><div class="l">订单总数</div></div>
+      <div class="sc"><div class="n">${d.total||0}</div><div class="l">本地订单总数</div></div>
       <div class="sc"><div class="n" style="color:#3498db">${d.by_status?.open||0}</div><div class="l">待确认</div></div>
       <div class="sc"><div class="n" style="color:#27ae60">${d.by_status?.confirmed||0}</div><div class="l">已确认</div></div>
       <div class="sc"><div class="n" style="color:#e67e22">${d.by_status?.procurement_ready||0}</div><div class="l">采购就绪</div></div>
       <div class="sc"><div class="n" style="color:#e74c3c">${d.by_status?.completed||0}</div><div class="l">已完成</div></div>
-      <div class="sc"><div class="n">¥${Math.round(d.total_amount||0).toLocaleString()}</div><div class="l">订单总额</div></div>
+      <div class="sc"><div class="n">${fmtMoney(d.total_amount||0)}</div><div class="l">本地订单总额</div></div>
     `;
   }catch(e){console.error(e)}
+}
+
+// 手动从外部ERP同步：状态 + 计划交期 + 上线时间（不会自动触发，必须点此按钮）
+async function syncOrderFromErp(){
+  const btn=document.getElementById('syncOrderBtn');
+  if(!confirm('从外部ERP同步所有订单的【相关产品 / 状态（发货完成） / 计划交期 / 上线时间】？\n（自动同步已关闭，仅此处手动触发）'))return;
+  const oldText=btn.textContent;btn.disabled=true;btn.textContent='同步中…';
+  try{
+    const r=await fetch('/api/external-api/sync-order-status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d=await r.json();
+    if(d.error){alert('同步失败: '+d.error);return}
+    alert(d.message||'同步完成');
+    loadOrders(oPage);loadStats();
+  }catch(e){alert('同步失败: '+e.message)}
+  finally{btn.disabled=false;btn.textContent=oldText}
 }
 
 function renderStatus(s){
@@ -96,10 +194,12 @@ function renderStatus(s){
   return `<span class="badge ${cls}">${statusMap[s]||s||'-'}</span>`;
 }
 function renderRisk(r){
-  if(r==='high')return '<span class="risk-h">高风险</span>';
-  if(r==='medium')return '<span class="risk-m">中风险</span>';
-  if(r==='low')return '<span class="risk-l">低风险</span>';
-  return '-';
+  if(!r) return '-';
+  const k=String(r).toLowerCase();
+  if(k==='high'||k==='red')return '<span class="risk-h">高风险</span>';
+  if(k==='medium'||k==='yellow')return '<span class="risk-m">中风险</span>';
+  if(k==='low'||k==='green'||k==='blue')return '<span class="risk-l">低风险</span>';
+  return esc(r);
 }
 
 function getNextStatuses(current){
@@ -110,48 +210,228 @@ function getNextStatuses(current){
   return next;
 }
 
+// 缓存每个订单的产品明细（展开时拉取）
+let _prodCache = {}; // orderNo -> {ts, rows}
+async function loadOrderProducts(orderNo) {
+  const hit = _prodCache[orderNo];
+  if (hit && Date.now() - hit.ts < 60000) return hit.rows;
+  const r = await fetch(PROD_API + '/' + encodeURIComponent(orderNo) + '/products');
+  if (!r.ok) throw new Error('产品加载失败 ' + r.status);
+  const d = await r.json();
+  _prodCache[orderNo] = { ts: Date.now(), rows: d.data || [] };
+  return d.data || [];
+}
+
+async function toggleProductsExpand(orderNo, idx) {
+  const boxId = 'prodexp-' + idx;
+  const box = document.getElementById(boxId);
+  if (box) { box.remove(); return; }
+  // 在该订单的子行下方插入展开容器
+  const anchor = document.querySelector(`tr.sub-row[data-grp="${idx}"]`);
+  if (!anchor) return;
+  const tr = document.createElement('tr');
+  tr.id = boxId;
+  tr.innerHTML = '<td colspan="16"><div class="prod-expand-box">加载订单产品（外部 order_details.list）…</div></td>';
+  anchor.parentNode.insertBefore(tr, anchor.nextSibling);
+  try {
+    const rows = await loadOrderProducts(orderNo);
+    if (!rows.length) {
+      tr.querySelector('.prod-expand-box').innerHTML = '<span style="color:#bbb">该订单暂无外部产品明细</span>';
+      return;
+    }
+    const sumQty = rows.reduce((s, r) => s + (Number(r.order_qty) || 0), 0);
+    const sumAmt = rows.reduce((s, r) => s + (Number(r.order_amount) || 0), 0);
+    tr.querySelector('.prod-expand-box').innerHTML =
+      '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">' +
+        '<b>📦 产品明细</b>' +
+        '<span class="badge" style="background:#eef;color:#667eea">' + rows.length + ' 个产品</span>' +
+        '<span style="font-size:11px;color:#888">合计数量 ' + sumQty + ' / 金额 ' + fmtMoney(sumAmt) + '</span>' +
+        '<span style="flex:1"></span>' +
+        '<span style="font-size:11px;color:#aaa">来源：order_details.list</span>' +
+      '</div>' +
+      '<table style="width:100%;border-collapse:collapse">' +
+        '<thead><tr style="background:#f0f3ff">' +
+          '<th style="padding:6px 6px;text-align:left;width:40px">行号</th>' +
+          '<th style="padding:6px 6px;text-align:left">产品编码</th>' +
+          '<th style="padding:6px 6px;text-align:left">产品名称</th>' +
+          '<th style="padding:6px 6px;text-align:left">型号</th>' +
+          '<th style="padding:6px 6px;text-align:right">数量</th>' +
+          '<th style="padding:6px 6px;text-align:right">金额</th>' +
+          '<th style="padding:6px 6px">状态</th>' +
+          '<th style="padding:6px 6px">计划上线</th>' +
+          '<th style="padding:6px 6px">承诺交期</th>' +
+          '<th style="padding:6px 6px">BOM编号</th>' +
+        '</tr></thead><tbody>' +
+      rows.map(r =>
+        '<tr>' +
+          '<td style="padding:5px 6px;color:#888">' + esc(r.line_no) + '</td>' +
+          '<td style="padding:5px 6px"><b>' + esc(r.product_code) + '</b></td>' +
+          '<td style="padding:5px 6px;color:#555">' + esc(r.product_name||'') + '</td>' +
+          '<td style="padding:5px 6px;color:#888">' + esc(r.product_model||'') + '</td>' +
+          '<td style="padding:5px 6px;text-align:right">' + (r.order_qty||0) + '</td>' +
+          '<td style="padding:5px 6px;text-align:right">' + fmtMoney(r.order_amount) + '</td>' +
+          '<td style="padding:5px 6px;text-align:center">' + renderStatus(r.status) + '</td>' +
+          '<td style="padding:5px 6px">' + renderDate(r.planned_online_date, '计划上线') + '</td>' +
+          '<td style="padding:5px 6px">' + renderDate(r.promised_date, '承诺交期') + '</td>' +
+          '<td style="padding:5px 6px;color:#888;font-size:11px">' + esc(r.bom_no||'-') + '</td>' +
+        '</tr>'
+      ).join('') +
+      '</tbody></table>';
+  } catch (e) {
+    tr.querySelector('.prod-expand-box').innerHTML = '<span style="color:#e74c3c">产品明细加载失败：' + esc(e.message) + '</span>';
+  }
+}
+
 async function loadOrders(page){
-  oPage=page||1;
-  const p=new URLSearchParams({page:oPage,limit:50});
-  const kw=document.getElementById('oKw').value,st=document.getElementById('oStatus').value;
-  const risk=document.getElementById('oRisk').value;
-  if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(risk)p.set('risk_level',risk);
+  clearSel();
+  oPage = page || 1;
+  const p = new URLSearchParams({ page: oPage, page_size: oPageSize });
+  const kw = document.getElementById('oKw').value, st = document.getElementById('oStatus').value;
+  const risk = document.getElementById('oRisk').value;
+  if(kw) p.set('keyword', kw);
+  if(st) p.set('status', st);
+  if(risk) p.set('risk_level', risk);
   try{
-    const r=await fetch(API+'?'+p);const d=await r.json();
-    const total=d.total||0;document.getElementById('oTc').textContent=total;
-    const recs=d.data||[],tb=document.getElementById('oTb');
-    if(!recs.length){tb.innerHTML='<tr><td colspan="15" class="em">暂无订单</td></tr>';renderPg('oPg',total,oPage,loadOrders);return}
-    tb.innerHTML=recs.map(o=>{
-      const nextSts=getNextStatuses(o.status);
-      let flowBtns='';
-      nextSts.forEach(ns=>{flowBtns+=`<button class="btn bs b1" onclick="changeStatus(${o.id},'${ns}')">${statusMap[ns]}</button> `;});
-      return`<tr>
-      <td><b>${o.order_no||'-'}</b></td>
-      <td>${o.line_no||'-'}</td>
-      <td>${(o.customer_name||'').substring(0,12)}</td>
-      <td>${o.product_code||'-'}</td>
-      <td>${(o.product_name||'').substring(0,14)}</td>
-      <td>${o.quantity||0}</td>
-      <td>${o.completed_qty||0}</td>
-      <td>${o.order_amount?'¥'+Number(o.order_amount).toLocaleString():'-'}</td>
-      <td>${renderStatus(o.status)}</td>
-      <td>${renderRisk(o.risk_level)}</td>
-      <td>${o.promised_date||'-'}</td>
-      <td>${o.plan_date||'-'}</td>
-      <td>${o.online_date||'-'}</td>
-      <td>${(o.remarks||'').substring(0,12)}</td>
-      <td style="white-space:nowrap">
-        ${flowBtns}
-        <button class="btn bs b4" onclick="openEditOrder(${o.id})">编辑</button>
-        <button class="btn bs b3" onclick="delOrder(${o.id})">删除</button>
-      </td>
-    </tr>`}).join('');
-    renderPg('oPg',total,oPage,loadOrders);
-  }catch(e){console.error(e)}
+    const r = await fetch(LIST_API + '?' + p.toString());
+    if(!r.ok) {
+      const err = await r.json().catch(()=>({}));
+      throw new Error(err.error || ('HTTP '+r.status));
+    }
+    const d = await r.json();
+    oExtTotal = d.ext_total || 0;
+    oHasMore = !!d.has_more;
+    const recs = d.data || [];
+    const total = d.total || 0;
+    document.getElementById('oTc').textContent = total + (oHasMore?'+':'');
+    const tb = document.getElementById('oTb');
+    if(!recs.length){
+      tb.innerHTML = '<tr><td colspan="16" class="em">暂无订单（外部 API 返回为空）</td></tr>';
+      renderPg('oPg', total, oPage, loadOrders);
+      return;
+    }
+    // 按 order_no 分组（同一订单号的多个 line_no 合并）
+    const groups = {}, groupOrder = [];
+    recs.forEach(o => {
+      const k = o.order_no || ('__no_order__' + (o.ext_id || Math.random()));
+      if(!groups[k]) { groups[k] = []; groupOrder.push(k); }
+      groups[k].push(o);
+    });
+    let html = '';
+    groupOrder.forEach((k, gIdx) => {
+      const items = groups[k];
+      const grpKey = 'ord_grp_' + gIdx;
+      const first = items[0];
+      // 父行：订单汇总
+      const sumQty = items.reduce((s,o)=>s+(Number(o.order_qty)||0), 0);
+      const sumDone = items.reduce((s,o)=>s+(Number(o.completed_qty)||0), 0);
+      const sumAmt = items.reduce((s,o)=>s+(Number(o.order_amount)||0), 0);
+      const riskRank = { high:3, medium:2, low:1, blue:1, green:1, yellow:2, red:3 };
+      let worstRank = 0;
+      items.forEach(o => { worstRank = Math.max(worstRank, riskRank[String(o.risk_level||'').toLowerCase()] || 0); });
+      const worstRisk = Object.keys(riskRank).find(rk => riskRank[rk] === worstRank && ['high','medium','low'].includes(rk)) || first.risk_level;
+      const statusSet = [...new Set(items.map(o => o.status))];
+      const statusBadge = statusSet.length > 1 ? '<span class="badge" style="background:#fff3cd;color:#856404">不一致</span>' : '';
+      const lockedAny = items.some(o => Number(o.user_status_locked) === 1);
+      const productCodes = [...new Set(items.map(o => o.product_code).filter(Boolean))];
+      const minPromise = items.map(o => o.promised_date || '').filter(Boolean).sort()[0] || '';
+      // 4 个时间取该订单号下的最大值（任一行有即可）
+      const maxDate = (key) => items.map(o => o[key] || '').filter(Boolean).sort().reverse()[0] || '';
+      const planned = maxDate('planned_online_date');
+      const warehouse = maxDate('warehouse_date');
+      const ship = maxDate('ship_date');
+      const delivery = maxDate('delivery_date');
+      const finished = !!ship; // 已发货即视为非逾期
+      const single = items.length === 1;
+      // 父行 HTML
+      const lockBadge = lockedAny ? '<span class="lock-badge" title="本地已锁定状态，下次外部同步不会覆盖">🔒 已本地修改</span>' : '';
+      html += '<tr class="group-row" data-group="' + grpKey + '">' +
+        '<td class="seq-col"><span class="expand-icon" onclick="toggleOrderGroup(\'' + grpKey + '\')">&#9654;</span></td>' +
+        '<td></td>' +
+        '<td><b>' + esc(first.order_no || '-') + '</b><span class="sub-count">' + items.length + '</span>' + lockBadge + '</td>' +
+        '<td>' + esc((first.customer||'').substring(0, 14)) + '</td>' +
+        '<td>' + esc(productCodes.length ? (productCodes.length + '种') : '-') + '</td>' +
+        '<td>-</td>' +
+        '<td class="r"><b>' + sumQty + '</b></td>' +
+        '<td class="r">' + (sumDone||0) + '</td>' +
+        '<td class="r"><b>' + fmtMoney(sumAmt) + '</b></td>' +
+        '<td>' + renderStatus(first.status) + statusBadge + '</td>' +
+        '<td>' + renderRisk(worstRisk) + '</td>' +
+        '<td>' + renderDateLate(minPromise, finished, minPromise, '承诺交期') + '</td>' +
+        '<td>' + renderDate(planned, '计划上线') + '</td>' +
+        '<td>' + renderDate(warehouse, '入库') + '</td>' +
+        '<td>' + renderDate(ship, '发货') + '</td>' +
+        '<td>' + renderDate(delivery, '交付') + '</td>' +
+        '<td style="white-space:nowrap">' +
+          (single ? '' : '<button class="btn bs b1" onclick="toggleOrderGroup(\'' + grpKey + '\')">展开</button> ') +
+          '<button class="btn bs" style="background:#eef;color:#667eea" onclick="toggleProductsExpand(\'' + esc(first.order_no) + '\',' + gIdx + ')" title="从外部 order_details.list 加载产品">产品明细</button>' +
+        '</td>' +
+      '</tr>';
+      // 子行：每个 line_no
+      items.forEach((o, idx) => {
+        const flowSts = getNextStatuses(o.status);
+        let flowBtns = '';
+        flowSts.forEach(ns => { flowBtns += '<button class="btn bs b1" onclick="changeStatusByNo(\'' + esc(o.order_no) + '\',\'' + ns + '\')">' + statusMap[ns] + '</button> '; });
+        const isFinished = !!o.ship_date;
+        const rowLockBadge = Number(o.user_status_locked) === 1 ? '<span class="lock-badge" title="本地已锁定状态">🔒</span>' : '';
+        // 显示状态时若本地与外部不一致且本地已锁：标"本地"+"外部"两组状态
+        const localStatus = Number(o.user_status_locked) === 1 && o.local_status && o.local_status !== o.status ? '<span class="lock-badge" title="本地：'+esc(o.local_status)+' / 外部：'+esc(o.status)+'">本地</span>' : '';
+        html += '<tr class="sub-row" data-group="' + grpKey + '" data-grp="' + gIdx + '" data-orderno="' + esc(o.order_no) + '">' +
+          '<td class="seq-col"></td>' +
+          '<td><input type="checkbox" class="ord-sel" data-id="' + (o.ext_id||'') + '" data-orderno="' + esc(o.order_no) + '" data-lineno="' + esc(o.line_no) + '" onclick="onSelChange()"></td>' +
+          '<td>' + esc(o.order_no || '-') + rowLockBadge + '</td>' +
+          '<td>' + esc((o.customer||'').substring(0, 14)) + '</td>' +
+          '<td>' + esc(o.product_code || '-') + '</td>' +
+          '<td>' + esc((o.product_name||'').substring(0, 14)) + '</td>' +
+          '<td class="r">' + (o.order_qty||0) + '</td>' +
+          '<td class="r">' + (o.completed_qty != null ? o.completed_qty : '-') + '</td>' +
+          '<td class="r">' + fmtMoney(o.order_amount) + '</td>' +
+          '<td>' + renderStatus(o.status) + localStatus + '</td>' +
+          '<td>' + renderRisk(o.risk_level) + '</td>' +
+          '<td>' + renderDateLate(o.promised_date, isFinished, o.promised_date, '承诺交期') + '</td>' +
+          '<td>' + renderDate(o.planned_online_date, '计划上线') + '</td>' +
+          '<td>' + renderDate(o.warehouse_date, '入库') + '</td>' +
+          '<td>' + renderDate(o.ship_date, '发货') + '</td>' +
+          '<td>' + renderDate(o.delivery_date, '交付') + '</td>' +
+          '<td style="white-space:nowrap">' +
+            flowBtns +
+            '<button class="btn bs b4" onclick="openEditOrderByNo(\'' + esc(o.order_no) + '\',\'' + esc(o.line_no) + '\')">编辑</button>' +
+            '<button class="btn bs b3" onclick="delOrderByNo(\'' + esc(o.order_no) + '\',\'' + esc(o.line_no) + '\')">删除</button>' +
+          '</td>' +
+        '</tr>';
+      });
+    });
+    tb.innerHTML = html;
+    renderPg('oPg', total, oPage, loadOrders, oHasMore, oExtTotal);
+  } catch(e) {
+    const tb = document.getElementById('oTb');
+    tb.innerHTML = '<tr><td colspan="16" class="em" style="color:#e74c3c">外部 API 加载失败：' + esc(e.message) + '<br><span style="font-size:11px">点击页面顶部「同步订单」可先把外部订单写入本地</span></td></tr>';
+  }
+}
+
+function renderPg(elId, total, page, fn, hasMore, extTotal){
+  var ps = oPageSize, pages = Math.ceil(total/ps), el = document.getElementById(elId);
+  let h = '';
+  const extInfo = extTotal ? '<span style="color:#888;font-size:12px;margin-right:8px">外部 API 共 '+ extTotal +' 条</span>' : '';
+  if(!total && !hasMore){ el.innerHTML = extInfo + '<span style="color:#999;font-size:12px">无数据</span>'; return; }
+  if(page>1) h += '<button class="btn bs" onclick="'+fn.name+'('+(page-1)+')">上一页</button> ';
+  for(let i=Math.max(1,page-2); i<=Math.min(Math.max(pages, page+2), page+2); i++) h += '<button class="btn bs '+(i===page?'b1':'')+'" onclick="'+fn.name+'('+i+')">'+i+'</button> ';
+  if(hasMore || page<pages) h += '<button class="btn bs" onclick="'+fn.name+'('+(page+1)+')">下一页</button>';
+  el.innerHTML = extInfo + h;
+}
+
+// 展开/收起订单明细子行
+function toggleOrderGroup(groupKey){
+  const subRows=document.querySelectorAll(`.sub-row[data-group="${groupKey}"]`);
+  const expandIcon=document.querySelector(`.group-row[data-group="${groupKey}"] .expand-icon`);
+  const expandBtn=document.querySelector(`.group-row[data-group="${groupKey}"] td:last-child .btn.b1`);
+  const isVisible=subRows.length>0&&subRows[0].classList.contains('visible');
+  subRows.forEach(row=>{isVisible?row.classList.remove('visible'):row.classList.add('visible')});
+  if(expandIcon)expandIcon.classList.toggle('expanded',!isVisible);
+  if(expandBtn)expandBtn.textContent=isVisible?'展开':'收起';
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -160,12 +440,33 @@ function renderPg(elId,total,page,fn){
   el.innerHTML=h;
 }
 
-async function changeStatus(id,newStatus){
-  if(!confirm('确定将订单状态变更为：'+statusMap[newStatus]+'？'))return;
+// 状态变更（外部 API 列表 → 本地库）：通过 order_no + line_no 定位
+async function changeStatusByNo(orderNo, newStatus){
+  if(!confirm('确定将该订单状态变更为：'+statusMap[newStatus]+'？\n（仅修改本地库；外部 API 数据为只读）'))return;
   try{
-    await fetch(API+'/'+id+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:newStatus})});
-    loadOrders(oPage);loadStats();
+    const lineNo = getSelectedLineNo(orderNo) || '';
+    const r = await fetch(API + '/by-key/' + encodeURIComponent(orderNo) + '/' + encodeURIComponent(lineNo) + '/status', {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ status: newStatus })
+    });
+    const d = await r.json();
+    if(!r.ok){ alert('操作失败：'+ (d.error || r.status)); return; }
+    loadOrders(oPage); loadStats();
   }catch(e){alert('操作失败: '+e.message)}
+}
+
+// 取该 order_no 在当前选中行里的 line_no（用于状态/编辑/删除接口）
+function getSelectedLineNo(orderNo){
+  // 优先从勾选的复选框反查
+  const sel = document.querySelector(`.ord-sel:checked[data-orderno="${CSS.escape(orderNo)}"]`);
+  if (sel) return sel.dataset.lineno || '';
+  // 否则取表格中第一个匹配的行
+  const row = document.querySelector(`tr.sub-row[data-orderno="${CSS.escape(orderNo)}"]`);
+  if (row) {
+    const cb = row.querySelector('.ord-sel');
+    return cb ? (cb.dataset.lineno || '') : '';
+  }
+  return '';
 }
 
 function openAddOrder(){
@@ -185,9 +486,16 @@ function openAddOrder(){
     document.getElementById('gMo').classList.remove('ac');loadOrders(1);loadStats();
   });
 }
-async function openEditOrder(id){
+
+async function openEditOrderByNo(orderNo, lineNo){
   try{
-    const r=await fetch(API+'/'+id);const o=await r.json();
+    const r = await fetch(API + '/by-key/' + encodeURIComponent(orderNo) + '/' + encodeURIComponent(lineNo));
+    if(!r.ok){
+      const d = await r.json().catch(()=>({}));
+      alert('本地未找到该订单（请先点顶部「同步订单」把外部订单写入本地）\n' + (d.error||''));
+      return;
+    }
+    const o = await r.json();
     const fields=[
       ['order_no','订单号','text'],['line_no','行号','number'],['customer_name','客户名称','text'],
       ['customer_code','客户代码','text'],['product_code','产品代码','text'],['product_name','产品名称','text'],
@@ -199,37 +507,109 @@ async function openEditOrder(id){
       ['remarks','备注','textarea']
     ];
     openForm('编辑订单',fields,o,async(data)=>{
-      await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      const r2 = await fetch(API + '/by-key/' + encodeURIComponent(orderNo) + '/' + encodeURIComponent(lineNo), {
+        method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)
+      });
+      if(!r2.ok){
+        const err = await r2.json().catch(()=>({}));
+        alert('保存失败：' + (err.error||'')); return;
+      }
       document.getElementById('gMo').classList.remove('ac');loadOrders(oPage);loadStats();
     });
-  }catch(e){alert('加载失败')}
+  }catch(e){alert('加载失败: '+e.message)}
 }
-async function delOrder(id){
-  if(!confirm('确定删除此订单？'))return;
-  await fetch(API+'/'+id,{method:'DELETE'});
-  loadOrders(oPage);loadStats();
+
+async function delOrderByNo(orderNo, lineNo){
+  if(!confirm('确定删除本地订单 '+ orderNo + (lineNo?' / '+lineNo:'') +' ？\n（仅删除本地库记录；外部 API 订单不受影响）'))return;
+  try{
+    const r = await fetch(API + '/by-key/' + encodeURIComponent(orderNo) + '/' + encodeURIComponent(lineNo), { method: 'DELETE' });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok){ alert('删除失败：'+(d.error||r.status)); return; }
+    loadOrders(oPage);loadStats();
+  }catch(e){alert('操作失败: '+e.message)}
+}
+
+function toggleSelAll(el){
+  document.querySelectorAll('.ord-sel').forEach(c=>{c.checked=el.checked;});
+  onSelChange();
+}
+function onSelChange(){
+  const keys = getSelKeys();
+  const bar=document.getElementById('batchBar');
+  document.getElementById('batchCount').textContent='已选 '+keys.length+' 单';
+  bar.style.display=keys.length?'flex':'none';
+  const selAll=document.getElementById('selAll');
+  if(selAll)selAll.checked=keys.length>0&&document.querySelectorAll('.ord-sel').length===keys.length;
+}
+function getSelKeys(){ return [...document.querySelectorAll('.ord-sel:checked')].map(c => ({ order_no: c.dataset.orderno, line_no: c.dataset.lineno })); }
+function clearSel(){ document.querySelectorAll('.ord-sel').forEach(c=>c.checked=false); const selAll=document.getElementById('selAll'); if(selAll)selAll.checked=false; onSelChange(); }
+async function batchDeleteOrders(){
+  const keys = getSelKeys();
+  if(!keys.length){alert('请先勾选要删除的订单');return;}
+  if(!confirm('确认批量删除 '+keys.length+' 个本地订单？\n（仅删除本地库；外部 API 订单不受影响）'))return;
+  try{
+    const r = await fetch(API+'/batch-delete-by-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items: keys})});
+    const d = await r.json();
+    if(!r.ok){alert(d.error||'操作失败');return}
+    alert(d.message + (d.missing && d.missing.length ? '\n未同步到本地：'+ d.missing.length +' 条' : ''));
+    clearSel();loadOrders(oPage);loadStats();
+  }catch(e){alert('操作失败: '+e.message)}
+}
+
+// 批量改状态：通过 by-key/batch-status 一次性提交；服务端会写 user_status_locked=1
+// 下次外部 API 同步时这些订单的状态不会被覆盖
+async function batchChangeStatus(){
+  const keys = getSelKeys();
+  const newStatus = document.getElementById('batchStatusSel').value;
+  if(!keys.length){alert('请先勾选要改状态的订单'); return; }
+  if(!newStatus){alert('请选择目标状态'); return; }
+  if(!confirm('确认将选中的 '+keys.length+' 个订单状态批量改为：'+statusMap[newStatus]+' ？\n（会标记为本地锁定，下次外部同步不会覆盖这些状态）')) return;
+  try{
+    const userId = (JSON.parse(localStorage.getItem('user')||'{}').id) || null;
+    const r = await fetch(API + '/by-key/batch-status', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ items: keys, status: newStatus, user_id: userId })
+    });
+    const d = await r.json();
+    if(!r.ok){ alert('操作失败：' + (d.error || r.status)); return; }
+    let msg = d.message || '完成';
+    if (d.missing && d.missing.length) msg += '\n未同步到本地：' + d.missing.length + ' 条（需先点顶部「同步订单」）';
+    if (d.no_change && d.no_change.length) msg += '\n未变：' + d.no_change.length + ' 条';
+    alert(msg);
+    document.getElementById('batchStatusSel').value = '';
+    clearSel();
+    loadOrders(oPage); loadStats();
+  } catch(e){ alert('操作失败: '+e.message); }
 }
 
 function exportOrders(){
-  fetch(API+'?limit=9999').then(r=>r.json()).then(d=>{
-    const list=d.data||[];
-    if(list.length===0){alert('暂无数据可导出');return}
-    const headers=['订单号','行号','客户','产品代码','产品名称','数量','完成数','金额','状态','风险','承诺交期','计划交期','上线时间','备注'];
-    let csv='\uFEFF'+headers.join(',')+'\n';
-    // [H8] CSV 公式注入防护
-    const cs = window.csvSafe || (s => /^[=+\-@\t\r]/.test(String(s)) ? "'"+s : s);
-    list.forEach(o=>{
-      const row=[o.order_no||'',o.line_no||'',o.customer_name||'',o.product_code||'',o.product_name||'',
-        o.quantity||'',o.completed_qty||'',o.order_amount||'',statusMap[o.status]||o.status||'',
-        o.risk_level||'',o.promised_date||'',o.plan_date||'',o.online_date||'',
-        (o.remarks||'').replace(/,/g,'，')].map(v=>cs(String(v).replace(/,/g,'，')));
-      csv+=row.join(',')+'\n';
+  // 导出：走外部 API，全量拉取（不依赖筛选；最多500条，可分批）
+  const headers=['订单号','行号','客户','客户代码','产品代码','产品名称','数量','完成数','金额','状态','风险','承诺交期','计划上线','入库','发货','交付'];
+  const cs = window.csvSafe || (s => /^[=+\-@\t\r]/.test(String(s)) ? "'"+s : s);
+  const p=new URLSearchParams({ page: 1, page_size: 500 });
+  fetch(LIST_API + '?' + p.toString()).then(r=>r.json()).then(async d => {
+    const list = d.data || [];
+    if (list.length === 0) { alert('暂无数据可导出'); return; }
+    let csv = '\uFEFF' + headers.join(',') + '\n';
+    list.forEach(o => {
+      const row = [
+        o.order_no || '', o.line_no || '',
+        o.customer || '', o.customer_code || '',
+        o.product_code || '', o.product_name || '',
+        o.order_qty || 0, o.completed_qty != null ? o.completed_qty : '',
+        o.order_amount || 0,
+        o.status || '', o.risk_level || '',
+        o.promised_date || '', o.planned_online_date || '',
+        o.warehouse_date || '', o.ship_date || '', o.delivery_date || ''
+      ].map(v => cs(String(v).replace(/,/g, '，')));
+      csv += row.join(',') + '\n';
     });
-    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='订单管理_'+new Date().toISOString().slice(0,10)+'.csv';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = '订单管理_' + new Date().toISOString().slice(0, 10) + '.csv';
     a.click();
-  }).catch(e=>{alert('导出失败: '+e.message)});
+  }).catch(e => { alert('导出失败: ' + e.message); });
 }
 
 function openForm(title,fields,data,onSave){
@@ -279,5 +659,9 @@ loadStats();
 loadOrders(1);
 </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
+
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="data-scope.js"></script><script>window.DataScope && window.DataScope.load().then(()=>{try{window.DataScope.renderBanner('.search-bar');}catch(e){}});</script>
 </body></html>

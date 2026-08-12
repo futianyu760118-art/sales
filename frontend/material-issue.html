@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 领料单</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.r{text-align:right}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:760px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:46px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-out{background:#d4edda;color:#155724}.st-ret{background:#f8d7da;color:#721c24}.st-scr{background:#fff3cd;color:#856404}.st-prod{background:#d1ecf1;color:#0c5460}
+.tbl-wrap{overflow-x:auto;max-height:62vh;overflow-y:auto}
+.pg{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;color:#666;flex-wrap:wrap;gap:8px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.panel h3{margin:0 0 10px;font-size:14px;color:#444}
+.hbar{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+.hbar .lb{width:160px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.hbar .track{flex:1;height:16px;background:#f0f2f8;border-radius:4px;overflow:hidden}
+.hbar .fill{height:100%;border-radius:4px}
+.hbar .val{font-weight:600;color:#333;width:96px;text-align:right;flex-shrink:0}
+.sug{font-size:11px;color:#888;margin-top:2px}
+.sug b{color:#667eea}
+.ac-list{max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:4px;margin-top:2px}
+.ac-list div{padding:5px 8px;cursor:pointer;font-size:12px}
+.ac-list div:hover{background:#f0f3ff}
+</style></head><body data-page-title="领料单" data-page-perm="material-issue:view">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="material-issue">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>领料单 / 出库单</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn b1" onclick="openAdd()" data-perm="material-issue:create">新增领料</button>
+<button class="btn b4" onclick="exportCsv()" data-perm="material-issue:view">导出CSV</button>
+<button class="btn b3" onclick="batchDelete()" data-perm="material-issue:delete">批量删除</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('list',this)">领料明细</button>
+<button onclick="swTab('byorder',this)">按订单归集</button>
+<button onclick="swTab('analysis',this)">数据分析</button>
+<button onclick="swTab('quality',this)">数据质检</button>
+<button onclick="swTab('ext',this)">外部对接</button>
+</div>
+
+<!-- ===== 领料明细 ===== -->
+<div class="tc ac" id="tab-list">
+<div class="sg" id="statCards"></div>
+<div class="panel">
+<h3>筛选条件</h3>
+<div class="sb">
+<input type="text" id="f_kw" placeholder="关键字(单号/订单/物料)" style="width:200px">
+<input type="text" id="f_order" placeholder="订单号" style="width:150px">
+<select id="f_type"><option value="">全部类型</option></select>
+<select id="f_dept"><option value="">全部部门</option></select>
+<select id="f_wh"><option value="">全部仓库</option></select>
+<select id="f_month"><option value="">全部月份</option></select>
+<button class="btn b1" onclick="loadList(1)">查询</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="resetFilter()">重置</button>
+</div>
+</div>
+<div class="tbl-wrap">
+<table id="tbl">
+<thead><tr>
+<th style="width:30px"><input type="checkbox" onclick="toggleAll(this)"></th>
+<th>领料单号</th><th>订单号</th><th>物料编码</th><th>物料名称</th><th>规格</th>
+<th>类型</th><th class="r">数量</th><th class="r">单价</th><th class="r">金额</th>
+<th>领料日期</th><th>部门</th><th>操作</th>
+</tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div class="pg" id="pg"></div>
+</div>
+
+<!-- ===== 按订单归集 ===== -->
+<div class="tc" id="tab-byorder">
+<div class="panel">
+<h3>按订单归集实际物料成本</h3>
+<div class="sb">
+<input type="text" id="bo_order" placeholder="输入订单号(完整)" style="width:240px">
+<button class="btn b1" onclick="loadByOrder()">归集</button>
+</div>
+<div id="boBox"><div class="em">输入订单号后点击「归集」，查看该订单的全部领料明细与物料汇总</div></div>
+</div>
+</div>
+
+<!-- ===== 数据分析 ===== -->
+<div class="tc" id="tab-analysis">
+<div class="sb">
+<select id="a_month"><option value="">全部月份</option></select>
+<select id="a_type"><option value="">全部类型</option></select>
+<select id="a_dept"><option value="">全部部门</option></select>
+<button class="btn b1" onclick="loadStats()">分析</button>
+</div>
+<div id="anaBox"></div>
+</div>
+
+<!-- ===== 数据质检 ===== -->
+<div class="tc" id="tab-quality">
+<div style="margin-bottom:10px"><button class="btn b1" onclick="loadQuality()">运行质检</button></div>
+<div id="qBox"><div class="em">点击「运行质检」检查数据完整性（订单关联、物料、单价、数量等）</div></div>
+</div>
+
+<!-- ===== 外部对接 ===== -->
+<div class="tc" id="tab-ext">
+<div class="panel">
+<h3>外部 API 对接配置</h3>
+<p style="font-size:12px;color:#888;margin:0 0 12px">配置外部领料单/出库单数据源（如 ERP、WMS）。启用后可通过「同步」拉取领料明细（按领料单号去重更新）。</p>
+<div class="gr2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div class="fg"><label>是否启用</label><select id="ext_enabled"><option value="false">未启用</option><option value="true">启用</option></select></div>
+<div class="fg"><label>接口地址 Base URL</label><input id="ext_base_url" placeholder="https://erp.example.com/api/material-issue/list"></div>
+<div class="fg"><label>App Key</label><input id="ext_app_key"></div>
+<div class="fg"><label>App Secret</label><input id="ext_app_secret"></div>
+<div class="fg"><label>Endpoint Code（签名用）</label><input id="ext_endpoint_code" value="material_issues.list"></div>
+</div>
+<div style="text-align:right;margin-top:8px">
+<button class="btn b2" onclick="saveExtConfig()" data-perm="material-issue:edit">保存配置</button>
+<button class="btn b1" onclick="syncExt()" data-perm="material-issue:create">立即同步</button>
+</div>
+<div id="extResult" style="margin-top:10px;font-size:13px"></div>
+</div>
+</div>
+
+<!-- ===== 表单弹窗 ===== -->
+<div class="mo" id="formModal">
+<div class="mb">
+<form onsubmit="saveForm();return false">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 id="formTitle" style="margin:0">新增领料</h3>
+<span style="cursor:pointer;font-size:20px;color:#999" onclick="closeForm()">×</span>
+</div>
+<input type="hidden" id="f_id">
+<div class="fg"><label>领料单号</label><input id="f_code" placeholder="留空则自动生成（LL年月-流水号）"></div>
+<div class="fg"><label>关联订单号 <span style="color:#e74c3c">*</span></label>
+<input id="f_order" autocomplete="off" oninput="searchOrders(this.value)" placeholder="输入订单号/客户/产品搜索">
+<div class="ac-list" id="orderSug" style="display:none"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>产品编码</label><input id="f_pcode" placeholder="选订单后自动带出"></div>
+<div class="fg"><label>产品名称</label><input id="f_pname"></div>
+</div>
+<div class="fg"><label>物料编码 / 名称 <span style="color:#e74c3c">*</span></label>
+<input id="f_mat" autocomplete="off" oninput="searchMats(this.value)" placeholder="输入物料编码/名称搜索（自动带单价）">
+<div class="ac-list" id="matSug" style="display:none"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>物料编码</label><input id="f_mcode"></div>
+<div class="fg"><label>规格</label><input id="f_spec"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>单位</label><input id="f_unit" value="pcs"></div>
+<div class="fg"><label>领料类型</label><select id="f_itype"><option>生产领料</option><option>补料</option><option>退料</option><option>报废</option><option>调拨</option><option>售后领料</option></select></div>
+</div>
+<div class="gr">
+<div class="fg"><label>数量 <span style="color:#e74c3c">*</span></label><input type="number" step="0.0001" id="f_qty" oninput="calcAmt()"></div>
+<div class="fg"><label>单价</label><input type="number" step="0.0001" id="f_price" oninput="calcAmt()"></div>
+</div>
+<div class="fg"><label>金额（退料自动取负）</label><input type="number" step="0.01" id="f_amount" readonly style="background:#f5f6fa"></div>
+<div class="gr">
+<div class="fg"><label>领料日期</label><input type="date" id="f_date"></div>
+<div class="fg"><label>归属月份</label><input id="f_month" placeholder="YYYY-MM（留空按日期推导）"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>部门</label><input id="f_dept"></div>
+<div class="fg"><label>仓库</label><input id="f_wh"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>发料人</label><input id="f_issued"></div>
+<div class="fg"><label>收料人</label><input id="f_recv"></div>
+</div>
+<div class="fg"><label>备注</label><textarea id="f_remarks"></textarea></div>
+<div style="text-align:right;margin-top:10px">
+<button type="button" class="btn bs" style="background:#eee;color:#555" onclick="closeForm()">取消</button>
+<button type="submit" class="btn b2">保存</button>
+</div>
+</form>
+</div>
+</div>
+
+<script src="common.js"></script>
+<script src="fetch-auth.js"></script>
+<script>
+const API='/api/material-issues';
+let meta={}, curPage=1, total=0, LIMIT=20, selected=new Set();
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function yuan(n){return '¥'+(Math.round((Number(n)||0)*100)/100).toLocaleString()}
+function toast(m){let d=document.createElement('div');d.textContent=m;d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:6px;z-index:9999;font-size:13px';document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function swTab(name,btn){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('ac'));document.getElementById('tab-'+name).classList.add('ac');document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));btn.classList.add('ac');if(name==='analysis')loadStats();if(name==='quality')loadQuality();}
+
+function qs(){const p=new URLSearchParams();['f_kw','f_order','f_type','f_dept','f_wh','f_month'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({f_kw:'keyword',f_order:'order_no',f_type:'issue_type',f_dept:'department',f_wh:'warehouse',f_month:'work_month'}[id],v)});return p}
+
+async function loadFilterOpts(){
+  try{
+    const r=await fetch(API+'/meta/filter-options');meta=await r.json();
+    fillSel('f_type',meta.standard_issue_types||meta.issue_types);
+    fillSel('f_dept',meta.departments);
+    fillSel('f_wh',meta.warehouses);
+    fillSel('f_month',meta.work_months);
+    fillSel('a_month',meta.work_months||[]);
+    fillSel('a_type',meta.standard_issue_types||[]);
+    fillSel('a_dept',meta.departments||[]);
+  }catch(e){console.error(e)}
+}
+function fillSel(id,arr){const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;const first=sel.options[0]?sel.options[0].outerHTML:'';sel.innerHTML=first+(arr||[]).map(v=>'<option>'+esc(v)+'</option>').join('');sel.value=cur;}
+
+async function loadStatCards(){
+  try{
+    const r=await fetch(API+'/dashboard/stats');const d=await r.json();
+    const cards=[
+      {n:d.total,l:'领料记录数',c:'#667eea'},
+      {n:yuan(d.total_amount),l:'领料总额',c:'#27ae60'},
+      {n:d.total_qty,l:'领料总数量',c:'#764ba2'},
+      {n:(d.by_order||[]).length,l:'关联订单数',c:'#f39c12'}
+    ];
+    document.getElementById('statCards').innerHTML=cards.map(c=>'<div class="sc"><div class="n" style="color:'+c.c+'">'+esc(c.n)+'</div><div class="l">'+c.l+'</div></div>').join('');
+  }catch(e){}
+}
+
+async function loadList(p){
+  curPage=p||1;
+  try{
+    const r=await fetch(API+'?'+qs().toString()+'&page='+curPage+'&limit='+LIMIT);
+    const d=await r.json();total=d.total;
+    const tb=document.getElementById('tb');
+    if(!d.data.length){tb.innerHTML='<tr><td colspan="13" class="em">暂无领料记录，点击「新增领料」</td></tr>'}
+    else{
+      tb.innerHTML=d.data.map(r=>'<tr>'+
+        '<td><input type="checkbox" class="row-sel" data-id="'+r.id+'"'+(selected.has(r.id)?' checked':'')+'></td>'+
+        '<td>'+esc(r.issue_code)+'</td>'+
+        '<td>'+(r.order_no?'<a href="order-analysis.html#order='+esc(r.order_no)+'" style="color:#667eea">'+esc(r.order_no)+'</a>':'<span style="color:#e74c3c">未关联</span>')+'</td>'+
+        '<td>'+esc(r.material_code)+'</td>'+
+        '<td>'+esc(r.material_name)+'</td>'+
+        '<td>'+esc(r.spec)+'</td>'+
+        '<td>'+typeBadge(r.issue_type)+'</td>'+
+        '<td class="r">'+esc(r.quantity)+'</td>'+
+        '<td class="r">'+esc(r.unit_price)+'</td>'+
+        '<td class="r"><b>'+yuan(r.amount)+'</b></td>'+
+        '<td>'+esc(r.issue_date)+'</td>'+
+        '<td>'+esc(r.department)+'</td>'+
+        '<td><button class="btn bs b4" onclick="openEdit('+r.id+')" data-perm="material-issue:edit">编辑</button> <button class="btn bs b3" onclick="del('+r.id+')" data-perm="material-issue:delete">删</button></td>'+
+        '</tr>').join('');
+    }
+    renderPg();applyPerms();
+  }catch(e){toast('加载失败: '+e.message)}
+}
+function typeBadge(s){const m={'生产领料':'st-prod','退料':'st-ret','报废':'st-scr','补料':'st-out'};return '<span class="badge '+(m[s]||'st-prod')+'">'+esc(s||'-')+'</span>'}
+function renderPg(){const pages=Math.ceil(total/LIMIT)||1;const el=document.getElementById('pg');el.innerHTML='<span>共 '+total+' 条，第 '+curPage+'/'+pages+' 页</span><div>'+(curPage>1?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage-1)+')">上一页</button>':'')+(curPage<pages?'<button class="btn bs" style="background:#eee;margin-left:6px" onclick="loadList('+(curPage+1)+')">下一页</button>':'')+'</div>'}
+function toggleAll(el){document.querySelectorAll('.row-sel').forEach(c=>{c.checked=el.checked;if(el.checked)selected.add(Number(c.dataset.id));else selected.clear()})}
+function resetFilter(){['f_kw','f_order','f_type','f_dept','f_wh','f_month'].forEach(id=>document.getElementById(id).value='');loadList(1)}
+
+// 订单搜索
+let _orderTimer=null;
+function searchOrders(kw){
+  clearTimeout(_orderTimer);
+  const sug=document.getElementById('orderSug');
+  if(!kw||kw.length<1){sug.style.display='none';return}
+  _orderTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(API+'/meta/orders?keyword='+encodeURIComponent(kw));const d=await r.json();
+      sug.innerHTML=(d.data||[]).slice(0,15).map(o=>'<div onclick="pickOrder('+esc(JSON.stringify(o))+')"><b>'+esc(o.order_no)+'</b> '+esc(o.customer_name)+' '+(o.product_name?esc(o.product_name):'')+' (qty:'+esc(o.quantity)+')</div>').join('');
+      sug.style.display=d.data.length?'block':'none';
+    }catch(e){}
+  },250);
+}
+function pickOrder(o){document.getElementById('f_order').value=o.order_no;document.getElementById('f_pcode').value=o.product_code||'';document.getElementById('f_pname').value=o.product_name||'';document.getElementById('orderSug').style.display='none'}
+
+// 物料搜索
+let _matTimer=null;
+function searchMats(kw){
+  clearTimeout(_matTimer);
+  const sug=document.getElementById('matSug');
+  if(!kw||kw.length<1){sug.style.display='none';return}
+  _matTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(API+'/meta/materials?keyword='+encodeURIComponent(kw));const d=await r.json();
+      sug.innerHTML=(d.data||[]).slice(0,15).map(m=>'<div onclick="pickMat('+esc(JSON.stringify(m))+')"><b>'+esc(m.material_code)+'</b> '+esc(m.material_name)+' (单价:'+esc(m.unit_price)+'/'+esc(m.unit||'pcs')+')</div>').join('');
+      sug.style.display=d.data.length?'block':'none';
+    }catch(e){}
+  },250);
+}
+function pickMat(m){document.getElementById('f_mat').value=m.material_name||'';document.getElementById('f_mcode').value=m.material_code||'';document.getElementById('f_price').value=m.unit_price||'';document.getElementById('f_unit').value=m.unit||'pcs';document.getElementById('matSug').style.display='none';calcAmt()}
+
+// 新增/编辑
+function openAdd(){resetForm();document.getElementById('formTitle').textContent='新增领料';document.getElementById('f_date').value=new Date().toISOString().substring(0,10);document.getElementById('f_month').value=new Date().toISOString().substring(0,7);document.getElementById('formModal').classList.add('ac')}
+async function openEdit(id){try{const r=await fetch(API+'/'+id);const d=await r.json();fillForm(d);document.getElementById('formTitle').textContent='编辑领料';document.getElementById('formModal').classList.add('ac')}catch(e){toast('加载失败')}}
+function resetForm(){['f_id','f_code','f_order','f_pcode','f_pname','f_mat','f_mcode','f_spec','f_qty','f_price','f_amount','f_date','f_month','f_dept','f_wh','f_issued','f_recv','f_remarks'].forEach(id=>document.getElementById(id).value='');document.getElementById('f_unit').value='pcs';document.getElementById('f_itype').value='生产领料';document.getElementById('orderSug').style.display='none';document.getElementById('matSug').style.display='none'}
+function fillForm(r){document.getElementById('f_id').value=r.id||'';document.getElementById('f_code').value=r.issue_code||'';document.getElementById('f_order').value=r.order_no||'';document.getElementById('f_pcode').value=r.product_code||'';document.getElementById('f_pname').value=r.product_name||'';document.getElementById('f_mat').value=r.material_name||'';document.getElementById('f_mcode').value=r.material_code||'';document.getElementById('f_spec').value=r.spec||'';document.getElementById('f_unit').value=r.unit||'pcs';document.getElementById('f_itype').value=r.issue_type||'生产领料';document.getElementById('f_qty').value=r.quantity||'';document.getElementById('f_price').value=r.unit_price||'';document.getElementById('f_amount').value=r.amount||'';document.getElementById('f_date').value=r.issue_date||'';document.getElementById('f_month').value=r.work_month||'';document.getElementById('f_dept').value=r.department||'';document.getElementById('f_wh').value=r.warehouse||'';document.getElementById('f_issued').value=r.issued_by||'';document.getElementById('f_recv').value=r.received_by||'';document.getElementById('f_remarks').value=r.remarks||''}
+function closeForm(){document.getElementById('formModal').classList.remove('ac')}
+function calcAmt(){const q=Number(document.getElementById('f_qty').value)||0;const p=Number(document.getElementById('f_price').value)||0;let a=Math.round(q*p*100)/100;if(document.getElementById('f_itype').value==='退料')a=-Math.abs(a);document.getElementById('f_amount').value=a}
+async function saveForm(){
+  const id=document.getElementById('f_id').value;
+  if(!document.getElementById('f_order').value&&!document.getElementById('f_mat').value){toast('订单号或物料名称必填');return}
+  const body={issue_code:document.getElementById('f_code').value,order_no:document.getElementById('f_order').value,product_code:document.getElementById('f_pcode').value,product_name:document.getElementById('f_pname').value,material_code:document.getElementById('f_mcode').value,material_name:document.getElementById('f_mat').value,spec:document.getElementById('f_spec').value,unit:document.getElementById('f_unit').value,issue_type:document.getElementById('f_itype').value,quantity:document.getElementById('f_qty').value,unit_price:document.getElementById('f_price').value,issue_date:document.getElementById('f_date').value,work_month:document.getElementById('f_month').value,department:document.getElementById('f_dept').value,warehouse:document.getElementById('f_wh').value,issued_by:document.getElementById('f_issued').value,received_by:document.getElementById('f_recv').value,remarks:document.getElementById('f_remarks').value,source:'手工录入'};
+  try{
+    const r=await fetch(id?API+'/'+id:API+'/',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();if(!r.ok){toast(d.error||'保存失败');return}
+    toast('保存成功');closeForm();loadList(curPage);loadStatCards();
+  }catch(e){toast('保存失败: '+e.message)}
+}
+async function del(id){if(!confirm('确认删除该领料记录？'))return;try{const r=await fetch(API+'/'+id,{method:'DELETE'});const d=await r.json();if(!r.ok){toast(d.error);return}toast('已删除');loadList(curPage);loadStatCards()}catch(e){toast(e.message)}}
+async function batchDelete(){const ids=[...selected];if(!ids.length){toast('请勾选要删除的记录');return}if(!confirm('确认删除选中的 '+ids.length+' 条记录？'))return;try{const r=await fetch(API+'/batch-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});const d=await r.json();if(!r.ok){toast(d.error);return}toast(d.message);selected.clear();loadList(curPage);loadStatCards()}catch(e){toast(e.message)}}
+
+function exportCsv(){window.open(API+'/export/csv','_blank')}
+
+// 按订单归集
+async function loadByOrder(){
+  const on=document.getElementById('bo_order').value.trim();if(!on){toast('请输入订单号');return}
+  const box=document.getElementById('boBox');box.innerHTML='<div class="em">归集中...</div>';
+  try{
+    const r=await fetch(API+'/by-order/'+encodeURIComponent(on));const d=await r.json();
+    const items=(d.items||[]).map(r=>'<tr><td>'+esc(r.issue_code)+'</td><td>'+esc(r.material_code)+'</td><td>'+esc(r.material_name)+'</td><td>'+typeBadge(r.issue_type)+'</td><td class="r">'+esc(r.quantity)+'</td><td class="r">'+esc(r.unit_price)+'</td><td class="r"><b>'+yuan(r.amount)+'</b></td><td>'+esc(r.issue_date)+'</td></tr>').join('');
+    const byMat=(d.by_material||[]).map(m=>'<tr><td>'+esc(m.material_code)+'</td><td>'+esc(m.material_name)+'</td><td class="r">'+esc(m.qty)+'</td><td class="r"><b>'+yuan(m.amount)+'</b></td></tr>').join('');
+    box.innerHTML=
+    '<div class="sg">'+card(d.count,'领料笔数','#667eea')+card(yuan(d.total_amount),'实际物料成本合计','#27ae60')+card((d.by_material||[]).length,'物料种类数','#764ba2')+'</div>'+
+    '<div class="panel"><h3>物料汇总（按编码聚合）</h3>'+(byMat?'<table><thead><tr><th>物料编码</th><th>物料名称</th><th class="r">总数量</th><th class="r">总金额</th></tr></thead><tbody>'+byMat+'</tbody></table>':'<div class="em">无数据</div>')+'</div>'+
+    '<div class="panel"><h3>领料明细（'+d.count+'笔）</h3>'+(items?'<div class="tbl-wrap"><table><thead><tr><th>单号</th><th>物料编码</th><th>物料名称</th><th>类型</th><th class="r">数量</th><th class="r">单价</th><th class="r">金额</th><th>日期</th></tr></thead><tbody>'+items+'</tbody></table></div>':'<div class="em">该订单暂无领料记录</div>')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">归集失败: '+esc(e.message)+'</div>'}
+}
+
+// 分析
+function aQs(){const p=new URLSearchParams();['a_month','a_type','a_dept'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({a_month:'work_month',a_type:'issue_type',a_dept:'department'}[id],v)});return p}
+async function loadStats(){
+  const box=document.getElementById('anaBox');box.innerHTML='<div class="em">分析中...</div>';
+  try{
+    const r=await fetch(API+'/dashboard/stats?'+aQs().toString());const d=await r.json();
+    const maxBar=v=>Math.max(1,...v);
+    const bars=(arr,color)=>{const m=maxBar(arr.map(x=>x.value));return arr.length?arr.map(x=>'<div class="hbar"><span class="lb" title="'+esc(x.name)+'">'+esc(x.name)+'</span><div class="track"><div class="fill" style="width:'+((x.value/m)*100)+'%;background:'+color+'"></div></div><span class="val">'+yuan(x.value)+'</span></div>').join(''):'<div class="em">无数据</div>'};
+    box.innerHTML=
+    '<div class="sg">'+card(d.total,'领料记录数','#667eea')+card(yuan(d.total_amount),'领料总额','#27ae60')+card(d.total_qty,'领料总数量','#764ba2')+card((d.by_order||[]).length,'关联订单数','#f39c12')+'</div>'+
+    '<div class="panel"><h3>🏷 按领料类型</h3>'+bars(d.by_type||[],'#667eea')+'</div>'+
+    '<div class="panel"><h3>🏢 按部门</h3>'+bars(d.by_department||[],'#27ae60')+'</div>'+
+    '<div class="panel"><h3>📦 按仓库</h3>'+bars(d.by_warehouse||[],'#2980b9')+'</div>'+
+    '<div class="panel"><h3>📈 按月份趋势</h3>'+bars((d.by_month||[]).slice().reverse(),'#f39c12')+'</div>'+
+    '<div class="panel"><h3>🏆 订单物料成本 TOP</h3>'+bars((d.by_order||[]).slice(0,15),'#8e44ad')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
+}
+function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+'">'+esc(n)+'</div><div class="l">'+l+'</div></div>'}
+
+// 质检
+async function loadQuality(){
+  const box=document.getElementById('qBox');box.innerHTML='<div class="em">质检中...</div>';
+  try{
+    const r=await fetch(API+'/quality-check');const d=await r.json();
+    const sev={severe:'严重',warning:'警告',info:'提示'};
+    const sevCls={severe:'sev-severe',warning:'sev-warning',info:'sev-info'};
+    const issues=(d.issues||[]).slice(0,200).map(i=>'<div class="chk-row"><span><span class="'+sevCls[i.severity]+'" style="font-weight:700">['+sev[i.severity]+']</span> '+esc(i.message)+' <small style="color:#999">'+esc(i.issue_code||i.order_no)+'</small></span><a onclick="openEdit('+i.id+')" style="color:#667eea;cursor:pointer">去修复</a></div>').join('');
+    box.innerHTML=
+    '<style>.sev-severe{color:#e74c3c}.sev-warning{color:#f39c12}.sev-info{color:#888}.chk-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee;font-size:13px}</style>'+
+    '<div class="sg">'+card(d.total,'记录总数','#667eea')+card(d.affected+' ('+(d.total?(Math.round(d.affected/d.total*1000)/10):0)+'%)','存在问题','#e74c3c')+card(d.pass_rate+'%','通过率','#27ae60')+card(d.issue_count,'问题数','#f39c12')+'</div>'+
+    '<div class="panel"><h3>问题清单</h3>'+(issues||'<div class="em">未发现问题</div>')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">'+esc(e.message)+'</div>'}
+}
+
+function applyPerms(){if(window.PermissionCheck)PermissionCheck.applyToPage()}
+document.addEventListener('change',e=>{if(e.target.classList.contains('row-sel')){const id=Number(e.target.dataset.id);if(e.target.checked)selected.add(id);else selected.delete(id)}});
+
+// ===== 外部对接 =====
+async function loadExtConfig(){
+  try{
+    const r=await fetch(API+'/external/config');const d=await r.json();
+    document.getElementById('ext_enabled').value=String(d.enabled===true);
+    document.getElementById('ext_base_url').value=d.base_url||'';
+    document.getElementById('ext_app_key').value=d.app_key||'';
+    document.getElementById('ext_app_secret').value=d.app_secret||'';
+    document.getElementById('ext_endpoint_code').value=d.endpoint_code||'material_issues.list';
+  }catch(e){}
+}
+async function saveExtConfig(){
+  const body={enabled:document.getElementById('ext_enabled').value==='true',base_url:document.getElementById('ext_base_url').value,app_key:document.getElementById('ext_app_key').value,app_secret:document.getElementById('ext_app_secret').value,endpoint_code:document.getElementById('ext_endpoint_code').value};
+  try{const r=await fetch(API+'/external/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok){toast(d.error);return}toast(d.message)}catch(e){toast(e.message)}
+}
+async function syncExt(){
+  const el=document.getElementById('extResult');el.textContent='正在同步...';
+  try{const r=await fetch(API+'/sync-from-external',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await r.json();if(!r.ok){el.innerHTML='<span style="color:#e74c3c">'+esc(d.error)+'</span>';return}el.innerHTML='<span style="color:#27ae60">'+esc(d.message)+'（新增'+d.added+' 更新'+d.updated+' 跳过'+d.skipped+'）</span>';loadList(curPage);loadStatCards()}catch(e){el.innerHTML='<span style="color:#e74c3c">'+esc(e.message)+'</span>'}
+}
+
+// 初始化 + URL hash 自动归集
+loadFilterOpts().then(()=>{loadStatCards();loadList(1)});
+loadExtConfig();
+(function(){const h=location.hash;if(h.startsWith('#order=')){const on=decodeURIComponent(h.substring(7));document.getElementById('bo_order').value=on;swTab('byorder',document.querySelectorAll('#tabNav button')[1]);loadByOrder()}})();
+</script>
+<script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

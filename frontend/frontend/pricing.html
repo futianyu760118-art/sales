@@ -474,7 +474,7 @@ async function syncAllData() {
 // 导出核价数据（字段与编辑表单/导入模板对齐）
 async function exportPricing() {
   try {
-    const params = new URLSearchParams({ page: 1, limit: 9999 });
+    const params = new URLSearchParams({ page: 1, limit:(window._pageSize||9999) });
     ['keyword','customer','inquiry_no','model'].forEach(k => {
       const id = {keyword:'keywordInput',customer:'customerInput',inquiry_no:'inquiryInput',model:'modelInput'}[k];
       const v = document.getElementById(id).value;
@@ -521,7 +521,7 @@ async function loadStats() {
 }
 
 async function loadPricing(page = 1) {
-  const params = new URLSearchParams({ page, limit: 15 });
+  const params = new URLSearchParams({ page, limit:(window._pageSize||15) });
   ['keyword','customer','inquiry_no','model'].forEach(k => {
     const id = {keyword:'keywordInput',customer:'customerInput',inquiry_no:'inquiryInput',model:'modelInput'}[k];
     const v = document.getElementById(id).value;

@@ -53,7 +53,10 @@ const TABLE_SHEET_HINTS = {
   project_supply_issues: ['品质', '异常', '供应链'],
   project_sales_promotion: ['推广', '销售'],
   project_reviews: ['复盘'],
-  project_initiation: ['立项', '申请书']
+  project_initiation: ['立项', '申请书'],
+  expenses: ['费用'],
+  labor: ['人工', '工资'],
+  product_labor_rate: ['成品工价', '工价库', '产品工价']
 };
 function pickSheetName(workbook, tableName) {
   const names = (workbook && workbook.SheetNames) || [];
@@ -183,6 +186,67 @@ const fieldMappings = {
     '总价': 'total_amount', '金额': 'total_amount', '小计': 'total_amount',
     '入库时间': 'stock_date', '入库日期': 'stock_date', '日期': 'stock_date',
     '备注': 'remarks'
+  },
+  expenses: {
+    '费用编码': 'expense_code', '编码': 'expense_code', '编号': 'expense_code',
+    '费用名称': 'expense_name', '名称': 'expense_name', '摘要': 'expense_name',
+    '费用大类': 'expense_category', '大类': 'expense_category', '费用类别': 'expense_category',
+    '费用细类': 'expense_type', '细类': 'expense_type', '子类': 'expense_type', '类型': 'expense_type',
+    '所属部门': 'department', '部门': 'department',
+    '关联项目': 'project', '项目': 'project',
+    '收款方': 'supplier', '供应商': 'supplier', '对方单位': 'supplier', '收款单位': 'supplier',
+    '发生日期': 'occur_date', '日期': 'occur_date', '费用日期': 'occur_date',
+    '归属账期': 'account_period', '账期': 'account_period', '月份': 'account_period',
+    '金额': 'amount', '不含税金额': 'amount', '费用金额': 'amount',
+    '税率': 'tax_rate',
+    '税额': 'tax_amount',
+    '价税合计': 'total_amount', '合计': 'total_amount', '含税金额': 'total_amount',
+    '币种': 'currency',
+    '支付方式': 'payment_method',
+    '支付状态': 'payment_status', '状态': 'payment_status',
+    '经办人': 'payee', '报销人': 'payee',
+    '发票号': 'invoice_no', '发票号码': 'invoice_no',
+    '发票类型': 'invoice_type',
+    '数据来源': 'source', '来源': 'source',
+    '备注': 'remarks', '说明': 'remarks'
+  },
+  labor: {
+    '人工编码': 'labor_code', '编码': 'labor_code', '记录编号': 'labor_code',
+    '员工姓名': 'employee_name', '姓名': 'employee_name', '人员': 'employee_name',
+    '工号': 'employee_no', '员工编号': 'employee_no',
+    '部门': 'department',
+    '岗位': 'position', '职务': 'position',
+    '人工类型': 'labor_type', '类型': 'labor_type', '计薪方式': 'labor_type',
+    '工作日期': 'work_date', '日期': 'work_date',
+    '归属月份': 'work_month', '月份': 'work_month', '工资月份': 'work_month',
+    '工时': 'hours', '正常工时': 'hours', '出勤工时': 'hours',
+    '加班工时': 'overtime_hours',
+    '件数': 'pieces', '完工件数': 'pieces', '产量': 'pieces',
+    '单价': 'unit_price', '时薪': 'unit_price', '计件单价': 'unit_price',
+    '基本工资': 'base_amount', '底薪': 'base_amount', '月薪': 'base_amount',
+    '加班费': 'overtime_pay',
+    '补贴': 'subsidy', '津贴': 'subsidy',
+    '奖金': 'bonus', '绩效': 'bonus', '奖金/绩效': 'bonus',
+    '社保': 'social_insurance', '社保(企业)': 'social_insurance',
+    '公积金': 'housing_fund', '公积金(企业)': 'housing_fund',
+    '合计金额': 'total_amount', '合计': 'total_amount', '人工成本': 'total_amount', '应发': 'total_amount',
+    '关联项目': 'project', '项目': 'project',
+    '数据来源': 'source', '来源': 'source',
+    '备注': 'remarks', '说明': 'remarks'
+  },
+  product_labor_rate: {
+    'bom编号': 'bom_no', 'bom_no': 'bom_no', 'BOM编号': 'bom_no', 'BOM': 'bom_no',
+    '产品编码': 'product_code', '产品编号': 'product_code', '编码': 'product_code',
+    '产品名称': 'product_name', '名称': 'product_name',
+    '工价': 'labor_rate', '单台工价': 'labor_rate', '成品工价': 'labor_rate', '工价(元/台)': 'labor_rate',
+    '计价方式': 'labor_rate_type', '工价类型': 'labor_rate_type', '类型': 'labor_rate_type',
+    '工艺成本': 'process_cost', '单台工艺': 'process_cost',
+    '生效日': 'effective_date', '生效日期': 'effective_date',
+    '失效日': 'expire_date', '失效日期': 'expire_date',
+    '来源': 'source', '数据来源': 'source',
+    '审核状态': 'audit_status', '状态': 'audit_status',
+    '审核人': 'approved_by',
+    '备注': 'remarks', '说明': 'remarks'
   },
   bom_pricing: {
     '客户编号': 'customer', '客户': 'customer', '客户代码': 'customer',
@@ -405,6 +469,50 @@ function validateRow(row, tableName) {
     if (row.product_id !== undefined) row.product_id = row.product_id || null;
     if (!row.status) row.status = 'normal';
     if (!row.unit) row.unit = '个';
+  } else if (tableName === 'expenses') {
+    if (!row.expense_name) errors.push('费用名称不能为空');
+    ['amount', 'tax_rate', 'tax_amount', 'total_amount'].forEach(f => {
+      if (row[f] !== undefined) row[f] = toNum(row[f]);
+    });
+    if (row.amount === undefined) row.amount = 0;
+    if (!row.source) row.source = 'Excel导入';
+    if (!row.currency) row.currency = 'CNY';
+    if (!row.payment_status) row.payment_status = '未付';
+    if (!row.account_period && row.occur_date) row.account_period = String(row.occur_date).replace('/', '-').substring(0, 7);
+    // 金额联动：缺税额/合计时按金额+税率推算
+    if (!row.tax_amount && row.amount !== undefined && row.tax_rate !== undefined) {
+      row.tax_amount = Math.round(Number(row.amount) * Number(row.tax_rate) / 100 * 100) / 100;
+    }
+    if (row.total_amount === undefined && row.amount !== undefined) {
+      row.total_amount = Math.round((Number(row.amount) + Number(row.tax_amount || 0)) * 100) / 100;
+    }
+  } else if (tableName === 'labor') {
+    if (!row.employee_name) errors.push('员工姓名不能为空');
+    ['hours', 'overtime_hours', 'pieces', 'unit_price', 'base_amount', 'overtime_pay',
+     'subsidy', 'bonus', 'social_insurance', 'housing_fund', 'total_amount'].forEach(f => {
+      if (row[f] !== undefined) row[f] = toNum(row[f]);
+    });
+    if (!row.labor_type) row.labor_type = '月薪';
+    if (!row.source) row.source = 'Excel导入';
+    if (!row.work_month && row.work_date) row.work_month = String(row.work_date).replace('/', '-').substring(0, 7);
+    // 合计联动：缺合计时按类型推算
+    if (row.total_amount === undefined) {
+      let core = Number(row.base_amount || 0);
+      if (row.labor_type === '计时') core = Number(row.unit_price || 0) * Number(row.hours || 0);
+      else if (row.labor_type === '计件') core = Number(row.unit_price || 0) * Number(row.pieces || 0);
+      row.total_amount = Math.round((core + Number(row.overtime_pay || 0) + Number(row.subsidy || 0) +
+        Number(row.bonus || 0) + Number(row.social_insurance || 0) + Number(row.housing_fund || 0)) * 100) / 100;
+    }
+  } else if (tableName === 'product_labor_rate') {
+    if (!row.bom_no) errors.push('BOM编号(bom_no)不能为空');
+    if (row.labor_rate === undefined || row.labor_rate === '' || row.labor_rate === null) errors.push('工价(labor_rate)不能为空');
+    ['labor_rate', 'process_cost'].forEach(f => {
+      if (row[f] !== undefined && row[f] !== '') row[f] = toNum(row[f]);
+    });
+    if (row.labor_rate === undefined || row.labor_rate === '') row.labor_rate = 0;
+    if (!row.labor_rate_type) row.labor_rate_type = '标准工价';
+    if (!row.source) row.source = 'manual';
+    if (!row.audit_status) row.audit_status = 'pending';
   } else if (tableName === 'bom_pricing') {
     if (!row.model) errors.push('产品型号不能为空');
     ['kit', 'cable', 'light_source', 'driver', 'battery', 'bracket', 'switch_type',
@@ -478,7 +586,7 @@ function validateRow(row, tableName) {
 // ===== 解析Excel表头，返回字段映射配置 =====
 router.post('/parse-headers/:table', upload.single('file'), (req, res) => {
   const tableName = req.params.table;
-  const supportedTables = ['inquiries', 'customers', 'products', 'materials', 'bom_pricing', 'projects', 'project_progress', 'project_supply_issues', 'project_sales_promotion', 'project_reviews', 'project_initiation'];
+  const supportedTables = ['inquiries', 'customers', 'products', 'materials', 'bom_pricing', 'projects', 'project_progress', 'project_supply_issues', 'project_sales_promotion', 'project_reviews', 'project_initiation', 'expenses', 'labor', 'product_labor_rate'];
 
 
   if (!supportedTables.includes(tableName)) {
@@ -540,7 +648,7 @@ router.post('/parse-headers/:table', upload.single('file'), (req, res) => {
 // ===== 批量导入API（支持自定义映射） =====
 // ==================== 立项申请书多Sheet结构化导入 ====================
 // 按详情格式字段做字符匹配，解析主表+5子表，汇总为一条记录
-router.post('/project_initiation_structured', upload.single('file'), requirePerm('project:create'), (req, res) => {
+router.post('/project_initiation_structured', upload.single('file'), requirePerm('initiation:apply'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: '请上传文件' });
   try {
     const wb = XLSX.read(req.file.buffer, { type: 'buffer' });
@@ -672,6 +780,8 @@ router.post('/project_initiation_structured', upload.single('file'), requirePerm
     // 补充默认值
     if (!record.apply_date) record.apply_date = now().substring(0, 10);
     if (!record.approval_status) record.approval_status = 'draft';
+    if (!record.workflow_stage) record.workflow_stage = 'apply';
+    if (!record.step1_apply_date) record.step1_apply_date = record.apply_date;
 
     // 检查是否已存在同项目编号的记录
     const table = getTable('rd_project_initiation');
@@ -698,7 +808,7 @@ router.post('/project_initiation_structured', upload.single('file'), requirePerm
 
 router.post('/:table', upload.single('file'), (req, res) => {
   const tableName = req.params.table;
-  const supportedTables = ['inquiries', 'customers', 'products', 'materials', 'bom_pricing', 'projects', 'project_progress', 'project_supply_issues', 'project_sales_promotion', 'project_reviews', 'project_initiation'];
+  const supportedTables = ['inquiries', 'customers', 'products', 'materials', 'bom_pricing', 'projects', 'project_progress', 'project_supply_issues', 'project_sales_promotion', 'project_reviews', 'project_initiation', 'expenses', 'labor', 'product_labor_rate'];
 
 
   if (!supportedTables.includes(tableName)) {
@@ -927,6 +1037,18 @@ router.get('/template/:table', requirePerm('inquiry:import'), (req, res) => {
     materials: {
       headers: ['物料名称', '物料编码', '分类', '规格参数', '材质', '单位', '标准成本', '加工费', '加工损耗', '供应商', '物料状态', '证书要求', '产品ID', '单价', '数量', '备注'],
       sample: ['电容10uF', 'CAP-10UF', '常规物料', '100μF/400V', '铝电解', '个', 0.5, 0.1, 2, '深圳电子', 'normal', '国标', '1', 0.6, 10, '']
+    },
+    expenses: {
+      headers: ['费用编码', '费用名称', '费用大类', '费用细类', '所属部门', '关联项目', '收款方', '发生日期', '归属账期', '金额', '税率', '税额', '价税合计', '币种', '支付方式', '支付状态', '经办人', '发票号', '发票类型', '数据来源', '备注'],
+      sample: ['FY2026070001', '7月差旅费', '差旅费', '市内交通', '销售部', '', '中铁旅运', '2026-07-05', '2026-07', 3500, 6, 210, 3710, 'CNY', '银行转账', '已付', '张三', 'FP20260705', '增普', '手工录入', '客户拜访']
+    },
+    labor: {
+      headers: ['人工编码', '员工姓名', '工号', '部门', '岗位', '人工类型', '工作日期', '归属月份', '工时', '加班工时', '件数', '单价', '基本工资', '加班费', '补贴', '奖金/绩效', '社保', '公积金', '合计金额', '关联项目', '数据来源', '备注'],
+      sample: ['LR2026070001', '王伟', 'G00321', '装配车间', '装配工', '计时', '2026-07-15', '2026-07', 176, 24, 0, 25, 0, 600, 300, 200, 850, 210, 5610, '', '手工录入', '']
+    },
+    product_labor_rate: {
+      headers: ['BOM编号', '产品编码', '产品名称', '工价(元/台)', '计价方式', '工艺成本', '生效日', '失效日', '来源', '审核状态', '审核人', '备注'],
+      sample: ['JFS22-B1WB10S27-46-01', 'JFS22-B1WB10S27', 'S系列27W工作灯', 3.5, '标准工价', 0.5, '2026-01-01', '', 'manual', 'pending', '', '']
     },
     bom_pricing: {
       headers: ['客户编号', '询价单号', '产品型号', '产品名称', '功率', '产品系列', '证书是否符合标准', '证书等级', '套件', '电缆线', '光源', '驱动', '电池', '支架', '开关', '太阳能板', '插座', '盒子', '说明书', '包装', '配件', '人工', '合计成本', '人工加工费', '工艺成本', '预估损耗', '最低限价', '核价人', '核价链接', '报价(RMB)', '报价(USD)', '目标价', '核价版本', '备注'],
@@ -1235,6 +1357,7 @@ function parseInitiationMultiSheet(buffer, originalname) {
     sales_forecast: '', special_reqs: '',
     background: '', necessity: '', market_analysis: '',
     applicant: '', apply_date: '', approval_status: 'draft',
+    workflow_stage: 'apply',
   };
 
   // 辅助：从key-value行提取值

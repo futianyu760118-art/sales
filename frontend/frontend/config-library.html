@@ -93,7 +93,7 @@ async function loadConfigTypes(){
 
 async function loadConfigs(page){
   cfgPage=page||1;
-  const p=new URLSearchParams({page:cfgPage,limit:20});
+  const p=new URLSearchParams({page:cfgPage,limit:(window._pageSize||20)});
   const kw=document.getElementById('cfgKw').value,st=document.getElementById('cfgStatus').value,tp=document.getElementById('cfgType').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(tp)p.set('config_type',tp);
   try{
@@ -120,7 +120,7 @@ async function loadConfigs(page){
 }
 
 function renderPg(total){
-  const ps=20,pages=Math.ceil(total/ps),el=document.getElementById('cfgPg');
+  var ps = (window._pageSize || 20),pages=Math.ceil(total/ps),el=document.getElementById('cfgPg');
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(cfgPage>1)h+=`<button class="btn bs" onclick="loadConfigs(${cfgPage-1})">上一页</button> `;

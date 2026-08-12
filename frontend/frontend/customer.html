@@ -603,7 +603,7 @@
       const customer_status = document.getElementById('statusFilter').value;
       const sales_person = document.getElementById('salesFilter').value;
 
-      const params = new URLSearchParams({ page, limit: 20 });
+      const params = new URLSearchParams({ page, limit:(window._pageSize||20) });
       if (keyword) params.set('keyword', keyword);
       if (customer_level) params.set('customer_level', customer_level);
       if (sales_mode) params.set('sales_mode', sales_mode);

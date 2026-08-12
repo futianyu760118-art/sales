@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 权限管理</title>
+  <title>企业经营管理平台（EBMS）-HJ - 权限管理</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
@@ -39,7 +39,7 @@
     .perm-module-row td { border-top: 2px solid #ddd !important; }
   </style>
 </head>
-<body>
+<body data-page-title="权限管理" data-page-perm="system:permission">
   <div class="sidebar" id="sidebar"></div>
 
   <div class="main-content">
@@ -182,7 +182,7 @@
           const perms = pdata.data || pdata || [];
           permNames = perms.map(p => p.code || p.name || p).join(', ');
         } catch(e) { permNames = ''; }
-        html += `<div class="role-card">
+        html += `<div class="role-card" data-rid="${role.id}">
           <div class="role-info">
             <div class="role-name">${role.name}</div>
             <div class="role-desc">${role.description || ''}</div>
@@ -409,6 +409,14 @@
       { name:'订单管理', perms:['order:view','order:create','order:edit','order:delete'] },
       { name:'样品管理', perms:['sample:view','sample:create','sample:edit','sample:delete'] },
       { name:'项目管理', perms:['project:view','project:create','project:edit','project:delete'] },
+      { name:'年度经营计划', perms:['annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:delete','annual-plan:analyze','annual-plan:export'] },
+      { name:'阿米巴经营', perms:['amiba:view','amiba:create','amiba:edit','amiba:delete','amiba:audit','amiba:calc','amiba:export'] },
+      { name:'订单分析', perms:['order-analysis:view','order-analysis:edit','order-analysis:audit'] },
+      { name:'领料管理', perms:['material-issue:view','material-issue:create','material-issue:edit','material-issue:delete'] },
+      { name:'产销协调', perms:['prod-coord:view'] },
+      { name:'费用库', perms:['expense:view','expense:create','expense:edit','expense:delete'] },
+      { name:'人工库', perms:['labor:view','labor:create','labor:edit','labor:delete'] },
+      { name:'成品工价库', perms:['labor-rate:view','labor-rate:create','labor-rate:edit','labor-rate:delete'] },
       { name:'项目技转', perms:['tech:view','tech:create','tech:edit','tech:delete','tech:audit','tech:approve:dept','tech:approve:gm','tech:download','tech:download:secret','tech:preview:core','tech:forward','tech:reuse','tech:transfer','tech:change','tech:review','tech:case:manage','tech:admin'] },
       { name:'产品配置表', perms:['config:view','config:create','config:edit','config:delete'] },
       { name:'规格书库', perms:['spec:view','spec:manage','spec:delete'] },
@@ -422,7 +430,8 @@
       { name:'合规自检', perms:['compliance:view','compliance:run'] },
       { name:'数据清洗', perms:['data-clean:view','data-clean:execute','data-clean:delete'] },
       { name:'自动测试', perms:['test:view','test:run'] },
-      { name:'AI助手', perms:['ai:view','ai:delete'] }
+      { name:'AI助手', perms:['ai:view','ai:delete'] },
+      { name:'组织模块', perms:['org:view','org:create','org:edit','org:delete','org:position:manage','org:personnel:manage'] }
     ];
 
     async function loadMatrix(){
@@ -551,8 +560,25 @@
     });
 
     loadRoles();
+    // 支持从组织模块「有效权限」跳转定位角色：#role=角色ID
+    (function () {
+      const m = /^#role=(\d+)$/.exec(location.hash);
+      if (!m) return;
+      const rid = m[1];
+      const focus = () => {
+        const card = document.querySelector(`.role-card[data-rid="${rid}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.transition = 'box-shadow .3s';
+          card.style.boxShadow = '0 0 0 3px #667eea';
+          setTimeout(() => { card.style.boxShadow = ''; }, 2500);
+        }
+      };
+      setTimeout(focus, 900);
+    })();
   </script>
-  <script src="permission-check.js"></script>
+  <script src="brand.js"></script>
+<script src="permission-check.js"></script>
   <script>PermissionCheck.init();</script>
   <script src="chat-widget.js"></script>
 </body>

@@ -16,6 +16,11 @@ uploads/
 # 数据库运行时数据
 database/*.json
 !database/.gitkeep
+database/database/*.json
+!database/database/.gitkeep
+*.corrupt
+*.corrupt-*
+database/backups/
 sync-config.json
 *.env
 .env
@@ -63,3 +68,9 @@ build/
 database.bak.*
 uploads.bak.*
 sales-service-system.bak.*
+
+# 内部审计与临时报告
+PERM_AUDIT*.txt
+PERM_AUDIT*.md
+material_audit_issues.csv
+_patch.js

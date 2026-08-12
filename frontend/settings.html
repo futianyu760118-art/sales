@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 系统设置</title>
+  <title>企业经营管理平台（EBMS）-HJ - 系统设置</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
@@ -54,7 +54,7 @@
     .badge-off { background: #ffebee; color: #c62828; }
   </style>
 </head>
-<body>
+<body data-page-title="系统设置" data-page-perm="system:config">
   <div class="sidebar" id="sidebar"></div>
 
   <div class="main-content">
@@ -101,10 +101,15 @@
       <div class="config-section">
         <h3>系统参数</h3>
         <div class="config-row">
-          <div class="config-item"><label>系统名称</label><input type="text" id="cfg_system_name" value="销售快捷服务系统"></div>
-          <div class="config-item"><label>公司名称</label><input type="text" id="cfg_company_name" placeholder="公司名称"></div>
-          <div class="config-item"><label>每页显示条数</label><input type="number" id="cfg_page_size" value="15" min="5" max="100"></div>
+          <div class="config-item"><label>系统名称</label><input type="text" id="cfg_system_name" value="企业经营管理平台（EBMS）" placeholder="如：企业经营管理平台（EBMS）"></div>
+          <div class="config-item"><label>公司简称（HJ占位）</label><input type="text" id="cfg_company_code" value="HJ" maxlength="20" placeholder="如：HJ（恒剑）"></div>
+          <div class="config-item"><label>公司全称</label><input type="text" id="cfg_company_name" placeholder="公司名称"></div>
         </div>
+        <div class="config-row">
+          <div class="config-item"><label>每页显示条数</label><input type="number" id="cfg_page_size" value="15" min="5" max="100"></div>
+          <div class="config-item" style="grid-column:span 2"><label>系统标题预览</label><div id="brandPreview" style="padding:8px 12px;border:1px dashed #ccc;border-radius:6px;color:#667eea;font-weight:500;background:#f8f9ff;">—</div></div>
+        </div>
+        <p style="font-size:12px;color:#888;margin-top:6px;">系统名称将显示为「系统名称-公司简称」，例如：<code>企业经营管理平台（EBMS）-HJ</code>。切换公司时仅修改"公司简称"即可。</p>
       </div>
       <div class="config-section">
         <h3>AI助手接口配置</h3>
@@ -171,17 +176,31 @@
     <div id="tab-sync" class="tab-content">
       <div class="config-section">
         <h3>外部系统连接设置</h3>
-        <p style="font-size:13px;color:#666;margin-bottom:12px;">配置外部ERP/MES系统的接入地址与应用凭证，用于拉取组织、人员及业务数据。</p>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">配置外部ERP/MES系统的接入地址与应用凭证。支持保存多套环境配置（如正式/测试环境），下拉选择激活的那一套。</p>
+        <div class="form-row" style="align-items:flex-end;background:#f8f9ff;padding:10px;border-radius:8px;margin-bottom:12px">
+          <div class="form-group" style="flex:2"><label>环境选择（查看/编辑）</label>
+            <select id="extPresetSel" onchange="onPresetSelect()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px"></select></div>
+          <div class="form-group" style="flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-success btn-sm" onclick="activatePreset()" title="把当前下拉选中的环境设为同步使用的激活环境">⬆ 设为激活</button>
+            <button class="btn btn-info btn-sm" onclick="newPreset()">➕ 新建环境</button>
+            <button class="btn btn-warning btn-sm" onclick="saveAsPreset()">💾 另存为新环境</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePreset()">🗑 删除</button>
+          </div>
+        </div>
+        <div id="extActiveTag" style="font-size:12px;margin-bottom:8px"></div>
+        <div class="form-row">
+          <div class="form-group"><label>环境名称</label><input type="text" id="extPresetName" placeholder="如：正式环境 / 测试环境"></div>
+          <div class="form-group"><label>超时(毫秒)</label><input type="number" id="extTimeout" value="30000"></div>
+        </div>
         <div class="form-row">
           <div class="form-group"><label>服务地址 (baseUrl)</label><input type="text" id="extBaseUrl" placeholder="https://192.168.0.127:18084"></div>
-          <div class="form-group"><label>超时(毫秒)</label><input type="number" id="extTimeout" value="30000"></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label>AppKey</label><input type="text" id="extAppKey" placeholder="应用Key"></div>
           <div class="form-group"><label>AppSecret</label><input type="password" id="extAppSecret" placeholder="留空表示不修改"></div>
         </div>
         <div style="margin-top:8px;">
-          <button class="btn btn-primary" onclick="saveExternalConfig()">保存设置</button>
+          <button class="btn btn-primary" onclick="savePreset()">保存当前环境</button>
           <button class="btn btn-info" onclick="testExternalConnection()">测试连接</button>
           <button class="btn btn-success" onclick="syncAllExternal()">一键同步全部</button>
         </div>
@@ -193,6 +212,36 @@
         <button class="btn btn-warning" onclick="syncOrganizations()">同步组织信息</button>
         <button class="btn btn-warning" onclick="syncPositions()">同步岗位信息</button>
         <button class="btn btn-warning" onclick="syncPersonnel()">同步人员信息</button>
+      </div>
+      <div class="config-section">
+        <h3>同步内容与回写设置（可选）</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">选择需要对接外部API的数据类型，可分别开启「拉取同步」与「回写」。设定同步频率后由后台调度自动执行。</p>
+        <div class="form-row" style="align-items:center">
+          <div class="form-group"><label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="scEnabled"> 启用定时同步</label></div>
+          <div class="form-group"><label>同步频率</label>
+            <select id="scFreq" style="padding:6px;border:1px solid #ddd;border-radius:6px">
+              <option value="manual">手动</option><option value="5min">每5分钟</option>
+              <option value="30min">每30分钟</option><option value="hourly">每小时</option><option value="daily">每天</option>
+            </select></div>
+          <div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="saveSyncConfig()">保存设置</button></div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:6px">
+          <thead><tr style="background:#f5f6fa"><th style="padding:8px;text-align:left">数据类型</th><th style="padding:8px">拉取同步</th><th style="padding:8px">允许回写</th><th style="padding:8px;text-align:left">最近同步</th></tr></thead>
+          <tbody id="scModuleBody"></tbody>
+        </table>
+      </div>
+      <div class="config-section">
+        <h3>数据回写（推送到外部系统）</h3>
+        <p style="font-size:13px;color:#666;margin-bottom:12px;">将本系统的数据按编码写回外部API（需先在上方对该模块开启「允许回写」）。回写采用与拉取相同的 HMAC 签名，附带 body 摘要。</p>
+        <div class="form-row" style="align-items:flex-end">
+          <div class="form-group"><label>数据类型</label><select id="wbModule" style="padding:6px;border:1px solid #ddd;border-radius:6px"></select></div>
+          <div class="form-group" style="flex:1"><label>编码 / 关键值（如物料代码、供应商名称）</label><input type="text" id="wbCode" placeholder="如 IC-001"></div>
+          <div class="form-group"><label>操作</label><select id="wbOp" style="padding:6px;border:1px solid #ddd;border-radius:6px"><option value="update">更新</option><option value="create">新增</option></select></div>
+          <div class="form-group" style="flex:0 0 auto"><button class="btn btn-success" onclick="execWriteback()">执行回写</button></div>
+        </div>
+        <div id="wbResult" style="margin-top:10px;font-size:13px;"></div>
+        <div style="margin-top:12px"><b style="font-size:13px;">最近回写记录</b> <button class="btn btn-info btn-sm" onclick="loadWritebackLog()" style="margin-left:8px">刷新</button></div>
+        <div id="wbLog" style="margin-top:6px;max-height:220px;overflow:auto"></div>
       </div>
       <div class="config-section">
         <h3>核价库 → 产品管理/客户管理 同步</h3>
@@ -306,17 +355,31 @@ async function loadConfig() {
   try {
     const config = await (await fetch(`${API}/settings/config`)).json();
     const fields = ['profit_rate','discount_rate','loss_rate','exchange_rate','quote_validity','pricing_timeout',
-      'inquiry_prefix','quote_prefix','serial_start','system_name','company_name','page_size'];
+      'inquiry_prefix','quote_prefix','serial_start','system_name','company_name','company_code','page_size'];
     fields.forEach(f => {
       const el = document.getElementById('cfg_' + f);
       if (el && config[f] !== undefined) el.value = config[f];
     });
+    updateBrandPreview();
   } catch(e) { console.error(e); }
 }
 
+function updateBrandPreview() {
+  const name = (document.getElementById('cfg_system_name') || {}).value || '企业经营管理平台（EBMS）';
+  const code = ((document.getElementById('cfg_company_code') || {}).value || '').trim();
+  const preview = document.getElementById('brandPreview');
+  if (preview) preview.textContent = code ? (name + '-' + code) : name;
+}
+
+document.addEventListener('input', function(e){
+  if (e.target && (e.target.id === 'cfg_system_name' || e.target.id === 'cfg_company_code')) {
+    updateBrandPreview();
+  }
+});
+
 async function saveConfig() {
   const fields = ['profit_rate','discount_rate','loss_rate','exchange_rate','quote_validity','pricing_timeout',
-    'inquiry_prefix','quote_prefix','serial_start','system_name','company_name','page_size'];
+    'inquiry_prefix','quote_prefix','serial_start','system_name','company_name','company_code','page_size'];
   const data = {};
   fields.forEach(f => {
     const el = document.getElementById('cfg_' + f);
@@ -517,31 +580,99 @@ async function apiCall(url, options) {
   return data;
 }
 
+let _extPresets=[], _extActiveId=null, _extSelectedId=null;
+function extPresetById(id){return _extPresets.find(p=>p.id===id)}
+
 async function loadExternalConfig() {
   try {
-    const data = await apiCall(`${API}/external-sync/config`);
-    document.getElementById('extBaseUrl').value = data.baseUrl || '';
-    document.getElementById('extAppKey').value = data.appKey || '';
-    document.getElementById('extAppSecret').value = '';
-    document.getElementById('extAppSecret').placeholder = data.appSecretSet ? (data.appSecret + '（留空不修改）') : '请输入AppSecret';
-    document.getElementById('extTimeout').value = data.timeout || 30000;
+    const data = await apiCall(`${API}/external-sync/config/presets`);
+    _extPresets=data.presets||[]; _extActiveId=data.activeId;
+    _extSelectedId=_extSelectedId||_extActiveId||(_extPresets[0]&&_extPresets[0].id);
+    renderPresetSel();
+    fillPresetForm();
   } catch (e) { console.error('加载外部同步设置失败', e); }
 }
-
-async function saveExternalConfig() {
-  const payload = {
-    baseUrl: document.getElementById('extBaseUrl').value.trim(),
-    appKey: document.getElementById('extAppKey').value.trim(),
-    timeout: Number(document.getElementById('extTimeout').value) || 30000
+function renderPresetSel(){
+  const sel=document.getElementById('extPresetSel');if(!sel)return;
+  sel.innerHTML=_extPresets.map(p=>`<option value="${p.id}" ${p.id===_extSelectedId?'selected':''}>${p.name}${p.baseUrl?' ('+p.baseUrl+')':''}${p.id===_extActiveId?' ✅激活':''}</option>`).join('');
+  const tag=document.getElementById('extActiveTag');
+  const a=extPresetById(_extActiveId);
+  if(tag)tag.innerHTML=a?`当前同步激活环境：<b style="color:#2e7d32">${a.name}</b> · ${a.baseUrl}`:'<span style="color:#c62828">未设置激活环境</span>';
+}
+function onPresetSelect(){
+  _extSelectedId=document.getElementById('extPresetSel').value;
+  fillPresetForm();
+}
+function fillPresetForm(){
+  const p=extPresetById(_extSelectedId)||{};
+  document.getElementById('extPresetName').value=p.name||'';
+  document.getElementById('extBaseUrl').value=p.baseUrl||'';
+  document.getElementById('extAppKey').value=p.appKey||'';
+  const secret=document.getElementById('extAppSecret');
+  secret.value=''; secret.placeholder=p.appSecretSet?(p.appSecret+'（留空不修改）'):'请输入AppSecret';
+  document.getElementById('extTimeout').value=p.timeout||30000;
+}
+function presetPayload(){
+  return {
+    name:document.getElementById('extPresetName').value.trim()||'未命名',
+    baseUrl:document.getElementById('extBaseUrl').value.trim(),
+    appKey:document.getElementById('extAppKey').value.trim(),
+    timeout:Number(document.getElementById('extTimeout').value)||30000
   };
-  const secret = document.getElementById('extAppSecret').value;
-  if (secret) payload.appSecret = secret.trim();
-  try {
-    const data = await apiCall(`${API}/external-sync/config`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-    });
-    alert(data.message || '保存成功'); loadExternalConfig();
-  } catch (e) { alert('保存失败: ' + e.message); }
+}
+// 保存当前选中环境的修改
+async function savePreset(){
+  if(!_extSelectedId){alert('请先选择环境');return}
+  const payload=presetPayload();
+  const secret=document.getElementById('extAppSecret').value;
+  if(secret)payload.appSecret=secret.trim();
+  try{
+    await apiCall(`${API}/external-sync/config/presets/${_extSelectedId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    alert('环境已保存');await loadExternalConfig();
+  }catch(e){alert('保存失败: '+e.message)}
+}
+// 新建环境（清空表单）
+function newPreset(){
+  _extSelectedId=null;
+  document.getElementById('extPresetSel').value='';
+  document.getElementById('extPresetName').value='';
+  document.getElementById('extBaseUrl').value='';
+  document.getElementById('extAppKey').value='';
+  const s=document.getElementById('extAppSecret');s.value='';s.placeholder='请输入AppSecret';
+  document.getElementById('extTimeout').value=30000;
+  document.getElementById('extPresetName').focus();
+  alert('请填写新环境信息，点「另存为新环境」创建');
+}
+// 另存为新环境
+async function saveAsPreset(){
+  const payload=presetPayload();
+  const secret=document.getElementById('extAppSecret').value;
+  if(secret)payload.appSecret=secret.trim();
+  try{
+    const d=await apiCall(`${API}/external-sync/config/presets`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign(payload,{activate:false}))});
+    _extSelectedId=d.id;await loadExternalConfig();
+    alert('已创建新环境：'+payload.name);
+  }catch(e){alert('创建失败: '+e.message)}
+}
+// 把下拉选中的环境设为激活
+async function activatePreset(){
+  if(!_extSelectedId){alert('请先选择要激活的环境');return}
+  if(_extSelectedId===_extActiveId){alert('该环境已是激活状态');return}
+  if(!confirm(`确认把「${(extPresetById(_extSelectedId)||{}).name}」设为同步使用的激活环境？\n后续所有外部同步将使用此环境配置。`))return;
+  try{
+    await apiCall(`${API}/external-sync/config/active`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:_extSelectedId})});
+    _extActiveId=_extSelectedId;renderPresetSel();
+    alert('已切换激活环境');
+  }catch(e){alert('切换失败: '+e.message)}
+}
+async function deletePreset(){
+  if(!_extSelectedId){alert('请先选择要删除的环境');return}
+  if(_extSelectedId===_extActiveId){alert('不能删除当前激活环境，请先切换到其他环境再删除');return}
+  if(!confirm('确认删除该环境配置？'))return;
+  try{
+    await apiCall(`${API}/external-sync/config/presets/${_extSelectedId}`,{method:'DELETE'});
+    _extSelectedId=null;await loadExternalConfig();
+  }catch(e){alert('删除失败: '+e.message)}
 }
 
 async function testExternalConnection() {
@@ -590,6 +721,78 @@ async function syncAllExternal() {
     alert(data.message || '同步完成');
   } catch (e) { box.innerHTML = '<span style="color:#c62828;">同步失败: ' + e.message + '</span>'; alert('同步失败: ' + e.message); }
 }
+
+// ===== 同步内容与回写设置 =====
+const SC_MODULE_LABELS={suppliers:'供应商',customers:'客户',materials:'物料',orders:'订单'};
+let _scCfg={modules:{}};
+async function loadSyncConfig(){
+  try{
+    const d=await apiCall(`${API}/external-api/sync-config`);
+    _scCfg=d||{modules:{}};
+    document.getElementById('scEnabled').checked=!!d.enabled;
+    document.getElementById('scFreq').value=d.frequency||'manual';
+    const body=document.getElementById('scModuleBody');
+    const mods=d.modules||{};
+    body.innerHTML=Object.keys(SC_MODULE_LABELS).map(k=>{
+      const m=mods[k]||{};
+      return `<tr style="border-top:1px solid #f0f0f0"><td style="padding:8px"><b>${SC_MODULE_LABELS[k]}</b> <span style="color:#999;font-size:11px">${k}</span></td>
+        <td style="padding:8px;text-align:center"><input type="checkbox" data-sc="${k}.enabled" ${m.enabled?'checked':''}></td>
+        <td style="padding:8px;text-align:center"><input type="checkbox" data-sc="${k}.writeback" ${m.writeback?'checked':''}></td>
+        <td style="padding:8px;color:#888;font-size:12px">${m.last_sync||'-'}</td></tr>`;
+    }).join('');
+  }catch(e){console.error('加载同步配置失败',e);}
+}
+async function saveSyncConfig(){
+  const modules={};
+  document.querySelectorAll('[data-sc]').forEach(el=>{
+    const [k,f]=el.dataset.sc.split('.');modules[k]=modules[k]||{};modules[k][f]=el.checked;
+  });
+  const payload={enabled:document.getElementById('scEnabled').checked,frequency:document.getElementById('scFreq').value,modules};
+  try{
+    await apiCall(`${API}/external-api/sync-config`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    alert('同步设置已保存');loadSyncConfig();
+  }catch(e){alert('保存失败: '+e.message);}
+}
+// ===== 数据回写 =====
+async function loadWritebackModules(){
+  try{
+    const d=await apiCall(`${API}/external-api/write-back/modules`);
+    const sel=document.getElementById('wbModule');
+    sel.innerHTML=(d.data||[]).map(m=>`<option value="${m.module}">${m.label}（${m.writeback_enabled?'已开启回写':'未开启'}）</option>`).join('');
+  }catch(e){console.error(e);}
+}
+async function execWriteback(){
+  const module=document.getElementById('wbModule').value;
+  const code=document.getElementById('wbCode').value.trim();
+  const op=document.getElementById('wbOp').value;
+  if(!module){alert('请选择数据类型');return}
+  if(!code){alert('请输入编码/关键值');return}
+  const box=document.getElementById('wbResult');
+  box.innerHTML='<span style="color:#1976d2">回写中…</span>';
+  try{
+    const d=await apiCall(`${API}/external-api/write-back`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module,code,op})});
+    const color=d.ok?'#2e7d32':'#c62828';
+    box.innerHTML=`<div style="color:${color};font-weight:600">${d.ok?'✓':'✗'} ${d.message}</div>
+      <div style="font-size:12px;color:#666;margin-top:4px">接口：${d.endpoint} · 操作：${d.op}</div>
+      <pre style="background:#f5f5f5;padding:8px;border-radius:4px;font-size:11px;max-height:180px;overflow:auto;margin-top:6px">${esc(d.external_response?JSON.stringify(d.external_response,null,2):'')}</pre>`;
+    loadWritebackLog();
+  }catch(e){box.innerHTML='<span style="color:#c62828">回写失败: '+e.message+'</span>';}
+}
+async function loadWritebackLog(){
+  try{
+    const d=await apiCall(`${API}/external-api/write-back/log?limit=20`);
+    const box=document.getElementById('wbLog');
+    const rows=d.data||[];
+    if(!rows.length){box.innerHTML='<div style="color:#999;font-size:12px">暂无回写记录</div>';return}
+    box.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa"><th style="padding:4px;text-align:left">时间</th><th style="padding:4px">类型</th><th style="padding:4px">编码</th><th style="padding:4px">操作</th><th style="padding:4px">结果</th></tr></thead><tbody>${rows.map(r=>`<tr style="border-top:1px solid #f0f0f0">
+      <td style="padding:4px;color:#888">${esc((r.created_at||'').substring(0,16))}</td>
+      <td style="padding:4px">${esc(SC_MODULE_LABELS[r.module]||r.module)}</td>
+      <td style="padding:4px">${esc(r.code||'')}</td>
+      <td style="padding:4px">${esc(r.op||'')}</td>
+      <td style="padding:4px">${r.ok?'<span style="color:#2e7d32">成功</span>':'<span style="color:#c62828" title="'+esc(r.error||'')+'">失败</span>'}</td></tr>`).join('')}</tbody></table>`;
+  }catch(e){console.error(e);}
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
 // ===== 数据同步 =====
 async function syncPricingData() {
@@ -667,6 +870,9 @@ async function validateData() {
     await Promise.all([loadModules(), loadConfig(), loadDictionary()]);
     loadAiConfig();
     loadExternalConfig();
+    loadSyncConfig();
+    loadWritebackModules();
+    loadWritebackLog();
   }
   init();
 
@@ -681,6 +887,7 @@ async function validateData() {
     }
   }
 </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body>

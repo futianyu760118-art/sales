@@ -23,8 +23,6 @@ const CENTERS = [
 
 // 收集某个中心下的所有子部门 id（含自身）。按 code/name 匹配顶层中心。
 function collectCenterDescendantIds(centerRecord, allDepartments) {
-  const centerNames = CENTER_NAMES_BY_CODE;
-  const centerKey = centerRecord.code || centerRecord.org_code || centerRecord.name;
   let root = allDepartments.find(d => d.id === centerRecord.id);
   if (!root) {
     root = allDepartments.find(d =>
@@ -48,10 +46,160 @@ function collectCenterDescendantIds(centerRecord, allDepartments) {
   return { root, ids: [...ids] };
 }
 
+// ==================== 四大中心 × 工作角色矩阵 ====================
+
+const CENTER_NAMES_BY_CODE = Object.fromEntries(CENTERS.map(c => [c.code, c.name]));
+
+// 自动识别部门树中的顶层中心（按名称匹配四大中心定义）
+function detectCentersFromDepts(departments) {
+  return CENTERS.map(c => {
+    const matched = departments.find(d => d.name === c.name);
+    return { ...c, department_id: matched ? matched.id : null, exists: !!matched, department: matched || null };
+  });
+}
+
+router.get('/work-roles', requirePerm('org:view'), (req, res) => {
+  res.json({ data: WORK_ROLES });
+});
+
+// 获取中心列表（含人员统计和角色分布）
+router.get('/centers', requirePerm('org:view'), (req, res) => {
+  const deptTable = getTable('org_departments');
+  const personnelTable = getTable('org_personnel');
+  const depts = deptTable.all();
+  const personnel = personnelTable.all();
+  const centers = detectCentersFromDepts(depts);
+  const enriched = centers.map(c => {
+    if (!c.department_id) return { ...c, descendant_department_ids: [], personnel_count: 0, work_role_stats: [] };
+    const { ids } = collectCenterDescendantIds(c.department, depts);
+    const centerPersonnel = personnel.filter(p => p.department_id && ids.includes(p.department_id));
+    const wrStats = WORK_ROLES.map(wr => ({
+      code: wr.code, name: wr.name, count: centerPersonnel.filter(p => (p.work_role || 'operator') === wr.code).length
+    }));
+    return { ...c, descendant_department_ids: ids, personnel_count: centerPersonnel.length, work_role_stats: wrStats };
+  });
+  res.json({ data: enriched, total: enriched.length });
+});
+
+// 中心×角色矩阵（详细数据，含人员明细）
+router.get('/center-role-matrix', requirePerm('org:view'), (req, res) => {
+  const deptTable = getTable('org_departments');
+  const personnelTable = getTable('org_personnel');
+  const positionsTable = getTable('org_positions');
+  const depts = deptTable.all();
+  const personnel = personnelTable.all();
+  const positions = positionsTable.all();
+  const centers = detectCentersFromDepts(depts);
+  const rows = [];
+  centers.forEach(c => {
+    if (!c.department_id) return;
+    const { ids } = collectCenterDescendantIds(c.department, depts);
+    WORK_ROLES.forEach(wr => {
+      const matched = personnel.filter(p =>
+        p.department_id && ids.includes(p.department_id) && (p.work_role || 'operator') === wr.code
+      );
+      rows.push({
+        center_code: c.code, center_name: c.name, center_department_id: c.department_id,
+        role_code: wr.code, role_name: wr.name, role_color: wr.color, role_order: wr.order,
+        count: matched.length,
+        personnel: matched.map(p => ({
+          ...p,
+          work_role: p.work_role || 'operator',
+          department_name: (depts.find(d => d.id === p.department_id) || {}).name || '',
+          position_name: (positionsTable.all().find(x => x.id === p.position_id) || {}).name || ''
+        }))
+      });
+    });
+  });
+  res.json({ data: rows, work_roles: WORK_ROLES, centers: CENTERS });
+});
+
+// 按中心（部门）查看人员列表，可按工作角色筛选
+router.get('/centers/:departmentId/personnel', requirePerm('org:view'), (req, res) => {
+  const deptTable = getTable('org_departments');
+  const personnelTable = getTable('org_personnel');
+  const positionsTable = getTable('org_positions');
+  const { role_code, keyword, status } = req.query;
+  const depts = deptTable.all();
+  const department = depts.find(d => d.id === Number(req.params.departmentId));
+  if (!department) return res.status(404).json({ error: '部门不存在' });
+  const { ids } = collectCenterDescendantIds(department, depts);
+  let list = personnelTable.all().filter(p => p.department_id && ids.includes(p.department_id));
+  if (role_code) list = list.filter(p => (p.work_role || 'operator') === role_code);
+  if (keyword) {
+    const kw = String(keyword).toLowerCase();
+    list = list.filter(p => (p.name || '').toLowerCase().includes(kw) || (p.emp_code || '').toLowerCase().includes(kw));
+  }
+  if (status) list = list.filter(p => p.status === status);
+  const enriched = list.map(p => ({
+    ...p,
+    work_role: p.work_role || 'operator',
+    department_name: (depts.find(d => d.id === p.department_id) || {}).name || '',
+    position_name: (positionsTable.all().find(x => x.id === p.position_id) || {}).name || ''
+  }));
+  res.json({ data: enriched, total: enriched.length, work_roles: WORK_ROLES });
+});
+
 function normalizeWorkRole(v) {
   if (v === undefined || v === null || v === '') return 'operator';
   const s = String(v);
   return WORK_ROLE_CODES.includes(s) ? s : 'operator';
+}
+
+// ==================== 部门富集（人员 → 部门；部门 → 上下级/负责人/计数） ====================
+//
+// 这里统一封装"实时部门信息"，保证人员管理页与部门管理页看到的是同一份数据。
+// 任意调用方修改了部门名称/编码/上级/负责人，personnel/department 接口在
+// 下一次响应中都会带上最新值，无需前端手工 invalidate。
+function _deptMap() {
+  return new Map(getTable('org_departments').all().map(d => [Number(d.id), d]));
+}
+function _personnelMap() {
+  return new Map(getTable('org_personnel').all().map(p => [Number(p.id), p]));
+}
+
+function enrichDepartment(dept, deptMap, personnelMap, positionsTable, personnelTable) {
+  if (!dept) return null;
+  const dm = deptMap || _deptMap();
+  const pm = personnelMap || _personnelMap();
+  const parent = dept.parent_id ? dm.get(Number(dept.parent_id)) : null;
+  const manager = dept.manager_id ? pm.get(Number(dept.manager_id)) : null;
+  const childDepts = [...dm.values()].filter(d => Number(d.parent_id || 0) === Number(dept.id));
+  const positionsAll = positionsTable ? positionsTable.all() : getTable('org_positions').all();
+  const personnelAll = personnelTable ? personnelTable.all() : getTable('org_personnel').all();
+  return {
+    id: dept.id,
+    name: dept.name || '',
+    code: dept.code || '',
+    org_code: dept.org_code || '',
+    parent_id: dept.parent_id || null,
+    parent_name: parent ? parent.name : '',
+    parent_code: parent ? (parent.code || '') : '',
+    manager_id: dept.manager_id || null,
+    manager_name: manager ? manager.name : (dept.manager_name || ''),
+    manager_emp_code: manager ? (manager.emp_code || '') : '',
+    child_count: childDepts.length,
+    child_names: childDepts.map(c => c.name),
+    position_count: positionsAll.filter(p => Number(p.department_id) === Number(dept.id)).length,
+    personnel_count: personnelAll.filter(p => Number(p.department_id) === Number(dept.id)).length,
+    active_personnel_count: personnelAll.filter(p => Number(p.department_id) === Number(dept.id) && p.status === 'active').length,
+    status: dept.status || 'active',
+    sort: dept.sort || 0,
+    description: dept.description || '',
+    org_type: dept.org_type || ''
+  };
+}
+
+function enrichPersonnelWithDepartment(p, deptMap, personnelMap) {
+  const dm = deptMap || _deptMap();
+  const pm = personnelMap || _personnelMap();
+  const dept = p.department_id ? dm.get(Number(p.department_id)) : null;
+  const info = enrichDepartment(dept, dm, pm);
+  return {
+    ...p,
+    department_info: info,
+    is_department_manager: !!(dept && dept.manager_id && Number(dept.manager_id) === Number(p.id))
+  };
 }
 
 // ==================== 部门管理 ====================
@@ -95,10 +243,24 @@ router.get('/departments/:id', requirePerm('org:view'), (req, res) => {
   const table = getTable('org_departments');
   const row = table.findById(req.params.id);
   if (!row) return res.status(404).json({ error: '部门不存在' });
-  res.json(row);
+  const positionsAll = getTable('org_positions').all();
+  const personnelAll = getTable('org_personnel').all();
+  const info = enrichDepartment(row, _deptMap(), _personnelMap(), null, null);
+  res.json({
+    ...row,
+    ...info,
+    personnel_list: personnelAll.filter(p => p.department_id === row.id).map(p => ({
+      id: p.id, name: p.name, emp_code: p.emp_code || '',
+      work_role: p.work_role || 'operator', status: p.status || 'active'
+    })),
+    position_list: positionsAll.filter(p => p.department_id === row.id).map(p => ({
+      id: p.id, name: p.name, code: p.code || '',
+      personnel_count: personnelAll.filter(x => x.position_id === p.id).length
+    }))
+  });
 });
 
-router.post('/departments', requirePerm('org:create'), (req, res) => {
+router.post('/departments', requirePerm('org:create'), async (req, res) => {
   const { name, code, parent_id, manager_id, sort, description, status } = req.body;
   if (!name) return res.status(400).json({ error: '部门名称为必填' });
   const table = getTable('org_departments');
@@ -106,7 +268,7 @@ router.post('/departments', requirePerm('org:create'), (req, res) => {
     const dup = table.all().find(d => d.code === code);
     if (dup) return res.status(400).json({ error: '部门编码已存在' });
   }
-  const result = table.insert({
+  const result = await table.insert({
     name, code: code || '',
     parent_id: parent_id ? Number(parent_id) : null,
     manager_id: manager_id ? Number(manager_id) : null,
@@ -119,7 +281,7 @@ router.post('/departments', requirePerm('org:create'), (req, res) => {
   res.json({ message: '部门创建成功', data: table.findById(result.lastID) });
 });
 
-router.put('/departments/:id', requirePerm('org:edit'), (req, res) => {
+router.put('/departments/:id', requirePerm('org:edit'), async (req, res) => {
   const table = getTable('org_departments');
   const existing = table.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: '部门不存在' });
@@ -139,12 +301,12 @@ router.put('/departments/:id', requirePerm('org:edit'), (req, res) => {
   if (sort !== undefined) updates.sort = sort;
   if (description !== undefined) updates.description = description;
   if (status !== undefined) updates.status = status;
-  table.update(req.params.id, updates);
+  await table.update(req.params.id, updates);
   table._invalidate();
   res.json({ message: '部门更新成功', data: table.findById(req.params.id) });
 });
 
-router.delete('/departments/:id', requirePerm('org:delete'), (req, res) => {
+router.delete('/departments/:id', requirePerm('org:delete'), async (req, res) => {
   const table = getTable('org_departments');
   const positionsTable = getTable('org_positions');
   const personnelTable = getTable('org_personnel');
@@ -155,8 +317,8 @@ router.delete('/departments/:id', requirePerm('org:delete'), (req, res) => {
   const hasPositions = positionsTable.all().some(p => p.department_id === Number(req.params.id));
   if (hasPositions) return res.status(400).json({ error: '该部门下存在岗位，请先处理岗位' });
   const hasPersonnel = personnelTable.all().some(p => p.department_id === Number(req.params.id));
-  if (hasPersonnel) return res.status(400).json({ error: '该部门下存在人员，请先调整人员归属' });
-  table.delete(req.params.id);
+  if (hasPersonnel) return res.status(400).json({ error: '该部门下存在人员，请请先调整人员归属' });
+  await table.delete(req.params.id);
   table._invalidate();
   res.json({ message: '部门删除成功' });
 });
@@ -223,7 +385,7 @@ router.get('/positions/:id', requirePerm('org:view'), (req, res) => {
   });
 });
 
-router.post('/positions', requirePerm('org:position:manage'), (req, res) => {
+router.post('/positions', requirePerm('org:position:manage'), async (req, res) => {
   const { name, code, department_id, level, sort, description, status, permission_ids, role_ids } = req.body;
   if (!name) return res.status(400).json({ error: '岗位名称为必填' });
   if (!department_id) return res.status(400).json({ error: '所属部门为必填' });
@@ -234,7 +396,7 @@ router.post('/positions', requirePerm('org:position:manage'), (req, res) => {
     const dup = positionsTable.all().find(p => p.code === code);
     if (dup) return res.status(400).json({ error: '岗位编码已存在' });
   }
-  const result = positionsTable.insert({
+  const result = await positionsTable.insert({
     name, code: code || '',
     department_id: Number(department_id),
     level: level || '',
@@ -247,19 +409,19 @@ router.post('/positions', requirePerm('org:position:manage'), (req, res) => {
 
   if (Array.isArray(permission_ids)) {
     const ppTable = getTable('org_position_perms');
-    permission_ids.forEach(pid => ppTable.insert({ position_id: positionId, permission_id: Number(pid), granted_at: now() }));
+    await Promise.all(permission_ids.map(pid => ppTable.insert({ position_id: positionId, permission_id: Number(pid), granted_at: now() })));
     ppTable._invalidate();
   }
   if (Array.isArray(role_ids)) {
     const prTable = getTable('org_position_roles');
-    role_ids.forEach(rid => prTable.insert({ position_id: positionId, role_id: Number(rid), assigned_at: now() }));
+    await Promise.all(role_ids.map(rid => prTable.insert({ position_id: positionId, role_id: Number(rid), assigned_at: now() })));
     prTable._invalidate();
   }
   positionsTable._invalidate();
   res.json({ message: '岗位创建成功', data: positionsTable.findById(positionId) });
 });
 
-router.put('/positions/:id', requirePerm('org:position:manage'), (req, res) => {
+router.put('/positions/:id', requirePerm('org:position:manage'), async (req, res) => {
   const positionsTable = getTable('org_positions');
   const existing = positionsTable.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: '岗位不存在' });
@@ -276,37 +438,37 @@ router.put('/positions/:id', requirePerm('org:position:manage'), (req, res) => {
   if (sort !== undefined) updates.sort = sort;
   if (description !== undefined) updates.description = description;
   if (status !== undefined) updates.status = status;
-  positionsTable.update(req.params.id, updates);
+  await positionsTable.update(req.params.id, updates);
   positionsTable._invalidate();
 
   if (Array.isArray(permission_ids)) {
     const ppTable = getTable('org_position_perms');
-    ppTable.all().filter(pp => pp.position_id === Number(req.params.id)).forEach(pp => ppTable.delete(pp.id));
-    permission_ids.forEach(pid => ppTable.insert({ position_id: Number(req.params.id), permission_id: Number(pid), granted_at: now() }));
+    await Promise.all(ppTable.all().filter(pp => pp.position_id === Number(req.params.id)).map(pp => ppTable.delete(pp.id)));
+    await Promise.all(permission_ids.map(pid => ppTable.insert({ position_id: Number(req.params.id), permission_id: Number(pid), granted_at: now() })));
     ppTable._invalidate();
   }
   if (Array.isArray(role_ids)) {
     const prTable = getTable('org_position_roles');
-    prTable.all().filter(pr => pr.position_id === Number(req.params.id)).forEach(pr => prTable.delete(pr.id));
-    role_ids.forEach(rid => prTable.insert({ position_id: Number(req.params.id), role_id: Number(rid), assigned_at: now() }));
+    await Promise.all(prTable.all().filter(pr => pr.position_id === Number(req.params.id)).map(pr => prTable.delete(pr.id)));
+    await Promise.all(role_ids.map(rid => prTable.insert({ position_id: Number(req.params.id), role_id: Number(rid), assigned_at: now() })));
     prTable._invalidate();
   }
   res.json({ message: '岗位更新成功', data: positionsTable.findById(req.params.id) });
 });
 
-router.delete('/positions/:id', requirePerm('org:position:manage'), (req, res) => {
+router.delete('/positions/:id', requirePerm('org:position:manage'), async (req, res) => {
   const positionsTable = getTable('org_positions');
   const personnelTable = getTable('org_personnel');
   const existing = positionsTable.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: '岗位不存在' });
   const hasPersonnel = personnelTable.all().some(p => p.position_id === Number(req.params.id));
   if (hasPersonnel) return res.status(400).json({ error: '该岗位下存在人员，请先调整人员岗位' });
-  positionsTable.delete(req.params.id);
+  await positionsTable.delete(req.params.id);
   positionsTable._invalidate();
   const ppTable = getTable('org_position_perms');
   const prTable = getTable('org_position_roles');
-  ppTable.all().filter(pp => pp.position_id === Number(req.params.id)).forEach(pp => ppTable.delete(pp.id));
-  prTable.all().filter(pr => pr.position_id === Number(req.params.id)).forEach(pr => prTable.delete(pr.id));
+  await Promise.all(ppTable.all().filter(pp => pp.position_id === Number(req.params.id)).map(pp => ppTable.delete(pp.id)));
+  await Promise.all(prTable.all().filter(pr => pr.position_id === Number(req.params.id)).map(pr => prTable.delete(pr.id)));
   ppTable._invalidate();
   prTable._invalidate();
   res.json({ message: '岗位删除成功' });
@@ -320,12 +482,12 @@ router.get('/positions/:id/permissions', requirePerm('org:view'), (req, res) => 
   res.json({ data: permissions });
 });
 
-router.put('/positions/:id/permissions', requirePerm('org:position:manage'), (req, res) => {
+router.put('/positions/:id/permissions', requirePerm('org:position:manage'), async (req, res) => {
   const { permission_ids } = req.body;
   if (!Array.isArray(permission_ids)) return res.status(400).json({ error: 'permission_ids必须为数组' });
   const ppTable = getTable('org_position_perms');
-  ppTable.all().filter(pp => pp.position_id === Number(req.params.id)).forEach(pp => ppTable.delete(pp.id));
-  permission_ids.forEach(pid => ppTable.insert({ position_id: Number(req.params.id), permission_id: Number(pid), granted_at: now() }));
+  await Promise.all(ppTable.all().filter(pp => pp.position_id === Number(req.params.id)).map(pp => ppTable.delete(pp.id)));
+  await Promise.all(permission_ids.map(pid => ppTable.insert({ position_id: Number(req.params.id), permission_id: Number(pid), granted_at: now() })));
   ppTable._invalidate();
   res.json({ message: '岗位默认权限已更新', assigned: permission_ids.length });
 });
@@ -338,12 +500,12 @@ router.get('/positions/:id/roles', requirePerm('org:view'), (req, res) => {
   res.json({ data: roles });
 });
 
-router.put('/positions/:id/roles', requirePerm('org:position:manage'), (req, res) => {
+router.put('/positions/:id/roles', requirePerm('org:position:manage'), async (req, res) => {
   const { role_ids } = req.body;
   if (!Array.isArray(role_ids)) return res.status(400).json({ error: 'role_ids必须为数组' });
   const prTable = getTable('org_position_roles');
-  prTable.all().filter(pr => pr.position_id === Number(req.params.id)).forEach(pr => prTable.delete(pr.id));
-  role_ids.forEach(rid => prTable.insert({ position_id: Number(req.params.id), role_id: Number(rid), assigned_at: now() }));
+  await Promise.all(prTable.all().filter(pr => pr.position_id === Number(req.params.id)).map(pr => prTable.delete(pr.id)));
+  await Promise.all(role_ids.map(rid => prTable.insert({ position_id: Number(req.params.id), role_id: Number(rid), assigned_at: now() })));
   prTable._invalidate();
   res.json({ message: '岗位默认角色已更新', assigned: role_ids.length });
 });
@@ -354,7 +516,7 @@ router.get('/personnel', requirePerm('org:view'), (req, res) => {
   const personnelTable = getTable('org_personnel');
   const departmentsTable = getTable('org_departments');
   const positionsTable = getTable('org_positions');
-  const { keyword, department_id, position_id, status, work_role } = req.query;
+  const { keyword, department_id, position_id, status, work_role, sync_exempt } = req.query;
   let list = personnelTable.all();
   if (keyword) {
     const kw = String(keyword).toLowerCase();
@@ -364,19 +526,25 @@ router.get('/personnel', requirePerm('org:view'), (req, res) => {
   if (position_id) list = list.filter(p => String(p.position_id) === String(position_id));
   if (status) list = list.filter(p => p.status === status);
   if (work_role) list = list.filter(p => String(p.work_role || 'operator') === String(work_role));
+  if (sync_exempt === '1') list = list.filter(p => !!p.sync_exempt);
+  else if (sync_exempt === '0') list = list.filter(p => !p.sync_exempt);
   list.sort((a, b) => (a.sort || 0) - (b.sort || 0) || (a.id - b.id));
 
   const allDepts = departmentsTable.all();
+  const allPersonnel = personnelTable.all();
   const allPositions = positionsTable.all();
+  const deptMap = new Map(allDepts.map(d => [Number(d.id), d]));
+  const personnelMap = new Map(allPersonnel.map(p => [Number(p.id), p]));
   const roleMeta = Object.fromEntries(WORK_ROLES.map(r => [r.code, r]));
   const result = list.map(p => {
     const wr = normalizeWorkRole(p.work_role);
+    const enriched = enrichPersonnelWithDepartment(p, deptMap, personnelMap);
     return {
-      ...p,
+      ...enriched,
       work_role: wr,
       work_role_name: (roleMeta[wr] || {}).name || '操作员',
       work_role_color: (roleMeta[wr] || {}).color || '#3498db',
-      department_name: (allDepts.find(d => d.id === p.department_id) || {}).name || '',
+      department_name: enriched.department_info ? enriched.department_info.name : '',
       position_name: (allPositions.find(x => x.id === p.position_id) || {}).name || '',
       position_code: (allPositions.find(x => x.id === p.position_id) || {}).code || ''
     };
@@ -392,22 +560,28 @@ router.get('/personnel/:id', requirePerm('org:view'), (req, res) => {
   const positionsTable = getTable('org_positions');
   const roleMeta = Object.fromEntries(WORK_ROLES.map(r => [r.code, r]));
   const wr = normalizeWorkRole(row.work_role);
-  row.work_role = wr;
-  row.work_role_name = (roleMeta[wr] || {}).name || '操作员';
-  row.department_name = (departmentsTable.findById(row.department_id) || {}).name || '';
-  row.position_name = (positionsTable.findById(row.position_id) || {}).name || '';
-  res.json(row);
+  const enriched = enrichPersonnelWithDepartment(row);
+  const out = {
+    ...enriched,
+    work_role: wr,
+    work_role_name: (roleMeta[wr] || {}).name || '操作员',
+    work_role_color: (roleMeta[wr] || {}).color || '#3498db',
+    department_name: enriched.department_info ? enriched.department_info.name : '',
+    position_name: (positionsTable.findById(row.position_id) || {}).name || '',
+    position_code: (positionsTable.findById(row.position_id) || {}).code || ''
+  };
+  res.json(out);
 });
 
-router.post('/personnel', requirePerm('org:personnel:manage'), (req, res) => {
-  const { emp_code, name, department_id, position_id, phone, email, gender, sort, description, status, linked_user_id, work_role } = req.body;
+router.post('/personnel', requirePerm('org:personnel:manage'), async (req, res) => {
+  const { emp_code, name, department_id, position_id, phone, email, gender, sort, description, status, linked_user_id, work_role, sync_exempt } = req.body;
   if (!name) return res.status(400).json({ error: '人员姓名为必填' });
   const personnelTable = getTable('org_personnel');
   if (emp_code) {
     const dup = personnelTable.all().find(p => p.emp_code === emp_code);
     if (dup) return res.status(400).json({ error: '工号已存在' });
   }
-  const result = personnelTable.insert({
+  const result = await personnelTable.insert({
     emp_code: emp_code || '',
     name,
     department_id: department_id ? Number(department_id) : null,
@@ -420,17 +594,18 @@ router.post('/personnel', requirePerm('org:personnel:manage'), (req, res) => {
     status: status || 'active',
     linked_user_id: linked_user_id ? Number(linked_user_id) : null,
     work_role: normalizeWorkRole(work_role),
+    sync_exempt: !!sync_exempt,
     created_at: now(), updated_at: now()
   });
   personnelTable._invalidate();
   res.json({ message: '人员创建成功', data: personnelTable.findById(result.lastID) });
 });
 
-router.put('/personnel/:id', requirePerm('org:personnel:manage'), (req, res) => {
+router.put('/personnel/:id', requirePerm('org:personnel:manage'), async (req, res) => {
   const personnelTable = getTable('org_personnel');
   const existing = personnelTable.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: '人员不存在' });
-  const { emp_code, name, department_id, position_id, phone, email, gender, sort, description, status, linked_user_id, work_role } = req.body;
+  const { emp_code, name, department_id, position_id, phone, email, gender, sort, description, status, linked_user_id, work_role, sync_exempt } = req.body;
   if (emp_code && emp_code !== existing.emp_code) {
     const dup = personnelTable.all().find(p => p.emp_code === emp_code && p.id !== Number(req.params.id));
     if (dup) return res.status(400).json({ error: '工号已存在' });
@@ -448,21 +623,105 @@ router.put('/personnel/:id', requirePerm('org:personnel:manage'), (req, res) => 
   if (status !== undefined) updates.status = status;
   if (linked_user_id !== undefined) updates.linked_user_id = linked_user_id ? Number(linked_user_id) : null;
   if (work_role !== undefined) updates.work_role = normalizeWorkRole(work_role);
-  personnelTable.update(req.params.id, updates);
+  if (sync_exempt !== undefined) updates.sync_exempt = !!sync_exempt;
+  await personnelTable.update(req.params.id, updates);
   personnelTable._invalidate();
   res.json({ message: '人员更新成功', data: personnelTable.findById(req.params.id) });
 });
 
-router.delete('/personnel/:id', requirePerm('org:personnel:manage'), (req, res) => {
+router.delete('/personnel/:id', requirePerm('org:personnel:manage'), async (req, res) => {
   const personnelTable = getTable('org_personnel');
   const ppTable = getTable('org_personnel_perms');
   const existing = personnelTable.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: '人员不存在' });
-  personnelTable.delete(req.params.id);
+  await personnelTable.delete(req.params.id);
   personnelTable._invalidate();
-  ppTable.all().filter(pp => pp.personnel_id === Number(req.params.id)).forEach(pp => ppTable.delete(pp.id));
+  await Promise.all(ppTable.all().filter(pp => pp.personnel_id === Number(req.params.id)).map(pp => ppTable.delete(pp.id)));
   ppTable._invalidate();
   res.json({ message: '人员删除成功' });
+});
+
+// ==================== 人员批量修改 ====================
+//
+// 请求体：
+//   {
+//     personnel_ids: [1, 2, 3],            // 必填，至少 1 项
+//     updates: {                           // 仅传需要改的字段（不传则不改）
+//       department_id?: number | null,     // null 表示清空所属部门
+//       position_id?:  number | null,
+//       work_role?:    'leader'|'admin'|'operator'|'__clear__',  // '__clear__' 表示清空
+//       status?:       'active'|'inactive',
+//       linked_user_id?: number | null
+//     }
+//   }
+// 限制：
+//   - 单次最多 500 人
+//   - emp_code / name / phone / email 等人员个性化字段不允许批量修改（防误操作）
+//   - 至少传 1 个可改字段
+router.post('/personnel/batch-update', requirePerm('org:personnel:manage'), async (req, res) => {
+  const { personnel_ids, updates } = req.body || {};
+  if (!Array.isArray(personnel_ids) || personnel_ids.length === 0) {
+    return res.status(400).json({ error: 'personnel_ids 必须为非空数组' });
+  }
+  if (personnel_ids.length > 500) {
+    return res.status(400).json({ error: '单次最多批量修改 500 人' });
+  }
+  if (!updates || typeof updates !== 'object') {
+    return res.status(400).json({ error: 'updates 必须为对象' });
+  }
+
+  const ALLOWED = ['department_id', 'position_id', 'work_role', 'status', 'linked_user_id', 'sync_exempt'];
+  const patch = { updated_at: now() };
+  let touched = 0;
+  for (const k of ALLOWED) {
+    if (!Object.prototype.hasOwnProperty.call(updates, k)) continue;
+    touched++;
+    if (k === 'work_role') {
+      const v = updates.work_role;
+      if (v === null || v === '__clear__') patch.work_role = null;
+      else patch.work_role = normalizeWorkRole(v);
+    } else if (k === 'status') {
+      const v = updates.status;
+      if (!['active', 'inactive'].includes(v)) {
+        return res.status(400).json({ error: 'status 只能为 active/inactive' });
+      }
+      patch.status = v;
+    } else if (k === 'sync_exempt') {
+      patch.sync_exempt = !!updates.sync_exempt;
+    } else if (k === 'department_id' || k === 'position_id' || k === 'linked_user_id') {
+      const raw = updates[k];
+      patch[k] = (raw === null || raw === '' || raw === undefined) ? null : Number(raw);
+      // 校验外键存在
+      const table = getTable(
+        k === 'department_id' ? 'org_departments' :
+        k === 'position_id'   ? 'org_positions'   :
+                                'users'
+      );
+      if (patch[k] !== null && !table.findById(patch[k])) {
+        return res.status(400).json({ error: `${k}=${patch[k]} 不存在` });
+      }
+    }
+  }
+  if (touched === 0) {
+    return res.status(400).json({ error: `updates 至少包含一个字段，可选: ${ALLOWED.join('/')}` });
+  }
+
+  const personnelTable = getTable('org_personnel');
+  const all = personnelTable.all();
+  const idSet = new Set(personnel_ids.map(Number).filter(Boolean));
+  const targets = all.filter(p => idSet.has(p.id));
+  const missing = personnel_ids.filter(id => !idSet.has(Number(id)));
+
+  await Promise.all(targets.map(p => personnelTable.update(p.id, { ...patch })));
+  personnelTable._invalidate();
+
+  res.json({
+    message: '批量修改完成',
+    requested: personnel_ids.length,
+    updated: targets.length,
+    missing,
+    patch
+  });
 });
 
 // ==================== 人员权限个性化调整 ====================
@@ -472,18 +731,40 @@ router.get('/personnel/:id/permissions', requirePerm('org:view'), (req, res) => 
   const personnelTable = getTable('org_personnel');
   const positionsTable = getTable('org_positions');
   const ppTable = getTable('org_position_perms');
+  const prTable = getTable('org_position_roles');
   const personPpTable = getTable('org_personnel_perms');
+  const urTable = getTable('user_roles');
+  const roleTable = getTable('roles');
+  const rpTable = getTable('role_permissions');
   const permTable = getTable('permissions');
 
   const person = personnelTable.findById(personnelId);
   if (!person) return res.status(404).json({ error: '人员不存在' });
 
-  // 岗位默认权限
+  // 1. 岗位默认权限（直接分配）
   const defaultPermIds = new Set();
   if (person.position_id) {
     ppTable.all().filter(pp => pp.position_id === person.position_id).forEach(pp => defaultPermIds.add(pp.permission_id));
   }
-  // 个性化调整
+  // 2. 收集角色（岗位角色 + 关联用户角色）
+  const roleIds = new Set();
+  if (person.position_id) {
+    prTable.all().filter(pr => pr.position_id === person.position_id).forEach(pr => roleIds.add(pr.role_id));
+  }
+  if (person.linked_user_id) {
+    urTable.all().filter(ur => ur.user_id === person.linked_user_id).forEach(ur => roleIds.add(ur.role_id));
+  }
+  // 3. 角色展开为权限
+  const rolePermIds = new Set();
+  roleIds.forEach(rid => {
+    const role = roleTable.findById(rid);
+    if (role && role.code === 'admin') {
+      permTable.all().forEach(p => rolePermIds.add(p.id));
+    } else {
+      rpTable.all().filter(rp => rp.role_id === rid).forEach(rp => rolePermIds.add(rp.permission_id));
+    }
+  });
+  // 4. 个性化调整
   const overrides = personPpTable.all().filter(pp => pp.personnel_id === personnelId);
   const grantedIds = new Set();
   const deniedIds = new Set();
@@ -491,34 +772,35 @@ router.get('/personnel/:id/permissions', requirePerm('org:view'), (req, res) => 
     if (o.type === 'grant') grantedIds.add(o.permission_id);
     else if (o.type === 'deny') deniedIds.add(o.permission_id);
   });
-  // 最终有效权限 = 岗位默认 + 追加 - 撤销
-  const effectiveIds = new Set([...defaultPermIds, ...grantedIds]);
+  // 5. 最终有效权限 = 岗位默认 + 角色派生 + 个性化追加 - 个性化撤销
+  const effectiveIds = new Set([...defaultPermIds, ...rolePermIds, ...grantedIds]);
   deniedIds.forEach(id => effectiveIds.delete(id));
 
   const allPerms = permTable.all();
   res.json({
     default_permission_ids: [...defaultPermIds],
+    role_permission_ids: [...rolePermIds],
     granted_permission_ids: [...grantedIds],
     denied_permission_ids: [...deniedIds],
     effective_permission_ids: [...effectiveIds],
     effective_permissions: [...effectiveIds].map(id => allPerms.find(p => p.id === id)).filter(Boolean),
-    default_permissions: [...defaultPermIds].map(id => allPerms.find(p => p.id === id)).filter(Boolean)
+    default_permissions: [...defaultPermIds].map(id => allPerms.find(p => p.id === id)).filter(Boolean),
+    role_permissions: [...rolePermIds].map(id => allPerms.find(p => p.id === id)).filter(Boolean)
   });
 });
 
-router.put('/personnel/:id/permissions', requirePerm('org:personnel:manage'), (req, res) => {
+router.put('/personnel/:id/permissions', requirePerm('org:personnel:manage'), async (req, res) => {
   const { overrides } = req.body; // [{ permission_id, type: 'grant'|'deny' }]
   if (!Array.isArray(overrides)) return res.status(400).json({ error: 'overrides必须为数组' });
   const personnelId = Number(req.params.id);
   const personnelTable = getTable('org_personnel');
   if (!personnelTable.findById(personnelId)) return res.status(404).json({ error: '人员不存在' });
   const ppTable = getTable('org_personnel_perms');
-  ppTable.all().filter(pp => pp.personnel_id === personnelId).forEach(pp => ppTable.delete(pp.id));
-  overrides.forEach(o => {
-    if (!o.permission_id) return;
-    if (o.type !== 'grant' && o.type !== 'deny') return;
-    ppTable.insert({ personnel_id: personnelId, permission_id: Number(o.permission_id), type: o.type, updated_at: now() });
-  });
+  await Promise.all(ppTable.all().filter(pp => pp.personnel_id === personnelId).map(pp => ppTable.delete(pp.id)));
+  const inserts = overrides
+    .filter(o => o && o.permission_id && (o.type === 'grant' || o.type === 'deny'))
+    .map(o => ppTable.insert({ personnel_id: personnelId, permission_id: Number(o.permission_id), type: o.type, updated_at: now() }));
+  if (inserts.length) await Promise.all(inserts);
   ppTable._invalidate();
   res.json({ message: '人员权限个性化调整已更新', count: overrides.length });
 });
@@ -540,34 +822,32 @@ router.get('/personnel/:id/effective-permissions', (req, res) => {
   const person = personnelTable.findById(personnelId);
   if (!person) return res.status(404).json({ error: '人员不存在' });
 
-  // 1. 岗位默认权限
+  // 1. 岗位默认权限（直接分配的权限 + 岗位关联角色）
   const permIds = new Set();
   const roleIds = new Set();
   if (person.position_id) {
     ppTable.all().filter(pp => pp.position_id === person.position_id).forEach(pp => permIds.add(pp.permission_id));
     prTable.all().filter(pr => pr.position_id === person.position_id).forEach(pr => roleIds.add(pr.role_id));
   }
-  // 2. 个性化调整
-  personPpTable.all().filter(pp => pp.personnel_id === personnelId).forEach(o => {
-    if (o.type === 'grant') permIds.add(o.permission_id);
-    else if (o.type === 'deny') permIds.delete(o.permission_id);
-  });
-  // 3. 关联系统用户：通过 user_roles 收集额外角色
+  // 2. 关联系统用户：通过 user_roles 收集额外角色
   if (person.linked_user_id) {
     urTable.all().filter(ur => ur.user_id === person.linked_user_id).forEach(ur => roleIds.add(ur.role_id));
   }
-  // 4. 关联角色 → 展开为权限码
+  // 3. 角色 → 展开为权限码（先展开 admin，再展开其他角色）
   roleIds.forEach(rid => {
     const role = roleTable.findById(rid);
     if (role && role.code === 'admin') {
-      // 管理员拥有所有权限
       permTable.all().forEach(p => permIds.add(p.id));
     }
   });
-  // 通过 rp 收集非 admin 角色对应的权限
   const rpTable = getTable('role_permissions');
   roleIds.forEach(rid => {
     rpTable.all().filter(rp => rp.role_id === rid).forEach(rp => permIds.add(rp.permission_id));
+  });
+  // 4. 个性化调整（在角色展开之后执行，确保 grant/deny 能正确覆盖角色权限）
+  personPpTable.all().filter(pp => pp.personnel_id === personnelId).forEach(o => {
+    if (o.type === 'grant') permIds.add(o.permission_id);
+    else if (o.type === 'deny') permIds.delete(o.permission_id);
   });
 
   const permissions = [...permIds].map(pid => permTable.findById(pid)).filter(Boolean);
@@ -656,7 +936,7 @@ function getGetTable(name) {
 }
 
 // 真正导入
-router.post('/sync/import', requirePerm('org:create'), (req, res) => {
+router.post('/sync/import', requirePerm('org:create'), async (req, res) => {
   const {
     import_organizations = true,
     import_positions = true,
@@ -714,7 +994,7 @@ router.post('/sync/import', requirePerm('org:create'), (req, res) => {
 
   let org_created = 0, org_updated = 0, org_skipped = 0;
   let pos_created = 0, pos_updated = 0, pos_skipped = 0;
-  let per_created = 0, per_updated = 0, per_skipped = 0;
+  let per_created = 0, per_updated = 0, per_skipped = 0, per_exempt_skipped = 0;
   let rel_created = 0, rel_skipped = 0;
 
   // ---------- 1. 导入组织 → org_departments ----------
@@ -836,9 +1116,9 @@ router.post('/sync/import', requirePerm('org:create'), (req, res) => {
     const deptByName = new Map();
     departmentsTable.all().forEach(d => { if (d.name) deptByName.set(String(d.name), d); });
 
-    personnel.forEach(p => {
+    for (const p of personnel) {
       const empCode = p.emp_code ? String(p.emp_code) : '';
-      if (!empCode) { per_skipped++; return; }
+      if (!empCode) { per_skipped++; continue; }
       const orgCode = p.org_code ? String(p.org_code) : '';
       const orgName = p.org_name ? String(p.org_name) : '';
       // 1) 按 org_code 匹配  2) 按 org_name 匹配  3) 都不匹配则 null
@@ -848,6 +1128,13 @@ router.post('/sync/import', requirePerm('org:create'), (req, res) => {
       const pos = posName ? newPositionByName.get(posName) : null;
 
       const existing = personnelByEmpCode.get(empCode);
+      // 已有人员且标记为"免同步"：保留手工编辑，不覆盖
+      if (existing && existing.sync_exempt) {
+        per_exempt_skipped++;
+        per_skipped++;
+        personnelByEmpCode.set(empCode, { ...existing, _sync_exempt_skip: true });
+        continue;
+      }
       const fields = {
         emp_code: empCode,
         name: p.name || '',
@@ -858,22 +1145,23 @@ router.post('/sync/import', requirePerm('org:create'), (req, res) => {
         phone: p.phone || '',
         email: p.email || '',
         gender: p.gender || '',
-        sort: 0,
-        description: '',
+        sort: existing ? (existing.sort || 0) : 0,
+        description: existing ? (existing.description || '') : '',
         status: (p.status === 'inactive' || p.status === '0' || p.status === 0) ? 'inactive' : 'active',
+        sync_exempt: existing ? !!existing.sync_exempt : false,
         updated_at: now()
       };
       if (existing) {
-        personnelTable.update(existing.id, fields);
+        await personnelTable.update(existing.id, fields);
         personnelByEmpCode.set(empCode, { ...existing, ...fields });
         per_updated++;
       } else {
         fields.created_at = now();
-        const r = personnelTable.insert(fields);
+        const r = await personnelTable.insert(fields);
         personnelByEmpCode.set(empCode, personnelTable.findById(r.lastID));
         per_created++;
       }
-    });
+    }
   }
 
   // ---------- 4. 建立 组织↔员工 关系 ----------
@@ -969,7 +1257,12 @@ router.post('/sync/import', requirePerm('org:create'), (req, res) => {
     message: '同步完成',
     organizations: { created: org_created, updated: org_updated, skipped: org_skipped },
     positions: { created: pos_created, updated: pos_updated, skipped: pos_skipped, role_linked: pos_role_linked },
-    personnel: { created: per_created, updated: per_updated, skipped: per_skipped },
+    personnel: {
+      created: per_created,
+      updated: per_updated,
+      skipped: per_skipped,
+      sync_exempt_skipped: per_exempt_skipped
+    },
     relations: { created: rel_created, skipped: rel_skipped }
   });
 });

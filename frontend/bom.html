@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>BOM管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - BOM管理</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -91,7 +91,7 @@ tr:hover td{background:#f8f9ff}
 .dash-compare-row .dash-card{background:#fff;border-left-color:#ff9800}
 .dash-compare-row .dash-card .v{color:#e65100}
 .dash-compare-row .dash-card .l{color:#bf6000}
-</style></head><body>
+</style></head><body data-page-title="BOM管理" data-page-perm="bom:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -377,7 +377,7 @@ function formatNum(n){return Math.round(n).toLocaleString()}
 
 async function loadBom(page){
   bomPage=page||1;
-  const p=new URLSearchParams({page:bomPage,limit:50});
+  const p=new URLSearchParams({page:bomPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('bomKw').value,mt=document.getElementById('bomMatType').value;
   const cls=document.getElementById('bomCls').value,st=document.getElementById('bomStatus').value;
   const kp=document.getElementById('bomKey').value,lv=document.getElementById('bomLevel').value;
@@ -436,7 +436,7 @@ function renderMatType(t){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -618,4 +618,5 @@ loadBom(1);
 loadDashboard();
 </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

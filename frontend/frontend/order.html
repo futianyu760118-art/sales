@@ -112,7 +112,7 @@ function getNextStatuses(current){
 
 async function loadOrders(page){
   oPage=page||1;
-  const p=new URLSearchParams({page:oPage,limit:50});
+  const p=new URLSearchParams({page:oPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('oKw').value,st=document.getElementById('oStatus').value;
   const risk=document.getElementById('oRisk').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(risk)p.set('risk_level',risk);
@@ -151,7 +151,7 @@ async function loadOrders(page){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>自动测试</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 自动测试</title><link rel="stylesheet" href="common.css">
 <style>
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
 .sc{background:#fff;padding:16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -26,7 +26,7 @@ tr:hover td{background:#f8f9ff}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
 .tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
 .tc{display:none}.tc.ac{display:block}
-</style></head><body>
+</style></head><body data-page-title="自动测试" data-page-perm="test:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -39,6 +39,7 @@ tr:hover td{background:#f8f9ff}
 
 <div class="tv" id="tabNav">
 <button class="ac" onclick="swTab('suites',this)">测试套件</button>
+<button onclick="swTab('matrix',this)">模块覆盖矩阵</button>
 <button onclick="swTab('history',this)">测试历史</button>
 <button onclick="swTab('bugs',this)">Bug列表</button>
 </div>
@@ -46,6 +47,28 @@ tr:hover td{background:#f8f9ff}
 <div class="tc ac" id="tab-suites">
 <div class="sg" id="sGrid"></div>
 <div id="sStatus" style="margin-top:8px"></div>
+</div>
+
+<div class="tc" id="tab-matrix">
+<div class="sb">
+<input id="mxSearch" placeholder="搜索模块名/路由" oninput="renderMatrix()" style="min-width:200px">
+<select id="mxStatus">
+<option value="">全部状态</option>
+<option value="enabled">已启用</option>
+<option value="error">异常</option>
+<option value="offline">未响应/未部署</option>
+<option value="untested">未检测</option>
+</select>
+<button class="btn b1" onclick="runMatrix()">运行全量检测</button>
+<button class="btn b5" onclick="loadMatrix(true)">刷新</button>
+<span style="margin-left:auto" id="mxRunTip"></span>
+</div>
+<div class="sg" id="mxStats" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))"></div>
+<div class="tbl-wrap" style="margin-top:8px;max-height:60vh">
+<table><thead><tr>
+<th>模块</th><th>状态</th><th>API探测</th><th>CRUD模拟</th><th>功能开关</th><th>数据量</th><th>最近检测</th><th>详情/操作</th>
+</tr></thead><tbody id="mxTb"><tr><td colspan="8" class="em">加载中...</td></tr></tbody></table>
+</div>
 </div>
 
 <div class="tc" id="tab-history">
@@ -95,6 +118,7 @@ function swTab(name,btn){
   btn.classList.add('ac');
   document.getElementById('tab-'+name).classList.add('ac');
   if(name==='suites')loadSuites();
+  else if(name==='matrix')loadMatrix(false);
   else if(name==='history')loadHistory();
   else if(name==='bugs')loadBugs();
 }
@@ -242,8 +266,112 @@ async function autoFixAllBugs(){
   }catch(e){alert('修复失败: '+e.message)}
 }
 
+// ===== 模块覆盖矩阵 =====
+let mxData=[], mxSummary={};
+const mxStatusMap={enabled:'bg-g',error:'bg-r',offline:'bg-o',missing:'bg-o',untested:'bg-n'};
+const mxStatusLabel={enabled:'已启用',error:'异常',offline:'未响应',missing:'未部署',untested:'未检测'};
+
+async function loadMatrix(silent){
+  try{
+    document.getElementById('mxRunTip').textContent=silent?'加载中...':'';
+    const r=await fetch(API+'/module-matrix');const d=await r.json();
+    mxData=d.data||[];mxSummary=d.summary||{};
+    renderMatrixStats();renderMatrix();
+    document.getElementById('mxRunTip').textContent='';
+  }catch(e){
+    document.getElementById('mxRunTip').textContent='加载失败: '+e.message;
+    document.getElementById('mxTb').innerHTML='<tr><td colspan="8" class="em">加载失败: '+e.message+'</td></tr>';
+  }
+}
+
+function renderMatrixStats(){
+  const s=mxSummary;
+  const cards=[
+    {l:'模块总数',v:s.total||0,c:'#3498db'},
+    {l:'已启用',v:(s.enabled||0),c:'#27ae60',sub:s.coverage_rate||'0%'},
+    {l:'异常/未响应',v:(s.error||0)+(s.offline||0),c:'#e74c3c'},
+    {l:'API存活',v:(s.api_alive||0)+'/'+(s.total||0),c:'#667eea'},
+    {l:'CRUD通过',v:(s.crud_ok||0)+'/'+(s.crud_tested||0),c:'#27ae60',sub:s.pass_rate||'-'},
+    {l:'功能开关启用',v:(s.features_enabled||0)+'/'+(s.features_total||0),c:'#f39c12'}
+  ];
+  document.getElementById('mxStats').innerHTML=cards.map(c=>`
+    <div class="sc" style="padding:12px">
+      <div style="font-size:11px;color:#999">${c.l}</div>
+      <div style="font-size:20px;font-weight:700;color:${c.c};margin-top:4px">${c.v}</div>
+      ${c.sub?`<div style="font-size:11px;color:${c.c};margin-top:2px">${c.sub}</div>`:''}
+    </div>`).join('');
+}
+
+function renderMatrix(){
+  if(!mxData.length){document.getElementById('mxTb').innerHTML='<tr><td colspan="8" class="em">暂无检测数据，点击"运行全量检测"</td></tr>';return}
+  const kw=(document.getElementById('mxSearch').value||'').toLowerCase();
+  const st=document.getElementById('mxStatus').value;
+  let list=mxData.filter(m=>{
+    if(kw && !(m.name||'').toLowerCase().includes(kw) && !(m.route||'').toLowerCase().includes(kw) && !(m.key||'').toLowerCase().includes(kw))return false;
+    if(st && m.status!==st)return false;
+    return true;
+  });
+  document.getElementById('mxTb').innerHTML=list.length?list.map(m=>{
+    const feat=m.features_total>0?`<b style="color:#27ae60">${m.features_enabled}</b>/${m.features_total}`:'<span style="color:#999">无</span>';
+    const crud=m.crud_tested?(m.crud_ok===true?`<span class="badge bg-g">通过</span>`:`<span class="badge bg-r">失败</span>`):'<span style="color:#999">未测</span>';
+    const api=m.api_alive?`<span class="badge bg-g">HTTP${m.api_status==null?'':m.api_status}</span>`:`<span class="badge ${m.status==='missing'?'bg-n':'bg-r'}">${m.api_status===0?'无响应':('HTTP'+m.api_status)}</span>`;
+    const rc=m.record_count==null?'<span style="color:#999">-</span>':`${m.record_count}条`;
+    return `<tr>
+      <td><b>${m.name||m.key}</b><div style="font-size:11px;color:#999">/${m.route}</div></td>
+      <td><span class="badge ${mxStatusMap[m.status]||'bg-n'}">${mxStatusLabel[m.status]||m.status}</span></td>
+      <td>${api}</td>
+      <td>${crud}</td>
+      <td>${feat}</td>
+      <td>${rc}</td>
+      <td style="font-size:11px;color:#999">${m.last_tested?m.last_tested.substring(5,16):'-'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bs b5" onclick="runMatrix('${m.key}')">重测</button>
+        ${m.page?`<button class="btn bs b4" onclick="window.open('${m.page}','_blank')">前往</button>`:''}
+        <button class="btn bs b1" onclick="showModuleDetail('${m.key}')">详情</button>
+      </td>
+    </tr>`}).join(''):'<tr><td colspan="8" class="em">无匹配结果</td></tr>';
+}
+
+async function runMatrix(key){
+  const tip=document.getElementById('mxRunTip');
+  tip.textContent=key?('检测 '+key+' 中...'):'全量模块检测中...';
+  try{
+    const body=key?{module:key}:{};
+    const r=await fetch(API+'/module-matrix/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||('HTTP'+r.status));
+    mxData=d.data||[];mxSummary=d.summary||{};
+    renderMatrixStats();renderMatrix();
+    tip.textContent='';
+    alert(d.message||'检测完成');
+  }catch(e){
+    tip.textContent='检测失败: '+e.message;
+    alert('检测失败: '+e.message);
+  }
+}
+
+function showModuleDetail(key){
+  const m=(mxData||[]).find(x=>x.key===key);
+  if(!m){alert('未找到模块 '+key);return}
+  const feat=(m.features_total>0)?(`${m.features_enabled}/${m.features_total} 个功能启用`):'该模块未配置功能开关';
+  const lines=[
+    ['模块',`${m.name} (${m.key})`],
+    ['API路由','/'+m.route],
+    ['状态',mxStatusLabel[m.status]||m.status],
+    ['API探测',m.api_alive?`存活 HTTP${m.api_status==null?'':m.api_status}`:(m.api_status===0?'无响应':'HTTP'+m.api_status)],
+    ['CRUD模拟',m.crud_tested?(m.crud_ok===true?'通过':'失败'):'未测试'],
+    ['功能开关',feat],
+    ['数据量',m.record_count==null?'-':(m.record_count+' 条')],
+    ['前端页面',m.page||'(无独立页面)'],
+    ['最近检测',m.last_tested||'未检测'],
+    ['检测详情',m.message||'-']
+  ];
+  alert('模块详情 - '+m.name+'\n'+lines.map(l=>`\n${l[0]}: ${l[1]}`).join(''));
+}
+
 loadSuites();
 </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body></html>

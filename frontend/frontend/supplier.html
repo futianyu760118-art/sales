@@ -486,7 +486,7 @@
       const risk = document.getElementById('riskFilter').value;
       const category = document.getElementById('categoryFilter').value;
 
-      const params = new URLSearchParams({ page, limit: 20 });
+      const params = new URLSearchParams({ page, limit:(window._pageSize||20) });
       if (keyword) params.set('keyword', keyword);
       if (level) params.set('level', level);
       if (lifecycle) params.set('lifecycle_status', lifecycle);

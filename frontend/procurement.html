@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>采购管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 采购管理</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -42,7 +42,7 @@ td.ed input{width:100%;padding:5px 7px;border:none;font-size:13px;background:#ff
 .supp-card{background:#fff;border:1px solid #eee;border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
 .toast{position:fixed;bottom:20px;right:20px;background:#333;color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;z-index:2000;opacity:0;transition:opacity .3s;max-width:380px}
 .toast.ac{opacity:1}
-</style></head><body>
+</style></head><body data-page-title="采购管理" data-page-perm="material:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content" data-module="procurement">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
@@ -169,7 +169,7 @@ async function runScan(silent){
 }
 
 async function loadRequests(){
-  const p=new URLSearchParams({page:1,limit:200});
+  const p=new URLSearchParams({page:1,limit:(window._pageSize||200)});
   const kw=document.getElementById('rKw').value,st=document.getElementById('rStat').value,sup=document.getElementById('rSupp').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(sup)p.set('supplier',sup);
   try{
@@ -257,7 +257,7 @@ async function syncPurchaseOrdersFromExternal(){
 }
 
 async function loadOrders(){
-  const p=new URLSearchParams({page:1,limit:200});
+  const p=new URLSearchParams({page:1,limit:(window._pageSize||200)});
   const kw=document.getElementById('oKw').value,st=document.getElementById('oStat').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);
   try{
@@ -339,4 +339,5 @@ runScan(true).then(()=>{
 });
 </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

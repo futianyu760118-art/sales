@@ -169,7 +169,7 @@ async function runScan(silent){
 }
 
 async function loadRequests(){
-  const p=new URLSearchParams({page:1,limit:200});
+  const p=new URLSearchParams({page:1,limit:(window._pageSize||200)});
   const kw=document.getElementById('rKw').value,st=document.getElementById('rStat').value,sup=document.getElementById('rSupp').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(sup)p.set('supplier',sup);
   try{
@@ -257,7 +257,7 @@ async function syncPurchaseOrdersFromExternal(){
 }
 
 async function loadOrders(){
-  const p=new URLSearchParams({page:1,limit:200});
+  const p=new URLSearchParams({page:1,limit:(window._pageSize||200)});
   const kw=document.getElementById('oKw').value,st=document.getElementById('oStat').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);
   try{

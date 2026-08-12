@@ -155,7 +155,7 @@ async function openReport(id){
 
 async function loadIssues(page){
   iPage=page||1;
-  const p=new URLSearchParams({page:iPage,limit:20});
+  const p=new URLSearchParams({page:iPage,limit:(window._pageSize||20)});
   const st=document.getElementById('iStatus').value,lv=document.getElementById('iLevel').value,tp=document.getElementById('iType').value;
   if(st)p.set('status',st);if(lv)p.set('level',lv);if(tp)p.set('type',tp);
   try{

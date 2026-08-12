@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const { resolveDataScope, isInScope, filterByOwner } = require('../data-scope');
+const { resolveDataScopeV2, buildScopeFilter, combineFilter, logDataPermission } = require('../data-scope-v2');
 const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 const multer = require('multer');
@@ -790,6 +792,7 @@ router.post('/generate-quotation', requirePerm('inquiry:create'), (req, res) => 
 router.get('/quotations', requirePerm('inquiry:view'), (req, res) => {
   const { page = 1, limit = 15, keyword, customer_name, status } = req.query;
   const quotationTable = getTable('quotations');
+  const scope = resolveDataScope(req);
   const filter = (r) => {
     if (status && r.status !== status) return false;
     if (customer_name && !(r.customer_name || '').includes(customer_name)) return false;
@@ -798,6 +801,7 @@ router.get('/quotations', requirePerm('inquiry:view'), (req, res) => {
       const searchStr = [r.quote_no, r.customer_name, r.external_model, r.internal_model, r.product_name, r.sales_person].join(' ').toLowerCase();
       if (!searchStr.includes(kw)) return false;
     }
+    if (scope.enabled && !isInScope(scope, r, { ownerField: 'sales_person' })) return false;
     return true;
   };
   const { records, total } = quotationTable.findWhere(filter, 'created_at', 'DESC', parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
@@ -809,6 +813,10 @@ router.get('/quotations/:id', requirePerm('inquiry:view'), (req, res) => {
   const quotationTable = getTable('quotations');
   const row = quotationTable.findById(req.params.id);
   if (!row) return res.status(404).json({ error: '报价单不存在' });
+  const scope = resolveDataScope(req);
+  if (scope.enabled && !isInScope(scope, row, { ownerField: 'sales_person' })) {
+    return res.status(403).json({ error: '无访问该报价单的权限', code: 'DATA_SCOPE_DENIED' });
+  }
   res.json(row);
 });
 
@@ -1802,7 +1810,10 @@ router.post('/import-pricing', requirePerm('inquiry:price'), uploadMem.single('f
 router.get('/', requirePerm('inquiry:view'), (req, res) => {
   const { page = 1, limit = 10, status, customer_name, sales_person, start_date, end_date, keyword, product_model } = req.query;
   const table = getTable('inquiries');
-  const filter = (r) => {
+  const scope = resolveDataScopeV2(req);
+  const scopeLegacy = resolveDataScope(req);
+  const scopeFilter = buildScopeFilter(scope, 'inquiries');
+  const filter = combineFilter((r) => {
     if (status && r.status !== status) return false;
     if (customer_name && !(r.customer_name || '').includes(customer_name)) return false;
     if (sales_person && !(r.sales_person || '').includes(sales_person)) return false;
@@ -1819,7 +1830,16 @@ router.get('/', requirePerm('inquiry:view'), (req, res) => {
       if (!searchStr.includes(kw)) return false;
     }
     return true;
-  };
+  }, (r) => {
+    if (scope.enabled) {
+      if (scopeFilter(r)) return true;
+      // v1 兼容
+      if (scopeLegacy.enabled && isInScope(scopeLegacy, r, { ownerField: 'sales_person' })) return true;
+      return false;
+    }
+    if (scopeLegacy.enabled && !isInScope(scopeLegacy, r, { ownerField: 'sales_person' })) return false;
+    return true;
+  });
   const { records, total } = table.findWhere(filter, 'inquiry_time', 'DESC', parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
 
   // 附加每个询价单的配置信息
@@ -1840,14 +1860,46 @@ router.get('/', requirePerm('inquiry:view'), (req, res) => {
     return { ...r, config_count: configs.length, quotation_count: quotations.length };
   });
 
-  res.json({ data: recordsWithConfig, total, page: parseInt(page), limit: parseInt(limit) });
+  logDataPermission(req, 'inquiry.list', { table: 'inquiries', count: total, scope_mode: scope.mode || 'none' });
+  res.json({
+    data: recordsWithConfig,
+    total,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    scope: scope.enabled
+      ? { mode: scope.mode, owner_count: scope.ownerIds ? scope.ownerIds.length : 0, label: labelOfScopeMode(scope.mode) }
+      : { mode: 'none', label: '全部数据' }
+  });
 });
+
+function labelOfScopeMode(mode) {
+  return {
+    all: '全部数据',
+    self: '我的询价',
+    dept: '本部门询价',
+    dept_and_child: '本部门及下级部门询价',
+    custom: '自定义范围询价',
+    none: '全部数据'
+  }[mode] || '全部数据';
+}
 
 // 询价单详情
 router.get('/:id', requirePerm('inquiry:view'), (req, res) => {
   const table = getTable('inquiries');
   const row = table.findById(req.params.id);
   if (!row) return res.status(404).json({ error: '询价单不存在' });
+
+  const scope = resolveDataScopeV2(req);
+  let ok = true;
+  if (scope.enabled) {
+    const f = buildScopeFilter(scope, 'inquiries');
+    ok = f(row);
+    if (!ok) {
+      const scopeLegacy = resolveDataScope(req);
+      if (scopeLegacy.enabled) ok = isInScope(scopeLegacy, row, { ownerField: 'sales_person' });
+    }
+  }
+  if (!ok) return res.status(403).json({ error: '无访问该询价单的权限', code: 'DATA_SCOPE_DENIED' });
 
   // 关联配置表
   const configTable = getTable('product_configs');
@@ -1858,6 +1910,7 @@ router.get('/:id', requirePerm('inquiry:view'), (req, res) => {
   const quotationTable = getTable('quotations');
   const quotations = quotationTable.all().filter(q => q.inquiry_id === Number(req.params.id));
 
+  logDataPermission(req, 'inquiry.detail', { table: 'inquiries', record_id: row.id, scope_mode: scope.mode || 'none' });
   res.json({ ...row, config: latestConfig, quotations });
 });
 

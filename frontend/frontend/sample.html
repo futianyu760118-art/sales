@@ -73,7 +73,7 @@ async function loadStats(){
 
 async function loadList(page){
   sPage=page||1;
-  const p=new URLSearchParams({page:sPage,limit:50});
+  const p=new URLSearchParams({page:sPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('sKw').value,st=document.getElementById('sStatus').value,iq=document.getElementById('sInquiry').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(iq)p.set('inquiry_no',iq);
   try{
@@ -108,7 +108,7 @@ async function loadList(page){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;

@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 核价表</title>
+  <title>企业经营管理平台（EBMS）-HJ - 核价表</title>
   <link rel="stylesheet" href="common.css">
   <style>
+    .table-container { overflow-x: auto; }
+    .table-container table { min-width: 2600px; }
     .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
     .table-container td.left { text-align: left; }
@@ -35,9 +37,29 @@
     .sub-row.visible { display: table-row; }
     .sub-row td:first-child { padding-left: 28px; }
     .sub-count { background: #667eea; color: white; border-radius: 10px; padding: 1px 7px; font-size: 11px; margin-left: 4px; }
+    .workflow-panel { background: #fff; border: 1px solid #e8eaf6; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(102,126,234,0.08); overflow: hidden; }
+    .workflow-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; background: linear-gradient(90deg,#f0f4ff,#e8f5e9); user-select: none; }
+    .workflow-header:hover { background: linear-gradient(90deg,#e8edff,#e0f2e0); }
+    .workflow-title { font-size: 14px; font-weight: 700; color: #3949ab; }
+    .workflow-toggle { font-size: 12px; color: #667eea; }
+    .workflow-body { padding: 14px 16px; }
+    .wf-section-label { font-size: 13px; font-weight: 700; color: #555; margin: 6px 0 8px; padding-left: 8px; border-left: 3px solid #667eea; }
+    .wf-section-label.std { border-color: #27ae60; color: #2e7d32; }
+    .wf-steps { display: flex; flex-wrap: wrap; align-items: stretch; gap: 4px; margin-bottom: 14px; }
+    .wf-step { display: flex; align-items: center; background: #f8f9ff; border: 1px solid #e8eaf6; border-radius: 8px; padding: 7px 10px; flex: 1; min-width: 150px; }
+    .wf-step-no { width: 22px; height: 22px; border-radius: 50%; background: #667eea; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-right: 8px; flex-shrink: 0; }
+    .wf-step-body { display: flex; flex-direction: column; font-size: 12px; line-height: 1.4; }
+    .wf-step-body b { color: #3949ab; font-size: 12.5px; }
+    .wf-step-body span { color: #777; }
+    .wf-arrow { color: #b0bec5; font-size: 16px; align-self: center; }
+    .wf-standards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+    .wf-std { display: flex; align-items: flex-start; gap: 8px; background: #f6fff7; border: 1px solid #d4ede0; border-radius: 8px; padding: 7px 10px; font-size: 12px; line-height: 1.5; }
+    .wf-std-k { font-weight: 700; color: #2e7d32; white-space: nowrap; flex-shrink: 0; }
+    .wf-std-v { color: #555; }
+    .wf-std-v code { background: #e8f5e9; color: #c62828; padding: 0 4px; border-radius: 3px; font-family: Consolas,monospace; }
   </style>
 </head>
-<body>
+<body data-page-title="核价表">
   <div class="sidebar" id="sidebar"></div>
   <div class="main-content" data-module="pricing">
     <div class="header">
@@ -59,6 +81,41 @@
       <button class="btn btn-warning" onclick="resetSearch()">重置</button>
     </div>
     <div class="batch-bar" id="batchBar" style="display:none;"><span id="batchCount">已选 0 条</span><button class="btn btn-danger" onclick="batchDeletePricing()" data-feature="batch">批量删除</button><button class="btn btn-default" onclick="clearPricingSelection()">取消选择</button></div>
+
+    <div class="workflow-panel">
+      <div class="workflow-header" onclick="toggleWorkflowPanel()">
+        <span class="workflow-title">📋 BOM核价作业流程与标准</span>
+        <span class="workflow-toggle" id="workflowToggle">展开查看 ▼</span>
+      </div>
+      <div class="workflow-body" id="workflowBody" style="display:none;">
+        <div class="wf-section-label">一、作业流程</div>
+        <div class="wf-steps">
+          <div class="wf-step"><div class="wf-step-no">1</div><div class="wf-step-body"><b>询价受理</b><span>销售中心录入询价单，无价/需核价项流转至待核价</span></div></div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-step"><div class="wf-step-no">2</div><div class="wf-step-body"><b>拉取询价</b><span>新增核价 →「从询价单拉取」，带出客户/型号/目标价</span></div></div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-step"><div class="wf-step-no">3</div><div class="wf-step-body"><b>录入BOM成本</b><span>逐项填写14项物料人工成本，系统自动求和</span></div></div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-step"><div class="wf-step-no">4</div><div class="wf-step-body"><b>核算报价</b><span>录加工费/工艺/损耗→合计成本；按毛利率算限价与报价</span></div></div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-step"><div class="wf-step-no">5</div><div class="wf-step-body"><b>同步归档</b><span>同步到产品/客户；报价库同步核价进入报价</span></div></div>
+          <span class="wf-arrow">→</span>
+          <div class="wf-step"><div class="wf-step-no">6</div><div class="wf-step-body"><b>时效预警</b><span>SLA超时系统自动预警，合规自检异常项</span></div></div>
+        </div>
+        <div class="wf-section-label std">二、核价标准</div>
+        <div class="wf-standards">
+          <div class="wf-std"><span class="wf-std-k">成本构成</span><span class="wf-std-v">BOM合计 = 套件/电缆线/光源/驱动/电池/支架/开关/太阳能板/插座/盒子/说明书/包装/配件/人工（14项自动求和）</span></div>
+          <div class="wf-std"><span class="wf-std-k">合计成本</span><span class="wf-std-v">BOM合计 + 人工加工费 + 工艺成本 + 预估损耗</span></div>
+          <div class="wf-std"><span class="wf-std-k">利润率</span><span class="wf-std-v">标准毛利率 <code>≥20%</code>；最低限价 = 合计成本 × <code>1.2</code>，参考上限 × <code>1.5</code></span></div>
+          <div class="wf-std"><span class="wf-std-k">报价换算</span><span class="wf-std-v">报价(RMB)/报价(USD) 按系统汇率（默认<code>7.25</code>）自动换算，保留2位小数；报价不得低于最低限价</span></div>
+          <div class="wf-std"><span class="wf-std-k">必填项</span><span class="wf-std-v">核价人、产品型号；建议填写核价版本、生效日期、核价链接</span></div>
+          <div class="wf-std"><span class="wf-std-k">时效SLA</span><span class="wf-std-v">常规核价 <code>3天</code>，加急 <code>1天</code>；超 <code>5天</code> 未完成自动预警</span></div>
+          <div class="wf-std"><span class="wf-std-k">合规自检</span><span class="wf-std-v">缺报价 / 缺成本 / 单价异常 / 产品超7天未核价 → 系统标记并提示</span></div>
+          <div class="wf-std"><span class="wf-std-k">数据流转</span><span class="wf-std-v">询价单 → 核价库 → 报价库 → 产品/客户档案，全链路联动可追溯</span></div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-container"><table id="pricingTableEl"><thead><tr>
       <th class="checkbox-col"><input type="checkbox" id="selectAllPricing" onchange="toggleSelectAllPricing()"></th><th class="seq-col">#</th><th>ID</th><th class="left" data-sort="customer_name">客户<span class="sort-icon">&#8593;&#8595;</span></th><th class="left" data-sort="inquiry_no">询价单<span class="sort-icon">&#8593;&#8595;</span></th><th class="left" data-sort="external_model">型号<span class="sort-icon">&#8593;&#8595;</span></th><th class="left">产品名称</th><th data-sort="power">功率<span class="sort-icon">&#8593;&#8595;</span></th><th>证书</th><th>等级</th>
       <th class="bom-header">套件</th><th class="bom-header">电缆线</th><th class="bom-header">光源</th><th class="bom-header">驱动</th><th class="bom-header">电池</th><th class="bom-header">支架</th><th class="bom-header">开关</th><th class="bom-header">太阳能板</th><th class="bom-header">插座</th><th class="bom-header">盒子</th><th class="bom-header">说明书</th><th class="bom-header">包装</th><th class="bom-header">配件</th><th class="bom-header">人工</th>
@@ -72,18 +129,18 @@
     <div class="section-title">基本信息 <button type="button" class="btn btn-warning btn-sm" onclick="showInquirySearchModal()" style="margin-left:10px;font-size:11px;">从询价单拉取</button></div>
     <div id="inquiryPullInfo" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;"></div>
     <div class="form-row">
-      <div class="form-group"><label>客户</label><select id="fCustomerSelect" onchange="onCustomerSelected()"><option value="">选择客户</option></select><input type="text" id="fCustomer" placeholder="或手动输入编号" style="margin-top:4px;"></div>
-      <div class="form-group"><label>询价单号</label><select id="fInquirySelect" onchange="onInquirySelected()" style="width:100%;"><option value="">选择询价单</option></select><input type="text" id="fInquiryNo" placeholder="或手动输入单号" style="margin-top:4px;" onchange="autoPullInquiry()"></div>
-      <div class="form-group"><label>子项产品</label><select id="fSubProductSelect" onchange="onSubProductSelected()" style="width:100%;"><option value="">请先选择询价单</option></select></div>
+      <div class="form-group"><label>客户</label><select data-searchable="1" id="fCustomerSelect" onchange="onCustomerSelected()"><option value="">选择客户</option></select><input type="text" id="fCustomer" placeholder="或手动输入编号" style="margin-top:4px;"></div>
+      <div class="form-group"><label>询价单号</label><select data-searchable="1" id="fInquirySelect" onchange="onInquirySelected()" style="width:100%;"><option value="">选择询价单</option></select><input type="text" id="fInquiryNo" placeholder="或手动输入单号" style="margin-top:4px;" onchange="autoPullInquiry()"></div>
+      <div class="form-group"><label>子项产品</label><select data-searchable="1" id="fSubProductSelect" onchange="onSubProductSelected()" style="width:100%;"><option value="">请先选择询价单</option></select></div>
     </div>
     <div id="subProductInfo" style="display:none;background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;"></div>
     <div class="form-row">
-      <div class="form-group"><label>关联产品</label><select id="fProductSelect" onchange="onProductSelect()" style="width:100%;"><option value="">选择产品</option></select><input type="text" id="fModel" placeholder="或手动输入型号" style="margin-top:4px;" required></div>
+      <div class="form-group"><label>关联产品</label><select data-searchable="1" id="fProductSelect" onchange="onProductSelect()" style="width:100%;"><option value="">选择产品</option></select><input type="text" id="fModel" placeholder="或手动输入型号" style="margin-top:4px;" required></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>产品名称</label><input type="text" id="fProductName" placeholder="如 S系列100W工作灯"></div>
       <div class="form-group"><label>功率</label><input type="text" id="fPower" placeholder="如 100W"></div>
-      <div class="form-group"><label>产品系列/品类</label><select id="fProductSeries"><option value="">请选择</option></select></div>
+      <div class="form-group"><label>产品系列/品类</label><select data-searchable="1" id="fProductSeries"><option value="">请选择</option></select></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>证书是否符合标准</label><select id="fCertCompliant"><option value="">请选择</option><option value="是">是</option><option value="否">否</option></select></div>
@@ -159,6 +216,15 @@ const API = window.location.origin + '/api';
 let currentPage = 1, totalPages = 1, editingId = null;
 let allProducts = [];
 let pricingExchangeRate = 7.25;
+
+function toggleWorkflowPanel() {
+  const body = document.getElementById('workflowBody');
+  const toggle = document.getElementById('workflowToggle');
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  if (toggle) toggle.textContent = open ? '收起 ▲' : '展开查看 ▼';
+}
 
 // 加载汇率
 async function loadPricingExchangeRate() {
@@ -474,7 +540,7 @@ async function syncAllData() {
 // 导出核价数据（字段与编辑表单/导入模板对齐）
 async function exportPricing() {
   try {
-    const params = new URLSearchParams({ page: 1, limit: 9999 });
+    const params = new URLSearchParams({ page: 1, limit:(window._pageSize||9999) });
     ['keyword','customer','inquiry_no','model'].forEach(k => {
       const id = {keyword:'keywordInput',customer:'customerInput',inquiry_no:'inquiryInput',model:'modelInput'}[k];
       const v = document.getElementById(id).value;
@@ -521,7 +587,7 @@ async function loadStats() {
 }
 
 async function loadPricing(page = 1) {
-  const params = new URLSearchParams({ page, limit: 15 });
+  const params = new URLSearchParams({ page, limit:(window._pageSize||15) });
   ['keyword','customer','inquiry_no','model'].forEach(k => {
     const id = {keyword:'keywordInput',customer:'customerInput',inquiry_no:'inquiryInput',model:'modelInput'}[k];
     const v = document.getElementById(id).value;
@@ -1233,7 +1299,10 @@ init();
     document.getElementById('modelInput').value = preModel;
   }
 </script>
-<script src="dict-loader.js"></script><script src="permission-check.js"></script><script>PermissionCheck.init(); DictLoader.fillAll([{select:'fProductSeries',group:'product_series',placeholder:'请选择'},{select:'fCertCompliant',group:'certificate_compliant',placeholder:'请选择'},{select:'fCertLevel',group:'certificate_level',placeholder:'请选择'}]);</script>
+<script src="dict-loader.js"></script><script src="brand.js"></script>
+<script src="common.js"></script>
+
+<script src="permission-check.js"></script><script>PermissionCheck.init(); DictLoader.fillAll([{select:'fProductSeries',group:'product_series',placeholder:'请选择'},{select:'fCertCompliant',group:'certificate_compliant',placeholder:'请选择'},{select:'fCertLevel',group:'certificate_level',placeholder:'请选择'}]);</script>
 <script src="chat-widget.js"></script>
 <script src="feature-gate.js"></script><script>FeatureGate.init();</script>
 </body>

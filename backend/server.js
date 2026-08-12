@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
@@ -28,8 +28,28 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 关键表快照备份（必须在 initData 之前）：防止系统更新导致 users 等表清空后
+// 被 initData 用默认账号覆盖，造成"更新后登录不了"。提供多代时间戳恢复点。
+try {
+  const backup = require('./lib/user-backup');
+  const r = backup.snapshot();
+  console.log('[backup] 关键表快照: ' + (r.snapshoted.length ? r.snapshoted.join(', ') : '无') + (r.skipped.length ? ' | 跳过: ' + r.skipped.join(', ') : ''));
+} catch (e) {
+  console.warn('[backup] 快照失败(非致命):', e.message);
+}
+
 // 初始化数据
 require('./initData');
+
+// S&OP 产销协调会系统种子数据（幂等：仅空表时灌入）
+try {
+  const sopSeed = require('./sop-seed');
+  const seeded = sopSeed.run();
+  if (seeded.length) console.log('[sop-seed] 已灌入种子数据: ' + seeded.join(', '));
+  else console.log('[sop-seed] 各表已有数据，跳过');
+} catch (e) {
+  console.error('[sop-seed] 种子数据初始化失败(非致命):', e.message);
+}
 
 // 注意：权限设置由用户在权限管理页面配置并持久化保存，服务器启动时不再覆盖用户设置
 const { getTable } = require('./db');
@@ -58,6 +78,9 @@ try {
 
 const routes = require('./routes');
 app.use('/api', routes);
+
+// favicon：返回 204，避免浏览器请求 /favicon.ico 时 404 刷控制台
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 app.use((req, res, next) => {
   if (req.path.endsWith('.html') || req.path === '/' || req.path.endsWith('.js') || req.path.endsWith('.css')) {
@@ -134,6 +157,10 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({ server, path: '/ws' });
 
 const wsClients = new Map();
+
+// 增强IM WebSocket服务
+const { setupIMWebSocket } = require('./lib/im-websocket');
+setupIMWebSocket(wss, app);
 
 // 广播数据变更通知给所有连接的客户端
 function broadcastDataChange(entity, action, data) {
@@ -320,3 +347,5 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log('[startup] 周期任务已禁用（物料自检/核价同步/AI引擎/外部API），设置 ENABLE_PERIODIC_TASKS=1 启用');
   }
 });
+
+// test write at 16:19:06

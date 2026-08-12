@@ -125,9 +125,10 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 </div>
 </div>
 <div class="tv" id="tabNav">
-<button class="ac" onclick="swTab('list',this)">物料列表</button>
-<button onclick="swTab('alert',this)">库存预警</button>
-<button onclick="swTab('policy',this)">最小库存推荐</button>
+  <button class="ac" onclick="swTab('list',this)">物料列表</button>
+  <button onclick="swTab('alert',this)">库存预警</button>
+  <button onclick="swTab('policy',this)">最小库存推荐</button>
+  <button onclick="swTab('outbox',this)">📤 待回传 <span id="obBadge" style="display:none;background:#e67e22;color:#fff;border-radius:9px;padding:1px 6px;font-size:11px;margin-left:4px">0</span></button>
 </div>
 
 <div class="tc ac" id="tab-list">
@@ -243,6 +244,41 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 </tr></thead><tbody id="pTb"><tr><td colspan="14" class="em">点击「计算推荐」生成建议</td></tr></tbody></table>
 </div>
 </div>
+
+<div class="tc" id="tab-outbox">
+<div class="sb" style="margin-bottom:10px">
+  <span style="font-weight:600;color:#667eea">📤 待回传外部API的物料变更</span>
+  <select id="obStatus" onchange="loadOutbox()" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
+    <option value="">全部状态</option>
+    <option value="pending" selected>待回传</option>
+    <option value="failed">失败</option>
+    <option value="sent">已回传</option>
+  </select>
+  <input type="text" id="obKw" placeholder="物料代码/字段..." oninput="loadOutbox()" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:160px">
+  <button class="btn b4" onclick="loadOutbox()">刷新</button>
+  <button class="btn b1" onclick="retryAllOutbox()">⬆ 全部回传</button>
+  <span style="margin-left:auto;font-size:12px;color:#666">共 <b id="obTc">0</b> 条</span>
+</div>
+<div style="background:#fff8e7;border:1px solid #f0e0b8;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7a5b00">
+  <b>说明：</b>在物料列表中<b>新增/修改/删除</b>后，变更会自动暂存到这里。配置好外部写入接口即可一键回传。当前外部数据供给API为只读，回传需外部系统提供写入接口。
+  <a href="javascript:void(0)" onclick="const e=document.getElementById('obCfg');e.style.display=e.style.display==='none'?'block':'none'" style="color:#667eea;margin-left:8px">⚙ 写入接口配置</a>
+</div>
+<div id="obCfg" style="display:none;background:#f8f9ff;border:1px solid #d8e0f8;border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12px">
+  <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+    <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="obCfgEn"> 启用回传</label>
+    <label>接口路径 <input id="obCfgPath" placeholder="/api/v1/external/materials/update" style="width:260px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
+    <label>方法 <select id="obCfgMethod" style="padding:4px;border:1px solid #ddd;border-radius:4px"><option>PUT</option><option>POST</option><option>PATCH</option></select></label>
+    <label>endpoint_code <input id="obCfgCode" placeholder="materials.update" style="width:160px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
+    <button class="btn b1" onclick="saveObCfg()">保存配置</button>
+    <span style="color:#888">baseUrl/appKey/appSecret 复用「系统设置-外部同步」连接配置</span>
+  </div>
+</div>
+<div class="tbl-wrap">
+<table><thead><tr>
+<th>物料代码</th><th>操作</th><th>状态</th><th>变更字段</th><th>尝试</th><th>最后错误/结果</th><th>时间</th><th>操作</th>
+</tr></thead><tbody id="obTb"><tr><td colspan="8" class="em">暂无待回传变更</td></tr></tbody></table>
+</div>
+</div>
 </div>
 
 <div class="mo" id="mMo"><div class="mb">
@@ -260,6 +296,7 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <script src="import-dropzone.js"></script>
 <script>
 const API='/api/materials';
+const OB_API='/api/external-sync/outbox';
 let mPage=1;
 
 // ===== 分类双维度 =====
@@ -313,6 +350,7 @@ function swTab(name,btn){
   if(name==='list')loadMaterials(1);
   else if(name==='alert')loadInventoryAlerts();
   else if(name==='policy')loadPolicyTab();
+  else if(name==='outbox')loadOutbox();
 }
 
 // 仪表盘筛选参数（用于 loadStats / loadPeriodStats）
@@ -336,6 +374,8 @@ function buildDashQuery(extra){
   if(supplier)p.set('supplier',supplier);
   if(materialCode)p.set('material_code',materialCode);
   if(warehouse)p.set('warehouse',warehouse);
+  const usageRange=document.getElementById('usageRange')?document.getElementById('usageRange').value:'';
+  if(usageRange)p.set('usage_range',usageRange);
   if(extra){for(const[k,v]of Object.entries(extra))if(v!==''&&v!=null)p.set(k,v);}
   return p.toString();
 }
@@ -396,7 +436,31 @@ async function loadStats(){
     document.getElementById('mInsight').innerHTML=`
       <div class="dash-card"><h4>⚠️ 库存不足 TOP</h4>${lowList}</div>
       <div class="dash-card"><h4>⏰ 到期采购 TOP</h4>${dueList}</div>
-      <div class="dash-card"><h4>📦 分类构成</h4>${catList}</div>`;
+      <div class="dash-card"><h4>📦 分类构成</h4>${catList}</div>
+      <div class="dash-card" style="grid-column:span 3;max-width:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <h4 style="margin:0">🔧 物料使用情况</h4>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#666">
+            <span>时间范围</span>
+            <select id="usageRange" onchange="loadStats()" style="padding:3px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;cursor:pointer;background:#fff">
+              <option value="7d">近 7 天</option>
+              <option value="30d">近 30 天</option>
+              <option value="90d">近 90 天</option>
+              <option value="180d">近 180 天</option>
+              <option value="all">全部</option>
+            </select>
+            <span style="color:#999">${(d.usage_stats&&d.usage_stats.range_label)||'全部'}</span>
+          </div>
+        </div>
+        ${renderUsageStats(d.usage_stats||{})}
+      </div>
+      <div class="dash-card" style="grid-column:span 3;max-width:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <h4 style="margin:0">📋 未交付订单物料需求</h4>
+          <span style="font-size:12px;color:#999">截止 ${(d.order_material_stats&&d.order_material_stats.cutoff_date)||'2026-07-01'} 后未交付订单 · 按 BOM 全产品均摊估算</span>
+        </div>
+        ${renderOrderMaterialStats(d.order_material_stats||{})}
+      </div>`;
     renderInvAnalysis(d);
   }catch(e){console.error(e)}
 }
@@ -462,6 +526,116 @@ function renderInvAnalysis(d){
         <div class="hbar-list">${bars}</div>
       </div>
      </div>`;
+}
+
+// ===== 仪表盘：物料使用情况（按时间段筛选活跃物料）=====
+function renderUsageStats(u){
+  if(!u||u.active_count===undefined){
+    return '<div class="em">暂无使用数据</div>';
+  }
+  const active=u.active_count||0;
+  const total=u.total_count||0;
+  const pct=u.coverage_pct||0;
+  // 统计数字条
+  const statsHtml=`
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:10px 0 14px;font-size:12px">
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#3498db">${active.toLocaleString()}</div><div class="l">活跃物料</div></div>
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#7f8c8d">${total.toLocaleString()}</div><div class="l">物料总数</div></div>
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#16a085">${pct}%</div><div class="l">活跃覆盖率</div></div>
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#9b59b6">${(u.top_used||[]).length}</div><div class="l">有量物料数（TOP10 中）</div></div>
+    </div>`;
+  // 月用量 TOP（活跃物料中按 monthly_usage 排序）
+  const topUsed=(u.top_used||[]);
+  const topRecent=(u.top_recent||[]);
+  const usedHtml=topUsed.length?`
+    <div style="margin-top:8px">
+      <div style="font-size:12px;color:#666;margin-bottom:6px">📊 月用量 TOP 10（活跃物料）</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse">
+        <thead><tr style="background:#f8f9fa">
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8;width:36px">#</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">物料代码</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">物料名称</th>
+          <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #e8e8e8">月用量</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">最近出库</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">分类</th>
+        </tr></thead>
+        <tbody>${topUsed.map((m,i)=>`<tr style="border-bottom:1px dashed #f0f0f0">
+          <td style="padding:4px 8px;color:#999">${i+1}</td>
+          <td style="padding:4px 8px">${esc(m.material_code||'')}</td>
+          <td style="padding:4px 8px" title="${esc(m.material_name||'')}">${esc((m.material_name||'').substring(0,24))}</td>
+          <td style="padding:4px 8px;text-align:right;font-weight:600;color:#e67e22">${(m.monthly_usage||0).toLocaleString()}</td>
+          <td style="padding:4px 8px;color:#888">${esc(m.last_outbound_date||'-')}</td>
+          <td style="padding:4px 8px;color:#666">${esc(m.classification||'')}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`:'<div class="em">暂无月用量数据</div>';
+  const recentHtml=topRecent.length?`
+    <details style="margin-top:10px">
+      <summary style="cursor:pointer;font-size:12px;color:#666;padding:4px 0">📅 最近出库 TOP 10（点击展开）</summary>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px">
+        <thead><tr style="background:#f8f9fa">
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8;width:36px">#</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">物料代码</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">物料名称</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">最近出库</th>
+          <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #e8e8e8">月用量</th>
+        </tr></thead>
+        <tbody>${topRecent.map((m,i)=>`<tr style="border-bottom:1px dashed #f0f0f0">
+          <td style="padding:4px 8px;color:#999">${i+1}</td>
+          <td style="padding:4px 8px">${esc(m.material_code||'')}</td>
+          <td style="padding:4px 8px" title="${esc(m.material_name||'')}">${esc((m.material_name||'').substring(0,24))}</td>
+          <td style="padding:4px 8px;color:#16a085">${esc(m.last_outbound_date||'-')}</td>
+          <td style="padding:4px 8px;text-align:right;color:#888">${(m.monthly_usage||0).toLocaleString()}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </details>`:'';
+  return statsHtml+usedHtml+recentHtml;
+}
+
+// ===== 仪表盘：未交付订单物料缺口（按 BOM 全产品反推）=====
+function renderOrderMaterialStats(s){
+  if(!s||s.order_count===undefined){
+    return '<div class="em">暂无未交付订单数据</div>';
+  }
+  // 顶部 4 个数字
+  const statsHtml=`
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:10px 0 14px;font-size:12px">
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#3498db">${(s.order_count||0).toLocaleString()}</div><div class="l">未交付订单数</div></div>
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#7f8c8d">${(s.total_order_units||0).toLocaleString()}</div><div class="l">未交总单位</div></div>
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#e74c3c">${(s.shortage_kinds||0).toLocaleString()}</div><div class="l">缺货物料种类</div></div>
+      <div class="sc" style="padding:8px 10px"><div class="n" style="font-size:20px;color:#c0392b">¥${fmtQty(s.shortage_value_total||0)}</div><div class="l">缺口总金额</div></div>
+    </div>`;
+  // TOP 缺口表格
+  const top=s.top_shortage||[];
+  const tableHtml=top.length?`
+    <div style="margin-top:8px">
+      <div style="font-size:12px;color:#666;margin-bottom:6px">⚠️ 缺口金额 TOP 15 物料</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse">
+        <thead><tr style="background:#f8f9fa">
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8;width:36px">#</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">物料代码</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">物料名称</th>
+          <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #e8e8e8">需求</th>
+          <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #e8e8e8">库存</th>
+          <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #e8e8e8;background:#fdecea">缺口</th>
+          <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #e8e8e8;background:#fdecea">缺口金额</th>
+          <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8">分类</th>
+        </tr></thead>
+        <tbody>${top.map((m,i)=>`<tr style="border-bottom:1px dashed #f0f0f0">
+          <td style="padding:4px 8px;color:#999">${i+1}</td>
+          <td style="padding:4px 8px">${esc(m.material_code||'')}</td>
+          <td style="padding:4px 8px" title="${esc(m.material_name||'')}">${esc((m.material_name||'').substring(0,22))}</td>
+          <td style="padding:4px 8px;text-align:right;color:#666">${fmtQty(m.required)} ${esc(m.unit||'')}</td>
+          <td style="padding:4px 8px;text-align:right;color:#666">${fmtQty(m.on_hand)}</td>
+          <td style="padding:4px 8px;text-align:right;font-weight:600;color:#e74c3c;background:#fdecea">${fmtQty(m.shortage)} ${esc(m.unit||'')}</td>
+          <td style="padding:4px 8px;text-align:right;font-weight:600;color:#c0392b;background:#fdecea">¥${fmtQty(m.shortage_value)}</td>
+          <td style="padding:4px 8px;color:#666">${esc(m.classification||'')}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`:'<div class="em">暂无缺货物料</div>';
+  // 说明
+  const note=s.note?`<div style="margin-top:10px;padding:6px 10px;background:#fffbea;border-left:3px solid #f1c40f;border-radius:3px;font-size:11px;color:#856404">💡 ${esc(s.note)}</div>`:'';
+  return statsHtml+tableHtml+note;
 }
 
 // ===== 仪表盘：单物料存放分析（按输入的物料代码/名称查看其存放情况）=====
@@ -1269,7 +1443,7 @@ async function batchSetStatus(status){
   try{
     const r=await fetch(API+'/batch-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids,status})});
     const d=await r.json();if(!r.ok){alert(d.error||'操作失败');return}
-    matSel.clear();loadMaterials(mPage);loadStats();
+    matSel.clear();loadMaterials(mPage);loadStats();loadOutboxBadge();
   }catch(e){alert('操作失败: '+e.message)}
 }
 async function batchDelete(){
@@ -1279,7 +1453,7 @@ async function batchDelete(){
   try{
     const r=await fetch(API+'/batch-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
     const d=await r.json();if(!r.ok){alert(d.error||'删除失败');return}
-    matSel.clear();loadMaterials(mPage);loadStats();
+    matSel.clear();loadMaterials(mPage);loadStats();loadOutboxBadge();
   }catch(e){alert('删除失败: '+e.message)}
 }
 
@@ -1418,7 +1592,7 @@ function startInlineEdit(td){
     try{
       const rr=await fetch(API+'/'+mid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
       if(!rr.ok){const e=await rr.json().catch(()=>({}));alert('保存失败: '+(e.error||rr.status));loadMaterials(mPage);return}
-      loadMaterials(mPage);loadStats();
+      loadMaterials(mPage);loadStats();loadOutboxBadge();
     }catch(e){alert('保存失败: '+e.message);loadMaterials(mPage);}
   };
   const cancel=()=>{if(!done){done=true;loadMaterials(mPage);}};
@@ -1540,14 +1714,14 @@ async function openEditMaterial(id){
         }
       }catch(e){}
       await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-      document.getElementById('gMo').classList.remove('ac');loadMaterials(mPage);loadStats();
+      document.getElementById('gMo').classList.remove('ac');loadMaterials(mPage);loadStats();loadOutboxBadge();
     });
   }catch(e){alert('加载失败')}
 }
 async function delMaterial(id){
   if(!confirm('确定删除此物料？'))return;
   await fetch(API+'/'+id,{method:'DELETE'});
-  loadMaterials(mPage);loadStats();
+  loadMaterials(mPage);loadStats();loadOutboxBadge();
 }
 
 async function toggleMaterialStatus(id,current){
@@ -1679,7 +1853,7 @@ async function syncExternalData(type) {
     }
   } catch (e) { alert('同步失败: ' + e.message); }
   if (B) { B.disabled = false; B.textContent = '一键同步全部'; }
-  loadMaterials(1); loadStats();
+  loadMaterials(1); loadStats(); loadPeriodStats();
 }
 
 // ===== 最小库存推荐 =====
@@ -1795,7 +1969,7 @@ async function applyAllGap(){
 }
 
 ImportDropzone.init('import-dropzone-container','materials',function(){loadMaterials(1);loadStats();});
-initSortHeaders();loadStats();loadFilterOpts();loadClsExtraOpts();loadWarehouses();loadMaterials(1);bindDashFilters();loadIssueBadge();loadDashFilterOptions();
+initSortHeaders();loadStats();loadFilterOpts();loadClsExtraOpts();loadWarehouses();loadMaterials(1);bindDashFilters();loadIssueBadge();loadDashFilterOptions();loadOutboxBadge();loadObCfg();
 // 错峰定时刷新（不同频率 + 随机抖动，避免同时打满后端）
 staggeredRefresh(loadIssueBadge, 60, 8);     // 每 60±8s 拉一次
 staggeredRefresh(loadStats, 45, 10);        // 每 45±10s 拉一次
@@ -1870,6 +2044,92 @@ function renderCompare(d){
   }).join('');
   panel.className='cmp-panel';
   panel.innerHTML=`<div style="font-weight:600;color:#555;margin-bottom:8px;font-size:13px">📊 期间对比（${d.period.label}）</div><div class="cmp-grid">${cards}</div>`;
+}
+// ===== 物料变更回传 outbox =====
+const OB_OP_LABEL={create:'新增',update:'修改',delete:'删除'};
+const OB_OP_COLOR={create:'#16a085',update:'#667eea',delete:'#e74c3c'};
+const OB_ST_LABEL={pending:'待回传',sent:'已回传',failed:'失败'};
+const OB_ST_COLOR={pending:'#e67e22',sent:'#16a085',failed:'#e74c3c'};
+async function loadOutboxBadge(){
+  try{
+    const r=await fetch(OB_API+'/stats');const d=await r.json();
+    const b=document.getElementById('obBadge');
+    if(!b)return;
+    const n=d.pending||0;
+    b.textContent=n; b.style.display=n>0?'inline':'none';
+  }catch(e){console.error(e)}
+}
+async function loadOutbox(){
+  try{
+    const qs=new URLSearchParams();
+    const st=document.getElementById('obStatus').value; if(st)qs.set('status',st);
+    const kw=document.getElementById('obKw').value.trim(); if(kw)qs.set('keyword',kw);
+    qs.set('page_size','200');
+    const r=await fetch(OB_API+'?'+qs.toString());const d=await r.json();
+    document.getElementById('obTc').textContent=d.total||0;
+    const tb=document.getElementById('obTb');
+    if(!d.rows||!d.rows.length){tb.innerHTML='<tr><td colspan="8" class="em">暂无数据</td></tr>';return loadOutboxBadge();}
+    tb.innerHTML=d.rows.map(e=>{
+      let fields='';
+      try{fields=Object.keys(JSON.parse(e.payload||'{}')).join(', ')||'-';}catch(_){fields='-';}
+      const dt=(e.updated_at||e.created_at||'').substring(5);
+      const stColor=OB_ST_COLOR[e.status]||'#999';
+      const acts=[];
+      if(e.status!=='sent'){acts.push(`<button class="btn b1" style="padding:2px 8px;font-size:11px" onclick="retryOneOutbox(${e.id})">重试</button>`);}
+      acts.push(`<button class="btn b4" style="padding:2px 8px;font-size:11px" onclick="dismissOutbox(${e.id})">忽略</button>`);
+      return `<tr>
+        <td><b>${esc(e.material_code||'')}</b></td>
+        <td><span style="color:${OB_OP_COLOR[e.op]||'#999'}">${OB_OP_LABEL[e.op]||e.op}</span></td>
+        <td><span style="color:${stColor};font-weight:600">${OB_ST_LABEL[e.status]||e.status}</span></td>
+        <td style="font-size:11px;color:#666;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(fields)}">${esc(fields)}</td>
+        <td>${e.attempts||0}</td>
+        <td style="font-size:11px;color:${e.status==='failed'?'#e74c3c':'#888'};max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(e.last_error||'')}">${esc(e.last_error||'-')}</td>
+        <td style="font-size:11px;color:#999">${esc(dt)}</td>
+        <td style="white-space:nowrap">${acts.join(' ')}</td>
+      </tr>`;
+    }).join('');
+    loadOutboxBadge();
+  }catch(e){console.error(e)}
+}
+async function retryAllOutbox(){
+  if(!confirm('将尝试回传所有「待回传」变更到外部API，确定继续？'))return;
+  try{
+    const r=await fetch(OB_API+'/flush',{method:'POST'});const d=await r.json();
+    let msg=`回传完成：成功 ${d.sent||0}，失败 ${d.failed||0}`;
+    if(d.errors&&d.errors.length)msg+='\n失败项：\n'+d.errors.slice(0,8).map(x=>x.material_code+': '+x.error).join('\n');
+    alert(msg);loadOutbox();loadOutboxBadge();
+  }catch(e){alert('回传失败: '+e.message)}
+}
+async function retryOneOutbox(id){
+  try{
+    const r=await fetch(`${OB_API}/${id}/retry`,{method:'POST'});const d=await r.json();
+    if(d.ok){toast2('回传成功')}else{toast2('回传失败: '+(d.error||''))}
+    loadOutbox();loadOutboxBadge();
+  }catch(e){alert('回传失败: '+e.message)}
+}
+async function dismissOutbox(id){
+  try{await fetch(`${OB_API}/${id}/dismiss`,{method:'POST'});loadOutbox();loadOutboxBadge();}catch(e){console.error(e)}
+}
+async function loadObCfg(){
+  try{
+    const r=await fetch(OB_API+'/write-config');const d=await r.json();
+    document.getElementById('obCfgEn').checked=!!d.enabled;
+    document.getElementById('obCfgPath').value=d.path||'';
+    document.getElementById('obCfgMethod').value=(d.method||'PUT').toUpperCase();
+    document.getElementById('obCfgCode').value=d.endpointCode||'materials.update';
+  }catch(e){console.error(e)}
+}
+async function saveObCfg(){
+  const body={
+    enabled:document.getElementById('obCfgEn').checked,
+    path:document.getElementById('obCfgPath').value.trim(),
+    method:document.getElementById('obCfgMethod').value,
+    endpointCode:document.getElementById('obCfgCode').value.trim()
+  };
+  try{
+    const r=await fetch(OB_API+'/write-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();toast2(d.message||'已保存');
+  }catch(e){alert('保存失败: '+e.message)}
 }
 </script>
 <script src="chat-widget.js"></script>

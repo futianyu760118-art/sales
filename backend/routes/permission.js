@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
-const { requirePerm } = require('../auth-middleware');
+const { requirePerm, mergeOrgPermissions } = require('../auth-middleware');
 
 // 确保表存在
 ['roles', 'permissions', 'role_permissions', 'user_roles'].forEach(name => ensureTable(name));
@@ -139,21 +139,20 @@ router.get('/roles/:id/permissions', requirePerm('system:permission'), (req, res
 });
 
 // 设置角色权限（全量替换）
-router.put('/roles/:id/permissions', (req, res) => {
+router.put('/roles/:id/permissions', requirePerm('system:permission'), (req, res) => {
   const { permission_ids } = req.body;
   if (!Array.isArray(permission_ids)) return res.status(400).json({ error: 'permission_ids必须为数组' });
   const rpTable = getTable('role_permissions');
-  // 删除旧权限
   rpTable.all().filter(rp => rp.role_id === Number(req.params.id)).forEach(rp => rpTable.delete(rp.id));
-  // 添加新权限
   permission_ids.forEach(pid => {
     rpTable.insert({ role_id: Number(req.params.id), permission_id: Number(pid), granted_at: now() });
   });
+  rpTable._invalidate();
   res.json({ message: '权限分配成功', assigned: permission_ids.length });
 });
 
 // 添加单个权限到角色
-router.post('/roles/:id/permissions/single', (req, res) => {
+router.post('/roles/:id/permissions/single', requirePerm('system:permission'), (req, res) => {
   const permission_id = req.body.permission_id || req.query.permission_id;
   if (!permission_id) return res.status(400).json({ error: 'permission_id 为必填' });
   const rpTable = getTable('role_permissions');
@@ -166,7 +165,7 @@ router.post('/roles/:id/permissions/single', (req, res) => {
 });
 
 // 删除角色中的单个权限
-router.delete('/roles/:id/permissions/single', (req, res) => {
+router.delete('/roles/:id/permissions/single', requirePerm('system:permission'), (req, res) => {
   const permission_id = req.body.permission_id || req.query.permission_id;
   if (!permission_id) return res.status(400).json({ error: 'permission_id 为必填' });
   const rpTable = getTable('role_permissions');
@@ -278,6 +277,8 @@ router.get('/users/:id/permissions', (req, res) => {
   userRoleIds.forEach(rid => {
     rpTable.all().filter(rp => rp.role_id === rid).forEach(rp => permIds.add(rp.permission_id));
   });
+  // 合并组织模块权限（岗位默认 + 岗位角色 + 人员个性化 grant/deny）
+  mergeOrgPermissions(Number(req.params.id), permIds);
 
   const permissions = [...permIds].map(pid => permTable.findById(pid)).filter(Boolean);
   res.json({ data: permissions, is_admin: false });
@@ -417,6 +418,30 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
     { name: '图纸审批', code: 'drawing:approve', module: '物料管理', description: '审批图纸文件' },
     { name: '图纸上传', code: 'drawing:upload', module: '物料管理', description: '上传图纸文件' },
     { name: '图纸删除', code: 'drawing:delete', module: '物料管理', description: '删除图纸文件' },
+    // 费用库（经营中心）
+    { name: '查看费用库', code: 'expense:view', module: '费用库', description: '查看费用明细与费用分析' },
+    { name: '创建费用', code: 'expense:create', module: '费用库', description: '新增/导入/同步费用记录' },
+    { name: '编辑费用', code: 'expense:edit', module: '费用库', description: '修改费用明细' },
+    { name: '删除费用', code: 'expense:delete', module: '费用库', description: '删除费用记录' },
+    // 人工库（经营中心）
+    { name: '查看人工库', code: 'labor:view', module: '人工库', description: '查看人工支出明细与成本分析' },
+    { name: '创建人工', code: 'labor:create', module: '人工库', description: '新增/导入/同步人工记录' },
+    { name: '编辑人工', code: 'labor:edit', module: '人工库', description: '修改人工明细' },
+    { name: '删除人工', code: 'labor:delete', module: '人工库', description: '删除人工记录' },
+    // 成品工价库（经营中心）
+    { name: '查看成品工价库', code: 'labor-rate:view', module: '成品工价库', description: '查看成品工价主数据、成本分析与质检' },
+    { name: '创建成品工价', code: 'labor-rate:create', module: '成品工价库', description: '新增/导入/同步成品工价' },
+    { name: '编辑成品工价', code: 'labor-rate:edit', module: '成品工价库', description: '修改成品工价明细、审核' },
+    { name: '删除成品工价', code: 'labor-rate:delete', module: '成品工价库', description: '删除成品工价记录' },
+    // 订单分析库（经营中心）
+    { name: '查看订单分析', code: 'order-analysis:view', module: '订单分析库', description: '查看订单成本分析、同类比对、计划/实际差异' },
+    { name: '订单审核', code: 'order-analysis:audit', module: '订单分析库', description: '提交/通过/驳回订单审核并生成计划成本快照' },
+    { name: '核算实际成本', code: 'order-analysis:edit', module: '订单分析库', description: '归集实际成本并生成快照' },
+    // 领料单（订单分析库实际物料数据源）
+    { name: '查看领料单', code: 'material-issue:view', module: '领料单', description: '查看出库/领料明细' },
+    { name: '创建领料单', code: 'material-issue:create', module: '领料单', description: '新增/导入领料单' },
+    { name: '编辑领料单', code: 'material-issue:edit', module: '领料单', description: '修改领料明细' },
+    { name: '删除领料单', code: 'material-issue:delete', module: '领料单', description: '删除领料记录' },
     // 核价管理
     { name: '查看核价', code: 'pricing:view', module: '核价管理', description: '查看核价表和详情' },
     { name: '创建核价', code: 'pricing:create', module: '核价管理', description: '新增核价记录' },
@@ -447,6 +472,12 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
     { name: '创建项目', code: 'project:create', module: '项目管理', description: '新增项目' },
     { name: '编辑项目', code: 'project:edit', module: '项目管理', description: '修改项目信息' },
     { name: '删除项目', code: 'project:delete', module: '项目管理', description: '删除项目' },
+    { name: '查看年度经营计划', code: 'annual-plan:view', module: '年度经营计划', description: '查看经营驾驶舱、年度目标、部门计划和经营分析' },
+    { name: '创建年度经营计划', code: 'annual-plan:create', module: '年度经营计划', description: '新增年度目标、KPI、OKR、行动计划和风险' },
+    { name: '编辑年度经营计划', code: 'annual-plan:edit', module: '年度经营计划', description: '修改年度计划数据和进度' },
+    { name: '删除年度经营计划', code: 'annual-plan:delete', module: '年度经营计划', description: '删除年度计划记录' },
+    { name: 'AI经营分析', code: 'annual-plan:analyze', module: '年度经营计划', description: '使用AI经营助手生成分析和报告' },
+    { name: '导出年度经营计划', code: 'annual-plan:export', module: '年度经营计划', description: '导出年度经营计划数据' },
     // BOM对比
     { name: '查看BOM对比', code: 'bom-compare:view', module: 'BOM对比', description: '查看BOM对比分析' },
     // 报价库
@@ -511,13 +542,32 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
     { name: '管理技术复盘', code: 'tech:review', module: '项目技转', description: '管理技术复盘记录' },
     { name: '管理技术案例库', code: 'tech:case:manage', module: '项目技转', description: '管理技术案例库沉淀' },
     { name: '技转模块全域管控', code: 'tech:admin', module: '项目技转', description: '分级标准/权限矩阵/审计日志管控' },
+    // 产销协调会
+    { name: '查看产销协调会', code: 'prod-coord:view', module: '产销协调会', description: '查看会议列表、议题追踪和协调概览' },
+    { name: '创建产销协调会', code: 'prod-coord:create', module: '产销协调会', description: '新建会议和议题' },
+    { name: '编辑产销协调会', code: 'prod-coord:edit', module: '产销协调会', description: '编辑会议和议题信息' },
+    { name: '删除产销协调会', code: 'prod-coord:delete', module: '产销协调会', description: '删除会议和议题' },
+    // IM消息中心
+    { name: '查看消息中心', code: 'im:view', module: '消息中心', description: '查看会话列表、消息历史' },
+    { name: '发送消息', code: 'im:send', module: '消息中心', description: '发送文本、图片等消息' },
+    { name: '创建群组', code: 'im:create-group', module: '消息中心', description: '创建群组会话、邀请成员' },
+    { name: '管理会话', code: 'im:manage', module: '消息中心', description: '删除会话、清空历史、设置通知' },
+    { name: '搜索消息', code: 'im:search', module: '消息中心', description: '全局搜索会话和消息内容' },
     // 组织模块
     { name: '查看组织', code: 'org:view', module: '组织模块', description: '查看部门、岗位、人员及权限' },
     { name: '创建部门', code: 'org:create', module: '组织模块', description: '新增组织部门' },
     { name: '编辑部门', code: 'org:edit', module: '组织模块', description: '修改组织部门' },
     { name: '删除部门', code: 'org:delete', module: '组织模块', description: '删除组织部门' },
     { name: '岗位管理', code: 'org:position:manage', module: '组织模块', description: '管理岗位及其默认权限/角色' },
-    { name: '人员管理', code: 'org:personnel:manage', module: '组织模块', description: '管理组织人员及权限个性化调整' }
+    { name: '人员管理', code: 'org:personnel:manage', module: '组织模块', description: '管理组织人员及权限个性化调整' },
+    // 立项申请书 - 5阶段审批流程
+    { name: '查看立项申请书', code: 'initiation:view', module: '立项申请书', description: '查看立项申请书的列表与详情' },
+    { name: '申请人立项发起', code: 'initiation:apply', module: '立项申请书', description: '①阶段：申请人发起立项（销售/业务人员）' },
+    { name: '部门审核', code: 'initiation:dept-review', module: '立项申请书', description: '②阶段：部门经理审核项目必要性、客户匹配度、资源可行性' },
+    { name: '研发审核可行性', code: 'initiation:rd-review', module: '立项申请书', description: '③阶段：研发经理审核技术可行性' },
+    { name: '财务审核完整性与回报率', code: 'initiation:finance-review', module: '立项申请书', description: '③阶段：财务经理审核预算完整性、ROI回报率、风险等级' },
+    { name: '总经理批准', code: 'initiation:gm-approve', module: '立项申请书', description: '④阶段：总经理对研发/财务意见作出最终决策' },
+    { name: '项目经理执行', code: 'initiation:execute', module: '立项申请书', description: '⑤阶段：立项批准后建立研发项目档案并按节点推进' }
   ];
 
   const existingPerms = permTable.all();
@@ -547,6 +597,7 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'order:view','order:create','order:edit',
       'sample:view','sample:create','sample:edit',
       'project:view','project:create','project:edit',
+      'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:delete','annual-plan:analyze','annual-plan:export',
       'config:view','spec:view','config-lib:view',
       'report:view','ai:view','ai:delete',
       'system:permission',
@@ -554,7 +605,13 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'compliance:view','test:view','rules:view',
       'data-clean:view','drawing:preview',
       'tech:view','tech:audit','tech:approve:dept','tech:download','tech:preview:core','tech:reuse','tech:transfer','tech:change','tech:review','tech:case:manage',
-      'org:view','org:create','org:edit','org:position:manage','org:personnel:manage'
+      'org:view','org:create','org:edit','org:position:manage','org:personnel:manage',
+      // 产销协调会：销售总监全权管理
+      'prod-coord:view','prod-coord:create','prod-coord:edit','prod-coord:delete',
+      // 立项申请书：销售总监负责①申请人发起 + ②部门审核
+      'initiation:view','initiation:apply','initiation:dept-review',
+      // IM消息中心：全部权限
+      'im:view','im:send','im:create-group','im:manage','im:search'
     ],
     'sales': [
       'inquiry:view','inquiry:create','inquiry:edit','inquiry:price','inquiry:status','inquiry:import','inquiry:export',
@@ -564,12 +621,19 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'order:view','order:create','order:edit',
       'sample:view','sample:create','sample:edit',
       'project:view','quote:view','quote:manage','quote:delete',
+      'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
       'config:view','spec:view','config-lib:view',
       'report:view','ai:view','ai:delete',
       'compliance:view','test:view','rules:view',
       'feedback:create','data-clean:view','drawing:preview',
       'tech:view',
-      'org:view'
+      'org:view',
+      // 产销协调会：销售员可查看和创建
+      'prod-coord:view','prod-coord:create',
+      // 立项申请书：销售员可发起
+      'initiation:view','initiation:apply',
+      // IM消息中心
+      'im:view','im:send','im:search'
     ],
     'engineer': [
       'inquiry:view','inquiry:price',
@@ -583,14 +647,25 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'quote:view','quote:manage','quote:delete',
       'sample:view','order:view',
       'project:view','project:create','project:edit',
+      'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
       'report:view','ai:view','ai:delete',
       'compliance:view','compliance:run',
       'test:view','test:run',
       'rules:view','feedback:create',
       'data-clean:view','data-clean:execute','data-clean:delete',
-      'drawing:preview','drawing:approve','drawing:upload','drawing:delete',
-      'tech:view','tech:create','tech:edit','tech:delete','tech:audit','tech:download','tech:preview:core','tech:forward','tech:reuse','tech:transfer','tech:change','tech:review','tech:case:manage',
-      'org:view','org:position:manage','org:personnel:manage'
+       'drawing:preview','drawing:approve','drawing:upload','drawing:delete',
+       'tech:view','tech:create','tech:edit','tech:delete','tech:audit','tech:download','tech:preview:core','tech:forward','tech:reuse','tech:transfer','tech:change','tech:review','tech:case:manage',
+       'org:view','org:position:manage','org:personnel:manage',
+       // 成品工价库：查看+创建+编辑
+       'labor-rate:view','labor-rate:create','labor-rate:edit',
+       // 订单分析库：查看+核算（工程师从订单分析导入工价）
+       'order-analysis:view','order-analysis:edit',
+      // 产销协调会：工程师可查看和创建议题
+      'prod-coord:view','prod-coord:create',
+      // 立项申请书：工程师可发起
+      'initiation:view','initiation:apply',
+      // IM消息中心
+      'im:view','im:send','im:search'
     ],
     'purchase': [
       'inquiry:view','product:view',
@@ -599,13 +674,20 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'bom:view','bom:create','bom:edit','bom-compare:view',
       'order:view','order:create','order:edit',
       'sample:view','project:view',
+      'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
       'config:view','spec:view','config-lib:view',
       'report:view','ai:view','ai:delete',
       'compliance:view','test:view','rules:view',
       'feedback:create','data-clean:view',
       'drawing:preview','drawing:upload',
       'tech:view',
-      'org:view'
+      'org:view',
+      // 产销协调会：采购可查看
+      'prod-coord:view',
+      // 立项申请书：采购可查看
+      'initiation:view',
+      // IM消息中心
+      'im:view','im:send','im:search'
     ],
     'finance': [
       'inquiry:view','product:view','customer:view','material:view',
@@ -613,23 +695,40 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'bom:view','bom-compare:view',
       'order:view','sample:view','project:view',
       'quote:view','config:view','spec:view','config-lib:view',
+      'annual-plan:view','annual-plan:analyze','annual-plan:export',
       'report:view','ai:view','ai:delete',
       'compliance:view','test:view','rules:view',
       'data-clean:view','drawing:preview',
       'tech:view',
-      'org:view'
+      'org:view',
+      'expense:view','expense:create','expense:edit','expense:delete',
+      'labor:view','labor:create','labor:edit','labor:delete',
+      // 产销协调会：财务可查看
+      'prod-coord:view',
+      // 立项申请书：财务负责③财务审核（完整性/回报率/风险）
+      'initiation:view','initiation:finance-review',
+      // IM消息中心
+      'im:view','im:send','im:search'
     ],
     'viewer': [
       'inquiry:view','product:view','customer:view','material:view',
       'pricing:view','supplier:view','bom:view','order:view',
       'sample:view','project:view','bom-compare:view',
       'quote:view','config:view','spec:view','config-lib:view',
+      'annual-plan:view','annual-plan:export',
       'report:view','ai:view','ai:delete','rules:view','compliance:view',
       'test:view','data-clean:view',
       'system:permission','system:config',
       'drawing:preview',
       'tech:view',
-      'org:view'
+      'org:view',
+      'expense:view','labor:view',
+      // 产销协调会：只读可查看
+      'prod-coord:view',
+      // 立项申请书：只读
+      'initiation:view',
+      // IM消息中心
+      'im:view','im:search'
     ],
     'project_manager': [
       'inquiry:view','inquiry:status','inquiry:export',
@@ -640,6 +739,7 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'order:view','order:create','order:edit',
       'sample:view','sample:create','sample:edit','sample:delete',
       'project:view','project:create','project:edit','project:delete',
+      'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:delete','annual-plan:analyze','annual-plan:export',
       'config:view','spec:view','config-lib:view',
       'report:view','ai:view','ai:delete',
       'system:permission',
@@ -647,7 +747,13 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'compliance:view','compliance:run','test:view','rules:view',
       'data-clean:view','drawing:preview',
       'tech:view','tech:audit','tech:preview:core','tech:transfer','tech:change','tech:review',
-      'org:view','org:create','org:edit','org:position:manage','org:personnel:manage'
+      'org:view','org:create','org:edit','org:position:manage','org:personnel:manage',
+      // 产销协调会：项目经理全权管理
+      'prod-coord:view','prod-coord:create','prod-coord:edit','prod-coord:delete',
+      // 立项申请书：项目经理负责①发起 + ⑤执行
+      'initiation:view','initiation:apply','initiation:execute',
+      // IM消息中心
+      'im:view','im:send','im:create-group','im:manage','im:search'
     ],
     'rd_manager': [
       'inquiry:view','inquiry:price','inquiry:status',
@@ -663,6 +769,7 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'sample:view','sample:create','sample:edit','sample:delete',
       'order:view',
       'project:view','project:create','project:edit','project:delete',
+      'annual-plan:view','annual-plan:create','annual-plan:edit','annual-plan:analyze','annual-plan:export',
       'report:view','ai:view','ai:delete',
       'compliance:view','compliance:run',
       'test:view','test:run',
@@ -671,14 +778,61 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
       'data-clean:view','data-clean:execute','data-clean:delete',
       'drawing:preview','drawing:approve','drawing:upload','drawing:delete',
       'tech:view','tech:create','tech:edit','tech:delete','tech:audit','tech:approve:dept','tech:download','tech:preview:core','tech:forward','tech:reuse','tech:transfer','tech:change','tech:review','tech:case:manage',
-      'org:view','org:create','org:edit','org:delete','org:position:manage','org:personnel:manage'
+      'org:view','org:create','org:edit','org:delete','org:position:manage','org:personnel:manage',
+      // 产销协调会：研发经理可查看
+      'prod-coord:view',
+      // 立项申请书：研发经理负责③研发审核 + ⑤执行
+      'initiation:view','initiation:rd-review','initiation:execute',
+      // IM消息中心
+      'im:view','im:send','im:create-group','im:manage','im:search'
+    ],
+    'hr_manager': [
+      'customer:view','product:view','material:view',
+      'supplier:view','bom:view','bom-compare:view','pricing:view',
+      'quote:view','order:view','sample:view','project:view',
+      'inquiry:view','config:view','spec:view','config-lib:view',
+      'annual-plan:view','annual-plan:export',
+      'report:view','ai:view','ai:delete',
+      'system:permission','system:user','system:config',
+      'feedback:create','feedback:handle','feedback:delete',
+      'rules:view','rules:manage','rules:delete',
+      'compliance:view','compliance:run',
+      'test:view','data-clean:view',
+      'drawing:preview',
+      'tech:view',
+      'org:view','org:create','org:edit','org:delete','org:position:manage','org:personnel:manage',
+      // 产销协调会：人事经理可查看
+      'prod-coord:view',
+      // 立项申请书：人事经理只查看
+      'initiation:view',
+      // IM消息中心
+      'im:view','im:send','im:search'
+    ],
+    'gm': [
+      // 总经理：负责④最终批准 + 全局可见 + 立项批准后自动建项目
+      'initiation:view','initiation:gm-approve',
+      'project:view','project:create',
+      'report:view','annual-plan:view','annual-plan:export',
+      'rules:view','compliance:view','data-clean:view',
+      'inquiry:view','customer:view','order:view','sample:view',
+      'bom:view','product:view','material:view','supplier:view',
+      'config:view','spec:view','config-lib:view','quote:view','pricing:view',
+      'tech:view','ai:view','drawing:preview',
+      'org:view','feedback:create',
+      'expense:view','labor:view',
+      // 产销协调会：总经理可查看
+      'prod-coord:view',
+      // IM消息中心
+      'im:view','im:send','im:create-group','im:manage','im:search'
     ]
   };
 
-  // 补建缺失的角色（项目经理、研发经理）
+  // 补建缺失的角色（项目经理、研发经理、人事经理、总经理）
   const REQUIRED_ROLES = [
     { name: '项目经理', code: 'project_manager', description: '项目全流程管理：立项、进度、样品、订单与交付跟踪' },
-    { name: '研发经理', code: 'rd_manager', description: '研发管理：产品/物料/BOM/核价/图纸/合规/测试全权管理' }
+    { name: '研发经理', code: 'rd_manager', description: '研发管理：产品/物料/BOM/核价/图纸/合规/测试全权管理' },
+    { name: '人事经理', code: 'hr_manager', description: '人力资源管理：组织架构、岗位配置、人员管理、用户账号与权限分配' },
+    { name: '总经理', code: 'gm', description: '④阶段：总经理对研发/财务意见作出最终决策并批准立项' }
   ];
   let rolesAdded = 0;
   REQUIRED_ROLES.forEach(def => {
@@ -716,6 +870,45 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
   });
 
   rpTable._invalidate();
+
+  // ===== 费用库/人工库兜底授权：与物料库同可见性 =====
+  // 凡有 material:view 的角色补 expense:view + labor:view；财务/HR 角色补全权
+  try {
+    const freshRP = rpTable.all();
+    const existingKeys = new Set(freshRP.map(rp => rp.role_id + '|' + rp.permission_id));
+    const code2id = {}; allPerms.forEach(p => { code2id[p.code] = p.id; });
+    const grantIfMissing = (roleId, code) => {
+      const pid = code2id[code]; if (!pid) return;
+      const key = roleId + '|' + pid;
+      if (existingKeys.has(key)) return;
+      rpTable.insert({ role_id: roleId, permission_id: pid, granted_at: now() });
+      existingKeys.add(key); rpAdded++;
+    };
+    roles.forEach(role => {
+      if (role.code === 'admin') return;
+      const rolePermCodes = new Set(
+        freshRP.filter(rp => rp.role_id === role.id)
+          .map(rp => { const p = allPerms.find(pm => pm.id === rp.permission_id); return p ? p.code : null; })
+          .filter(Boolean)
+      );
+      if (rolePermCodes.has('material:view')) {
+        grantIfMissing(role.id, 'expense:view');
+        grantIfMissing(role.id, 'labor:view');
+        grantIfMissing(role.id, 'labor-rate:view');
+      }
+      if (['finance', 'cw1', 'hr_manager'].indexOf(role.code) >= 0) {
+        ['expense:create', 'expense:edit', 'expense:delete',
+         'labor:create', 'labor:edit', 'labor:delete',
+         'labor-rate:create', 'labor-rate:edit', 'labor-rate:delete'].forEach(c => grantIfMissing(role.id, c));
+      }
+      if (role.code === 'engineer') {
+        ['order-analysis:view', 'order-analysis:edit'].forEach(c => grantIfMissing(role.id, c));
+      }
+    });
+    rpTable._invalidate();
+  } catch (e) {
+    console.warn('[migrate-permissions] 费用库/人工库兜底授权失败:', e.message);
+  }
 
   res.json({
     message: `权限迁移完成`,

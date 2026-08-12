@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const https = require('https');
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const outbox = require('../lib/material-outbox');
+const bearerAuth = require('../lib/external-bearer-auth');
 
 // 外部同步连接配置（默认值；可通过 /api/external-sync/config 在系统设置中覆盖）
 const DEFAULT_CONFIG = {
@@ -75,6 +77,7 @@ const ENDPOINT_PATH = {
   'bom_details.list': 'bom-details/list',
   'purchase_orders.list': 'purchase-orders/list',
   'schedule_plans.list': 'schedule-plans/list',
+  'order_details.list': 'order-details/list',
 };
 
 function fetchExternal(endpointCode, params = {}) {
@@ -103,7 +106,7 @@ function fetchExternal(endpointCode, params = {}) {
         if (json && json.code === 0) {
           resolve(json.data || { items: [], total: 0 });
         } else if (json) {
-          reject(new Error(json.message || json.detail || `API错误(code=${json.code})`));
+          reject(new Error(`外部接口 ${endpointCode} 返回 HTTP ${res.statusCode}：${json.message || json.detail || `API错误(code=${json.code})`}`));
         } else {
           // 非 JSON 响应（如 500 Internal Server Error 纯文本）
           reject(new Error(`外部接口 ${endpointCode} 服务端错误 (HTTP ${res.statusCode})：${data.substring(0, 120)}`));
@@ -115,11 +118,11 @@ function fetchExternal(endpointCode, params = {}) {
   });
 }
 
-async function fetchAllPages(endpointCode, pageSize = 200, maxPages = 200) {
+async function fetchAllPages(endpointCode, pageSize = 200, maxPages = 200, extraParams = {}) {
   let all = [];
   let page = 1;
   while (page <= maxPages) {
-    const r = await fetchExternal(endpointCode, { page, page_size: pageSize });
+    const r = await fetchExternal(endpointCode, Object.assign({ page, page_size: pageSize }, extraParams));
     all = all.concat(r.items || []);
     if (all.length >= (r.total || 0) || (r.items || []).length < pageSize) break;
     page++;
@@ -222,20 +225,22 @@ router.post('/config/active', requirePerm('system:config'), (req, res) => {
   res.json({ message: '已切换激活环境', activeId: id });
 });
 
-// 拉取外部库存明细并按物料代码汇总在手/可用数量（inventory.list）
+// 拉取外部库存明细并按物料代码汇总在手/可用/期末余额（Bearer 调用内部端点）
 // 同时返回明细行（每条：物料×仓库×库位×批次）供持久化到 material_locations.json
 async function fetchInventoryAggregate() {
-  const items = await fetchAllPages('inventory.list', 200);
+  const items = await fetchAllPagesBearer('/api/v1/basicdata/inventory', 100);
   const agg = {};
   const detail = [];
   for (const it of items) {
     const code = (it.material_code || '').trim();
     if (!code) continue;
     const onHand = Number(it.qty_on_hand || 0);
-    const avail = Number(it.qty_available != null ? it.qty_available : it.qty_on_hand || 0);
-    if (!agg[code]) agg[code] = { on_hand: 0, available: 0 };
+    const avail = Number(it.balance_qty != null ? it.balance_qty : it.qty_on_hand || 0);
+    const endBal = Number(it.ending_balance || it.balance_qty || 0);  // 期末余额（财务口径）
+    if (!agg[code]) agg[code] = { on_hand: 0, available: 0, ending_balance: 0 };
     agg[code].on_hand += onHand;
     agg[code].available += avail;
+    agg[code].ending_balance += endBal;
     detail.push({
       material_code: code,
       wh_code: it.wh_code || '',
@@ -249,6 +254,22 @@ async function fetchInventoryAggregate() {
     });
   }
   return { agg, detail, rows: items.length };
+}
+
+// Bearer 鉴权分页拉取（适用于 18085 内部业务端点；page_size 上限 100）
+async function fetchAllPagesBearer(path, pageSize = 100, maxPages = 300, extraParams = {}) {
+  let all = [];
+  let page = 1;
+  while (page <= maxPages) {
+    const r = await bearerAuth.fetchWithBearer(path, Object.assign({ page, page_size: pageSize }, extraParams));
+    const data = (r && r.data) || {};
+    const items = data.items || [];
+    all = all.concat(items);
+    const total = data.total || 0;
+    if (items.length < pageSize || all.length >= total) break;
+    page++;
+  }
+  return all;
 }
 
 // 持久化物料-库位明细到 database/material_locations.json（原子写入 + 自动备份）
@@ -270,16 +291,20 @@ function saveMaterialLocations(detail) {
 }
 
 // ==================== 物料同步 ====================
+// 内部端点路径（Bearer 鉴权）：materials 来自 /api/v1/basicdata/materials，包含 order_unit_price
+// 注：旧的 /api/v1/external/{code} 端点已下线，改用内部业务端点 + OAuth2 登录
+const MAT_PATH = '/api/v1/basicdata/materials';
+
 router.post('/sync-materials', requirePerm('material:create'), async (req, res) => {
   try {
     let items;
     try {
-      items = await fetchAllPages('materials.list', 200);
+      items = await fetchAllPagesBearer(MAT_PATH, 100);
     } catch (e) {
       return res.status(200).json({ message: '外部物料API暂不可用: ' + e.message, created: 0, updated: 0 });
     }
 
-    // 物料主数据(materials.list)不含库存，需同时拉取库存明细(inventory.list)按物料代码汇总在手数量
+    // 物料主数据(materials)不含库存，需同时拉取库存明细按物料代码汇总在手/期末余额
     let inv = { agg: {}, rows: 0 };
     let invError = '';
     try {
@@ -300,12 +325,12 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
       const mapped = {
         material_code: code,
         material_name: item.material_name || item.name || '',
-        category: item.material_category || item.category || '',
+        category: item.material_category || item.material_type || item.category || '',
         specs: item.spec_model || item.specification || item.specs || '',
-        material_type: item.material_type || item.type || '',
+        material_type: item.material_type || item.category || '',
         unit: item.unit_of_measure || item.unit || item.uom || '',
         unit_price: Number(item.order_unit_price || item.unit_price || item.price || 0),
-        standard_cost: Number(item.standard_cost || item.cost || 0),
+        standard_cost: Number(item.standard_cost || item.cost || item.order_unit_price || 0),
         supplier: item.brand || item.supplier_name || item.supplier || '',
         status: item.status === 1 ? 'active' : (item.status === 0 ? 'inactive' : (item.status || 'active')),
         classification: item.classification || '',
@@ -313,11 +338,12 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
         last_outbound_date: item.last_outbound_date || '',
         updated_at: now()
       };
-      // 库存：优先取库存明细汇总（现有库存量），其次物料接口自带字段
+      // 库存：优先取库存明细汇总（现有库存量+财务余额），其次物料接口自带字段
       const invRec = inv.agg[code];
       if (invRec) {
         mapped.inventory_qty = Math.round(invRec.on_hand * 1000) / 1000;
         mapped.available_qty = Math.round(invRec.available * 1000) / 1000;
+        mapped.inv_ending_balance = Math.round(invRec.ending_balance * 100) / 100;
         invUpdated++;
       } else if (item.stock_qty !== undefined || item.inventory_qty !== undefined) {
         mapped.inventory_qty = Number(item.stock_qty || item.inventory_qty || 0);
@@ -327,6 +353,8 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
       if (existing) {
         // 已存在的物料：外部API没有返回的字段（category/classification/classification2）不要覆盖手动修改值
         // 只更新外部API确实有值的字段
+        // 成品(category='成品')的标准成本/工价成本由订单审核台内部回传，外部不再覆盖
+        const isFinishedProduct = (existing.category || '') === '成品';
         const updateFields = { updated_at: now() };
         if (item.material_name) updateFields.material_name = mapped.material_name;
         if (item.spec_model || item.specification) updateFields.specs = mapped.specs;
@@ -335,6 +363,7 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
         if (item.brand) updateFields.supplier = mapped.supplier;
         updateFields.status = mapped.status;
         if (mapped.unit_price) updateFields.unit_price = mapped.unit_price;
+        if (mapped.standard_cost && !isFinishedProduct) updateFields.standard_cost = mapped.standard_cost;
         // category / classification / classification2 仅在外部API有明确值时才覆盖
         if (item.material_category || item.category) updateFields.category = mapped.category;
         if (item.classification) updateFields.classification = mapped.classification;
@@ -344,6 +373,7 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
         if (mapped.available_qty !== undefined) updateFields.available_qty = mapped.available_qty;
         if (mapped.quantity !== undefined) updateFields.quantity = mapped.quantity;
         if (mapped.last_outbound_date !== undefined) updateFields.last_outbound_date = mapped.last_outbound_date;
+        if (mapped.inv_ending_balance !== undefined) updateFields.inv_ending_balance = mapped.inv_ending_balance;
         Object.assign(existing, updateFields);
         updated++;
       }
@@ -355,7 +385,7 @@ router.post('/sync-materials', requirePerm('material:create'), async (req, res) 
         mapped.created_at = now(); table.insertNoSave(mapped); codeMap[code] = mapped; created++;
       }
     }
-    table.saveNow();
+    await table.saveNow();
     table._invalidate();
     let msg = `同步完成：新增${created}，更新${updated}；库存匹配更新${invUpdated}个（库存明细${inv.rows}条）`;
     if (invError) msg += `；库存拉取失败(${invError})`;
@@ -391,6 +421,10 @@ router.post('/sync-inventory', requirePerm('material:edit'), async (req, res) =>
       if (Number(m.inventory_qty || 0) !== qty) {
         Object.assign(m, { inventory_qty: qty, available_qty: Math.round(agg[code].available * 1000) / 1000, updated_at: ts });
         updated++;
+      }
+      const endBal = Math.round(agg[code].ending_balance * 100) / 100;
+      if (Number(m.inv_ending_balance || 0) !== endBal) {
+        Object.assign(m, { inv_ending_balance: endBal, updated_at: ts });
       }
     }
     // 外部库存中存在但本地物料库无匹配的物料数
@@ -481,6 +515,8 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
         customer_code: item.customer_code || '',
         product_code: item.product_code || '',
         product_name: item.product_name || '',
+        bom_no: item.bom_no || '',
+        bom_id: item.bom_id || null,
         quantity: Number(item.order_qty || 0),
         completed_qty: Number(item.completed_qty || 0),
         order_amount: Number(item.order_amount || 0),
@@ -679,8 +715,8 @@ router.post('/sync-positions', requirePerm('system:config'), async (req, res) =>
 // 以 bom_no 作为产品分组键(product_code)，组件信息取自明细行本身。
 router.post('/sync-boms', requirePerm('bom:create'), async (req, res) => {
   try {
-    // 明细数据量大，限制页数，默认50页=10000行
-    const maxPages = parseInt(req.body.max_pages) || 50;
+    // 明细数据量大（外部约9.7万行），默认500页=100000行覆盖全量
+    const maxPages = parseInt(req.body.max_pages) || 500;
     const details = await fetchAllPages('bom_details.list', 200, maxPages);
 
     const table = getTable('bom_items');
@@ -699,6 +735,7 @@ router.post('/sync-boms', requirePerm('bom:create'), async (req, res) => {
       const key = [bomNo, materialCode, lineNo].join('||');
       // 从物料代码前缀解析层级（如 "1.7.4.XXX" → "1.7.4"）
       const lvlMatch = String(d.material_code).match(/^(\d+(?:\.\d+)*)\./);
+      const stdQty = Number(d.standard_qty) || 0;
       const mapped = {
         product_code: bomNo,
         product_name: '',
@@ -709,16 +746,18 @@ router.post('/sync-boms', requirePerm('bom:create'), async (req, res) => {
         material_name: (d.material_name || '').trim(),
         spec: (d.material_size || '').trim(),
         unit: (d.unit_id || d.unit || '').trim(),
-        qty: Number(d.standard_qty) || 0,
+        quantity: stdQty,          // calcPlanCost 读取的用量字段（此前误写 qty 导致成本为 0）
+        qty: stdQty,               // 兼容旧引用
         material_attr: (d.material_type || '').trim(),
         use_status: (d.use_status !== undefined ? d.use_status : ''),
         source: 'external_sync',
         updated_at: now()
       };
       const ex = existing[key];
-      if (ex) { table.update(ex.id, mapped); updated++; }
-      else { mapped.created_at = now(); const r = table.insert(mapped); existing[key] = { id: r.lastID }; created++; }
+      if (ex) { table.updateNoSave(ex.id, mapped); updated++; }
+      else { mapped.created_at = now(); const nid = table.insertNoSave(mapped); existing[key] = { id: nid }; created++; }
     }
+    await table.saveNow();
     table._invalidate();
     res.json({
       message: `BOM同步完成：拉取明细${details.length}条；新增${created}、更新${updated}、跳过${skipped}`,
@@ -849,7 +888,72 @@ router.post('/sync-all', requirePerm('system:config'), async (req, res) => {
   res.json({ message: '同步完成', results });
 });
 
+// ==================== 物料变更回传 outbox ====================
+// 列表（status: pending/sent/failed，keyword 匹配物料代码/载荷）
+router.get('/outbox', requirePerm('material:view'), (req, res) => {
+  res.json(outbox.list({
+    status: req.query.status || '',
+    keyword: req.query.keyword || '',
+    page: Number(req.query.page) || 1,
+    pageSize: Number(req.query.page_size) || 100
+  }));
+});
+// 待回传数量（前端徽标）
+router.get('/outbox/stats', requirePerm('material:view'), (req, res) => {
+  res.json({ pending: outbox.pendingCount() });
+});
+// 一键回传所有 pending
+router.post('/outbox/flush', requirePerm('material:edit'), async (req, res) => {
+  try { res.json(await outbox.flush()); } catch (e) { res.status(500).json({ error: e.message }); }
+});
+// 重试单条
+router.post('/outbox/:id/retry', requirePerm('material:edit'), async (req, res) => {
+  try { res.json(await outbox.retryOne(req.params.id)); } catch (e) { res.status(500).json({ error: e.message }); }
+});
+// 忽略/删除单条
+router.post('/outbox/:id/dismiss', requirePerm('material:edit'), (req, res) => {
+  res.json({ message: outbox.dismiss(req.params.id) ? '已忽略' : '记录不存在' });
+});
+// 外部写入接口配置
+router.get('/outbox/write-config', requirePerm('system:config'), (req, res) => {
+  res.json(outbox.getWriteConfig());
+});
+router.post('/outbox/write-config', requirePerm('system:config'), (req, res) => {
+  const { enabled, baseUrl, path, method, endpointCode } = req.body;
+  const patch = {};
+  if (enabled !== undefined) patch.enabled = !!enabled;
+  if (baseUrl !== undefined) patch.baseUrl = String(baseUrl).trim();
+  if (path !== undefined) patch.path = String(path).trim();
+  if (method !== undefined) patch.method = String(method).trim().toUpperCase() || 'PUT';
+  if (endpointCode !== undefined) patch.endpointCode = String(endpointCode).trim() || 'materials.update';
+  res.json({ message: '写入接口配置已保存', data: outbox.setWriteConfig(patch) });
+});
+
+// Bearer 鉴权凭证管理（用户名密码登录内部业务端点）
+router.get('/bearer-auth', requirePerm('system:config'), (req, res) => {
+  const c = bearerAuth.getBearerCredentials();
+  // 脱敏密码
+  res.json({ baseUrl: c.baseUrl, username: c.username, password: c.password ? '••••••' + String(c.password).slice(-2) : '', loginPath: c.loginPath });
+});
+router.post('/bearer-auth', requirePerm('system:config'), async (req, res) => {
+  const { baseUrl, username, password, loginPath } = req.body;
+  const patch = {};
+  if (baseUrl !== undefined) patch.baseUrl = String(baseUrl).trim();
+  if (username !== undefined) patch.username = String(username).trim();
+  if (password !== undefined && password !== '' && !String(password).startsWith('••')) patch.password = String(password);
+  if (loginPath !== undefined) patch.loginPath = String(loginPath).trim();
+  const saved = bearerAuth.setBearerCredentials(patch);
+  // 测一次登录验证
+  try {
+    await bearerAuth.getBearerToken(true);
+    res.json({ message: 'Bearer 凭证已保存且登录验证通过', data: { baseUrl: saved.baseUrl, username: saved.username, loginPath: saved.loginPath } });
+  } catch (e) {
+    res.status(200).json({ message: 'Bearer 凭证已保存，但登录验证失败: ' + e.message, data: { baseUrl: saved.baseUrl, username: saved.username }, warning: true });
+  }
+});
+
 module.exports = router;
+module.exports.fetchExternal = fetchExternal;
 module.exports.fetchAllPages = fetchAllPages;
 module.exports.fetchInventoryAggregate = fetchInventoryAggregate;
 module.exports.saveMaterialLocations = saveMaterialLocations;

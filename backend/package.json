@@ -1,7 +1,7 @@
 {
   "name": "sales-service-backend",
   "version": "1.0.0",
-  "description": "销售快捷服务系统后端",
+  "description": "企业经营管理平台（EBMS）后端",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

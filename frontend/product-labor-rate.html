@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 成品工价库</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:780px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:46px}
+.gr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.gr2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.tbl-wrap{overflow-x:auto;max-height:62vh;overflow-y:auto}
+.pg{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;color:#666;flex-wrap:wrap;gap:8px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.panel h3{margin:0 0 10px;font-size:14px;color:#444}
+.hbar{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+.hbar .lb{width:160px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.hbar .track{flex:1;height:16px;background:#f0f2f8;border-radius:4px;overflow:hidden}
+.hbar .fill{height:100%;border-radius:4px}
+.hbar .val{font-weight:600;color:#333;width:96px;text-align:right;flex-shrink:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.chk-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee;font-size:13px}
+.chk-row:last-child{border:none}
+.r{text-align:right}
+.sev-severe{color:#e74c3c;font-weight:600}
+.sev-warning{color:#f39c12;font-weight:600}
+.sev-info{color:#3498db;font-weight:600}
+.status-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff}
+.st-approved{background:#27ae60}.st-pending{background:#f39c12}.st-disabled{background:#95a5a6}
+.rate-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff}
+.rt-标准工价{background:#667eea}.rt-实测工价{background:#16a085}.rt-暂估工价{background:#e67e22}
+.src-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.src-manual{background:#ecf0f1;color:#555}
+.src-erp_sync{background:#fef5e7;color:#d35400}
+.src-pricing_import{background:#eafaf1;color:#27ae60}
+.rules{background:#fafbff;border:1px solid #e8ebf7;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.rules-h{padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:#555;background:#fafbff;user-select:none}
+.rules-h:hover{background:#f0f3ff}
+.rules-b{max-height:0;overflow:hidden;transition:max-height .25s ease;padding:0 14px}
+.rules.open .rules-b{max-height:560px;padding:8px 14px 10px}
+.rules-arrow{transition:transform .2s;font-size:12px;color:#999}
+.rules.open .rules-arrow{transform:rotate(90deg)}
+.rules ul{margin:4px 0 0;padding-left:18px;font-size:12px;color:#555;line-height:1.8}
+.rules li{margin-bottom:2px}.rules li b{color:#667eea}.rules li .req{color:#e74c3c}
+.audit-actions{display:flex;gap:4px}
+.audit-actions .btn{font-size:11px;padding:3px 8px}
+.muted{color:#999;font-size:11px}
+</style></head><body data-page-title="成品工价库" data-page-perm="labor-rate:view">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="product-labor-rate">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>成品工价库</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn b1" onclick="openAdd()" data-perm="labor-rate:create">新增工价</button>
+<button class="btn b2" onclick="ImportDropzone.open()" data-perm="labor-rate:create">批量导入</button>
+<button class="btn" style="background:#9b59b6;color:#fff" onclick="openOrderImport()" data-perm="labor-rate:create">从订单导入</button>
+<a class="btn bs" href="#" onclick="dlTpl();return false" style="background:#eee;color:#555;text-decoration:none">下载导入模板</a>
+<button class="btn b4" onclick="exportCsv()" data-perm="labor-rate:view">导出CSV</button>
+<button class="btn b3" onclick="batchDelete()" data-perm="labor-rate:delete">批量删除</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('list',this)">工价明细</button>
+<button onclick="swTab('analysis',this)">成本分析</button>
+<button onclick="swTab('quality',this)">数据质检</button>
+<button onclick="swTab('bom',this)">BOM 树查看</button>
+<button onclick="swTab('ext',this)">外部对接</button>
+</div>
+
+<!-- ===== 工价明细 ===== -->
+<div class="tc ac" id="tab-list">
+<div class="sg" id="statCards"></div>
+<div class="panel">
+<h3>筛选条件</h3>
+<div class="sb">
+<input type="text" id="f_kw" placeholder="关键字(BOM编号/产品/备注)" style="width:200px">
+<select id="f_bom"><option value="">全部BOM</option></select>
+<select id="f_pcode"><option value="">全部产品编码</option></select>
+<select id="f_rtype"><option value="">全部计价方式</option></select>
+<select id="f_audit"><option value="">全部审核状态</option>
+  <option value="pending">待审核</option><option value="approved">已审核</option><option value="disabled">已停用</option></select>
+<select id="f_src"><option value="">全部来源</option>
+  <option value="manual">手工录入</option><option value="erp_sync">外部API</option><option value="pricing_import">核价导入</option><option value="order_analysis">订单分析</option><option value="bom_sync">BOM同步</option></select>
+<input type="number" step="0.01" id="f_rmin" placeholder="工价≥" style="width:90px">
+<input type="number" step="0.01" id="f_rmax" placeholder="工价≤" style="width:90px">
+<button class="btn b1" onclick="loadList(1)">查询</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="resetFilter()">重置</button>
+</div>
+</div>
+<div class="panel" style="border-left:4px solid #667eea">
+<h3 style="margin-bottom:8px">🌳 按成品 BOM 层级筛选 <small style="font-weight:normal;color:#888">（选择成品后自动展开所有下级子件的工价）</small></h3>
+<div class="sb">
+<input type="text" id="product_search" list="productList" placeholder="输入或选择成品编码/名称（如 HJ-8110-709-01）" style="width:320px" oninput="onProductSearchChange()">
+<datalist id="productList"></datalist>
+<button class="btn b1" onclick="loadByProductTree()">展开 BOM 层级工价</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="clearProductTree()">清除层级筛选</button>
+<span id="treeSummary" style="font-size:12px;color:#888;margin-left:8px"></span>
+</div>
+</div>
+<div class="tbl-wrap">
+<table id="tbl">
+<thead><tr>
+<th style="width:30px"><input type="checkbox" onclick="toggleAll(this)"></th>
+<th>层级</th>
+<th>BOM编号</th><th>产品编码</th><th>产品名称</th>
+<th class="r">工价(元/台)</th><th>计价方式</th>
+<th class="r">工艺成本</th>
+<th>生效日</th><th>失效日</th>
+<th>来源</th><th>审核</th><th>操作</th>
+</tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div class="pg" id="pg"></div>
+</div>
+
+<!-- ===== 成本分析 ===== -->
+<div class="tc" id="tab-analysis">
+<div class="sb">
+<select id="a_rtype"><option value="">全部计价方式</option></select>
+<select id="a_audit"><option value="">全部审核状态</option>
+  <option value="pending">待审核</option><option value="approved">已审核</option><option value="disabled">已停用</option></select>
+<select id="a_src"><option value="">全部来源</option>
+  <option value="manual">手工录入</option><option value="erp_sync">外部API</option><option value="pricing_import">核价导入</option></select>
+<button class="btn b1" onclick="loadStats()">分析</button>
+</div>
+<div id="anaBox"><div class="em">选择筛选条件后点击「分析」</div></div>
+</div>
+
+<!-- ===== 数据质检 ===== -->
+<div class="tc" id="tab-quality">
+<div style="margin-bottom:10px"><button class="btn b1" onclick="loadQuality()">运行质检</button></div>
+<div id="qBox"><div class="em">点击「运行质检」检查数据完整性与版本冲突</div></div>
+</div>
+
+<!-- ===== BOM 树查看 ===== -->
+<div class="tc" id="tab-bom">
+<div class="panel">
+<h3>BOM 多级树查询 <small style="font-weight:normal;color:#888">（对接 ERP <code>GET /api/external/boms/tree?bom_id=...</code>）</small></h3>
+<div class="sb">
+<input type="text" id="bom_id" placeholder="bom_id（如 JFS22-B1WB10S27-46-01）" style="width:280px">
+<button class="btn b1" onclick="loadBomTree()">加载 BOM 树</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="document.getElementById('bom_id').value='';document.getElementById('bomTreeBox').innerHTML='<div class=\'em\'>输入 bom_id 后点击「加载 BOM 树」</div>'">清空</button>
+<small style="color:#888">输入成品或半成品的 bom_id，ERP 返回层级树（material_id 桥接父子）</small>
+</div>
+</div>
+<div id="bomTreeStats"></div>
+<div class="panel" style="overflow-x:auto">
+<h3>BOM 树</h3>
+<div id="bomTreeBox"><div class="em">输入 bom_id 后点击「加载 BOM 树」</div></div>
+</div>
+<div class="panel">
+<h3>原始响应（用于排查字段差异）</h3>
+<pre id="bomTreeRaw" style="background:#fafbff;padding:10px;border-radius:6px;font-size:11px;max-height:300px;overflow:auto;margin:0;white-space:pre-wrap;word-break:break-all"></pre>
+</div>
+</div>
+
+<!-- ===== 外部对接 ===== -->
+<div class="tc" id="tab-ext">
+<div class="panel">
+<h3>外部 ERP 工价审核表对接配置</h3>
+<p style="font-size:12px;color:#888;margin:0 0 12px">对接 ERP 工价审核表接口，启用后可一键同步"成品工价"主数据（按 bom_no upsert：ERP 有值更新；ERP 无值保留本地人工录入）。</p>
+<div class="gr2">
+<div class="fg"><label>是否启用</label><select id="ext_enabled"><option value="false">未启用</option><option value="true">启用</option></select></div>
+<div class="fg"><label>接口地址 Base URL</label><input id="ext_base_url" placeholder="http://127.0.0.1:5000/api/external"></div>
+<div class="fg"><label>X-API-Key（鉴权头）</label><input id="ext_api_key" placeholder="HJ-EBMS-KEY-2026-SECRET"></div>
+<div class="fg"><label>工价数据表</label><input id="ext_data_table" value="t_BOSAssemblyPriceEntry"></div>
+</div>
+<div class="gr2">
+<div class="fg"><label>产品主数据表</label><input id="ext_item_table" value="t_ICItemCore"></div>
+<div class="fg"><label>单次同步上限</label><input type="number" id="ext_limit" value="5000"></div>
+<div class="fg"></div>
+</div>
+<div style="text-align:right;margin-top:8px">
+<button class="btn b4" onclick="testConn()" data-perm="labor-rate:view">🔌 测试连接</button>
+<button class="btn b2" onclick="saveExt()" data-perm="labor-rate:edit">保存配置</button>
+<button class="btn b1" onclick="syncExt()" data-perm="labor-rate:create">立即同步</button>
+</div>
+<div id="extResult" style="margin-top:10px;font-size:13px"></div>
+<div id="testResult" style="margin-top:10px;font-size:13px"></div>
+</div>
+<div class="panel">
+<h3>使用说明（HJ 基础数据库-对外接口）</h3>
+<ul style="font-size:12px;color:#555;line-height:1.8;padding-left:18px">
+<li><b>接口约定</b>：所有请求走 <code>GET</code>，需携带 <code>X-API-Key</code> 头（如 <code>HJ-EBMS-KEY-2026-SECRET</code>）</li>
+<li><b>默认数据源</b>：
+  <ul>
+    <li>工价明细：<code>t_BOSAssemblyPriceEntry</code>（含 <code>FItemID, FPrice, WProcedure, FNOTE</code>）</li>
+    <li>产品主数据：<code>t_ICItemCore</code>（含 <code>FItemID, FNumber, FShortNumber, FName</code>）</li>
+    <li>工价头表：<code>t_BOSAssemblyPrice</code>（提供 <code>FDate</code> 生效日）</li>
+  </ul>
+</li>
+<li><b>字段映射</b>：<code>FShortNumber → bom_no</code>（主匹配键），<code>FNumber → product_code</code>，<code>FName → product_name</code>，<code>FPrice → labor_rate</code>，<code>WProcedure/FNOTE → remarks</code></li>
+<li><b>upsert 策略</b>：按 bom_no 匹配；ERP 有值且与本地不同 → 更新；ERP 无值/为 0 → 保留本地人工录入值（不覆盖）</li>
+<li><b>同步后状态</b>：默认 <code>pending</code>（待审核），需在「工价明细」中审批 <code>approved</code> 后才会被订单分析 <code>calcPlanCost</code> 注入</li>
+<li><b>如需换其他表</b>：修改「工价数据表」字段名（如 <code>StdCost_ItemStdPriceEntry</code>、<code>t_Price</code> 等），保存后重新测试连接</li>
+<li><b>排查工具</b>：点击「🔌 测试连接」分 3 步诊断（连通性 / 鉴权 / 数据可达）；同步返回的 <code>sample</code> 字段展示前 3 条原始数据</li>
+</ul>
+</div>
+</div>
+
+</div><!-- /main-content -->
+
+<!-- ===== 表单弹窗 ===== -->
+<div class="mo" id="formModal">
+<div class="mb">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 id="formTitle" style="margin:0">新增工价</h3>
+<span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
+</div>
+<form id="rateForm" onsubmit="saveForm();return false">
+<div class="rules" id="formRules">
+  <div class="rules-h" onclick="togRules()"><span>📋 填写规则（点击展开/收起）</span><span class="rules-arrow">▶</span></div>
+  <div class="rules-b"><ul>
+    <li><b>BOM编号</b> <span class="req">*</span>：主匹配键（与订单多产品 order_products.bom_no 对齐），如 <code>JFS22-B1WB10S27-46-01</code></li>
+    <li><b>产品编码/名称</b>：冗余字段，便于检索与兜底匹配</li>
+    <li><b>工价(元/台)</b> <span class="req">*</span>：单台成品装配人工成本，订单分析 calcPlanCost 会按 <code>工价 × 数量</code> 注入到 BOM 根节点</li>
+    <li><b>计价方式</b>：标准工价（长期稳定）/实测工价（实测统计）/暂估工价（新工艺未稳定）</li>
+    <li><b>工艺成本</b>：单台工艺附加成本，默认归入"人工"（如属外协制具可由订单分析改入费用）</li>
+    <li><b>生效日/失效日</b>：管理工价版本，留空=长期有效；同 bom_no 已审核记录的生效区间不可重叠</li>
+    <li><b>审核状态</b>：<code>pending</code> 待审核（默认）→ <code>approved</code> 已审核（被订单分析消费）→ <code>disabled</code> 已停用</li>
+    <li>带 <span class="req">*</span> 为必填项</li>
+  </ul></div>
+</div>
+<input type="hidden" id="f_id">
+<div class="gr">
+<div class="fg"><label>BOM编号 <span style="color:#e74c3c">*</span></label><input id="f_bom_no" placeholder="如 JFS22-B1WB10S27-46-01"></div>
+<div class="fg"><label>产品编码</label><input id="f_product_code"></div>
+<div class="fg"><label>产品名称</label><input id="f_product_name"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>工价(元/台) <span style="color:#e74c3c">*</span></label><input type="number" step="0.01" id="f_labor_rate" required></div>
+<div class="fg"><label>计价方式</label><select id="f_labor_rate_type">
+  <option>标准工价</option><option>实测工价</option><option>暂估工价</option></select></div>
+<div class="fg"><label>工艺成本</label><input type="number" step="0.01" id="f_process_cost" value="0"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>生效日</label><input type="date" id="f_effective_date"></div>
+<div class="fg"><label>失效日（留空=长期）</label><input type="date" id="f_expire_date"></div>
+<div class="fg"><label>来源</label><select id="f_source">
+  <option value="manual">手工录入</option>
+  <option value="erp_sync">外部API</option>
+  <option value="pricing_import">核价导入</option></select></div>
+</div>
+<div class="gr">
+<div class="fg"><label>审核状态</label><select id="f_audit_status">
+  <option value="pending">待审核</option>
+  <option value="approved">已审核</option>
+  <option value="disabled">已停用</option></select></div>
+<div class="fg"><label>审核人</label><input id="f_approved_by" placeholder="如 张三"></div>
+<div class="fg"></div>
+</div>
+<div class="fg"><label>备注</label><textarea id="f_remarks"></textarea></div>
+<div style="text-align:right;margin-top:10px">
+<button type="button" class="btn bs" style="background:#eee;color:#555" onclick="closeForm()">取消</button>
+<button type="submit" class="btn b2">保存</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- ===== 工价调整弹窗 ===== -->
+<div class="mo" id="adjustModal"><div class="mb" style="width:500px"></div></div>
+
+<!-- ===== 从订单分析库导入弹窗 ===== -->
+<div class="mo" id="orderImportModal">
+<div class="mb" style="width:840px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 style="margin:0">从订单分析库导入工价</h3>
+<span onclick="closeOrderImport()" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
+</div>
+<div style="background:#eef4ff;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:12px;color:#3a5a9c">
+选择订单后点击「导入」，系统将把该订单的 <b>成品工价</b>（product_rates）、<b>自制</b> 与 <b>外加工</b> 物料人工费 写入成品工价库（来源标记为 <code>order_analysis</code>，待审核，生效日为当年1月1日）。
+</div>
+<div style="display:flex;gap:8px;margin-bottom:10px">
+<input type="text" id="oi_kw" placeholder="搜索：订单号 / 客户 / 产品编码 / 产品名称" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" onkeydown="if(event.key==='Enter')searchOrders(1)">
+<button class="btn b1" onclick="searchOrders(1)">搜索</button>
+</div>
+<div id="oiList" style="max-height:360px;overflow:auto;border:1px solid #e8ebf7;border-radius:6px;background:#fff">
+<div class="em" style="padding:20px">输入关键字后点击「搜索」，或直接点搜索查看最近订单</div>
+</div>
+<div id="oiResult" style="margin-top:10px;font-size:13px"></div>
+</div>
+</div></script>
+<script src="fetch-auth.js"></script>
+<script src="import-dropzone.js"></script>
+<script>
+const API='/api/product-labor-rate';
+let meta={}, curPage=1, total=0, LIMIT=20, selected=new Set();
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function yuan(n){return '¥'+(Math.round((Number(n)||0)*100)/100).toLocaleString()}
+function toast(m){let d=document.createElement('div');d.textContent=m;d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:6px;z-index:9999;font-size:13px';document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function num(id){return Number(document.getElementById(id).value)||0}
+function qs(){const p=new URLSearchParams();
+  [['f_kw','keyword'],['f_bom','bom_no'],['f_pcode','product_code'],['f_rtype','labor_rate_type'],
+   ['f_audit','audit_status'],['f_src','source']].forEach(([id,k])=>{const v=document.getElementById(id).value;if(v)p.set(k,v)});
+  if(document.getElementById('f_rmin').value)p.set('rate_min',document.getElementById('f_rmin').value);
+  if(document.getElementById('f_rmax').value)p.set('rate_max',document.getElementById('f_rmax').value);
+  return p;
+}
+
+function swTab(name,btn){
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('ac'));
+  document.getElementById('tab-'+name).classList.add('ac');
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  btn.classList.add('ac');
+  if(name==='analysis')loadStats();
+  if(name==='quality')loadQuality();
+  if(name==='ext')loadExt();
+  if(name==='bom'){/* BOM 树查看，手动触发加载 */ }
+}
+
+async function loadFilterOpts(){
+  try{
+    const r=await fetch(API+'/meta/filter-options');
+    meta=await r.json();
+    fillSel('f_bom',meta.bom_nos);
+    fillSel('f_pcode',meta.product_codes);
+    fillSel('f_rtype',meta.rate_types);
+    fillSel('f_src',meta.sources);
+    fillSel('a_rtype',meta.rate_types);
+    fillSel('a_src',meta.sources);
+  }catch(e){console.error(e)}
+}
+function fillSel(id,arr){const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;const first=sel.options[0]?sel.options[0].outerHTML:'';sel.innerHTML=first+(arr||[]).map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');sel.value=cur;}
+function togRules(){document.getElementById('formRules').classList.toggle('open');}
+
+async function loadStatCards(){
+  try{
+    const r=await fetch(API+'/dashboard/stats');
+    const d=await r.json();
+    const cards=[
+      {n:d.total,l:'工价记录数',c:'#667eea'},
+      {n:d.approved,l:'已审核',c:'#27ae60'},
+      {n:d.pending,l:'待审核',c:'#f39c12'},
+      {n:d.disabled,l:'已停用',c:'#95a5a6'},
+      {n:yuan(d.avg_rate),l:'平均工价',c:'#2980b9'},
+      {n:yuan(d.max_rate),l:'最高工价',c:'#e74c3c'}
+    ];
+    document.getElementById('statCards').innerHTML=cards.map(c=>'<div class="sc"><div class="n" style="color:'+c.c+';font-size:'+(String(c.n).length>10?'15px':'22px')+'">'+esc(c.n)+'</div><div class="l">'+c.l+'</div></div>').join('');
+  }catch(e){}
+}
+
+async function loadList(p){
+  curPage=p||1;
+  try{
+    const r=await fetch(API+'?'+qs().toString()+'&page='+curPage+'&limit='+LIMIT);
+    const d=await r.json();total=d.total;
+    const tb=document.getElementById('tb');
+    if(!d.data.length){tb.innerHTML='<tr><td colspan="12" class="em">暂无工价记录，点击「新增工价」或「批量导入」</td></tr>'}
+    else{
+      tb.innerHTML=d.data.map(r=>'<tr>'+
+        '<td><input type="checkbox" class="row-sel" data-id="'+r.id+'"'+(selected.has(r.id)?' checked':'')+'></td>'+
+        '<td><code>'+esc(r.bom_no)+'</code></td>'+
+        '<td>'+esc(r.product_code)+'</td>'+
+        '<td>'+esc(r.product_name)+'</td>'+
+        '<td class="r"><b>'+yuan(r.labor_rate)+'</b></td>'+
+        '<td><span class="rate-tag rt-'+esc(r.labor_rate_type)+'">'+esc(r.labor_rate_type)+'</span></td>'+
+        '<td class="r">'+yuan(r.process_cost)+'</td>'+
+        '<td>'+esc(r.effective_date)+'</td>'+
+        '<td>'+esc(r.expire_date||'—')+'</td>'+
+        '<td><span class="src-tag src-'+esc(r.source)+'">'+esc(r.source)+'</span></td>'+
+        '<td><span class="status-tag st-'+esc(r.audit_status)+'">'+auditLabel(r.audit_status)+'</span><div class="muted">'+esc(r.approved_by||'')+'</div></td>'+
+        '<td class="audit-actions">'+
+          (r.audit_status!=='approved'?'<button class="btn b2" onclick="setAudit('+r.id+',\'approved\')" data-perm="labor-rate:edit" title="审核通过">通过</button>':'')+
+          (r.audit_status!=='disabled'?'<button class="btn bs" style="background:#95a5a6;color:#fff" onclick="setAudit('+r.id+',\'disabled\')" data-perm="labor-rate:edit" title="停用">停</button>':'')+
+          '<button class="btn bs" style="background:#e67e22;color:#fff" onclick="openAdjust('+r.id+','+r.labor_rate+',\''+esc(r.bom_no)+'\')" data-perm="labor-rate:edit" title="调整工价（保留历史版本）">调整</button>'+
+          '<button class="btn bs b4" onclick="openBomTree(\''+esc(r.bom_no)+'\')" title="查看该 BOM 的多级树">🌳</button>'+
+          '<button class="btn bs b4" onclick="openEdit('+r.id+')" data-perm="labor-rate:edit">编辑</button>'+
+          '<button class="btn bs b3" onclick="del('+r.id+')" data-perm="labor-rate:delete">删</button>'+
+        '</td>'+
+        '</tr>').join('');
+    }
+    renderPg();applyPerms();
+  }catch(e){toast('加载失败: '+e.message)}
+}
+function auditLabel(s){return s==='approved'?'已审核':s==='disabled'?'已停用':'待审核';}
+function renderPg(){
+  const pages=Math.ceil(total/LIMIT)||1;
+  const el=document.getElementById('pg');
+  // 每页条数选择
+  const opts=[10,20,30,50,100].map(n=>'<option value="'+n+'"'+(n===LIMIT?' selected':'')+'>'+n+' 条/页</option>').join('');
+  // 数字页码（最多显示 7 个，当前页居中）
+  let nums='';
+  if(pages<=7){
+    for(let i=1;i<=pages;i++) nums+='<button class="btn bs'+(i===curPage?' b1':'')+'" style="'+(i===curPage?'':'background:#eee')+'" onclick="loadList('+i+')">'+i+'</button> ';
+  } else {
+    const show=new Set([1,pages,curPage,curPage-1,curPage+1]);
+    let last=0;
+    for(let i=1;i<=pages;i++){
+      if(show.has(i)){ if(last&&i>last+1) nums+='<span style="padding:0 4px;color:#999">…</span>'; nums+='<button class="btn bs'+(i===curPage?' b1':'')+'" style="'+(i===curPage?'':'background:#eee')+';margin-left:2px" onclick="loadList('+i+')">'+i+'</button>'; last=i; }
+    }
+  }
+  el.innerHTML='<span>共 <b>'+total+'</b> 条，第 <b>'+curPage+'/'+pages+'</b> 页</span>'+'<select onchange="setLimit(this.value)" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px" title="每页显示行数">'+opts+'</select>'+'<div style="display:flex;gap:2px;align-items:center;flex-wrap:wrap">'+(curPage>1?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage-1)+')">‹上一页</button>':'')+'<span style="margin:0 4px">'+nums+'</span>'+(curPage<pages?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage+1)+')">下一页›</button>':'')+'</div>';
+}
+function setLimit(n){LIMIT=Number(n)||20;curPage=1;loadList(1)}
+function toggleAll(el){document.querySelectorAll('.row-sel').forEach(c=>{c.checked=el.checked;if(el.checked)selected.add(Number(c.dataset.id));else selected.clear()})}
+function resetFilter(){['f_kw','f_bom','f_pcode','f_rtype','f_audit','f_src','f_rmin','f_rmax'].forEach(id=>document.getElementById(id).value='');loadList(1)}
+
+// ===== 新增/编辑 =====
+function openAdd(){
+  resetForm();
+  document.getElementById('formTitle').textContent='新增工价';
+  document.getElementById('f_effective_date').value=new Date().toISOString().substring(0,10);
+  document.getElementById('formModal').classList.add('ac');
+}
+async function openEdit(id){
+  try{
+    const r=await fetch(API+'/'+id);
+    const d=await r.json();
+    fillForm(d);
+    document.getElementById('formTitle').textContent='编辑工价';
+    document.getElementById('formModal').classList.add('ac');
+  }catch(e){toast('加载失败')}
+}
+function resetForm(){
+  ['f_id','f_bom_no','f_product_code','f_product_name','f_labor_rate','f_process_cost',
+   'f_effective_date','f_expire_date','f_approved_by','f_remarks'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f_labor_rate_type').value='标准工价';
+  document.getElementById('f_source').value='manual';
+  document.getElementById('f_audit_status').value='pending';
+}
+function fillForm(r){
+  document.getElementById('f_id').value=r.id||'';
+  document.getElementById('f_bom_no').value=r.bom_no||'';
+  document.getElementById('f_product_code').value=r.product_code||'';
+  document.getElementById('f_product_name').value=r.product_name||'';
+  document.getElementById('f_labor_rate').value=r.labor_rate||'';
+  document.getElementById('f_labor_rate_type').value=r.labor_rate_type||'标准工价';
+  document.getElementById('f_process_cost').value=r.process_cost||0;
+  document.getElementById('f_effective_date').value=r.effective_date||'';
+  document.getElementById('f_expire_date').value=r.expire_date||'';
+  document.getElementById('f_source').value=r.source||'manual';
+  document.getElementById('f_audit_status').value=r.audit_status||'pending';
+  document.getElementById('f_approved_by').value=r.approved_by||'';
+  document.getElementById('f_remarks').value=r.remarks||'';
+}
+function closeForm(){document.getElementById('formModal').classList.remove('ac')}
+
+// ===== 工价调整（版本管理）=====
+function openAdjust(id, oldRate, bomNo){
+  const html = '<div style="margin-bottom:12px">'+
+    '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px;color:#856404">'+
+    '<b>工价版本管理</b><br>调整后旧工价保留（设过期日），新工价即时生效。<br>已提交的订单快照不变，新订单自动采用新工价。'+
+    '</div>'+
+    '<div class="fg"><label>BOM编号</label><input id="adj_bom_no" value="'+esc(bomNo)+'" readonly style="background:#f5f6fa"></div>'+
+    '<div class="gr2">'+
+    '<div class="fg"><label>原工价（元/台）</label><input id="adj_old_rate" type="number" value="'+oldRate+'" readonly style="background:#f5f6fa"></div>'+
+    '<div class="fg"><label>新工价（元/台） <span style="color:#e74c3c">*</span></label><input id="adj_new_rate" type="number" step="0.01" autofocus></div>'+
+    '</div>'+
+    '<div class="gr2">'+
+    '<div class="fg"><label>生效日期</label><input id="adj_effective_date" type="date" value="'+new Date().toISOString().substring(0,10)+'"></div>'+
+    '<div class="fg"><label>备注（可选）</label><input id="adj_remarks" placeholder="如：工艺改进降本"></div>'+
+    '</div>'+
+    '<div style="text-align:right;margin-top:10px">'+
+    '<button class="btn bs" style="background:#eee;color:#555" onclick="document.getElementById(\'adjustModal\').classList.remove(\'ac\')">取消</button>'+
+    '<button class="btn" style="background:#e67e22;color:#fff;margin-left:8px" onclick="submitAdjust('+id+')">确认调整</button>'+
+    '</div></div>';
+  const m = document.getElementById('adjustModal');
+  m.querySelector('.mb').innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="margin:0">调整工价</h3><span onclick="m.classList.remove(\'ac\')" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>' + html;
+  m.classList.add('ac');
+}
+async function submitAdjust(id){
+  const newRate = document.getElementById('adj_new_rate').value;
+  if(!newRate || Number(newRate) <= 0){toast('请填写有效的新工价');return}
+  const body = {
+    new_rate: Number(newRate),
+    effective_date: document.getElementById('adj_effective_date').value,
+    remarks: document.getElementById('adj_remarks').value
+  };
+  try{
+    const r = await fetch(API+'/'+id+'/adjust',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d = await r.json();
+    if(!r.ok){toast(d.error||'调整失败');return}
+    toast(d.message);
+    document.getElementById('adjustModal').classList.remove('ac');
+    loadList(curPage);loadStatCards();
+  }catch(e){toast('调整失败: '+e.message)}
+}
+async function saveForm(){
+  const id=document.getElementById('f_id').value;
+  if(!document.getElementById('f_bom_no').value){toast('BOM编号必填');return}
+  if(!document.getElementById('f_labor_rate').value && document.getElementById('f_labor_rate').value!=='0'){toast('工价必填');return}
+  const body={
+    bom_no:document.getElementById('f_bom_no').value.trim(),
+    product_code:document.getElementById('f_product_code').value.trim(),
+    product_name:document.getElementById('f_product_name').value.trim(),
+    labor_rate:Number(document.getElementById('f_labor_rate').value)||0,
+    labor_rate_type:document.getElementById('f_labor_rate_type').value,
+    process_cost:Number(document.getElementById('f_process_cost').value)||0,
+    effective_date:document.getElementById('f_effective_date').value,
+    expire_date:document.getElementById('f_expire_date').value,
+    source:document.getElementById('f_source').value,
+    audit_status:document.getElementById('f_audit_status').value,
+    approved_by:document.getElementById('f_approved_by').value,
+    remarks:document.getElementById('f_remarks').value
+  };
+  try{
+    const r=await fetch(id?API+'/'+id:API+'/',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){
+      if(d.data && confirm(d.error+'\n是否覆盖已有记录？')){
+        const r2=await fetch(API+'/'+d.data.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const d2=await r2.json();
+        if(!r2.ok){toast(d2.error||'保存失败');return}
+        toast('已更新');closeForm();loadList(curPage);loadStatCards();
+      } else {
+        toast(d.error||'保存失败');
+      }
+      return;
+    }
+    toast('保存成功');closeForm();loadList(curPage);loadStatCards();
+  }catch(e){toast('保存失败: '+e.message)}
+}
+async function del(id){if(!confirm('确认删除该工价记录？'))return;try{const r=await fetch(API+'/'+id,{method:'DELETE'});const d=await r.json();if(!r.ok){toast(d.error);return}toast('已删除');loadList(curPage);loadStatCards()}catch(e){toast(e.message)}}
+async function batchDelete(){
+  const ids=[...selected];
+  if(!ids.length){toast('请勾选要删除的记录');return}
+  if(!confirm('确认删除选中的 '+ids.length+' 条记录？'))return;
+  try{
+    const r=await fetch(API+'/batch-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    const d=await r.json();
+    if(!r.ok){toast(d.error);return}
+    toast(d.message);selected.clear();loadList(curPage);loadStatCards();
+  }catch(e){toast(e.message)}
+}
+async function setAudit(id, status){
+  const user=localStorage.getItem('currentUserName')||localStorage.getItem('username')||'';
+  if(status==='approved' && !confirm('确认审核通过？审核后该工价将被订单分析 calcPlanCost 消费。'))return;
+  if(status==='disabled' && !confirm('确认停用该工价？停用后将不再被订单分析消费。'))return;
+  try{
+    const r=await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({audit_status:status, approved_by:status==='approved'?user:''})});
+    const d=await r.json();
+    if(!r.ok){toast(d.error);return}
+    toast(status==='approved'?'已审核':'已停用');
+    loadList(curPage);loadStatCards();
+  }catch(e){toast(e.message)}
+}
+
+function exportCsv(){const p=qs().toString();window.open(API+'/export/csv'+(p?('?'+p):''),'_blank')}
+function dlTpl(){window.open('/api/import/template/product_labor_rate','_blank')}
+
+// ===== 从订单分析库导入 =====
+const ORDER_ANALYSIS_API='/api/order-analysis';
+let _oiPage=1;
+
+function openOrderImport(){
+  document.getElementById('orderImportModal').classList.add('ac');
+  document.getElementById('oiResult').innerHTML='';
+  searchOrders(1);
+}
+function closeOrderImport(){document.getElementById('orderImportModal').classList.remove('ac')}
+
+async function searchOrders(p){
+  _oiPage=p||1;
+  const kw=document.getElementById('oi_kw').value.trim();
+  const box=document.getElementById('oiList');
+  box.innerHTML='<div class="em" style="padding:20px">⏳ 加载订单...</div>';
+  try{
+    const params=new URLSearchParams();
+    if(kw)params.set('keyword',kw);
+    params.set('page',_oiPage);params.set('limit',30);
+    params.set('sort_by','id');params.set('sort_order','DESC');
+    const r=await fetch(ORDER_ANALYSIS_API+'?'+params.toString());
+    const d=await r.json();
+    if(!r.ok){
+      box.innerHTML='<div class="em" style="padding:20px;color:#e74c3c">✗ '+esc(d.error||'加载失败')+'<div style="margin-top:6px;color:#999">提示：需订单分析库查看权限（order-analysis:view），如无请联系管理员</div></div>';
+      return;
+    }
+    if(!d.data.length){
+      box.innerHTML='<div class="em" style="padding:20px">无匹配订单</div>';
+      return;
+    }
+    const rows=d.data.map(o=>
+      '<tr>'+
+      '<td style="white-space:nowrap"><code>'+esc(o.order_no)+'</code>'+(o.promised_date?'<div class="muted">交货 '+esc(o.promised_date)+'</div>':'')+'</td>'+
+      '<td>'+esc(o.customer_name||'')+'</td>'+
+      '<td>'+esc(o.product_code||'')+'</td>'+
+      '<td>'+esc(o.product_name||'')+'</td>'+
+      '<td class="r">'+(o.quantity||'')+'</td>'+
+      '<td class="r">'+yuan(o.order_amount)+'</td>'+
+      '<td class="r">'+(o.plan_total_cost!=null?yuan(o.plan_total_cost):'—')+'</td>'+
+      '<td class="r">'+(o.product_count||0)+'</td>'+
+      '<td><button class="btn b1" onclick="importOrder('+o.id+',\''+esc(String(o.order_no||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"))+'\')">导入</button></td>'+
+      '</tr>').join('');
+    const pages=Math.max(1,Math.ceil(d.total/30));
+    box.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+      '<thead><tr style="background:#f5f7ff;color:#555">'+
+      '<th style="padding:8px;text-align:left">订单号</th><th style="padding:8px;text-align:left">客户</th>'+
+      '<th style="padding:8px;text-align:left">产品编码</th><th style="padding:8px;text-align:left">产品名称</th>'+
+      '<th style="padding:8px;text-align:right">数量</th><th style="padding:8px;text-align:right">订单金额</th>'+
+      '<th style="padding:8px;text-align:right">计划成本</th><th style="padding:8px;text-align:right">产品数</th>'+
+      '<th style="padding:8px">操作</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;font-size:12px;color:#888;border-top:1px solid #eee">'+
+      '<span>共 '+d.total+' 单，第 '+_oiPage+'/'+pages+' 页</span><span>'+
+      (_oiPage>1?'<button class="btn bs" style="background:#eee" onclick="searchOrders('+(_oiPage-1)+')">‹上一页</button> ':'')+
+      (_oiPage<pages?'<button class="btn bs" style="background:#eee" onclick="searchOrders('+(_oiPage+1)+')">下一页›</button>':'')+
+      '</span></div>';
+  }catch(e){
+    box.innerHTML='<div class="em" style="padding:20px;color:#e74c3c">✗ '+esc(e.message)+'</div>';
+  }
+}
+
+async function importOrder(id, orderNo){
+  const res=document.getElementById('oiResult');
+  res.innerHTML='<span style="color:#888">⏳ 正在导入订单 '+esc(orderNo||id)+'...</span>';
+  try{
+    const r=await fetch(ORDER_ANALYSIS_API+'/'+id+'/sync-rates-to-library',{method:'POST'});
+    const d=await r.json();
+    if(!r.ok){
+      res.innerHTML='<span style="color:#e74c3c">✗ '+esc(d.error||'导入失败')+'<div style="margin-top:4px;color:#999;font-size:12px">提示：需订单分析库核算权限（order-analysis:edit），如无请联系管理员</div></span>';
+      return;
+    }
+    const b=d.breakdown||{};
+    res.innerHTML='<div style="background:#eafaf1;padding:10px 12px;border-radius:6px;color:#1e7d45">'+
+      '<b>✓ '+esc(d.message||'导入完成')+'</b>'+
+      '<div style="margin-top:6px;font-size:12px;color:#555">其中：成品工价 <b>'+b.product_rate+'</b> 条、自制 <b>'+b.self_made+'</b> 条、外加工 <b>'+b.outsourced+'</b> 条、人工行 <b>'+b.labor_line+'</b> 条</div>'+
+      '<div style="margin-top:6px;font-size:12px;color:#888">来源标记为 order_analysis（待审核），可在「工价明细」中审核通过后生效</div>'+
+      '</div>';
+    loadList(curPage);loadStatCards();
+  }catch(e){
+    res.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>';
+  }
+}
+
+// ===== 成本分析 =====
+async function loadStats(){
+  const box=document.getElementById('anaBox');
+  box.innerHTML='<div class="em">分析中...</div>';
+  try{
+    const r=await fetch(API+'/dashboard/stats');const d=await r.json();
+    const bars=(arr,color,fmt)=>{const m=Math.max(1,...arr.map(x=>x.value));return arr.map(x=>'<div class="hbar"><span class="lb" title="'+esc(x.name)+'">'+esc(x.name)+'</span><div class="track"><div class="fill" style="width:'+(x.value/m*100)+'%;background:'+color+'"></div></div><span class="val">'+(fmt?fmt(x.value):x.value)+'</span></div>').join('')};
+    box.innerHTML=
+      '<div class="sg">'+
+        card(d.total,'工价总数','#667eea')+card(yuan(d.avg_rate),'平均工价','#27ae60')+card(yuan(d.max_rate),'最高工价','#e74c3c')+card(yuan(d.min_rate),'最低工价','#16a085')+
+        card(d.approved,'已审核','#27ae60')+card(d.pending,'待审核','#f39c12')+card(d.disabled,'已停用','#95a5a6')+
+      '</div>'+
+      '<div class="grid2">'+
+        '<div class="panel"><h3>🏷️ 按计价方式</h3>'+bars(d.by_rate_type,'#667eea')+'</div>'+
+        '<div class="panel"><h3>📥 按数据来源</h3>'+bars(d.by_source,'#2980b9')+'</div>'+
+      '</div>'+
+      '<div class="panel"><h3>✅ 按审核状态</h3>'+bars(d.by_audit.map(x=>({name:x.label,value:x.value})),'#27ae60')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
+}
+function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+';font-size:'+(String(n).length>10?'15px':'22px')+'">'+esc(n)+'</div><div class="l">'+l+'</div></div>'}
+
+// ===== 质检 =====
+async function loadQuality(){
+  const box=document.getElementById('qBox');box.innerHTML='<div class="em">质检中...</div>';
+  try{
+    const r=await fetch(API+'/quality-check');const d=await r.json();
+    const sev={severe:'严重',warning:'警告',info:'提示'};
+    const sevCls={severe:'sev-severe',warning:'sev-warning',info:'sev-info'};
+    const issues=(d.issues||[]).slice(0,200).map(i=>'<div class="chk-row"><span><span class="'+sevCls[i.severity]+'">['+sev[i.severity]+']</span> '+esc(i.message)+' <small style="color:#999">id='+i.id+'</small></span><a onclick="openEdit('+i.id+')" style="color:#667eea;cursor:pointer">去修复</a></div>').join('');
+    box.innerHTML=
+      '<div class="sg">'+card(d.total,'记录总数','#667eea')+card(d.affected+' ('+(d.total?(Math.round(d.affected/d.total*1000)/10):0)+'%)','存在问题','#e74c3c')+card(d.pass_rate+'%','通过率','#27ae60')+card(d.issue_count,'问题数','#f39c12')+'</div>'+
+      '<div class="panel"><h3>问题清单</h3>'+(issues||'<div class="em">未发现问题</div>')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">'+esc(e.message)+'</div>'}
+}
+
+// ===== 外部对接 =====
+async function loadExt(){
+  try{
+    const r=await fetch(API+'/external/config');
+    const d=await r.json();
+    document.getElementById('ext_enabled').value=String(d.enabled===true);
+    document.getElementById('ext_base_url').value=d.base_url||'';
+    document.getElementById('ext_api_key').value=d.api_key||'';
+    document.getElementById('ext_data_table').value=d.data_table||'t_BOSAssemblyPriceEntry';
+    document.getElementById('ext_item_table').value=d.item_table||'t_ICItemCore';
+    document.getElementById('ext_limit').value=d.limit||5000;
+  }catch(e){}
+}
+async function saveExt(){
+  const body={
+    enabled:document.getElementById('ext_enabled').value==='true',
+    base_url:document.getElementById('ext_base_url').value,
+    api_key:document.getElementById('ext_api_key').value,
+    data_table:document.getElementById('ext_data_table').value,
+    item_table:document.getElementById('ext_item_table').value,
+    limit:Number(document.getElementById('ext_limit').value)||5000
+  };
+  try{
+    const r=await fetch(API+'/external/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error);return}
+    toast(d.message);
+  }catch(e){toast(e.message)}
+}
+async function syncExt(){
+  const el=document.getElementById('extResult');
+  el.textContent='正在同步...';
+  try{
+    const r=await fetch(API+'/sync-from-external',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({config:gatherExtCfg()})});
+    const d=await r.json();
+    if(!r.ok){
+      el.innerHTML='<div style="color:#e74c3c"><b>✗ 同步失败</b><div style="margin-top:4px">'+esc(d.error||'')+'</div>'+(d.hint?'<div style="margin-top:4px;color:#f39c12"><b>💡 '+esc(d.hint)+'</b></div>':'')+'<div style="margin-top:4px">→ 请先点「🔌 测试连接」验证 base_url / api_key</div></div>';
+      return;
+    }
+    let h='<span style="color:#27ae60">'+esc(d.message)+'（新增 '+d.added+' / 更新 '+d.updated+' / 保留 '+d.kept+' / 跳过 '+d.skipped+'）</span>';
+    if(d.sample&&d.sample.length){
+      h+='<div style="margin-top:6px;font-size:11px;color:#666"><b>样例（前 3 条）：</b><pre style="background:#f5f6fa;padding:6px;border-radius:4px;margin-top:4px;overflow:auto">'+esc(JSON.stringify(d.sample,null,2))+'</pre></div>';
+    }
+    el.innerHTML=h;
+    loadList(curPage);loadStatCards();
+  }catch(e){el.innerHTML='<span style="color:#e74c3c">'+esc(e.message)+'</span>'}
+}
+
+function gatherExtCfg(){
+  return {
+    enabled:document.getElementById('ext_enabled').value==='true',
+    base_url:document.getElementById('ext_base_url').value,
+    api_key:document.getElementById('ext_api_key').value,
+    data_table:document.getElementById('ext_data_table').value,
+    item_table:document.getElementById('ext_item_table').value,
+    limit:Number(document.getElementById('ext_limit').value)||5000
+  };
+}
+async function testConn(){
+  const el=document.getElementById('testResult');
+  const cfg=gatherExtCfg();
+  if(!cfg.base_url){el.innerHTML='<span style="color:#e74c3c">✗ 请先填写「接口地址 Base URL」</span>';return}
+  el.innerHTML='<span style="color:#888">⏳ 探测中（最长15s）...</span>';
+  try{
+    const r=await fetch(API+'/external/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});
+    const d=await r.json();
+    const steps = d.steps || {};
+    const ping = steps.ping || {};
+    const parse = steps.parse || null;
+    const shape = steps.shape || null;
+    let h='';
+    h+='<div><b>1. 网络/服务可达：</b>'+(ping.ok?'<span style="color:#27ae60">✓ '+(ping.status||'')+' '+esc(ping.content_type||'')+'</span>':'<span style="color:#e74c3c">✗ '+esc(ping.error||'未知错误')+'</span>')+'</div>';
+    if(ping.ok){
+      h+='<div><b>2. 响应是 JSON：</b>'+(parse&&parse.ok?'<span style="color:#27ae60">✓</span>':'<span style="color:#e74c3c">✗ '+esc((parse&&parse.error)||'')+'</span>')+'</div>';
+      if(shape){
+        h+='<div><b>3. 数据形态：</b>'+(shape.ok?'<span style="color:#27ae60">✓ '+(shape.count||0)+' 条记录</span>':'<span style="color:#f39c12">⚠ 数据为空或字段缺失</span>')+'</div>';
+        if(shape.top_keys&&shape.top_keys.length) h+='<div style="font-size:11px;color:#888;margin-top:2px">顶层字段：'+esc(shape.top_keys.join(', '))+'</div>';
+        if(shape.sample_item_keys&&shape.sample_item_keys.length) h+='<div style="font-size:11px;color:#888;margin-top:2px">样例字段：'+esc(shape.sample_item_keys.join(', '))+'</div>';
+      }
+    }
+    if(d.hint)h+='<div style="margin-top:6px;padding:6px 10px;background:#fff7e0;border-radius:4px;color:#a0690e"><b>💡 '+esc(d.hint)+'</b></div>';
+    if(d.suggestions&&d.suggestions.length){
+      h+='<div style="margin-top:6px;padding:8px 10px;background:#e8f5e9;border-radius:4px;color:#2e7d32"><b>🔍 自动扫到可能的 ERP 地址（点击复制）:</b><div style="margin-top:4px">';
+      for(const s of d.suggestions){
+        h+='<div style="cursor:pointer;padding:3px 6px;background:#fff;border:1px solid #c8e6c9;border-radius:3px;margin-top:3px" onclick="document.getElementById(\'ext_base_url\').value=\''+esc(s.url)+'\';toast(\'已填入 '+esc(s.url)+'，记得保存配置\')">'+esc(s.url)+' <span style="color:#999;font-size:11px">['+esc(s.sample||'')+']</span></div>';
+      }
+      h+='</div></div>';
+    }
+    if(d.ok)h='<div style="color:#27ae60"><b>✓ 全部通过，可点击「立即同步」</b></div>'+h;
+    else h='<div style="color:#e74c3c;margin-bottom:4px"><b>✗ 健康检查未通过</b></div>'+h;
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>'}
+}
+
+// 跳转到 BOM 树 Tab，并预填 bom_id
+function openBomTree(bomNo){
+  if(!bomNo){toast('该记录无 bom_no');return}
+  document.getElementById('bom_id').value = bomNo;
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('ac'));
+  document.getElementById('tab-bom').classList.add('ac');
+  document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
+  const btn = Array.from(document.querySelectorAll('#tabNav button')).find(b => b.textContent.indexOf('BOM 树') >= 0);
+  if(btn) btn.classList.add('ac');
+  loadBomTree();
+}
+
+// ===== BOM 树查看 =====
+async function loadBomTree(){
+  const bomId = (document.getElementById('bom_id').value || '').trim();
+  if(!bomId){toast('请先输入 bom_id');return}
+  const statsEl = document.getElementById('bomTreeStats');
+  const boxEl = document.getElementById('bomTreeBox');
+  const rawEl = document.getElementById('bomTreeRaw');
+  statsEl.innerHTML = '<div class="em" style="padding:6px">⏳ 加载中…</div>';
+  boxEl.innerHTML = '<div class="em" style="padding:6px">⏳ 加载中…</div>';
+  rawEl.textContent = '';
+  try{
+    const r = await fetch(API+'/external/bom-tree?bom_id='+encodeURIComponent(bomId));
+    const d = await r.json();
+    rawEl.textContent = JSON.stringify(d.raw || d, null, 2);
+    if(!r.ok){
+      statsEl.innerHTML = '<div class="em" style="color:#e74c3c;padding:6px">✗ '+esc(d.error||'加载失败')+(d.hint?(' · '+esc(d.hint)):'')+'</div>';
+      boxEl.innerHTML = '<div class="em">'+esc(d.error||'加载失败')+'</div>';
+      return;
+    }
+    const s = d.stats || {};
+    statsEl.innerHTML =
+      '<div class="sg">'+
+        card(s.total_nodes||0,'节点总数','#667eea')+
+        card(s.max_depth||0,'最大深度','#2980b9')+
+        card(s.root_count||0,'根节点数','#27ae60')+
+        card(s.leaf_nodes||0,'叶子节点','#f39c12')+
+        card(s.missing_material_id||0,'缺 material_id','#e74c3c')+
+      '</div>'+
+      (s.materials&&s.materials.length?'<div style="margin-bottom:8px;font-size:12px;color:#555"><b>根节点（前 10）：</b> '+s.materials.map(m=>esc(m.code||m.name||m.id)).join(' / ')+'</div>':'');
+    boxEl.innerHTML = renderBomTree(d.nodes, d.tree);
+  }catch(e){
+    statsEl.innerHTML = '<div class="em" style="color:#e74c3c;padding:6px">✗ '+esc(e.message)+'</div>';
+    boxEl.innerHTML = '<div class="em">'+esc(e.message)+'</div>';
+  }
+}
+
+function renderBomTree(nodes, tree){
+  if(Array.isArray(nodes) && nodes.length){
+    // 平面 nodes 数组 → 推断层级
+    const childMap = new Map();
+    const nodeMap = new Map();
+    nodes.forEach(n => {
+      const id = n.material_id !== undefined ? n.material_id : (n.materialId !== undefined ? n.materialId : n.id);
+      const parent = n.parent_id !== undefined ? n.parent_id : (n.parentId !== undefined ? n.parentId : n.pid);
+      if(id !== undefined) nodeMap.set(id, n);
+      if(parent !== undefined && parent !== null && parent !== '' && id !== undefined){
+        if(!childMap.has(parent)) childMap.set(parent, []);
+        childMap.get(parent).push(id);
+      }
+    });
+    const roots = nodes.filter(n => {
+      const p = n.parent_id !== undefined ? n.parent_id : (n.parentId !== undefined ? n.parentId : n.pid);
+      return p === undefined || p === null || p === '';
+    });
+    if(roots.length){
+      return roots.map(r => renderBomNode(r, childMap, nodeMap, 0)).join('');
+    }
+    // 无父子关系，扁平渲染
+    return '<ul style="list-style:none;padding-left:0">' + nodes.map(renderFlatNode).join('') + '</ul>';
+  }
+  if(tree && typeof tree === 'object'){
+    return renderBomNode(tree, null, null, 0);
+  }
+  return '<div class="em">ERP 返回空数据，请检查 bom_id 或表名是否正确</div>';
+}
+
+function renderBomNode(n, childMap, nodeMap, depth){
+  if(!n || typeof n !== 'object') return '';
+  const id = n.material_id !== undefined ? n.material_id : (n.materialId !== undefined ? n.materialId : n.id);
+  const code = n.material_code || n.code || n.number || n.FNumber || n.FShortNumber || ('#'+id);
+  const name = n.material_name || n.name || n.FName || '';
+  const qty = n.qty !== undefined ? n.qty : (n.quantity !== undefined ? n.quantity : (n.FQty !== undefined ? n.FQty : ''));
+  const unit = n.unit || n.FUnitID || '';
+  const indent = depth * 24;
+  const kids = childMap ? (childMap.get(id) || []) : (n.children || n.nodes || []);
+  let h = '<div style="padding:6px 8px;margin:'+(depth?'4px 0 0 ':'0')+' 0;background:'+(depth%2?'#fafbff':'#fff')+';border-left:3px solid '+(depth===0?'#667eea':(depth===1?'#27ae60':'#f39c12'))+';margin-left:'+indent+'px;border-radius:0 6px 6px 0">';
+  h += '<span style="font-weight:600;color:#333">'+esc(code)+'</span>';
+  if(name) h += ' <span style="color:#666">'+esc(name)+'</span>';
+  if(qty !== '' && qty !== null && qty !== undefined) h += ' <span style="background:#e8eef9;padding:1px 8px;border-radius:10px;font-size:11px;color:#5a6fd6">× '+esc(qty)+(unit?' '+esc(unit):'')+'</span>';
+  h += '</div>';
+  if(kids && kids.length){
+    kids.forEach(kidId => {
+      const kid = nodeMap ? nodeMap.get(kidId) : (typeof kidId === 'object' ? kidId : null);
+      if(kid) h += renderBomNode(kid, childMap, nodeMap, depth+1);
+    });
+  } else if(Array.isArray(kids) && kids.length && typeof kids[0] === 'object'){
+    kids.forEach(kid => h += renderBomNode(kid, childMap, nodeMap, depth+1));
+  }
+  return h;
+}
+
+function renderFlatNode(n){
+  const code = n.material_code || n.code || n.number || n.FNumber || n.FShortNumber || '';
+  const name = n.material_name || n.name || n.FName || '';
+  const qty = n.qty !== undefined ? n.qty : (n.quantity !== undefined ? n.quantity : '');
+  return '<li style="padding:6px 8px;border-bottom:1px solid #f0f0f0"><span style="font-weight:600">'+esc(code)+'</span>'+(name?' <span style="color:#666">'+esc(name)+'</span>':'')+(qty!==''?' <span style="background:#e8eef9;padding:1px 8px;border-radius:10px;font-size:11px;color:#5a6fd6">× '+esc(qty)+'</span>':'')+'</li>';
+}
+
+// ===== BOM 层级筛选 =====
+let _productListCache = [];
+let _treeMode = false;
+
+function onProductSearchChange(){}
+
+async function loadProductList(){
+  try{
+    const r = await fetch(API+'/products/list?limit=500');
+    const d = await r.json();
+    _productListCache = d.data || [];
+    const dl = document.getElementById('productList');
+    if(dl) dl.innerHTML = _productListCache.map(p => {
+      const label = (p.bom_no||p.product_code||'') + (p.product_name?(' - '+p.product_name):'');
+      return '<option value="'+esc(p.bom_no||p.product_code||'')+'">'+esc(label)+'</option>';
+    }).join('');
+  }catch(e){console.error(e)}
+}
+
+async function loadByProductTree(){
+  const input = document.getElementById('product_search').value.trim();
+  if(!input){toast('请输入或选择成品编码');return}
+  const matched = _productListCache.find(p => (p.bom_no||'')===input || (p.product_code||'')===input || (p.product_name||'')===input);
+  const bomNo = matched ? matched.bom_no : input;
+  const productCode = matched ? matched.product_code : '';
+  const el = document.getElementById('treeSummary');
+  el.textContent = '\u23f3 加载中...';
+  try{
+    const params = new URLSearchParams();
+    if(bomNo) params.set('bom_no', bomNo);
+    if(productCode) params.set('product_code', productCode);
+    const r = await fetch(API+'/by-product/tree?'+params.toString());
+    const d = await r.json();
+    if(!r.ok){el.innerHTML='<span style="color:#e74c3c">'+esc(d.error||'')+'</span>';return}
+    _treeMode = true;
+    total = d.data.length;
+    const tb = document.getElementById('tb');
+    if(!d.data.length){
+      tb.innerHTML = '<tr><td colspan="14" class="em">该成品及其下级 BOM 在工价库中无匹配记录</td></tr>';
+      el.textContent = '';
+    } else {
+      tb.innerHTML = d.data.map(function(r){
+        var indent = (r._depth||0) * 20;
+        var depthLabel = r._depth === 0 ? '<span style="color:#667eea;font-weight:700">成品</span>' :
+          '<span style="color:'+(r._depth===1?'#27ae60':'#f39c12')+'">L'+r._depth+'</span>'+(r._bom_attr?' <small style="color:#999">'+esc(r._bom_attr)+'</small>':'');
+        return '<tr style="background:'+(_treeMode && r._depth===0?'#f0f4ff':'#fff')+'">'+
+          '<td><input type="checkbox" class="row-sel" data-id="'+r.id+'"></td>'+
+          '<td style="padding-left:'+indent+'px;white-space:nowrap">'+depthLabel+'</td>'+
+          '<td><code>'+esc(r.bom_no)+'</code></td>'+
+          '<td>'+esc(r.product_code)+'</td>'+
+          '<td>'+esc(r.product_name||r._bom_name||'')+'</td>'+
+          '<td class="r"><b>'+yuan(r.labor_rate)+'</b></td>'+
+          '<td><span class="rate-tag rt-'+esc(r.labor_rate_type)+'">'+esc(r.labor_rate_type)+'</span></td>'+
+          '<td class="r">'+yuan(r.process_cost)+'</td>'+
+          '<td>'+esc(r.effective_date)+'</td>'+
+          '<td>'+esc(r.expire_date||'\u2014')+'</td>'+
+          '<td><span class="src-tag src-'+esc(r.source)+'">'+esc(r.source)+'</span></td>'+
+          '<td><span class="status-tag st-'+esc(r.audit_status)+'">'+auditLabel(r.audit_status)+'</span></td>'+
+          '<td class="audit-actions">'+
+            (r.audit_status!=='approved'?'<button class="btn b2" onclick="setAudit('+r.id+',\'approved\')" data-perm="labor-rate:edit">通过</button>':'')+
+            '<button class="btn bs b4" onclick="openEdit('+r.id+')" data-perm="labor-rate:edit">编辑</button>'+
+          '</td></tr>';
+      }).join('');
+    }
+    var approved = d.data.filter(function(r){return r.audit_status==='approved'}).length;
+    var laborSum = d.data.filter(function(r){return r.audit_status==='approved'}).reduce(function(s,r){return s+(Number(r.labor_rate)||0)},0);
+    el.innerHTML = 'BOM 节点 <b>'+d.total_bom_nodes+'</b> 个\uff0c匹配工价 <b>'+d.matched_rates+'</b> 条\uff08已审核 '+approved+'\uff0c工价合计 '+yuan(laborSum)+'\uff09';
+    document.getElementById('pg').innerHTML = '<span>BOM \u5c42\u7ea7\u6a21\u5f0f\uff1a\u5171 '+d.matched_rates+' \u6761</span>';
+    applyPerms();
+  }catch(e){el.innerHTML='<span style="color:#e74c3c">'+esc(e.message)+'</span>'}
+}
+
+function clearProductTree(){
+  _treeMode = false;
+  document.getElementById('product_search').value = '';
+  document.getElementById('treeSummary').textContent = '';
+  loadList(1);
+}
+
+function applyPerms(){if(window.PermissionCheck)PermissionCheck.applyToPage()}
+document.addEventListener('change',e=>{if(e.target.classList.contains('row-sel')){const id=Number(e.target.dataset.id);if(e.target.checked)selected.add(id);else selected.delete(id)}});
+
+loadFilterOpts().then(()=>{loadStatCards();loadList(1);loadProductList()});
+ImportDropzone.init('','product_labor_rate',function(){loadList(curPage);loadStatCards()});
+</script>
+<script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

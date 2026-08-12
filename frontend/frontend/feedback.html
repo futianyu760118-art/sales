@@ -93,7 +93,7 @@ function swTab(name,btn){
 let fPage=1;
 async function loadList(page){
   fPage=page||1;
-  const p=new URLSearchParams({page:fPage,limit:50});
+  const p=new URLSearchParams({page:fPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('fKw').value,st=document.getElementById('fStatus').value,tp=document.getElementById('fType').value,pr=document.getElementById('fPriority').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(tp)p.set('type',tp);if(pr)p.set('priority',pr);
   try{
@@ -120,7 +120,7 @@ async function loadList(page){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;

@@ -1,11 +1,15 @@
-﻿<!DOCTYPE html>
+﻿<!DOCTYPE htm    {label:'🅣1 T1 试产', val:'T1', cls:'pend'},
+    {label:'🅣2 T2 试产', val:'T2', cls:'pend'},
+    {label:'✅ 验收', val:'验收', cls:'done'},
+    {label:'✎ 自定义…', val:'__custom__', cls:'none'},
+l>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 研发项目管理</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
 .tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
 .tc{display:none}.tc.ac{display:block}
-.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:20;background:#fff;padding-top:8px;padding-bottom:8px;border-bottom:1px solid #eee}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:#fff}
 th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10;box-shadow:0 1px 0 rgba(0,0,0,.06)}
@@ -35,8 +39,8 @@ tr:hover td.sticky-col{background:#f8f9ff}
 .st-done{background:#d4edda;color:#155724}.st-prog{background:#cce5ff;color:#004085}.st-pause{background:#fff3cd;color:#856404}.st-init{background:#e2e3e5;color:#383d41}
 .lvl-a{background:#f8d7da;color:#721c24}.lvl-b{background:#fff3cd;color:#856404}.lvl-c{background:#d1ecf1;color:#0c5460}
 .chk{color:#27ae60;font-weight:700}.unchk{color:#ccc}.pend{color:#f39c12}
-.tbl-wrap{overflow:auto;max-height:65vh}
-.sticky-col{position:sticky;left:0;z-index:5;background:#fff;box-shadow:1px 0 0 rgba(0,0,0,.04)}
+.tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
+.sticky-col{position:sticky;left:0;top:0;z-index:5;background:#fff;box-shadow:1px 0 0 rgba(0,0,0,.04)}
 th.sticky-col{z-index:20;background:#f5f6fa}
 tr:hover .sticky-col{background:#f8f9ff}
 .pn{display:inline-block;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;cursor:pointer}
@@ -70,7 +74,7 @@ tr:hover .sticky-col{background:#f8f9ff}
 .form-foot{text-align:right;margin-top:14px;padding-top:12px;border-top:1px solid #eee}
 .form-foot .btn{padding:8px 30px;font-size:14px}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 2px rgba(102,126,234,.15)}
-</style></head><body data-page-title="研发项目管理">
+</style><script src="fetch-auth.js"></script></head><body data-page-title="研发项目管理" data-page-perm="project:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -83,7 +87,7 @@ tr:hover .sticky-col{background:#f8f9ff}
 <button onclick="swTab('supply',this)">供应链品质异常</button>
 <button onclick="swTab('sales',this)">销售推广进度</button>
 <button onclick="swTab('review',this)">项目复盘</button>
-<button onclick="swTab('initiation',this)">立项申请书</button>
+<button onclick="swTab('initiation',this)" data-perm="initiation:view">立项申请书</button>
 <button onclick="swTab('analysis',this)">统计分析</button>
 </div>
 
@@ -141,7 +145,7 @@ tr:hover .sticky-col{background:#f8f9ff}
 <span style="font-size:13px;color:#666">技转节点跟踪（V=完成 / X=未完成 / 日期=蓝色 / 橙=进行中）</span>
 </div>
 <div class="sb">
-<input type="text" id="progKw" placeholder="搜索编号/名称/客户/负责人" style="width:200px" onkeydown="if(event.key==='Enter')filterProgress()">
+<span style="margin-left:8px;display:flex;align-items:center;gap:4px;font-size:12px">每页<select id="pageSizeSel" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px" onchange="window._pageSize=parseInt(this.value)"><option selected>10</option><option>20</option><option>50</option><option>100</option><option>200</option></select>条</span><input type="text" id="progKw" placeholder="搜索编号/名称/客户/负责人" style="width:200px" onkeydown="if(event.key==='Enter')filterProgress()">
 <select id="progStatus" onchange="filterProgress()"><option value="">全部项目状态</option><option value="init">预项目</option><option value="executing">进行中</option><option value="completed">已完成</option><option value="paused">暂停</option><option value="cancelled">取消</option></select>
 <select id="progNodeStatus" onchange="filterProgress()"><option value="">全部节点状态</option><option value="in_progress">有进行中节点</option><option value="has_date">有计划日期</option><option value="incomplete">有未设置节点</option><option value="all_done">关键节点全完成</option></select>
 <button class="btn b1" onclick="filterProgress()">筛选</button>
@@ -152,14 +156,35 @@ tr:hover .sticky-col{background:#f8f9ff}
 </div>
 <div class="tbl-wrap">
 <table><thead><tr>
-<th style="width:30px;z-index:16"><input type="checkbox" id="progSelectAll" onchange="toggleSelectAllProg(this)" title="全选/取消"></th>
-<th class="sort-hdr sticky-col" style="left:30px;min-width:110px;z-index:16" onclick="sortProgress('project_no')" data-prog-sort="project_no">项目编号<span class="sort-icn prog-sort-icn"></span></th>
-<th class="sort-hdr" onclick="sortProgress('project_name')" data-prog-sort="project_name">项目名称<span class="sort-icn prog-sort-icn"></span></th>
-<th class="sort-hdr" onclick="sortProgress('owner')" data-prog-sort="owner">负责人<span class="sort-icn prog-sort-icn"></span></th>
-<th>状态<span style="font-size:10px;color:#bbb;font-weight:400">（可编辑）</span></th>
-<th>计划表</th><th>BOM</th><th>规格书</th><th>配置表</th><th>模具图纸</th><th>开模评审</th><th>手样</th><th>模具</th><th>模样</th><th>包装设计</th><th>电试</th><th>研试</th><th>工试</th><th>生试</th><th>测试报告</th><th>技转</th><th>出货</th><th>复盘</th><th>其他</th>
-<th>操作</th>
-</tr></thead><tbody id="progTb"><tr><td colspan="25" class="em">暂无数据</td></tr></tbody></table>
+      <th style="width:30px;z-index:16"><input type="checkbox" id="progSelectAll" onchange="toggleSelectAllProg(this)" title="全选/取消"></th>
+      <th class="sort-hdr sticky-col" onclick="sortProgress('project_no')" data-prog-sort="project_no">项目编号<span class="sort-icn prog-sort-icn"></span></th>
+      <th class="sort-hdr" onclick="sortProgress('project_name')" data-prog-sort="project_name">项目名称<span class="sort-icn prog-sort-icn"></span></th>
+      <th class="sort-hdr" onclick="sortProgress('owner')" data-prog-sort="owner">负责人<span class="sort-icn prog-sort-icn"></span></th>
+      <th>状态<span style="font-size:10px;color:#bbb;font-weight:400">（可编辑）</span></th>
+      <th onclick="sortProgress('plan')" data-prog-sort="plan">计划表<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('bom')" data-prog-sort="bom">BOM<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('spec')" data-prog-sort="spec">规格书<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('config')" data-prog-sort="config">配置表<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('mold_drawing')" data-prog-sort="mold_drawing">模具图纸<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('mold_review')" data-prog-sort="mold_review">开模评审<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('hand_sample')" data-prog-sort="hand_sample">手样<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('appearance')" data-prog-sort="appearance">外观<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('structure')" data-prog-sort="structure">结构<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('electronics')" data-prog-sort="electronics">电子<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('mold')" data-prog-sort="mold">模具<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('mold_sample')" data-prog-sort="mold_sample">模样<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('packaging')" data-prog-sort="packaging">包装设计<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('elec_trial')" data-prog-sort="elec_trial">电试<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('rd_trial')" data-prog-sort="rd_trial">研试<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('tech_transfer')" data-prog-sort="tech_transfer">技转<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('eng_trial')" data-prog-sort="eng_trial">工试<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('prod_trial')" data-prog-sort="prod_trial">生试<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('test_report')" data-prog-sort="test_report">测试报告<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('shipment')" data-prog-sort="shipment">出货<span class="sort-icn prog-sort-icn"></span></th>
+      <th onclick="sortProgress('review')" data-prog-sort="review">复盘<span class="sort-icn prog-sort-icn"></span></th>
+      <th>其他</th>
+      <th>操作</th>
+    </tr></thead><tbody id="progTb"><tr><td colspan="25" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="progPg" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -220,24 +245,24 @@ tr:hover .sticky-col{background:#f8f9ff}
 <!-- 列表视图 -->
 <div id="initListView">
 <div class="sb">
-  <button class="btn b2" onclick="addInitiationRow()">新增申请书</button>
-  <button class="btn b4" onclick="importInitiationStructured()">导入申请书（按详情格式匹配）</button>
+  <button class="btn b2" onclick="addInitiationRow()" data-perm="initiation:apply">新增申请书</button>
+  <button class="btn b4" onclick="importInitiationStructured()" data-perm="initiation:apply">导入申请书（按详情格式匹配）</button>
   <a class="btn b4" style="text-decoration:none;display:inline-block" href="/api/import/template/project_initiation" target="_blank">下载模版</a>
   <span style="margin-left:auto">共 <b id="initTc">0</b> 条</span>
 </div>
 <div class="tbl-wrap">
 <table><thead><tr>
-<th>项目编号</th><th>项目名称</th><th>类型</th><th>负责人</th><th>申请人</th><th>申请日期</th><th>客户编号</th><th>审批状态</th><th>操作</th>
+<th>项目编号</th><th>项目名称</th><th>类型</th><th>负责人</th><th>申请人</th><th>申请日期</th><th>客户编号</th><th>审批流程</th><th>审批状态</th><th>操作</th>
 </tr></thead>
-<tbody id="initTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+<tbody id="initTb"><tr><td colspan="10" class="em">暂无数据</td></tr></tbody></table>
 </div>
 </div>
 <!-- 详细编辑视图（含子表） -->
 <div id="initDetailView" style="display:none">
 <div class="sb">
   <button class="btn b1" onclick="backToInitList()">← 返回列表</button>
-  <button class="btn b2" onclick="saveInitDetail()">保存全部</button>
-  <button class="btn b1" onclick="previewInit()">汇总预览</button>
+  <button class="btn b2" onclick="saveInitDetail()" id="btnSaveInit" data-perm="initiation:apply">保存全部</button>
+  <button class="btn b1" onclick="previewInit()" data-perm="initiation:view">汇总预览</button>
   <span id="initDetailTitle" style="margin-left:auto;font-weight:600;color:#667eea"></span>
 </div>
 <div id="initDetailBody" style="max-height:78vh;overflow-y:auto"></div>
@@ -333,7 +358,7 @@ const API='/api/projects';
 const statusMap={init:'预项目',executing:'进行中',completed:'已完成',paused:'暂停',cancelled:'取消'};
 const statusColor={init:'#999',executing:'#3498db',completed:'#27ae60',paused:'#e67e22',cancelled:'#e74c3c'};
 const stageOptions=['预项目','方案','手样','模具样','功能样','首次封样','最终封样','电试','研试','工试','生试','技转','出货','复盘','暂停','完成'];
-const progFields=[['plan','计划表'],['bom','BOM'],['spec','规格书'],['config','配置表'],['mold_drawing','模具图纸'],['mold_review','开模评审'],['hand_sample','手样'],['appearance','外观'],['structure','结构'],['electronics','电子'],['mold','模具'],['mold_sample','模样'],['packaging','包装设计'],['elec_trial','电试'],['rd_trial','研试'],['tech_transfer','技转'],['eng_trial','工试'],['prod_trial','生试'],['test_report','测试报告'],['shipment','出货'],['review','复盘'],['other','其他']];
+const progFields=[['plan','计划表'],['bom','BOM'],['spec','规格书'],['config','配置表'],['hand_sample','手样'],['appearance','外观'],['structure','结构'],['electronics','电子'],['mold_drawing','模具图纸'],['mold_review','开模评审'],['mold','模具'],['mold_sample','模样'],['packaging','包装设计'],['elec_trial','电试'],['rd_trial','研试'],['tech_transfer','技转'],['eng_trial','工试'],['prod_trial','生试'],['test_report','测试报告'],['shipment','出货'],['review','复盘'],['other','其他']];
 function S(v){return v!=null?String(v):''}
 function T(v,n){var s=S(v);return s.length>n?s.substring(0,n):s}
 
@@ -343,6 +368,11 @@ function swTab(name,btn){
   document.querySelectorAll('.tc').forEach(t=>t.classList.remove('ac'));
   btn.classList.add('ac');
   document.getElementById('tab-'+name).classList.add('ac');
+  // 立项申请书权限校验
+  if(name==='initiation' && window.PermissionCheck && !PermissionCheck.isAdmin && !PermissionCheck.has('initiation:view')){
+    document.getElementById('tab-initiation').innerHTML='<div style="padding:60px 20px;text-align:center;color:#e74c3c"><div style="font-size:48px;margin-bottom:12px">🔒</div><div style="font-size:16px;font-weight:600">无权限访问【立项申请书】模块</div><div style="font-size:12px;color:#999;margin-top:8px">需要 initiation:view 权限，请联系管理员</div></div>';
+    return;
+  }
   if(name==='projects')loadProjects(1);
   else if(name==='progress')loadProgress();
   else if(name==='supply')loadSupply(1);
@@ -407,7 +437,7 @@ async function loadPStats(){
 }
 async function loadProjects(page){
   pPage=page||1;
-  const p=new URLSearchParams({page:pPage,limit:50});
+  const p=new URLSearchParams({page:pPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('pKw').value,st=document.getElementById('pStatus').value,pt=document.getElementById('pType').value,lv=document.getElementById('pLevel').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(pt)p.set('project_type',pt);if(lv)p.set('level',lv);
   if(sortBy)p.set('sort_by',sortBy);if(sortOrder)p.set('sort_order',sortOrder);
@@ -446,7 +476,7 @@ async function loadProjects(page){
   }catch(e){console.error(e)}
 }
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -982,15 +1012,20 @@ function normDate(v){var s=String(v);var m=s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/
 function formatDate(v){var m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[2]+'/'+m[3]:T(v,8)}
 function formatDateFull(v){var m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[1]+'-'+m[2]+'-'+m[3]:v}
 function validateDate(v){if(!v)return true;var s=String(v).trim();if(/^(V|√|X|×|\/|-|进行中|待定)?$/.test(s))return true;var m=s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})/);if(!m)return false;var y=parseInt(m[1]),mo=parseInt(m[2]),d=parseInt(m[3]);if(y<2000||y>2099||mo<1||mo>12||d<1||d>31)return false;return true}
-function renderProgCell(v,pid,k){
+function renderProgCell(v,pid,k,edits){
+  var ec=typeof edits==='number'?edits:0;
+  var ecColors=['','#f1c40f','#e67e22','#e74c3c','#c0392b'];
+  var ecColor=ec>0?ecColors[Math.min(ec,ecColors.length-1)]:'';
+  var ecStyle=ecColor?'color:'+ecColor+'!important;font-weight:700':'';
   let cls='none',txt='—',title='';
+  if(ec>0)title='[改动'+ec+'次] ';
   if(v==='V'||v==='√'){cls='done';txt='✓'}
   else if(v==='X'||v==='×'){cls='fail';txt='✗'}
-  else if(isDateVal(v)){cls='date';txt=formatDate(v);title='计划完成日期: '+formatDateFull(v)}
+  else if(isDateVal(v)){cls='date';txt=formatDate(v);title+='计划完成日期: '+formatDateFull(v);if(ecColor)ecStyle='color:'+ecColor+'!important'}
   else if(v&&v!=='/'&&v!=='-'&&v!=='0'){
     cls='pend';txt=T(v,6);
   }
-  return`<td style="text-align:center"><span class="prog-cell ${cls}" title="${title||S(v)}" onclick="event.stopPropagation();showProgPopup(event,${pid},'${k}','${S(v).replace(/'/g,"\\'")}')">${txt}</span></td>`;
+  return`<td style="text-align:center"><span class="prog-cell ${cls}" style="${ecStyle}" title="${title||S(v)}" onclick="event.stopPropagation();showProgPopup(event,${pid},'${k}','${S(v).replace(/'/g,"\\'")}')">${txt}</span></td>`;
 }
 // 项目状态单元格（可点击编辑）
 function renderStatusCell(p){
@@ -1017,6 +1052,7 @@ async function loadProgress(){
     const pr=await fetch(API+'?limit=9999');const pd=await pr.json();
     _progPMap={};(pd.data||[]).forEach(p=>_progPMap[p.id]=p);
     renderProgressTable();
+    ;
   }catch(e){console.error(e)}
 }
 function getFilteredProg(){
@@ -1081,11 +1117,12 @@ function renderProgressTable(){
   renderProgDashboard(recs);
   const tb=document.getElementById('progTb');
   if(!recs.length){tb.innerHTML='<tr><td colspan="25" class="em">暂无数据</td></tr>';var bdBtn=document.getElementById('progBatchDelBtn');if(bdBtn)bdBtn.style.display='none';var sa=document.getElementById('progSelectAll');if(sa)sa.checked=false;document.getElementById('progPg').innerHTML='';return}
-  const ps=50,total=recs.length,pages=Math.ceil(total/ps);
+  var ps = (window._pageSize || 50),total=recs.length,pages=Math.ceil(total/ps);
   if(progPage>pages)progPage=1;
   const offset=(progPage-1)*ps,pageRecs=recs.slice(offset,offset+ps);
   tb.innerHTML=pageRecs.map(({prog,p})=>{
-    const cells=progFields.map(([k])=>renderProgCell(prog[k],prog.project_id,k)).join('');
+    var edits={};try{edits=JSON.parse(prog.node_edits||'{}')}catch(e){}
+    const cells=progFields.map(([k])=>renderProgCell(prog[k],prog.project_id,k,edits[k]||0)).join('');
     return`<tr>
       <td style="text-align:center"><input type="checkbox" class="progChk" value="${prog.id}" onchange="updateBatchDelProg()"></td>
       <td class="sticky-col" style="left:30px;min-width:110px"><b>${S(p.project_no)||'-'}</b></td><td>${T(p.project_name,16)}</td><td>${renderOwnerCell(p)}</td>
@@ -1098,7 +1135,10 @@ function renderProgressTable(){
   refreshNodeFilterIndicators();
 }
 function goProgPage(page){progPage=page;renderProgressTable()}
-function filterProgress(){progPage=1;renderProgressTable()}
+function filterProgress(){progPage=1;renderProgressTable();}
+
+
+// 表格表头：固定整个 <thead> 行（垂直+水平）
 
 // ===== 进度分析看板 =====
 var _progDashOpen=true;
@@ -1279,9 +1319,12 @@ function showColFilter(e,field){
   var cur=_colFilter[field]||'';
   var html='<div style="padding:4px 6px;font-size:11px;color:#888;border-bottom:1px solid #eee;margin-bottom:2px">筛选此列</div>';
   opts.forEach(o=>{
-    var mark=o.val===cur?'<span style="color:#27ae60;font-weight:700;display:inline-block;width:16px">✓</span>':'<span style="display:inline-block;width:16px"></span>';
-    html+='<button onclick="setColFilter(\''+field+'\',\''+o.val+'\')">'+mark+o.label+'</button>';
-  });
+    if (o.val === '__custom__') {
+      html += '<button class="'+o.cls+'" onclick="event.stopPropagation();promptCustomValue('+pid+',\''+field+'\')">'+o.label+'</button>';
+    } else {
+      html+='<button class="'+o.cls+'" onclick="saveProgCell('+pid+',\''+field+'\',\''+o.val+'\');closeProgPopup()">'+o.label+'</button>';
+    }
+  });;
   pop.innerHTML=html;
   document.body.appendChild(pop);
   var rect=e.target.getBoundingClientRect();
@@ -1353,6 +1396,80 @@ function onProgDateChange(pid,field,input){
   closeProgPopup();
 }
 function closeProgPopupOnOutside(e){if(!document.getElementById('progPopup')?.contains(e.target))closeProgPopup()}
+function promptCustomValue(pid, field){
+  closeProgPopup();
+  // 拉取该节点当前值
+  fetch(API+'/progress/list').then(r=>r.json()).then(d=>{
+    var rec=(d.data||[]).find(function(x){return x.project_id===pid});
+    var curVal=rec?S(rec[field]||''):'';
+    var isCurDate=isDateVal(curVal);
+    var dateVal=isCurDate?normDate(curVal):'';
+    // 弹窗
+    var pop=document.createElement('div');
+    pop.className='prog-popup show';
+    pop.id='progPopup';
+    pop.style.minWidth='280px';
+    pop.innerHTML =
+      '<div style="padding:6px 8px;background:#f5f6fa;border-bottom:1px solid #ddd;font-size:12px;font-weight:600">自定义节点值 - '+field+'</div>' +
+      '<div style="padding:6px 8px;border-bottom:1px solid #eee">' +
+        '<label style="font-size:11px;color:#666;display:block;margin-bottom:3px">📅 日期</label>' +
+        '<input type="date" id="customDate" value="'+dateVal+'" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px">' +
+      '</div>' +
+      '<div style="padding:6px 8px;border-bottom:1px solid #eee">' +
+        '<label style="font-size:11px;color:#666;display:block;margin-bottom:3px">📋 状态/值</label>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:4px">' +
+          [{v:'V',l:'✓ V'},{v:'X',l:'✗ X'},{v:'T1',l:'T1'},{v:'T2',l:'T2'},{v:'验收',l:'验收'},{v:'进行中',l:'进行中'},{v:'待定',l:'待定'},{v:'',l:'清除'}].map(function(s){
+            return '<button type="button" data-v="'+s.v+'" style="padding:3px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:11px">'+s.l+'</button>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+      '<div style="padding:6px 8px;border-bottom:1px solid #eee">' +
+        '<label style="font-size:11px;color:#666;display:block;margin-bottom:3px">✎ 自定义文本</label>' +
+        '<input type="text" id="customText" value="'+S(curVal).replace(/"/g,'&quot;')+'" placeholder="输入或选择上方" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">' +
+      '</div>' +
+      '<div style="padding:6px 8px;text-align:right;border-top:1px solid #eee">' +
+        '<button type="button" id="customCancel" style="padding:5px 12px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;margin-right:6px">取消</button>' +
+        '<button type="button" id="customSave" style="padding:5px 12px;background:#27ae60;color:#fff;border:none;border-radius:4px;cursor:pointer">确定</button>' +
+      '</div>';
+    document.body.appendChild(pop);
+    // 定位
+    var btn=document.activeElement;
+    var rect=btn?btn.getBoundingClientRect():{left:200,top:200,bottom:220,right:280};
+    pop.style.left=Math.min(rect.left,window.innerWidth-310)+'px';
+    pop.style.top=(rect.bottom+4)+'px';
+    // 状态按钮：点击填充到输入框
+    pop.querySelectorAll('button[data-v]').forEach(function(b){
+      b.addEventListener('click',function(e){
+        e.stopPropagation();
+        document.getElementById('customText').value=b.getAttribute('data-v');
+      });
+    });
+    // 取消
+    document.getElementById('customCancel').addEventListener('click',function(e){
+      e.stopPropagation();closeProgPopup();
+    });
+    // 保存
+    document.getElementById('customSave').addEventListener('click',function(e){
+      e.stopPropagation();
+      var dateV=document.getElementById('customDate').value;
+      var textV=document.getElementById('customText').value.trim();
+      var finalV='';
+      if(dateV){
+        finalV=dateV; // 日期优先
+      } else if(textV){
+        finalV=textV;
+      }
+      if(!finalV){alert('请输入值或选择日期');return;}
+      closeProgPopup();
+      saveProgCell(pid, field, finalV);
+    });
+    _popupTimer=setTimeout(function(){
+      document.addEventListener('click',function(e){
+        if(pop&&!pop.contains(e.target))closeProgPopup();
+      });
+    },100);
+  });
+}
 function closeProgPopup(){clearTimeout(_popupTimer);var p=document.getElementById('progPopup');if(p)p.remove();document.removeEventListener('click',closeProgPopupOnOutside)}
 async function saveProgCell(pid,field,val){
   closeProgPopup();
@@ -1475,7 +1592,7 @@ async function openEditProgress(pid,progId){
 let sPage=1;
 async function loadSupply(page){
   sPage=page||1;
-  const p=new URLSearchParams({page:sPage,limit:50});
+  const p=new URLSearchParams({page:sPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('sKw').value,cl=document.getElementById('sClosed').value;
   if(kw)p.set('keyword',kw);if(cl)p.set('closed',cl);
   try{
@@ -1537,7 +1654,7 @@ async function delSupply(id){
 let spPage=1;
 async function loadSales(page){
   spPage=page||1;
-  const p=new URLSearchParams({page:spPage,limit:50});
+  const p=new URLSearchParams({page:spPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('spKw').value;if(kw)p.set('keyword',kw);
   try{
     const r=await fetch(API+'/sales-promotion/list?'+p);const d=await r.json();
@@ -1597,7 +1714,7 @@ async function delSales(id){
 let rPage=1;
 async function loadReviews(page){
   rPage=page||1;
-  const p=new URLSearchParams({page:rPage,limit:50});
+  const p=new URLSearchParams({page:rPage,limit:(window._pageSize||50)});
   try{
     const r=await fetch(API+'/reviews/list?'+p);const d=await r.json();
     const total=d.total||0;document.getElementById('rTc').textContent=total;
@@ -1657,6 +1774,33 @@ async function delReview(id){
 const approvalStatusMap={draft:'草稿',submitted:'已提交',approved:'已批准',rejected:'已驳回'};
 const approvalColorMap={draft:'#999',submitted:'#f39c12',approved:'#27ae60',rejected:'#e74c3c'};
 
+// 5阶段审批流程：
+//   apply   → 申请人立项发起（销售）
+//   dept    → 部门审核（部门经理）
+//   review  → 研发审核可行性 + 财务审核完整性/回报率/风险
+//   gm      → 总经理批准
+//   execute → 项目经理执行（自动创建研发项目）
+const workflowStageMap={
+  apply:'① 申请人立项',
+  dept:'② 部门审核',
+  review:'③ 研发/财务审核',
+  gm:'④ 总经理批准',
+  execute:'⑤ 项目经理执行',
+  rejected:'✗ 已驳回'
+};
+const workflowStageColor={
+  apply:'#3498db',dept:'#f39c12',review:'#9b59b6',
+  gm:'#e67e22',execute:'#27ae60',rejected:'#e74c3c'
+};
+// 流程标准（写入表格提示）
+const workflowStandards={
+  apply:{title:'申请人立项发起',std:'销售/业务人员发起，填写项目背景、客户痛点、产品规格、销售预测、研发内容、预算明细、风险分析'},
+  dept:{title:'部门审核',std:'部门经理审核项目的必要性、客户匹配度、资源可行性'},
+  review:{title:'研发/财务审核',std:'研发经理审核技术可行性；财务经理审核预算完整性、回报率(ROI)、风险等级'},
+  gm:{title:'总经理批准',std:'总经理基于研发/财务意见做出最终决策'},
+  execute:{title:'项目经理执行',std:'立项批准后自动建立研发项目档案，项目经理按节点推进'}
+};
+
 const initEditableFields={
   // 一、基本信息（项目经理填写）
   project_no:{type:'text',label:'项目编号'},project_name:{type:'text',label:'项目名称'},
@@ -1687,6 +1831,7 @@ const initEditableFields={
   // 六、审批信息
   applicant:{type:'text',label:'申请人'},apply_date:{type:'date',label:'申请日期'},
   approval_status:{type:'select',label:'审批状态',opts:['draft','submitted','approved','rejected']},
+  workflow_stage:{type:'select',label:'当前阶段',opts:['apply','dept','review','gm','execute','rejected']},
   approver:{type:'text',label:'审批人'},approval_date:{type:'date',label:'审批日期'},
   approval_opinion:{type:'textarea',label:'审批意见'},remarks:{type:'textarea',label:'备注'}
 };
@@ -1694,22 +1839,45 @@ function loadInitiationList(){
   fetch(API+'/initiation/list').then(r=>r.json()).then(d=>{
     var recs=d.data||[],tb=document.getElementById('initTb');
     document.getElementById('initTc').textContent=recs.length;
-    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无申请书</td></tr>';return}
-    tb.innerHTML=recs.map(function(r){
-      var st=r.approval_status||'draft';
-      return'<tr>'+
-        '<td>'+ic(r,'project_no','text')+'</td>'+
-        '<td>'+ic(r,'project_name','text')+'</td>'+
-        '<td>'+ic(r,'project_type','text')+'</td>'+
-        '<td>'+ic(r,'owner','text')+'</td>'+
-        '<td>'+ic(r,'applicant','text')+'</td>'+
-        '<td>'+ic(r,'apply_date','date')+'</td>'+
-        '<td>'+ic(r,'customer_no','text')+'</td>'+
-        '<td><span class="edit-cell" title="点击修改状态" onclick="event.stopPropagation();editInitCell(event,'+r.id+',\'approval_status\')" style="color:'+(approvalColorMap[st]||'#999')+';font-weight:600">'+(approvalStatusMap[st]||st)+'</span></td>'+
-        '<td style="white-space:nowrap"><button class="btn bs b1" onclick="editInitFull(event,'+r.id+')">详细</button> <button class="btn bs b3" onclick="delInitiation('+r.id+')">删除</button></td>'+
-      '</tr>';
-    }).join('');
-  }).catch(function(e){console.error(e)});
+if(!recs.length){tb.innerHTML='<tr><td colspan="10" class="em">暂无申请书</td></tr>';return}
+  tb.innerHTML=recs.map(function(r){
+    var st=r.approval_status||'draft';
+    return'<tr>'+
+      '<td>'+ic(r,'project_no','text')+'</td>'+
+      '<td>'+ic(r,'project_name','text')+'</td>'+
+      '<td>'+ic(r,'project_type','text')+'</td>'+
+      '<td>'+ic(r,'owner','text')+'</td>'+
+      '<td>'+ic(r,'applicant','text')+'</td>'+
+      '<td>'+ic(r,'apply_date','date')+'</td>'+
+      '<td>'+ic(r,'customer_no','text')+'</td>'+
+      '<td style="font-size:11px;line-height:1.6">'+renderWorkflowSteps(r)+'</td>'+
+      '<td><span class="edit-cell" title="点击修改状态" onclick="event.stopPropagation();editInitCell(event,'+r.id+',\'approval_status\')" style="color:'+(approvalColorMap[st]||'#999')+';font-weight:600">'+(approvalStatusMap[st]||st)+'</span></td>'+
+      '<td style="white-space:nowrap"><button class="btn bs b1" onclick="editInitFull(event,'+r.id+')" data-perm="initiation:view">详细</button> <button class="btn bs b3" onclick="delInitiation('+r.id+')" data-perm="initiation:apply">删除</button></td>'+
+    '</tr>';
+  }).join('');
+}).catch(function(e){console.error(e)});
+}
+
+// 渲染5阶段流程步骤（可视化进度条）
+function renderWorkflowSteps(r){
+  var stages=['apply','dept','review','gm','execute'];
+  var cur=r.workflow_stage||'apply';
+  if(cur==='rejected'){
+    return'<span style="display:inline-block;padding:3px 10px;border-radius:12px;background:#fdecea;color:#e74c3c;font-weight:600">已驳回</span>';
+  }
+  var curIdx=stages.indexOf(cur);
+  return stages.map(function(s,i){
+    var isCur=(i===curIdx);
+    var isDone=(i<curIdx)||(s==='execute'&&cur==='execute');
+    var isPending=i>curIdx;
+    var color=isDone?'#27ae60':(isCur?workflowStageColor[s]:'#bbb');
+    var bg=isDone?'#e8f5e9':(isCur?'#fff7e6':'#f5f6fa');
+    var bd=isCur?'2px solid '+color:'1px solid #e0e3eb';
+    var lbl=workflowStageMap[s].replace(/^[①②③④⑤] /,'');
+    return'<span style="display:inline-block;margin:1px 2px;padding:2px 8px;border-radius:10px;background:'+bg+';color:'+color+';border:'+bd+';font-size:11px;font-weight:'+(isCur?'700':'500')+'">'+(i+1)+'.'+lbl+'</span>';
+  }).join('<span style="color:#ccc;font-size:10px">→</span>');
+  // 列表渲染后应用权限过滤
+  setTimeout(function(){if(window.PermissionCheck) PermissionCheck.applyToPage();}, 0);
 }
 function ic(r,field,type,maxLen){
   var cfg=initEditableFields[field]||{};
@@ -1918,16 +2086,114 @@ function renderInitDetail(rec){
   html+='<div class="form-section">六、特殊要求（子表）<button class="btn bs b2" style="float:right" onclick="addSpecReq()">+ 产品</button></div>';
   html+='<div id="specReqWrap" style="margin-bottom:12px"></div>';
 
-  // Section 7: 审批
-  html+='<div class="form-section">七、审批信息</div>';
-  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
-  html+='<div class="fg"><label>申请人</label><input type="text" id="id_applicant" value="'+escAttr(rec.applicant||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
-  html+='<div class="fg"><label>申请日期</label><input type="date" id="id_apply_date" value="'+escAttr(rec.apply_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
-  html+='<div class="fg"><label>审批状态</label><select id="id_approval_status" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"><option value="draft" '+(rec.approval_status==='draft'?'selected':'')+'>草稿</option><option value="submitted" '+(rec.approval_status==='submitted'?'selected':'')+'>已提交</option><option value="approved" '+(rec.approval_status==='approved'?'selected':'')+'>已批准</option><option value="rejected" '+(rec.approval_status==='rejected'?'selected':'')+'>已驳回</option></select></div>';
-  html+='<div class="fg"><label>审批人</label><input type="text" id="id_approver" value="'+escAttr(rec.approver||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
-  html+='<div class="fg"><label>审批日期</label><input type="date" id="id_approval_date" value="'+escAttr(rec.approval_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  // Section 7: 审批流程（5阶段）
+  var curStage=rec.workflow_stage||'apply';
+  var stages=['apply','dept','review','gm','execute'];
+  var curIdx=stages.indexOf(curStage);
+  html+='<div class="form-section">七、审批流程（5阶段）</div>';
+  // 流程总览
+  html+='<div style="margin-bottom:14px;padding:12px;background:#f8f9ff;border-radius:6px;border:1px solid #e0e3eb">';
+  html+='<div style="font-size:12px;color:#666;margin-bottom:8px">📌 流程标准：</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:11px;line-height:1.5">';
+  stages.forEach(function(s,i){
+    var std=workflowStandards[s];
+    var isCur=(s===curStage);
+    var isDone=i<curIdx;
+    var color=isCur?'#fff':(isDone?'#27ae60':'#666');
+    var bg=isCur?workflowStageColor[s]:(isDone?'#e8f5e9':'#fff');
+    var bd=isCur?'2px solid '+workflowStageColor[s]:'1px solid #e0e3eb';
+    html+='<div style="padding:8px;border-radius:5px;background:'+bg+';border:'+bd+';color:'+color+'">';
+    html+='<div style="font-weight:700;margin-bottom:4px">'+(i+1)+'.'+std.title+'</div>';
+    html+='<div style="opacity:.85">'+std.std+'</div>';
+    html+='</div>';
+  });
   html+='</div>';
-  html+='<div class="fg"><label>审批意见</label><textarea id="id_approval_opinion" style="width:100%;min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+escHtml(rec.approval_opinion||'')+'</textarea></div>';
+  // 当前阶段所需的权限码（用于按钮 data-perm）
+  var stagePermCode = {
+    apply: 'initiation:apply',
+    dept: 'initiation:dept-review',
+    review: 'initiation:rd-review', // review阶段任一权限即可，data-perm空格分隔多权限
+    gm: 'initiation:gm-approve',
+    execute: 'initiation:execute',
+    rejected: ''
+  };
+  var advancePerm = curStage === 'review' ? 'initiation:rd-review initiation:finance-review' : (stagePermCode[curStage] || '');
+  var isFinalStage = (curStage === 'execute');
+  html+='<div style="margin-top:10px;font-size:12px"><b>当前阶段：</b>'+(workflowStageMap[curStage]||curStage);
+  if(curStage==='rejected'){
+    html+=' <span style="color:#e74c3c;margin-left:8px">（已驳回）</span>';
+  } else if(isFinalStage){
+    html+=' <span style="color:#27ae60;margin-left:8px">（已完成所有阶段）</span>';
+  } else {
+    html+=' <button class="btn bs b2" style="margin-left:12px" onclick="advanceInitStage('+rec.id+')" data-perm="'+(advancePerm||'initiation:view')+'">推进到下一阶段 →</button>';
+  }
+  html+='</div>';
+  html+='</div>';
+
+  // 阶段1：申请人立项
+  html+='<div style="background:#fafbff;padding:10px;border-radius:6px;margin-bottom:10px;border-left:4px solid #3498db">';
+  html+='<div style="font-weight:600;color:#3498db;margin-bottom:6px">① 申请人立项发起</div>';
+  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+  html+='<div class="fg"><label>申请人</label><input type="text" id="id_step1_applicant" value="'+escAttr(rec.step1_applicant||rec.applicant||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>申请日期</label><input type="date" id="id_step1_apply_date" value="'+escAttr(rec.step1_apply_date||rec.apply_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>所属部门</label><input type="text" id="id_department" value="'+escAttr(rec.department||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='</div></div>';
+
+  // 阶段2：部门审核
+  html+='<div style="background:#fffaf0;padding:10px;border-radius:6px;margin-bottom:10px;border-left:4px solid #f39c12">';
+  html+='<div style="font-weight:600;color:#f39c12;margin-bottom:6px">② 部门审核</div>';
+  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+  html+='<div class="fg"><label>部门审核人</label><input type="text" id="id_step2_approver" value="'+escAttr(rec.step2_approver||'')+'" placeholder="如：张经理" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>审核日期</label><input type="date" id="id_step2_date" value="'+escAttr(rec.step2_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>审核结果</label><select id="id_step2_result" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"><option value="">未审核</option><option value="通过" '+(rec.step2_result==='通过'?'selected':'')+'>通过</option><option value="驳回" '+(rec.step2_result==='驳回'?'selected':'')+'>驳回</option></select></div>';
+  html+='</div>';
+  html+='<div class="fg" style="margin-top:6px"><label>部门审核意见</label><textarea id="id_step2_opinion" style="width:100%;min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+escHtml(rec.step2_opinion||'')+'</textarea></div>';
+  html+='</div>';
+
+  // 阶段3：研发审核 + 财务审核
+  html+='<div style="background:#f5f0ff;padding:10px;border-radius:6px;margin-bottom:10px;border-left:4px solid #9b59b6">';
+  html+='<div style="font-weight:600;color:#9b59b6;margin-bottom:6px">③ 研发审核（可行性） + 财务审核（完整性 / 回报率 / 风险）</div>';
+  html+='<div style="font-size:11px;color:#666;margin-bottom:8px">研发：审核项目技术可行性；财务：审核预算完整性、ROI回报率、风险等级</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  // 研发审核
+  html+='<div style="background:#fff;padding:8px;border-radius:5px;border:1px solid #e0e3eb">';
+  html+='<div style="font-weight:600;color:#9b59b6;font-size:12px;margin-bottom:6px">研发审核</div>';
+  html+='<div class="gr" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">';
+  html+='<div class="fg"><label>研发审核人</label><input type="text" id="id_step3_rd_reviewer" value="'+escAttr(rec.step3_rd_reviewer||'')+'" placeholder="如：李经理" style="width:100%;padding:5px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>审核日期</label><input type="date" id="id_step3_rd_date" value="'+escAttr(rec.step3_rd_date||'')+'" style="width:100%;padding:5px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='</div>';
+  html+='<div class="fg"><label>可行性意见</label><textarea id="id_step3_rd_opinion" style="width:100%;min-height:50px;padding:5px;border:1px solid #ddd;border-radius:4px;font-size:12px" placeholder="技术可行性、研发难度评估">'+escHtml(rec.step3_rd_opinion||'')+'</textarea></div>';
+  html+='</div>';
+  // 财务审核
+  html+='<div style="background:#fff;padding:8px;border-radius:5px;border:1px solid #e0e3eb">';
+  html+='<div style="font-weight:600;color:#9b59b6;font-size:12px;margin-bottom:6px">财务审核</div>';
+  html+='<div class="gr" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">';
+  html+='<div class="fg"><label>财务审核人</label><input type="text" id="id_step3_finance_reviewer" value="'+escAttr(rec.step3_finance_reviewer||'')+'" placeholder="如：王会计" style="width:100%;padding:5px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>审核日期</label><input type="date" id="id_step3_finance_date" value="'+escAttr(rec.step3_finance_date||'')+'" style="width:100%;padding:5px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='</div>';
+  html+='<div class="fg"><label>完整性/回报率/风险意见</label><textarea id="id_step3_finance_opinion" style="width:100%;min-height:50px;padding:5px;border:1px solid #ddd;border-radius:4px;font-size:12px" placeholder="预算完整性、ROI回报率、风险评估">'+escHtml(rec.step3_finance_opinion||'')+'</textarea></div>';
+  html+='</div>';
+  html+='</div></div>';
+
+  // 阶段4：总经理批准
+  html+='<div style="background:#fff5ec;padding:10px;border-radius:6px;margin-bottom:10px;border-left:4px solid #e67e22">';
+  html+='<div style="font-weight:600;color:#e67e22;margin-bottom:6px">④ 总经理批准</div>';
+  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+  html+='<div class="fg"><label>总经理</label><input type="text" id="id_step4_approver" value="'+escAttr(rec.step4_approver||'')+'" placeholder="如：总经理姓名" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>批准日期</label><input type="date" id="id_step4_date" value="'+escAttr(rec.step4_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>审批状态</label><select id="id_approval_status" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"><option value="draft" '+(rec.approval_status==='draft'?'selected':'')+'>草稿</option><option value="submitted" '+(rec.approval_status==='submitted'?'selected':'')+'>已提交</option><option value="approved" '+(rec.approval_status==='approved'?'selected':'')+'>已批准</option><option value="rejected" '+(rec.approval_status==='rejected'?'selected':'')+'>已驳回</option></select></div>';
+  html+='</div>';
+  html+='<div class="fg" style="margin-top:6px"><label>总经理批示</label><textarea id="id_step4_opinion" style="width:100%;min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+escHtml(rec.step4_opinion||'')+'</textarea></div>';
+  html+='</div>';
+
+  // 阶段5：项目经理执行
+  html+='<div style="background:#e8f5e9;padding:10px;border-radius:6px;margin-bottom:10px;border-left:4px solid #27ae60">';
+  html+='<div style="font-weight:600;color:#27ae60;margin-bottom:6px">⑤ 项目经理执行（立项批准后自动建立研发项目档案）</div>';
+  html+='<div class="gr3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+  html+='<div class="fg"><label>项目经理</label><input type="text" id="id_step5_owner" value="'+escAttr(rec.step5_owner||rec.owner||'')+'" placeholder="执行人" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>执行起始日</label><input type="date" id="id_step5_start_date" value="'+escAttr(rec.step5_start_date||rec.start_date||'')+'" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"></div>';
+  html+='<div class="fg"><label>关联研发项目编号</label><input type="text" value="'+escAttr(rec.project_no||'')+'" readonly style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;background:#f5f6fa;color:#666"></div>';
+  html+='</div></div>';
 
   document.getElementById('initDetailBody').innerHTML=html;
 
@@ -1936,6 +2202,81 @@ function renderInitDetail(rec){
   renderFeasTable(rec.feasibility);
   renderForecastTable(rec.sales_forecast);
   renderSpecReqTable(rec.special_reqs);
+
+  // 根据当前用户权限，禁用对应阶段的输入框（只读模式）
+  applyInitiationStagePermissions(curStage);
+  // 应用 data-perm 自动隐藏元素
+  if(window.PermissionCheck) PermissionCheck.applyToPage();
+}
+
+// 根据用户权限控制各阶段只读/可编辑
+function applyInitiationStagePermissions(curStage){
+  var PC = window.PermissionCheck;
+  var isAdmin = PC && PC.isAdmin;
+  var has = function(code){ return isAdmin || (PC && PC.has(code)); };
+
+  // 通用字段（项目编号/名称/类型/起始/部门/负责人/客户信息/产品规格等）需要 initiation:apply
+  var canApply = has('initiation:apply');
+  var generalIds = ['project_no','project_name','project_type','start_date','department','owner','cooperators','other_info',
+                    'customer_no','customer_type','customer_level','customer_win_rate','market_status','has_competitor',
+                    'purchase_cycle','dev_type','customer_pain','key_success',
+                    'step1_applicant','step1_apply_date'];
+  generalIds.forEach(function(id){ var el=document.getElementById('id_'+id); if(el) el.disabled = !canApply; });
+
+  // 阶段1的字段也在generalIds里
+
+  // 阶段2：部门审核 → initiation:dept-review
+  var canDept = has('initiation:dept-review');
+  ['step2_approver','step2_date','step2_opinion','step2_result'].forEach(function(id){
+    var el=document.getElementById('id_'+id); if(el) el.disabled = !canDept;
+  });
+
+  // 阶段3：研发审核 → initiation:rd-review；财务审核 → initiation:finance-review
+  var canRd = has('initiation:rd-review');
+  var canFin = has('initiation:finance-review');
+  ['step3_rd_reviewer','step3_rd_date','step3_rd_opinion'].forEach(function(id){
+    var el=document.getElementById('id_'+id); if(el) el.disabled = !canRd;
+  });
+  ['step3_finance_reviewer','step3_finance_date','step3_finance_opinion'].forEach(function(id){
+    var el=document.getElementById('id_'+id); if(el) el.disabled = !canFin;
+  });
+
+  // 阶段4：总经理批准 → initiation:gm-approve
+  var canGm = has('initiation:gm-approve');
+  ['step4_approver','step4_date','step4_opinion','approval_status'].forEach(function(id){
+    var el=document.getElementById('id_'+id); if(el) el.disabled = !canGm;
+  });
+
+  // 阶段5：项目经理执行 → initiation:execute
+  var canExec = has('initiation:execute');
+  ['step5_owner','step5_start_date'].forEach(function(id){
+    var el=document.getElementById('id_'+id); if(el) el.disabled = !canExec;
+  });
+
+  // 给被禁用的容器加上视觉提示
+  var labels = {
+    '申请人立项': canApply,
+    '部门审核': canDept,
+    '研发审核': canRd,
+    '财务审核': canFin,
+    '总经理批准': canGm,
+    '项目经理执行': canExec
+  };
+  Object.keys(labels).forEach(function(name){
+    if(labels[name]) return; // 有权限，不加提示
+    // 找到包含该标题的容器加上"只读"标签
+    var body = document.getElementById('initDetailBody');
+    if(!body) return;
+    var titles = body.querySelectorAll('div');
+    titles.forEach(function(t){
+      if(t.textContent && t.textContent.indexOf(name)===0 && t.style.fontWeight==='600'){
+        // 在标题旁加只读标签（若没有）
+        if(t.innerHTML.indexOf('🔒只读')<0){
+          t.innerHTML = t.innerHTML + ' <span style="display:inline-block;margin-left:6px;padding:1px 8px;background:#fdf3f3;color:#e74c3c;border-radius:8px;font-size:11px;font-weight:500">🔒 只读</span>';
+        }
+      }
+    });
+  });
 }
 
 function escAttr(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
@@ -2045,10 +2386,31 @@ function addSpecReq(){_reqsData.push({产品:'新产品',要求:''});renderSpecR
 function delReqRow(ri){_reqsData.splice(ri,1);renderSpecReqHTML()}
 
 // ===== 保存全部 =====
-async function saveInitDetail(){
+async function saveInitDetail(silent){
+  // 权限校验：必须至少有 initiation:apply 或对应阶段的审核权限
+  if(window.PermissionCheck && !PermissionCheck.isAdmin){
+    var hasAnyEdit = PermissionCheck.has('initiation:apply')
+                  || PermissionCheck.has('initiation:dept-review')
+                  || PermissionCheck.has('initiation:rd-review')
+                  || PermissionCheck.has('initiation:finance-review')
+                  || PermissionCheck.has('initiation:gm-approve')
+                  || PermissionCheck.has('initiation:execute');
+    if(!hasAnyEdit){
+      if(!silent) alert('无权限修改立项申请书（需要 initiation:apply 或任意审核权限）');
+      return;
+    }
+  }
   var d={};
   // 扁平字段
-  ['project_no','project_name','project_type','start_date','department','owner','cooperators','other_info','customer_no','customer_type','customer_level','customer_win_rate','market_status','has_competitor','purchase_cycle','dev_type','customer_pain','key_success','applicant','apply_date','approval_status','approver','approval_date','approval_opinion'].forEach(function(k){
+  ['project_no','project_name','project_type','start_date','department','owner','cooperators','other_info','customer_no','customer_type','customer_level','customer_win_rate','market_status','has_competitor','purchase_cycle','dev_type','customer_pain','key_success','applicant','apply_date','approval_status','approver','approval_date','approval_opinion',
+   // 5阶段审批字段
+   'workflow_stage',
+   'step1_apply_date','step1_applicant',
+   'step2_approver','step2_date','step2_opinion','step2_result',
+   'step3_rd_reviewer','step3_rd_opinion','step3_rd_date',
+   'step3_finance_reviewer','step3_finance_opinion','step3_finance_date',
+   'step4_approver','step4_date','step4_opinion',
+   'step5_owner','step5_start_date'].forEach(function(k){
     var el=document.getElementById('id_'+k);
     if(el)d[k]=el.value;
   });
@@ -2066,14 +2428,74 @@ async function saveInitDetail(){
       if(confirm('立项已批准！是否自动创建研发项目数据库记录？')){
         var ar=await fetch(API+'/initiation/'+_initDetailId+'/approve-to-project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approver:d.approver,approval_date:d.approval_date,approval_opinion:d.approval_opinion})});
         var ad=await ar.json();
-        alert(ad.message||'操作完成');
+        if(!silent)alert(ad.message||'操作完成');
       }
     }else{
-      alert('保存成功');
+      if(!silent)alert('保存成功');
     }
     _initDetailRec=Object.assign(_initDetailRec,d);
     if(nowApproved)_initDetailRec.project_id=_initDetailRec.project_id;
   }catch(e){alert('保存失败')}
+}
+
+// 推进到下一审批阶段
+async function advanceInitStage(id){
+  var rec=_initDetailRec||{};
+  var curStage=rec.workflow_stage||'apply';
+  var stageOrder=['apply','dept','review','gm','execute'];
+  var curIdx=stageOrder.indexOf(curStage);
+  if(curIdx<0||curIdx>=stageOrder.length-1){alert('已是最终阶段');return}
+  // 权限校验：当前阶段所需的权限码
+  var stagePerms = {
+    apply:   ['initiation:apply'],
+    dept:    ['initiation:dept-review'],
+    review:  ['initiation:rd-review','initiation:finance-review'],
+    gm:      ['initiation:gm-approve'],
+    execute: ['initiation:execute']
+  };
+  var needPerms = stagePerms[curStage] || [];
+  if(window.PermissionCheck && !PermissionCheck.isAdmin){
+    var ok = needPerms.some(function(p){ return PermissionCheck.has(p); });
+    if(!ok){ alert('无权限推进当前阶段（'+curStage+'），需要以下权限之一：'+needPerms.join(', ')); return; }
+  }
+  // 收集当前阶段的审批人/意见
+  var body={from_stage:curStage};
+  var tips='即将推进：'+workflowStageMap[curStage]+' → '+workflowStageMap[stageOrder[curIdx+1]];
+  if(curStage==='dept'){
+    body.reviewer=(document.getElementById('id_step2_approver')||{}).value||'';
+    body.opinion=(document.getElementById('id_step2_opinion')||{}).value||'';
+    body.result=(document.getElementById('id_step2_result')||{}).value||'通过';
+    if(!body.reviewer){if(!confirm(tips+'\n\n部门审核人尚未填写，是否继续？'))return}
+  }else if(curStage==='review'){
+    body.rd_reviewer=(document.getElementById('id_step3_rd_reviewer')||{}).value||'';
+    body.rd_opinion=(document.getElementById('id_step3_rd_opinion')||{}).value||'';
+    body.finance_reviewer=(document.getElementById('id_step3_finance_reviewer')||{}).value||'';
+    body.finance_opinion=(document.getElementById('id_step3_finance_opinion')||{}).value||'';
+  }else if(curStage==='gm'){
+    body.reviewer=(document.getElementById('id_step4_approver')||{}).value||'';
+    body.opinion=(document.getElementById('id_step4_opinion')||{}).value||'';
+    if(!body.reviewer){if(!confirm(tips+'\n\n总经理尚未填写，是否继续？'))return}
+  }else if(curStage==='apply'){
+    body.reviewer=(document.getElementById('id_step1_applicant')||{}).value||'';
+  }
+  if(!confirm(tips+'\n确认推进？'))return
+  try{
+    // 先保存当前表单（静默模式，不弹"保存成功"提示）
+    await saveInitDetail(true);
+    var r=await fetch(API+'/initiation/'+id+'/advance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var d=await r.json();
+    if(d.error){alert(d.error);return}
+    // 如果到达execute阶段，提示创建项目
+    if(d.stage==='gm'){
+      if(confirm('已进入【总经理批准】阶段。批准后将自动创建研发项目档案。是否立即执行？')){
+        var ar=await fetch(API+'/initiation/'+id+'/approve-to-project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+        var ad=await ar.json();
+        alert(ad.message||'项目已创建');
+      }
+    }
+    alert(d.message||'阶段已推进');
+    openInitDetail(id);
+  }catch(e){alert('推进失败：'+e.message)}
 }
 
 // ===== 汇总预览 =====
@@ -2151,6 +2573,11 @@ function previewInit(){
   document.getElementById('initPreviewView').style.display='';
 }
 function delInitiation(id){
+  // 权限校验
+  if(window.PermissionCheck && !PermissionCheck.isAdmin && !PermissionCheck.has('initiation:apply')){
+    alert('无权限删除立项申请书（需要 initiation:apply 权限）');
+    return;
+  }
   if(!confirm('确定删除？'))return;
   fetch(API+'/initiation/'+id,{method:'DELETE'}).then(function(){loadInitiationList()});
 }

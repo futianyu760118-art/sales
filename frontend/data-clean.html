@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>数据清洗</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 数据清洗</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;border-bottom:2px solid #eee;margin-bottom:16px}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
@@ -27,7 +27,7 @@ tr:hover td{background:#f8f9ff}
 .tgl{width:40px;height:22px;background:#ccc;border-radius:11px;cursor:pointer;position:relative;display:inline-block;vertical-align:middle}
 .tgl.on{background:#27ae60}.tgl:after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .2s}
 .tgl.on:after{left:20px}
-</style></head><body>
+</style></head><body data-page-title="数据清洗" data-page-perm="data-clean:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -288,6 +288,7 @@ async function loadLogs(){
 
 loadTables();loadRuleTypes();loadRules();
 </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body></html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 供应商管理</title>
+  <title>企业经营管理平台（EBMS）-HJ - 供应商管理</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
@@ -63,7 +63,7 @@
   </style>
   <script src="import-dropzone.js"></script>
 </head>
-<body>
+<body data-page-title="供应商管理" data-page-perm="supplier:view">
   <div class="sidebar" id="sidebar"></div>
 
   <div class="main-content" data-module="supplier">
@@ -96,14 +96,14 @@
 
       <div class="search-bar" data-feature="filter" style="align-items:center;">
         <input type="text" id="searchInput" placeholder="搜索供应商名称/编码/联系人..." style="min-width:200px;">
-        <select id="levelFilter">
+        <select data-searchable="1" id="levelFilter">
           <option value="">全部等级</option>
           <option value="A级（战略）">A级（战略）</option>
           <option value="B级（优选）">B级（优选）</option>
           <option value="C级（合格）">C级（合格）</option>
           <option value="D级（试用）">D级（试用）</option>
         </select>
-        <select id="lifecycleFilter">
+        <select data-searchable="1" id="lifecycleFilter">
           <option value="">全部状态</option>
           <option value="待审">待审</option>
           <option value="已准入">已准入</option>
@@ -111,13 +111,13 @@
           <option value="暂停">暂停</option>
           <option value="黑名单">黑名单</option>
         </select>
-        <select id="riskFilter">
+        <select data-searchable="1" id="riskFilter">
           <option value="">全部风险</option>
           <option value="低">低</option>
           <option value="中">中</option>
           <option value="高">高</option>
         </select>
-        <select id="categoryFilter">
+        <select data-searchable="1" id="categoryFilter">
           <option value="">全部类别</option>
         </select>
         <button class="btn btn-primary" onclick="searchSuppliers()">查询</button>
@@ -214,7 +214,7 @@
         <div class="form-row">
           <div class="form-group"><label>类别</label><input type="text" id="fCategory" placeholder="如：电子元器件、结构件"></div>
           <div class="form-group"><label>等级</label>
-            <select id="fLevel">
+            <select data-searchable="1" id="fLevel">
               <option value="">请选择</option>
               <option value="A级（战略）">A级（战略）</option>
               <option value="B级（优选）">B级（优选）</option>
@@ -225,7 +225,7 @@
         </div>
         <div class="form-row">
           <div class="form-group"><label>生命周期</label>
-            <select id="fLifecycleStatus">
+            <select data-searchable="1" id="fLifecycleStatus">
               <option value="待审">待审</option>
               <option value="已准入">已准入</option>
               <option value="合作中">合作中</option>
@@ -234,7 +234,7 @@
             </select>
           </div>
           <div class="form-group"><label>风险等级</label>
-            <select id="fRiskLevel">
+            <select data-searchable="1" id="fRiskLevel">
               <option value="低">低</option>
               <option value="中">中</option>
               <option value="高">高</option>
@@ -486,7 +486,7 @@
       const risk = document.getElementById('riskFilter').value;
       const category = document.getElementById('categoryFilter').value;
 
-      const params = new URLSearchParams({ page, limit: 20 });
+      const params = new URLSearchParams({ page, limit:(window._pageSize||20) });
       if (keyword) params.set('keyword', keyword);
       if (level) params.set('level', level);
       if (lifecycle) params.set('lifecycle_status', lifecycle);
@@ -1053,7 +1053,10 @@
   <script>
     ImportDropzone.init('importDropzoneContainer', 'suppliers', () => { loadSuppliers(); loadStatsOverview(); });
   </script>
-  <script src="permission-check.js"></script>
+  <script src="brand.js"></script>
+<script src="common.js"></script>
+
+<script src="permission-check.js"></script>
   <script>PermissionCheck.init();</script>
   <script src="table-sort-filter.js"></script>
   <script src="chat-widget.js"></script>

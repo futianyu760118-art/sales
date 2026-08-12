@@ -187,7 +187,7 @@ const ImportDropzone = {
   },
 
   getTableLabel(tableName) {
-    const labels = { inquiries: '询价单', inquiry_pricing: '报价库信息', customers: '客户', products: '产品', materials: '物料', bom_pricing: '核价', projects: '研发项目', project_progress: '项目进度', project_supply_issues: '品质异常', project_sales_promotion: '推广进度', project_reviews: '项目复盘', project_initiation: '立项申请书' };
+    const labels = { inquiries: '询价单', inquiry_pricing: '报价库信息', customers: '客户', products: '产品', materials: '物料', bom_pricing: '核价', projects: '研发项目', project_progress: '项目进度', project_supply_issues: '品质异常', project_sales_promotion: '推广进度', project_reviews: '项目复盘', project_initiation: '立项申请书', expenses: '费用', labor: '人工', product_labor_rate: '成品工价' };
     return labels[tableName] || tableName;
   },
 
@@ -272,6 +272,60 @@ const ImportDropzone = {
         ['核价人','pricer'],['核价链接','pricing_link'],['报价(RMB)','price_rmb'],['报价RMB','price_rmb'],['人民币报价','price_rmb'],
         ['报价(USD)','price_usd'],['报价USD','price_usd'],['美元报价','price_usd'],['目标价','target_price'],
         ['核价版本','pricing_version'],['版本','pricing_version'],['备注','remarks']
+      ],
+      product_labor_rate: [
+        ['BOM编号','bom_no'],['BOM','bom_no'],['bom_no','bom_no'],['编号','bom_no'],
+        ['产品编码','product_code'],['编码','product_code'],
+        ['产品名称','product_name'],['名称','product_name'],
+        ['工价(元/台)','labor_rate'],['工价','labor_rate'],['单台工价','labor_rate'],['成品工价','labor_rate'],
+        ['计价方式','labor_rate_type'],['工价类型','labor_rate_type'],['类型','labor_rate_type'],
+        ['工艺成本','process_cost'],
+        ['生效日','effective_date'],['生效日期','effective_date'],
+        ['失效日','expire_date'],['失效日期','expire_date'],
+        ['来源','source'],['数据来源','source'],
+        ['审核状态','audit_status'],['状态','audit_status'],
+        ['审核人','approved_by'],
+        ['备注','remarks'],['说明','remarks']
+      ],
+      expenses: [
+        ['费用编码','expense_code'],['编码','expense_code'],['编号','expense_code'],
+        ['费用名称','expense_name'],['名称','expense_name'],['摘要','expense_name'],
+        ['费用大类','expense_category'],['大类','expense_category'],['费用类别','expense_category'],
+        ['费用细类','expense_type'],['细类','expense_type'],['子类','expense_type'],
+        ['所属部门','department'],['部门','department'],
+        ['关联项目','project'],['项目','project'],
+        ['收款方','payee'],['供应商','supplier'],
+        ['发生日期','occur_date'],['日期','occur_date'],
+        ['归属账期','account_period'],['账期','account_period'],['月份','account_period'],
+        ['金额','amount'],
+        ['税率','tax_rate'],['税额','tax_amount'],
+        ['价税合计','total_amount'],['合计','total_amount'],['含税金额','total_amount'],
+        ['币种','currency'],
+        ['支付方式','payment_method'],
+        ['支付状态','payment_status'],
+        ['经办人','payee'],['报销人','payee'],
+        ['发票号','invoice_no'],['发票号码','invoice_no'],
+        ['发票类型','invoice_type'],
+        ['数据来源','source'],['来源','source'],
+        ['备注','remarks'],['说明','remarks']
+      ],
+      labor: [
+        ['人工编码','labor_code'],['编码','labor_code'],
+        ['员工姓名','employee_name'],['姓名','employee_name'],['人员','employee_name'],
+        ['工号','employee_no'],['员工编号','employee_no'],
+        ['部门','department'],['岗位','position'],['职务','position'],
+        ['人工类型','labor_type'],['类型','labor_type'],['计薪方式','labor_type'],
+        ['工作日期','work_date'],['日期','work_date'],
+        ['归属月份','work_month'],['月份','work_month'],
+        ['工时','hours'],['加班工时','overtime_hours'],
+        ['件数','pieces'],['单价','unit_price'],['时薪','unit_price'],
+        ['基本工资','base_amount'],['底薪','base_amount'],
+        ['加班费','overtime_pay'],['补贴','subsidy'],['奖金','bonus'],
+        ['社保','social_insurance'],['公积金','housing_fund'],
+        ['合计金额','total_amount'],['合计','total_amount'],
+        ['关联项目','project'],['项目','project'],
+        ['数据来源','source'],['来源','source'],
+        ['备注','remarks']
       ],
       projects: [
         ['项目编号','project_no'],['编号','project_no'],['项目名称','project_name'],['名称','project_name'],

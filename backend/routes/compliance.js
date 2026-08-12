@@ -897,12 +897,19 @@ router.post('/auto-fix-all', requirePerm('compliance:run'), (req, res) => {
     if (issue.type === '权限异常' && issue.desc.includes('缺少应有权限')) {
       const match = issue.desc.match(/角色"(\w+)"缺少应有权限:\s*(\S+)/);
       if (match) {
+        const roleTable = getTable('roles');
         const permTable = getTable('permissions');
-        const existing = permTable.all().find(p => p.role === match[1] && p.permission === match[2]);
-        if (!existing) {
-          permTable.insert({ role: match[1], permission: match[2], created_at: now() });
-          fixed = true;
-          fixDetail = `角色"${match[1]}"添加权限"${match[2]}"`;
+        const rpTable = getTable('role_permissions');
+        const role = roleTable.all().find(r => r.code === match[1]);
+        const perm = permTable.all().find(p => p.code === match[2]);
+        if (role && perm) {
+          const existing = rpTable.all().find(rp => rp.role_id === role.id && rp.permission_id === perm.id);
+          if (!existing) {
+            rpTable.insert({ role_id: role.id, permission_id: perm.id, granted_at: now() });
+            rpTable._invalidate();
+            fixed = true;
+            fixDetail = `角色"${match[1]}"添加权限"${match[2]}"`;
+          }
         }
       }
     }
@@ -910,12 +917,19 @@ router.post('/auto-fix-all', requirePerm('compliance:run'), (req, res) => {
     if (issue.type === '权限异常' && issue.desc.includes('越权权限')) {
       const match = issue.desc.match(/角色"(\w+)"存在越权权限:\s*(\S+)/);
       if (match) {
+        const roleTable = getTable('roles');
         const permTable = getTable('permissions');
-        const existing = permTable.all().find(p => p.role === match[1] && p.permission === match[2]);
-        if (existing) {
-          permTable.delete(existing.id);
-          fixed = true;
-          fixDetail = `移除角色"${match[1]}"越权权限"${match[2]}"`;
+        const rpTable = getTable('role_permissions');
+        const role = roleTable.all().find(r => r.code === match[1]);
+        const perm = permTable.all().find(p => p.code === match[2]);
+        if (role && perm) {
+          const existing = rpTable.all().find(rp => rp.role_id === role.id && rp.permission_id === perm.id);
+          if (existing) {
+            rpTable.delete(existing.id);
+            rpTable._invalidate();
+            fixed = true;
+            fixDetail = `移除角色"${match[1]}"越权权限"${match[2]}"`;
+          }
         }
       }
     }

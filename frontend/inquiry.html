@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 询价管理</title>
+  <title>企业经营管理平台（EBMS）-HJ - 询价管理</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .table-container th:hover { background: #eef0f5; }
@@ -82,8 +82,8 @@
   </style>
   <script src="import-dropzone.js"></script>
   <script src="table-sort-filter.js"></script>
-</head>
-<body>
+<script src="fetch-auth.js"></script></head>
+<body data-page-title="询价管理" data-page-perm="inquiry:view">
   <div class="sidebar" id="sidebar"></div>
   <div class="main-content" data-module="inquiry">
     <div class="header">
@@ -99,8 +99,8 @@
     </div>
     <div class="search-bar" data-feature="filter">
       <input type="text" id="keywordInput" placeholder="搜索单号/客户/型号/需求..." style="width:220px;">
-      <select id="statusFilter"><option value="">全部状态</option></select>
-      <select id="salesFilter"><option value="">全部销售</option></select>
+      <select data-searchable="1" id="statusFilter"><option value="">全部状态</option></select>
+      <select data-searchable="1" id="salesFilter"><option value="">全部销售</option></select>
       <input type="text" id="productModelInput" placeholder="产品型号">
       <input type="date" id="startDate"><span style="color:#999;">至</span><input type="date" id="endDate">
       <button class="btn btn-primary" onclick="searchInquiries()">查询</button>
@@ -122,8 +122,8 @@
   <datalist id="productList_dl"></datalist>
   <form id="addForm">
     <div class="section-title">客户信息</div>
-    <div class="form-row"><div class="form-group"><label>客户名称 *</label><div style="display:flex;gap:8px;"><input type="text" id="customerSelect" list="customerList_dl" placeholder="输入搜索或选择客户" style="flex:1;" onchange="onCustomerSelected()" oninput="onCustomerSelected()"><datalist id="customerList_dl"></datalist><button type="button" class="btn btn-info btn-sm" onclick="showOcrModal()" title="拍照/上传名片识别客户信息">拍照识别</button><button type="button" class="btn btn-success btn-sm" onclick="showQuickAddCustomer()">新增</button></div><input type="hidden" id="customerName"></div><div class="form-group"><label>客户代码</label><div style="position:relative;"><input type="text" id="customerCode" list="customerCode_dl" placeholder="输入代码搜索客户" autocomplete="off" onchange="onCustomerCodeSelected()" oninput="onCustomerCodeInput()"><datalist id="customerCode_dl"></datalist><div id="codeSearchDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:#fff;border:1px solid #ddd;border-radius:4px;max-height:240px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.15);"></div></div></div><div class="form-group"><label>客户来源</label><select id="customerSource" onchange="syncCustomerField('source',this.value)"><option value="">请选择</option></select></div><div class="form-group"><label>国家/地区</label><input type="text" id="countryRegion" list="countryRegion_dl" placeholder="输入或选择国家/地区" onchange="syncCustomerField('country_region',this.value)"><datalist id="countryRegion_dl"></datalist></div></div>
-    <div class="form-row"><div class="form-group"><label>对接销售</label><select id="salesPerson"><option value="">请选择</option></select></div><div class="form-group"><label>需求交期</label><input type="date" id="deliveryDate"></div></div>
+    <div class="form-row"><div class="form-group"><label>客户名称 *</label><div style="display:flex;gap:8px;"><input type="text" id="customerSelect" list="customerList_dl" placeholder="输入搜索或选择客户" style="flex:1;" onchange="onCustomerSelected()" oninput="onCustomerSelected()"><datalist id="customerList_dl"></datalist><button type="button" class="btn btn-info btn-sm" onclick="showOcrModal()" title="拍照/上传名片识别客户信息">拍照识别</button><button type="button" class="btn btn-success btn-sm" onclick="showQuickAddCustomer()">新增</button></div><input type="hidden" id="customerName"></div><div class="form-group"><label>客户代码</label><div style="position:relative;"><input type="text" id="customerCode" list="customerCode_dl" placeholder="输入代码搜索客户" autocomplete="off" onchange="onCustomerCodeSelected()" oninput="onCustomerCodeInput()"><datalist id="customerCode_dl"></datalist><div id="codeSearchDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:#fff;border:1px solid #ddd;border-radius:4px;max-height:240px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.15);"></div></div></div><div class="form-group"><label>客户来源</label><select data-searchable="1" id="customerSource" onchange="syncCustomerField('source',this.value)"><option value="">请选择</option></select></div><div class="form-group"><label>国家/地区</label><input type="text" id="countryRegion" list="countryRegion_dl" placeholder="输入或选择国家/地区" onchange="syncCustomerField('country_region',this.value)"><datalist id="countryRegion_dl"></datalist></div></div>
+    <div class="form-row"><div class="form-group"><label>对接销售</label><select data-searchable="1" id="salesPerson"><option value="">请选择</option></select></div><div class="form-group"><label>需求交期</label><input type="date" id="deliveryDate"></div></div>
     <div class="form-row"><div class="form-group"><label>联系人</label><input type="text" id="contactPerson" placeholder="客户联系人" onchange="syncCustomerField('contact',this.value)"></div><div class="form-group"><label>联系电话</label><input type="text" id="contactPhone" placeholder="联系电话" onchange="syncCustomerField('phone',this.value)"></div></div>
     <div class="form-row"><div class="form-group"><label>联系邮箱</label><input type="text" id="contactEmail" placeholder="联系邮箱" onchange="syncCustomerField('email',this.value)"></div><div class="form-group"><label>报价有效期</label><input type="text" id="quoteValidity" placeholder="如 30天"></div></div>
     <div class="section-title">产品配置 <button type="button" class="btn btn-success btn-sm" onclick="addProductRow()" style="margin-left:10px;font-size:11px;">+ 添加产品</button> <button type="button" class="btn btn-warning btn-sm" onclick="importTemplateToForm()" style="margin-left:6px;font-size:11px;">从模板导入</button> <input type="file" id="templateFileInput" accept=".xlsx,.xls" style="display:none;" onchange="handleTemplateFile(this)"></div>
@@ -279,7 +279,8 @@ function fillProductSelects() {
   });
 }
 async function loadSales() {
-  try { const res = await fetch(`${API}/users`); salesList = await res.json(); } catch(e) { salesList = []; }
+  try { const res = await fetch(`${API}/users/names`); salesList = res.ok ? await res.json() : []; } catch(e) { salesList = []; }
+  if (!Array.isArray(salesList)) salesList = [];
   const sel = document.getElementById('salesFilter'); sel.innerHTML = '<option value="">全部销售</option>';
   const addSel = document.getElementById('salesPerson'); addSel.innerHTML = '<option value="">请选择</option>';
   salesList.filter(u=>u.role==='sales'||u.role==='admin').forEach(u => {
@@ -378,7 +379,7 @@ async function onConfigSelected() {
 
 // ===== 询价单列表 =====
 async function loadInquiries(page=1) {
-  const params = new URLSearchParams({page, limit:15});
+  const params = new URLSearchParams({page, limit:(window._pageSize||15)});
   const filters = {status:'statusFilter',sales_person:'salesFilter',keyword:'keywordInput',product_model:'productModelInput',start_date:'startDate',end_date:'endDate'};
   Object.entries(filters).forEach(([k,id])=>{const v=document.getElementById(id).value;if(v)params.set(k,v);});
   try {
@@ -3407,7 +3408,10 @@ init();
   }
   initInquirySortFilter();
 </script>
-<script src="dict-loader.js"></script><script src="permission-check.js"></script><script>
+<script src="dict-loader.js"></script><script src="brand.js"></script>
+<script src="common.js"></script>
+
+<script src="permission-check.js"></script><script src="data-scope.js"></script><script>window.DataScope && window.DataScope.load().then(()=>{try{window.DataScope.renderBanner('.search-bar');}catch(e){}});</script><script>
 // 核价权限控制：无 pricing:view 权限则隐藏成本信息
 let canViewPricing = false;
 async function initPricingPerm() {

@@ -475,36 +475,49 @@ router.post('/bugs/:id/auto-fix', requirePerm('test:run'), (req, res) => {
     }
     case 'P01': { // 管理员权限 - 补齐权限
       const permTable = getTable('permissions');
+      const roleTable = getTable('roles');
+      const rpTable = getTable('role_permissions');
+      const adminRole = roleTable.all().find(r => r.code === 'admin');
       const adminPerms = ['inquiry:view','inquiry:create','inquiry:edit','inquiry:delete','inquiry:price',
         'product:view','product:edit','pricing:view','pricing:edit',
         'customer:view','customer:create','customer:edit','customer:delete',
         'material:view','material:edit','permission:manage','settings:manage',
         'feedback:view','feedback:create'];
       let added = 0;
-      for (const perm of adminPerms) {
-        if (!permTable.all().find(p => p.role === 'admin' && p.permission === perm)) {
-          permTable.insert({ role: 'admin', permission: perm, created_at: now() });
-          added++;
+      if (adminRole) {
+        for (const permCode of adminPerms) {
+          const perm = permTable.all().find(p => p.code === permCode);
+          if (perm && !rpTable.all().find(rp => rp.role_id === adminRole.id && rp.permission_id === perm.id)) {
+            rpTable.insert({ role_id: adminRole.id, permission_id: perm.id, granted_at: now() });
+            added++;
+          }
         }
       }
+      rpTable._invalidate();
       if (added > 0) { fixed = true; fixDetail = `已为管理员补齐${added}项权限`; }
       break;
     }
     case 'P04': { // 角色权限匹配
       const permTable = getTable('permissions');
+      const roleTable = getTable('roles');
+      const rpTable = getTable('role_permissions');
       const standardPerms = {
         sales: ['inquiry:view','inquiry:create','inquiry:edit','inquiry:price','product:view','customer:view','customer:create','material:view','feedback:create'],
         engineer: ['inquiry:view','pricing:view','pricing:edit','product:view','material:view','material:edit']
       };
       let added = 0;
-      for (const [role, perms] of Object.entries(standardPerms)) {
-        for (const perm of perms) {
-          if (!permTable.all().find(p => p.role === role && p.permission === perm)) {
-            permTable.insert({ role, permission: perm, created_at: now() });
+      for (const [roleCode, permCodes] of Object.entries(standardPerms)) {
+        const role = roleTable.all().find(r => r.code === roleCode);
+        if (!role) continue;
+        for (const permCode of permCodes) {
+          const perm = permTable.all().find(p => p.code === permCode);
+          if (perm && !rpTable.all().find(rp => rp.role_id === role.id && rp.permission_id === perm.id)) {
+            rpTable.insert({ role_id: role.id, permission_id: perm.id, granted_at: now() });
             added++;
           }
         }
       }
+      rpTable._invalidate();
       if (added > 0) { fixed = true; fixDetail = `已补齐角色权限${added}项`; }
       break;
     }
@@ -1501,5 +1514,302 @@ testSuites.deep = {
     { id: 'D16', name: '数据类型一致性', fn: testDataTypeConsistency },
   ]
 };
+
+// ===== 模块覆盖矩阵检测（37个模块：API存活 + CRUD模拟 + Feature-Gate开关确认）=====
+
+ensureTable('test_module_status');
+
+// 全量模块注册表：对标 backend/routes/index.js 的 37 个路由
+// route: API前缀; probe: 健康探针路径(默认'/'); table: 主数据表(可空); fg: feature-gate分类; page: 前端页面
+const MODULE_REGISTRY = [
+  { key: 'inquiry',       name: '询价管理',   route: 'inquiries',     page: 'inquiry.html',       table: 'inquiries',         fg: 'inquiry' },
+  { key: 'product',       name: '产品管理',   route: 'products',      page: 'product.html',       table: 'products',          fg: 'product' },
+  { key: 'customer',      name: '客户管理',   route: 'customers',     page: 'customer.html',      table: 'customers',         fg: 'customer' },
+  { key: 'material',      name: '物料管理',   route: 'materials',     page: 'material.html',      table: 'materials',         fg: 'material' },
+  { key: 'material-ext',  name: '物料扩展',   route: 'materials-ext', probe: '/classification-rules', page: 'material.html', table: 'materials', fg: 'material' },
+  { key: 'procurement',   name: '采购管理',   route: 'procurement',   probe: '/list',        page: 'procurement.html',   table: 'procurement_orders',fg: 'procurement' },
+  { key: 'supplier',      name: '供应商管理', route: 'suppliers',     page: 'supplier.html',      table: 'suppliers',         fg: 'supplier' },
+  { key: 'order',         name: '订单管理',   route: 'orders',        page: 'order.html',         table: 'orders',            fg: 'order' },
+  { key: 'sample',        name: '样品管理',   route: 'samples',       page: 'sample.html',        table: 'samples',           fg: 'sample' },
+  { key: 'project',       name: '项目管理',   route: 'projects',      page: 'project.html',       table: 'projects',          fg: 'project' },
+  { key: 'annual-plan',   name: '年度计划',   route: 'annual-plan',   probe: '/dashboard',   page: 'annual-plan.html',   table: 'annual_plans',      fg: 'annual-plan' },
+  { key: 'amiba',         name: '阿米巴核算', route: 'amiba',         probe: '/dashboard',   page: 'amiba.html',         table: 'amiba_records',     fg: 'amiba' },
+  { key: 'bom',           name: 'BOM管理',    route: 'bom',           page: 'bom.html',           table: 'bom_items',         fg: 'bom' },
+  { key: 'pricing',       name: '核价库',     route: 'pricing',       page: 'pricing.html',       table: 'bom_pricing',       fg: 'pricing' },
+  { key: 'quote',         name: '报价库',     route: 'quote',         page: 'quote.html',         table: 'quote_library',     fg: 'quote' },
+  { key: 'user',          name: '用户管理',   route: 'users',         page: 'settings.html',      table: 'users',             fg: 'user' },
+  { key: 'report',        name: '报表统计',   route: 'reports',       probe: '/summary',     page: 'report.html',        table: null,                fg: 'report' },
+  { key: 'permission',    name: '权限管理',   route: 'permissions',   probe: '/roles',       page: 'permission.html',    table: 'permissions',       fg: 'permission' },
+  { key: 'feedback',      name: '问题反馈',   route: 'feedback',      page: 'feedback.html',      table: 'feedback',          fg: 'feedback' },
+  { key: 'settings',      name: '系统设置',   route: 'settings',      probe: '/all',         page: 'settings.html',      table: 'system_settings',   fg: 'settings' },
+  { key: 'compliance',    name: '合规管理',   route: 'compliance',    probe: '/stats',       page: 'compliance.html',    table: 'compliance_issues', fg: 'compliance' },
+  { key: 'config',        name: '配置管理',   route: 'configs',       page: 'config.html',        table: 'product_configs',   fg: 'config' },
+  { key: 'rules',         name: '规则引擎',   route: 'rules',         page: 'rules.html',         table: 'rules',             fg: 'rules' },
+  { key: 'spec-library',  name: '规格书库',   route: 'spec-library',  probe: '/spec-sheets',  page: 'spec-library.html',  table: 'spec_library',      fg: 'spec-library' },
+  { key: 'organization',  name: '组织架构',   route: 'organization',  probe: '/personnel',   page: 'organization.html',  table: 'org_personnel',     fg: 'organization' },
+  { key: 'material-check',name: '来料检验',   route: 'material-check',probe: '/issues',      page: 'material-check.html',table: 'material_checks',   fg: 'material-check' },
+  { key: 'tech-transfer', name: '技术转移',   route: 'tech',          probe: '/documents',   page: 'tech-transfer.html', table: null,                fg: 'tech-transfer' },
+  { key: 'data-clean',    name: '数据清洗',   route: 'data-clean',    probe: '/tables',      page: 'data-clean.html',    table: null,                fg: 'data-clean' },
+  { key: 'ai-assistant',  name: 'AI助手',     route: 'ai-assistant',  probe: '/summary',     page: 'ai-assistant.html',  table: null,                fg: 'ai-assistant' },
+  { key: 'test',          name: '自动测试',   route: 'test',          probe: '/suites',      page: 'test.html',          table: 'test_reports',      fg: 'test' },
+  { key: 'import',        name: '数据导入',   route: 'import',        probe: '/template/inquiries', page: null,            table: null,                fg: 'import' },
+  { key: 'chat',          name: '智能对话',   route: 'chat',          probe: '/channels',    page: null,                 table: null,                fg: 'chat' },
+  { key: 'external-api',  name: '外部API',    route: 'external-api',  probe: '/sync-config', page: null,                 table: null,                fg: 'external-api' },
+  { key: 'external-sync', name: '外部同步',   route: 'external-sync', probe: '/config',      page: null,                 table: null,                fg: 'external-sync' },
+  { key: 'data-scope',    name: '数据权限',   route: 'data-scope',    probe: '/my-scope',    page: null,                 table: null,                fg: 'data-scope' },
+  { key: 'bom-type',      name: 'BOM类型',    route: 'products/bom-types',  probe: '/types', page: 'bom.html',           table: 'bom_types',         fg: 'bom' },
+  { key: 'bom-issue',     name: 'BOM问题',    route: 'products/bom-issues', probe: '/stats',   page: 'bom.html',           table: 'bom_issues',        fg: 'bom' },
+];
+
+// 探针候选回退列表（主探针404时依次尝试，避免硬编码漂移）
+const PROBE_FALLBACKS = ['/stats', '/summary', '/dashboard', '/list', '/meta', '/tables', '/roles', '/all', '/config', '/issues', '/spec-sheets', '/documents', '/types'];
+
+// 真值判定（兼容 runModuleMatrix 的 0/1 与 readCachedMatrix 的 true/false）
+function isTrue(v) { return v === true || v === 1; }
+
+// 矩阵汇总统计
+function matrixSummary(rows) {
+  const list = rows || readCachedMatrix();
+  const total = list.length;
+  const enabled = list.filter(r => r.status === 'enabled').length;
+  const error = list.filter(r => r.status === 'error').length;
+  const offline = list.filter(r => r.status === 'offline' || r.status === 'missing').length;
+  const untested = list.filter(r => r.status === 'untested').length;
+  const apiAlive = list.filter(r => isTrue(r.api_alive)).length;
+  const crudTested = list.filter(r => isTrue(r.crud_tested)).length;
+  const crudOk = list.filter(r => isTrue(r.crud_ok)).length;
+  const featTotal = list.reduce((s, r) => s + (r.features_total || 0), 0);
+  const featEnabled = list.reduce((s, r) => s + (r.features_enabled || 0), 0);
+  return {
+    total, enabled, error, offline, untested,
+    api_alive: apiAlive, crud_tested: crudTested, crud_ok: crudOk,
+    features_total: featTotal, features_enabled: featEnabled,
+    coverage_rate: total > 0 ? (enabled / total * 100).toFixed(1) + '%' : '0%',
+    pass_rate: crudTested > 0 ? (crudOk / crudTested * 100).toFixed(1) + '%' : '-'
+  };
+}
+
+// 单模块 CRUD 模拟（安全：写入测试标记记录 → 读取 → 更新 → 删除，全程不留痕）
+// 注意：db.js 的 insert/update/delete 经 withTableLock 返回 Promise，必须 await
+async function simulateModuleCrud(mod) {
+  if (!mod.table) return { tested: false, ok: null };
+  const t = getTable(mod.table);
+  const marker = '__matrix_test_' + mod.key + '_' + Date.now();
+  let insertedId = null;
+  try {
+    const ins = await t.insert({ __matrix_test: marker, _test_row: 1, created_at: now(), updated_at: now() });
+    insertedId = ins && ins.lastID;
+    if (!insertedId) return { tested: true, ok: false, error: '写入未返回ID' };
+    // 读
+    const found = t.findById(insertedId);
+    if (!found || found.__matrix_test !== marker) {
+      try { await t.delete(insertedId); } catch (e) {}
+      return { tested: true, ok: false, error: '写入后读取失败' };
+    }
+    // 改
+    await t.update(insertedId, { __matrix_test: marker + '_upd', updated_at: now() });
+    const upd = t.findById(insertedId);
+    // 删
+    await t.delete(insertedId);
+    if (t.findById(insertedId)) return { tested: true, ok: false, error: '删除失败' };
+    if (!upd || upd.__matrix_test !== marker + '_upd') return { tested: true, ok: false, error: '更新未生效' };
+    return { tested: true, ok: true };
+  } catch (e) {
+    if (insertedId) { try { await t.delete(insertedId); } catch (e2) {} }
+    return { tested: true, ok: false, error: e.message };
+  }
+}
+
+// 模块健康检测（核心：API存活 + CRUD模拟 + Feature-Gate开关）
+async function testModuleHealth(mod) {
+  // 1. API 探活（主探针 → 候选回退，首个非404即认定路由存在）
+  const mainProbe = mod.probe || '/';
+  const candidates = [mainProbe, ...PROBE_FALLBACKS.filter(p => p !== mainProbe)];
+  let apiAlive = false, apiStatus = 0, hitPath = null;
+  for (const p of candidates) {
+    const path = '/api/' + mod.route + p;
+    const r = await httpReq('GET', path);
+    if (r.status !== 404 && r.status !== 0) {
+      apiAlive = r.status === 200;
+      apiStatus = r.status;
+      hitPath = path;
+      break;
+    }
+    apiStatus = r.status === 0 ? 0 : (apiStatus === 0 ? 404 : apiStatus);
+  }
+  // 2. Feature-Gate 开关检测
+  let features = null;
+  const fr = await httpReq('GET', '/api/rules/features/' + encodeURIComponent(mod.fg));
+  if (fr.status === 200 && fr.data && fr.data.features) {
+    features = fr.data.features;
+  }
+  // 3. CRUD 模拟（必须 await：db.js 的 insert/update/delete 返回 Promise）
+  const crud = await simulateModuleCrud(mod);
+  // 4. 数据量
+  let recordCount = null;
+  if (mod.table) {
+    try { recordCount = getTable(mod.table).all().filter(x => !x.__matrix_test).length; } catch (e) {}
+  }
+  // 5. 状态判定
+  const featEntries = features ? Object.entries(features) : [];
+  const featEnabled = featEntries.filter(([k, v]) => v.enabled !== false).length;
+  const featTotal = featEntries.length;
+  const crudOk = crud.tested ? crud.ok : null;
+  let status;
+  if (apiStatus === 404) status = 'missing';
+  else if (apiStatus === 0) status = 'offline';
+  else if (!apiAlive) status = 'error';
+  else if (crudOk === false) status = 'error';
+  else status = 'enabled';
+  const enabled = status === 'enabled';
+  // 6. 消息
+  const parts = [];
+  parts.push(apiAlive ? 'API存活(' + (hitPath || '').replace('/api/', '') + ')' : (apiStatus === 0 ? 'API未响应' : 'API异常(HTTP' + apiStatus + ')'));
+  if (crud.tested) parts.push(crud.ok ? 'CRUD模拟通过' : 'CRUD异常(' + (crud.error || '?') + ')');
+  if (features) parts.push('功能开关' + featEnabled + '/' + featTotal + '启用');
+  if (recordCount !== null) parts.push('数据' + recordCount + '条');
+  return {
+    pass: enabled,
+    message: parts.join(' | '),
+    module: mod.key,
+    detail: {
+      api_status: apiStatus, api_alive: apiAlive, hit_path: hitPath,
+      crud_tested: crud.tested, crud_ok: crudOk, crud_error: crud.error || null,
+      features: features, features_total: featTotal, features_enabled: featEnabled,
+      record_count: recordCount, status, enabled
+    }
+  };
+}
+
+// 注册为标准测试套件（接入现有 run/history/bug 引擎）
+testSuites.module_matrix = {
+  name: '模块覆盖矩阵检测',
+  desc: '对全量37个业务模块做深度检测：API存活 + CRUD模拟操作 + Feature-Gate功能开关启用确认',
+  cases: MODULE_REGISTRY.map(m => ({
+    id: 'MM_' + m.key.toUpperCase().replace(/-/g, '_'),
+    name: m.name + ' · 模块检测',
+    fn: () => testModuleHealth(m),
+    module: m.key
+  }))
+};
+
+// 构建单行矩阵记录（持久化用）
+function composeMatrixRow(mod, result) {
+  const d = result.detail || {};
+  return {
+    module_key: mod.key,
+    module_name: mod.name,
+    page: mod.page,
+    route: mod.route,
+    fg: mod.fg,
+    status: d.status || 'untested',
+    enabled: d.enabled ? 1 : 0,
+    api_alive: d.api_alive ? 1 : 0,
+    api_status: d.api_status == null ? null : d.api_status,
+    crud_ok: d.crud_ok == null ? null : (d.crud_ok ? 1 : 0),
+    crud_tested: d.crud_tested ? 1 : 0,
+    record_count: d.record_count == null ? null : d.record_count,
+    features_total: d.features_total || 0,
+    features_enabled: d.features_enabled || 0,
+    message: result.message || '',
+    last_tested: now()
+  };
+}
+
+// 执行矩阵检测（全量或单模块），返回矩阵行数组并持久化
+async function runModuleMatrix(targetKey) {
+  // 前置清扫：移除历史残留的测试标记记录（防止脏数据干扰）
+  cleanupMatrixTestData();
+  const mods = targetKey ? MODULE_REGISTRY.filter(m => m.key === targetKey) : MODULE_REGISTRY;
+  const rows = [];
+  for (const m of mods) {
+    const result = await testModuleHealth(m);
+    rows.push(composeMatrixRow(m, result));
+  }
+  // 后置清扫：CRUD模拟产生的测试记录全部清除（保证库表零污染）
+  cleanupMatrixTestData();
+  // 持久化（upsert：同 module_key 覆盖）
+  const table = getTable('test_module_status');
+  for (const row of rows) {
+    const existing = table.all().find(r => r.module_key === row.module_key);
+    if (existing) {
+      table.update(existing.id, Object.assign({}, row, { id: existing.id }));
+    } else {
+      table.insert(row);
+    }
+  }
+  return rows;
+}
+
+// 清扫所有表中的矩阵测试标记记录（幂等，防脏数据）
+function cleanupMatrixTestData() {
+  const testedTables = [...new Set(MODULE_REGISTRY.map(m => m.table).filter(Boolean))];
+  let cleaned = 0;
+  for (const name of testedTables) {
+    try {
+      const t = getTable(name);
+      const data = t._load();
+      const before = data.records.length;
+      data.records = data.records.filter(r => !r.__matrix_test);
+      const removed = before - data.records.length;
+      if (removed > 0) { t._save(); cleaned += removed; }
+    } catch (e) {}
+  }
+  return cleaned;
+}
+
+// 读取缓存矩阵（带静态元信息合并）
+function readCachedMatrix() {
+  const table = getTable('test_module_status');
+  const cached = table.all();
+  const map = {};
+  cached.forEach(c => { map[c.module_key] = c; });
+  return MODULE_REGISTRY.map(m => {
+    const c = map[m.key] || {};
+    return {
+      key: m.key, name: m.name, page: m.page, route: m.route, fg: m.fg,
+      status: c.status || 'untested',
+      enabled: c.enabled === 1,
+      api_alive: c.api_alive === 1,
+      api_status: c.api_status == null ? null : c.api_status,
+      crud_ok: c.crud_ok == null ? null : (c.crud_ok === 1),
+      crud_tested: c.crud_tested === 1,
+      record_count: c.record_count == null ? null : c.record_count,
+      features_total: c.features_total || 0,
+      features_enabled: c.features_enabled || 0,
+      message: c.message || '',
+      last_tested: c.last_tested || null
+    };
+  });
+}
+
+// 获取模块矩阵（缓存）
+router.get('/module-matrix', requirePerm('test:view'), (req, res) => {
+  res.json({ data: readCachedMatrix(), summary: matrixSummary() });
+});
+
+// 矩阵汇总
+router.get('/module-matrix/summary', requirePerm('test:view'), (req, res) => {
+  res.json(matrixSummary());
+});
+
+// 执行模块矩阵检测（全量或单模块 ?module=key）
+router.post('/module-matrix/run', requirePerm('test:run'), async (req, res) => {
+  if (isRunning) return res.status(409).json({ error: '有测试正在执行，请稍后再试' });
+  isRunning = true;
+  try {
+    const target = req.body && req.body.module ? req.body.module : (req.query && req.query.module ? req.query.module : null);
+    const rows = await runModuleMatrix(target);
+    isRunning = false;
+    res.json({
+      message: target ? '模块检测完成' : '全量模块矩阵检测完成',
+      data: rows,
+      summary: matrixSummary(rows)
+    });
+  } catch (e) {
+    isRunning = false;
+    res.status(500).json({ error: '模块矩阵检测异常: ' + e.message });
+  }
+});
 
 module.exports = router;

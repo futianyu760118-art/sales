@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 人工库</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:780px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:46px}
+.gr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.gr2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.tbl-wrap{overflow-x:auto;max-height:62vh;overflow-y:auto}
+.pg{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;color:#666;flex-wrap:wrap;gap:8px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.panel h3{margin:0 0 10px;font-size:14px;color:#444}
+.hbar{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+.hbar .lb{width:140px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.hbar .track{flex:1;height:16px;background:#f0f2f8;border-radius:4px;overflow:hidden}
+.hbar .fill{height:100%;border-radius:4px}
+.hbar .val{font-weight:600;color:#333;width:96px;text-align:right;flex-shrink:0}
+.trend{display:flex;align-items:flex-end;gap:4px;height:140px;padding:8px 0}
+.trend i{flex:1;min-width:14px;background:linear-gradient(180deg,#27ae60,#1abc9c);border-radius:3px 3px 0 0;position:relative;cursor:pointer}
+.trend i:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;white-space:nowrap;z-index:5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.chk-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee;font-size:13px}
+.chk-row:last-child{border:none}
+.type-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff}
+.tt-计时{background:#2980b9}.tt-计件{background:#8e44ad}.tt-月薪{background:#27ae60}.tt-外包{background:#e67e22}.tt-临时{background:#95a5a6}
+.rules{background:#fafbff;border:1px solid #e8ebf7;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.rules-h{padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:#555;background:#fafbff;user-select:none}
+.rules-h:hover{background:#f0f3ff}
+.rules-b{max-height:0;overflow:hidden;transition:max-height .25s ease;padding:0 14px}
+.rules.open .rules-b{max-height:760px;padding:8px 14px 10px}
+.rules-arrow{transition:transform .2s;font-size:12px;color:#999}
+.rules.open .rules-arrow{transform:rotate(90deg)}
+.rules ul{margin:4px 0 0;padding-left:18px;font-size:12px;color:#555;line-height:1.8}
+.rules li{margin-bottom:2px}.rules li b{color:#667eea}.rules li .req{color:#e74c3c}
+</style></head><body data-page-title="人工库" data-page-perm="labor:view">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="labor">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>人工库</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn b1" onclick="openAdd()" data-perm="labor:create">新增人工</button>
+<button class="btn b2" onclick="ImportDropzone.open()" data-perm="labor:create">批量导入</button>
+<a class="btn bs" href="#" onclick="dlTpl();return false" style="background:#eee;color:#555;text-decoration:none">下载导入模板</a>
+<button class="btn b4" onclick="exportCsv()" data-perm="labor:view">导出CSV</button>
+<button class="btn b3" onclick="batchDelete()" data-perm="labor:delete">批量删除</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('list',this)">人工明细</button>
+<button onclick="swTab('analysis',this)">成本分析</button>
+<button onclick="swTab('quality',this)">数据质检</button>
+<button onclick="swTab('ext',this)">外部对接</button>
+</div>
+
+<!-- ===== 人工明细 ===== -->
+<div class="tc ac" id="tab-list">
+<div class="sg" id="statCards"></div>
+<div class="panel">
+<h3>筛选条件</h3>
+<div class="sb">
+<input type="text" id="f_kw" placeholder="关键字(姓名/工号/岗位)" style="width:200px">
+<select id="f_type"><option value="">全部类型</option><option>计时</option><option>计件</option><option>月薪</option><option>外包</option><option>临时</option></select>
+<select id="f_dept"><option value="">全部部门</option></select>
+<select id="f_src"><option value="">全部来源</option><option>手工录入</option><option>Excel导入</option><option>外部API</option></select>
+<select id="f_month"><option value="">全部月份</option></select>
+<input type="date" id="f_from" title="工作起">
+<input type="date" id="f_to" title="工作止">
+<button class="btn b1" onclick="loadList(1)">查询</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="resetFilter()">重置</button>
+</div>
+</div>
+<div class="tbl-wrap">
+<table id="tbl">
+<thead><tr>
+<th style="width:30px"><input type="checkbox" onclick="toggleAll(this)"></th>
+<th>人工编码</th><th>员工姓名</th><th>部门</th><th>岗位</th><th>类型</th>
+<th>工作日期</th><th>月份</th><th class="r">工时</th><th class="r">件数</th><th class="r">基本/单价</th><th class="r">合计金额</th>
+<th>来源</th><th>操作</th>
+</tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div class="pg" id="pg"></div>
+</div>
+
+<!-- ===== 成本分析 ===== -->
+<div class="tc" id="tab-analysis">
+<div class="sb">
+<select id="a_month"><option value="">全部月份</option></select>
+<select id="a_type"><option value="">全部类型</option><option>计时</option><option>计件</option><option>月薪</option><option>外包</option><option>临时</option></select>
+<select id="a_dept"><option value="">全部部门</option></select>
+<select id="a_src"><option value="">全部来源</option></select>
+<input type="date" id="a_from"><input type="date" id="a_to">
+<button class="btn b1" onclick="loadStats()">分析</button>
+</div>
+<div id="anaBox"></div>
+</div>
+
+<!-- ===== 数据质检 ===== -->
+<div class="tc" id="tab-quality">
+<div style="margin-bottom:10px"><button class="btn b1" onclick="loadQuality()">运行质检</button></div>
+<div id="qBox"><div class="em">点击「运行质检」检查数据完整性与合理性</div></div>
+</div>
+
+<!-- ===== 外部对接 ===== -->
+<div class="tc" id="tab-ext">
+<div class="panel">
+<h3>外部 API 对接配置</h3>
+<p style="font-size:12px;color:#888;margin:0 0 12px">配置外部人工/工资数据源（如考勤系统、薪酬系统、HR API）。启用后可通过「同步」拉取人工明细（按人工编码去重更新）。</p>
+<div class="gr2">
+<div class="fg"><label>是否启用</label><select id="ext_enabled"><option value="false">未启用</option><option value="true">启用</option></select></div>
+<div class="fg"><label>接口地址 Base URL</label><input id="ext_base_url" placeholder="https://hr.example.com/api/labor/list"></div>
+<div class="fg"><label>App Key</label><input id="ext_app_key"></div>
+<div class="fg"><label>App Secret</label><input id="ext_app_secret"></div>
+<div class="fg"><label>Endpoint Code（签名用）</label><input id="ext_endpoint_code" value="labor.list"></div>
+</div>
+<div style="text-align:right;margin-top:8px">
+<button class="btn b2" onclick="saveExt()" data-perm="labor:edit">保存配置</button>
+<button class="btn b1" onclick="syncExt()" data-perm="labor:create">立即同步</button>
+</div>
+<div id="extResult" style="margin-top:10px;font-size:13px"></div>
+</div>
+</div>
+
+</div><!-- /main-content -->
+
+<!-- ===== 表单弹窗 ===== -->
+<div class="mo" id="formModal">
+<div class="mb">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 id="formTitle" style="margin:0">新增人工</h3>
+<span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
+</div>
+<form id="laborForm" onsubmit="saveForm();return false">
+<div class="rules" id="formRules">
+  <div class="rules-h" onclick="togRules()"><span>📋 填写规则（点击展开/收起）</span><span class="rules-arrow">▶</span></div>
+  <div class="rules-b"><ul>
+    <li><b>人工编码</b>：留空将自动生成（格式 <b>LR年月-流水号</b>，如 LR202607-0001）；手动填写时不可重复</li>
+    <li><b>员工姓名</b> <span class="req">*</span>：必填；<b>工号</b>、<b>部门</b>、<b>岗位</b> 可手填或从历史记录选择</li>
+    <li><b>人工类型</b>：决定合计金额的计算方式
+      <ul>
+        <li><b>计时</b>：合计 = 单价(时薪) × 工时 + 加班费 + 补贴 + 奖金 + 社保 + 公积金</li>
+        <li><b>计件</b>：合计 = 单价(计件单价) × 件数 + 补贴 + 奖金 + 社保 + 公积金</li>
+        <li><b>月薪/外包/临时</b>：合计 = 基本工资 + 加班费 + 补贴 + 奖金 + 社保 + 公积金</li>
+      </ul>
+    </li>
+    <li><b>工作日期</b>：实际工作日期；<b>归属月份</b>留空时按工作日期自动推导为 YYYY-MM</li>
+    <li><b>工时/件数/单价/基本工资</b>：按类型填写对应项（计时填工时，计件填件数）；改任一数值时<b>合计金额自动重算</b></li>
+    <li><b>社保/公积金</b>：填<b>企业承担部分</b>（不含个人代扣）</li>
+    <li><b>合计金额</b>：系统自动计算，无需手填</li>
+    <li>带 <span class="req">*</span> 为必填项，其余可留空</li>
+  </ul></div>
+</div>
+<input type="hidden" id="f_id">
+<div class="gr">
+<div class="fg"><label>人工编码</label><input id="f_code" placeholder="留空则自动生成"></div>
+<div class="fg"><label>员工姓名 <span style="color:#e74c3c">*</span></label><input id="f_name"></div>
+<div class="fg"><label>工号</label><input id="f_no"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>部门</label><input id="f_department" list="deptList"></div>
+<div class="fg"><label>岗位</label><input id="f_position" list="posList"></div>
+<div class="fg"><label>人工类型</label><select id="f_ltype" onchange="onTypeChange()"><option>月薪</option><option>计时</option><option>计件</option><option>外包</option><option>临时</option></select></div>
+</div>
+<div class="gr">
+<div class="fg"><label>工作日期</label><input type="date" id="f_work_date"></div>
+<div class="fg"><label>归属月份</label><input id="f_work_month" placeholder="YYYY-MM（留空按工作日期推导）"></div>
+<div class="fg"><label>关联项目</label><input id="f_project"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>工时(h) <small id="hint_hours" style="color:#aaa"></small></label><input type="number" step="0.5" id="f_hours" oninput="calcTotal()"></div>
+<div class="fg"><label>加班工时(h)</label><input type="number" step="0.5" id="f_overtime_hours" oninput="calcTotal()"></div>
+<div class="fg"><label>件数 <small id="hint_pieces" style="color:#aaa"></small></label><input type="number" step="1" id="f_pieces" oninput="calcTotal()"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>单价/时薪/计件单价</label><input type="number" step="0.01" id="f_unit_price" oninput="calcTotal()"></div>
+<div class="fg"><label>基本工资(月薪/外包)</label><input type="number" step="0.01" id="f_base_amount" oninput="calcTotal()"></div>
+<div class="fg"><label>加班费</label><input type="number" step="0.01" id="f_overtime_pay" oninput="calcTotal()"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>补贴/津贴</label><input type="number" step="0.01" id="f_subsidy" oninput="calcTotal()"></div>
+<div class="fg"><label>奖金/绩效</label><input type="number" step="0.01" id="f_bonus" oninput="calcTotal()"></div>
+<div class="fg"><label>社保(企业部分)</label><input type="number" step="0.01" id="f_social" oninput="calcTotal()"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>公积金(企业部分)</label><input type="number" step="0.01" id="f_fund" oninput="calcTotal()"></div>
+<div class="fg"><label>合计金额（自动计算）</label><input type="number" step="0.01" id="f_total" readonly style="background:#f5f6fa"></div>
+<div class="fg"></div>
+</div>
+<div class="fg"><label>备注</label><textarea id="f_remarks"></textarea></div>
+<div style="text-align:right;margin-top:10px">
+<button type="button" class="btn bs" style="background:#eee;color:#555" onclick="closeForm()">取消</button>
+<button type="submit" class="btn b2">保存</button>
+</div>
+</form>
+</div>
+</div>
+<datalist id="deptList"></datalist>
+<datalist id="posList"></datalist>
+
+<script src="common.js"></script>
+<script src="fetch-auth.js"></script>
+<script src="import-dropzone.js"></script>
+<script>
+const API='/api/labor';
+let meta={}, curPage=1, total=0, LIMIT=20, selected=new Set();
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function yuan(n){return '¥'+(Math.round((Number(n)||0)*100)/100).toLocaleString()}
+function toast(m){let d=document.createElement('div');d.textContent=m;d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:6px;z-index:9999;font-size:13px';document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function num(id){return Number(document.getElementById(id).value)||0}
+function qs(){const p=new URLSearchParams();['f_kw','f_type','f_dept','f_src','f_month','f_from','f_to'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({f_kw:'keyword',f_type:'labor_type',f_dept:'department',f_src:'source',f_month:'work_month',f_from:'work_from',f_to:'work_to'}[id],v)});return p}
+
+function swTab(name,btn){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('ac'));document.getElementById('tab-'+name).classList.add('ac');document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));btn.classList.add('ac');if(name==='analysis')loadStats();if(name==='quality')loadQuality();if(name==='ext')loadExt();}
+
+async function loadFilterOpts(){
+  try{
+    const r=await fetch(API+'/meta/filter-options');meta=await r.json();
+    fillSel('f_dept',meta.departments);
+    fillSel('f_month',(meta.work_months||[]));
+    const dl=document.getElementById('deptList');dl.innerHTML=(meta.departments||[]).map(d=>'<option value="'+esc(d)+'">').join('');
+    const pl=document.getElementById('posList');pl.innerHTML=(meta.positions||[]).map(d=>'<option value="'+esc(d)+'">').join('');
+    fillSel('a_month',meta.work_months||[]);
+    fillSel('a_dept',meta.departments||[]);
+  }catch(e){console.error(e)}
+}
+function fillSel(id,arr){const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;const first=sel.options[0]?sel.options[0].outerHTML:'';sel.innerHTML=first+(arr||[]).map(v=>'<option>'+esc(v)+'</option>').join('');sel.value=cur;}
+function togRules(){document.getElementById('formRules').classList.toggle('open');}
+
+async function loadStatCards(){
+  try{
+    const r=await fetch(API+'/dashboard/stats');const d=await r.json();
+    const cards=[
+      {n:d.total,l:'人工记录数',c:'#667eea'},
+      {n:d.headcount,l:'涉及人数',c:'#2980b9'},
+      {n:yuan(d.total_cost),l:'人工支出总额',c:'#27ae60'},
+      {n:(d.total_hours||0).toLocaleString()+'h',l:'总工时',c:'#8e44ad'},
+      {n:(d.total_pieces||0).toLocaleString(),l:'总件数',c:'#e67e22'},
+      {n:yuan(d.cost_per_hour)+'/h',l:'工时单价',c:'#16a085'}
+    ];
+    document.getElementById('statCards').innerHTML=cards.map(c=>'<div class="sc"><div class="n" style="color:'+c.c+';font-size:'+(c.n.length>10?'16px':'22px')+'">'+esc(c.n)+'</div><div class="l">'+c.l+'</div></div>').join('');
+  }catch(e){}
+}
+
+async function loadList(p){
+  curPage=p||1;
+  try{
+    const r=await fetch(API+'?'+qs().toString()+'&page='+curPage+'&limit='+LIMIT);
+    const d=await r.json();total=d.total;
+    const tb=document.getElementById('tb');
+    if(!d.data.length){tb.innerHTML='<tr><td colspan="14" class="em">暂无人工记录，点击「新增人工」或「批量导入」</td></tr>'}
+    else{
+      tb.innerHTML=d.data.map(r=>'<tr>'+
+        '<td><input type="checkbox" class="row-sel" data-id="'+r.id+'"'+(selected.has(r.id)?' checked':'')+'></td>'+
+        '<td>'+esc(r.labor_code)+'</td>'+
+        '<td>'+esc(r.employee_name)+'</td>'+
+        '<td>'+esc(r.department)+'</td>'+
+        '<td>'+esc(r.position)+'</td>'+
+        '<td><span class="type-tag tt-'+esc(r.labor_type)+'">'+esc(r.labor_type)+'</span></td>'+
+        '<td>'+esc(r.work_date)+'</td>'+
+        '<td>'+esc(r.work_month)+'</td>'+
+        '<td class="r">'+(r.hours?esc(r.hours):'-')+'</td>'+
+        '<td class="r">'+(r.pieces?esc(r.pieces):'-')+'</td>'+
+        '<td class="r">'+(r.labor_type==='月薪'||r.labor_type==='外包'||r.labor_type==='临时'?yuan(r.base_amount):yuan(r.unit_price))+'</td>'+
+        '<td class="r"><b>'+yuan(r.total_amount)+'</b></td>'+
+        '<td>'+srcBadge(r.source)+'</td>'+
+        '<td><button class="btn bs b4" onclick="openEdit('+r.id+')" data-perm="labor:edit">编辑</button> <button class="btn bs b3" onclick="del('+r.id+')" data-perm="labor:delete">删</button></td>'+
+        '</tr>').join('');
+    }
+    renderPg();applyPerms();
+  }catch(e){toast('加载失败: '+e.message)}
+}
+function srcBadge(s){const c={'手工录入':'#95a5a6','Excel导入':'#2980b9','外部API':'#e67e22'};return '<span class="badge" style="background:'+(c[s]?'rgba(0,0,0,.06)':'')+';color:'+(c[s]||'#999')+'">'+esc(s||'-')+'</span>'}
+function renderPg(){const pages=Math.ceil(total/LIMIT)||1;const el=document.getElementById('pg');el.innerHTML='<span>共 '+total+' 条，第 '+curPage+'/'+pages+' 页</span><div>'+(curPage>1?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage-1)+')">上一页</button>':'')+(curPage<pages?'<button class="btn bs" style="background:#eee;margin-left:6px" onclick="loadList('+(curPage+1)+')">下一页</button>':'')+'</div>'}
+function toggleAll(el){document.querySelectorAll('.row-sel').forEach(c=>{c.checked=el.checked;if(el.checked)selected.add(Number(c.dataset.id));else selected.clear()})}
+function resetFilter(){['f_kw','f_type','f_dept','f_src','f_month','f_from','f_to'].forEach(id=>document.getElementById(id).value='');loadList(1)}
+
+// ===== 新增/编辑 =====
+function openAdd(){resetForm();document.getElementById('formTitle').textContent='新增人工';document.getElementById('f_work_date').value=new Date().toISOString().substring(0,10);document.getElementById('f_work_month').value=new Date().toISOString().substring(0,7);onTypeChange();document.getElementById('formModal').classList.add('ac')}
+async function openEdit(id){try{const r=await fetch(API+'/'+id);const d=await r.json();fillForm(d);onTypeChange();document.getElementById('formTitle').textContent='编辑人工';document.getElementById('formModal').classList.add('ac')}catch(e){toast('加载失败')}}
+function resetForm(){['f_id','f_code','f_name','f_no','f_department','f_position','f_work_date','f_work_month','f_project','f_hours','f_overtime_hours','f_pieces','f_unit_price','f_base_amount','f_overtime_pay','f_subsidy','f_bonus','f_social','f_fund','f_total','f_remarks'].forEach(id=>document.getElementById(id).value='');document.getElementById('f_ltype').value='月薪';}
+function fillForm(r){document.getElementById('f_id').value=r.id||'';document.getElementById('f_code').value=r.labor_code||'';document.getElementById('f_name').value=r.employee_name||'';document.getElementById('f_no').value=r.employee_no||'';document.getElementById('f_department').value=r.department||'';document.getElementById('f_position').value=r.position||'';document.getElementById('f_ltype').value=r.labor_type||'月薪';document.getElementById('f_work_date').value=r.work_date||'';document.getElementById('f_work_month').value=r.work_month||'';document.getElementById('f_project').value=r.project||'';document.getElementById('f_hours').value=r.hours||'';document.getElementById('f_overtime_hours').value=r.overtime_hours||'';document.getElementById('f_pieces').value=r.pieces||'';document.getElementById('f_unit_price').value=r.unit_price||'';document.getElementById('f_base_amount').value=r.base_amount||'';document.getElementById('f_overtime_pay').value=r.overtime_pay||'';document.getElementById('f_subsidy').value=r.subsidy||'';document.getElementById('f_bonus').value=r.bonus||'';document.getElementById('f_social').value=r.social_insurance||'';document.getElementById('f_fund').value=r.housing_fund||'';document.getElementById('f_total').value=r.total_amount||'';document.getElementById('f_remarks').value=r.remarks||'';}
+function closeForm(){document.getElementById('formModal').classList.remove('ac')}
+function onTypeChange(){const t=document.getElementById('f_ltype').value;const h=document.getElementById('hint_hours'),p=document.getElementById('hint_pieces');h.textContent=t==='计时'?'(计时必填)':'';p.textContent=t==='计件'?'(计件必填)':'';calcTotal()}
+function calcTotal(){const t=document.getElementById('f_ltype').value;let core=0;if(t==='计时')core=num('f_unit_price')*num('f_hours');else if(t==='计件')core=num('f_unit_price')*num('f_pieces');else core=num('f_base_amount');const tot=core+num('f_overtime_pay')+num('f_subsidy')+num('f_bonus')+num('f_social')+num('f_fund');document.getElementById('f_total').value=Math.round(tot*100)/100}
+async function saveForm(){
+  const id=document.getElementById('f_id').value;
+  if(!document.getElementById('f_name').value){toast('员工姓名必填');return}
+  const body={labor_code:document.getElementById('f_code').value,employee_name:document.getElementById('f_name').value,employee_no:document.getElementById('f_no').value,department:document.getElementById('f_department').value,position:document.getElementById('f_position').value,labor_type:document.getElementById('f_ltype').value,work_date:document.getElementById('f_work_date').value,work_month:document.getElementById('f_work_month').value,project:document.getElementById('f_project').value,hours:document.getElementById('f_hours').value,overtime_hours:document.getElementById('f_overtime_hours').value,pieces:document.getElementById('f_pieces').value,unit_price:document.getElementById('f_unit_price').value,base_amount:document.getElementById('f_base_amount').value,overtime_pay:document.getElementById('f_overtime_pay').value,subsidy:document.getElementById('f_subsidy').value,bonus:document.getElementById('f_bonus').value,social_insurance:document.getElementById('f_social').value,housing_fund:document.getElementById('f_fund').value,remarks:document.getElementById('f_remarks').value,source:'手工录入'};
+  try{
+    const r=await fetch(id?API+'/'+id:''+API+'/',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();if(!r.ok){toast(d.error||'保存失败');return}
+    toast('保存成功');closeForm();loadList(curPage);loadStatCards();
+  }catch(e){toast('保存失败: '+e.message)}
+}
+async function del(id){if(!confirm('确认删除该人工记录？'))return;try{const r=await fetch(API+'/'+id,{method:'DELETE'});const d=await r.json();if(!r.ok){toast(d.error);return}toast('已删除');loadList(curPage);loadStatCards()}catch(e){toast(e.message)}}
+async function batchDelete(){const ids=[...selected];if(!ids.length){toast('请勾选要删除的记录');return}if(!confirm('确认删除选中的 '+ids.length+' 条记录？'))return;try{const r=await fetch(API+'/batch-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});const d=await r.json();if(!r.ok){toast(d.error);return}toast(d.message);selected.clear();loadList(curPage);loadStatCards()}catch(e){toast(e.message)}}
+
+function exportCsv(){const p=qs().toString();window.open(API+'/export/csv'+(p?('?'+p):''),'_blank')}
+function dlTpl(){window.open('/api/import/template/labor','_blank')}
+
+// ===== 成本分析 =====
+function aQs(){const p=new URLSearchParams();['a_month','a_type','a_dept','a_src','a_from','a_to'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({a_month:'work_month',a_type:'labor_type',a_dept:'department',a_src:'source',a_from:'work_from',a_to:'work_to'}[id],v)});return p}
+async function loadStats(){
+  const box=document.getElementById('anaBox');box.innerHTML='<div class="em">分析中...</div>';
+  try{
+    const r=await fetch(API+'/dashboard/stats?'+aQs().toString());const d=await r.json();
+    const bars=(arr,color)=>{const m=Math.max(1,...arr.map(x=>x.value));return arr.map(x=>'<div class="hbar"><span class="lb" title="'+esc(x.name)+'">'+esc(x.name)+'</span><div class="track"><div class="fill" style="width:'+(x.value/m*100)+'%;background:'+color+'"></div></div><span class="val">'+yuan(x.value)+'</span></div>').join('')};
+    const trendMax=Math.max(1,...(d.by_month||[]).map(x=>x.amount));
+    const trend=(d.by_month||[]).map(x=>'<i style="height:'+Math.max(3,x.amount/trendMax*120)+'px" data-tip="'+esc(x.month)+' '+yuan(x.amount)+'"></i>').join('');
+    const topEmp=(d.top_employees||[]).slice(0,10).map(x=>'<tr><td>'+esc(x.name)+'</td><td class="r"><b>'+yuan(x.value)+'</b></td></tr>').join('');
+    const costDetail=[['基本工资',d.total_base,'#667eea'],['加班费',d.total_overtime_pay,'#e67e22'],['补贴津贴',d.total_subsidy,'#f39c12'],['奖金绩效',d.total_bonus,'#27ae60'],['社保(企业)',d.total_social_insurance,'#e74c3c'],['公积金(企业)',d.total_housing_fund,'#8e44ad']];
+    const costDetailHtml=costDetail.map(c=>'<div class="hbar"><span class="lb">'+c[0]+'</span><div class="track"><div class="fill" style="width:'+(c[1]/Math.max(1,d.total_cost)*100)+'%;background:'+c[2]+'"></div></div><span class="val">'+yuan(c[1])+'</span></div>').join('');
+    box.innerHTML=
+    '<div class="sg">'+
+      card(d.total,'人工记录数','#667eea')+card(d.headcount,'涉及人数','#2980b9')+card(yuan(d.total_cost),'人工支出总额','#27ae60')+
+      card((d.total_hours||0).toLocaleString()+'h','总工时','#8e44ad')+card((d.total_pieces||0).toLocaleString(),'总件数','#e67e22')+card(yuan(d.cost_per_hour)+'/h','工时单价','#16a085')+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h3>📈 月度人工成本趋势</h3>'+(trend?'<div class="trend">'+trend+'</div>':'<div class="em">无数据</div>')+(d.last_month?'<p style="font-size:12px;color:#888;margin:8px 0 0">'+esc(d.last_month)+' 环比 '+((d.mom_percent>=0?'+':'')+d.mom_percent+'%')+'</p>':'')+'</div>'+
+      '<div class="panel"><h3>🧩 成本构成</h3>'+costDetailHtml+'</div>'+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h3>👥 按人工类型</h3>'+bars(d.by_type,'#2980b9')+'</div>'+
+      '<div class="panel"><h3>🏢 按部门</h3>'+bars(d.by_department,'#27ae60')+'</div>'+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h3>📁 按项目</h3>'+bars(d.by_project,'#667eea')+'</div>'+
+      '<div class="panel"><h3>🏆 人工成本 TOP 员工</h3>'+(topEmp?'<table><thead><tr><th>员工</th><th class="r">合计金额</th></tr></thead><tbody>'+topEmp+'</tbody></table>':'<div class="em">无数据</div>')+'</div>'+
+    '</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
+}
+function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+';font-size:'+(String(n).length>10?'15px':'22px')+'">'+esc(n)+'</div><div class="l">'+l+'</div></div>'}
+
+// ===== 质检 =====
+async function loadQuality(){
+  const box=document.getElementById('qBox');box.innerHTML='<div class="em">质检中...</div>';
+  try{
+    const r=await fetch(API+'/quality-check');const d=await r.json();
+    const sev={severe:'严重',warning:'警告',info:'提示'};
+    const sevCls={severe:'sev-severe',warning:'sev-warning',info:'sev-info'};
+    const issues=(d.issues||[]).slice(0,200).map(i=>'<div class="chk-row"><span><span class="'+sevCls[i.severity]+'">['+sev[i.severity]+']</span> '+esc(i.message)+' <small style="color:#999">'+esc(i.employee_name||i.labor_code)+'</small></span><a onclick="openEdit('+i.id+')" style="color:#667eea;cursor:pointer">去修复</a></div>').join('');
+    box.innerHTML=
+    '<div class="sg">'+card(d.total,'记录总数','#667eea')+card(d.affected+' ('+(d.total?(Math.round(d.affected/d.total*1000)/10):0)+'%)','存在问题','#e74c3c')+card(d.pass_rate+'%','通过率','#27ae60')+card(d.issue_count,'问题数','#f39c12')+'</div>'+
+    '<div class="panel"><h3>问题清单</h3>'+(issues||'<div class="em">未发现问题</div>')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">'+esc(e.message)+'</div>'}
+}
+
+// ===== 外部对接 =====
+async function loadExt(){
+  try{
+    const r=await fetch(API+'/external/config');const d=await r.json();
+    document.getElementById('ext_enabled').value=String(d.enabled===true);
+    document.getElementById('ext_base_url').value=d.base_url||'';
+    document.getElementById('ext_app_key').value=d.app_key||'';
+    document.getElementById('ext_app_secret').value=d.app_secret||'';
+    document.getElementById('ext_endpoint_code').value=d.endpoint_code||'labor.list';
+  }catch(e){}
+}
+async function saveExt(){
+  const body={enabled:document.getElementById('ext_enabled').value==='true',base_url:document.getElementById('ext_base_url').value,app_key:document.getElementById('ext_app_key').value,app_secret:document.getElementById('ext_app_secret').value,endpoint_code:document.getElementById('ext_endpoint_code').value};
+  try{const r=await fetch(API+'/external/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok){toast(d.error);return}toast(d.message)}catch(e){toast(e.message)}
+}
+async function syncExt(){
+  const el=document.getElementById('extResult');el.textContent='正在同步...';
+  try{const r=await fetch(API+'/sync-from-external',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await r.json();if(!r.ok){el.innerHTML='<span style="color:#e74c3c">'+esc(d.error)+'</span>';return}el.innerHTML='<span style="color:#27ae60">'+esc(d.message)+'（新增'+d.added+' 更新'+d.updated+' 跳过'+d.skipped+'）</span>';loadList(curPage);loadStatCards()}catch(e){el.innerHTML='<span style="color:#e74c3c">'+esc(e.message)+'</span>'}
+}
+
+function applyPerms(){if(window.PermissionCheck)PermissionCheck.applyToPage()}
+document.addEventListener('change',e=>{if(e.target.classList.contains('row-sel')){const id=Number(e.target.dataset.id);if(e.target.checked)selected.add(id);else selected.delete(id)}});
+
+loadFilterOpts().then(()=>{loadStatCards();loadList(1)});
+ImportDropzone.init('','labor',function(){loadList(curPage);loadStatCards()});
+</script>
+<script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

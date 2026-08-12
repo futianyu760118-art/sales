@@ -378,7 +378,7 @@ async function onConfigSelected() {
 
 // ===== 询价单列表 =====
 async function loadInquiries(page=1) {
-  const params = new URLSearchParams({page, limit:15});
+  const params = new URLSearchParams({page, limit:(window._pageSize||15)});
   const filters = {status:'statusFilter',sales_person:'salesFilter',keyword:'keywordInput',product_model:'productModelInput',start_date:'startDate',end_date:'endDate'};
   Object.entries(filters).forEach(([k,id])=>{const v=document.getElementById(id).value;if(v)params.set(k,v);});
   try {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 产品管理</title>
+  <title>企业经营管理平台（EBMS）-HJ - 产品管理</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
@@ -23,7 +23,7 @@
   <script src="table-sort-filter.js"></script>
   <script src="dict-loader.js"></script>
 </head>
-<body>
+<body data-page-title="产品管理" data-page-perm="product:view">
   <div class="sidebar" id="sidebar"></div>
 
   <div class="main-content" data-module="product">
@@ -989,6 +989,7 @@
     };
     initTableSortFilter();
   </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 <script src="feature-gate.js"></script><script>FeatureGate.init();</script>

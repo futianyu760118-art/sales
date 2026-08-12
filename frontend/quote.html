@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统 - 报价库</title>
+  <title>企业经营管理平台（EBMS）-HJ - 报价库</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
@@ -32,7 +32,7 @@
     .empty-state { text-align: center; padding: 40px; color: #999; }
   </style>
 </head>
-<body>
+<body data-page-title="报价库" data-page-perm="quote:view">
   <div class="sidebar" id="sidebar"></div>
   
   <div class="main-content">
@@ -214,7 +214,7 @@
       <div class="modal-body">
         <div class="form-group">
           <label>选择询价单 *</label>
-          <select id="importInquiry" style="height: 200px;">
+          <select data-searchable="1" id="importInquiry" style="height: 200px;">
             <option value="">请选择已报价的询价单...</option>
           </select>
         </div>
@@ -237,7 +237,7 @@
         <div id="applyInquiryInfo" style="background:#f8f9fa;padding:10px;border-radius:4px;margin-bottom:15px;"></div>
         <div class="form-group">
           <label>选择报价库记录 *</label>
-          <select id="applyQuote" style="height: 150px;">
+          <select data-searchable="1" id="applyQuote" style="height: 150px;">
             <option value="">请选择报价...</option>
           </select>
         </div>
@@ -663,6 +663,9 @@ async function applyQuote() {
 loadLibrary();
   </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
+
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 </body>
 </html>

@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const { PDFDocument, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const { getTable, ensureTable, now } = require('../db');
-const { requirePerm, getUserPermissions, extractUserId } = require('../auth-middleware');
+const { requirePerm, requireAnyPerm, getUserPermissions, extractUserId } = require('../auth-middleware');
 
 const CN_FONT_PATH = 'C:\\Windows\\Fonts\\simhei.ttf';
 const APPROVAL_STAGE_LABEL = { dept_review: '待部门经理审核', gm_approve: '待总经理批准', approved: '已批准署名', rejected: '已驳回' };
@@ -399,7 +399,7 @@ router.put('/documents/:id/audit', requirePerm('tech:audit'), (req, res) => {
   res.json({ message: '审核完成' });
 });
 
-router.put('/documents/:id/approve', async (req, res) => {
+router.put('/documents/:id/approve', requireAnyPerm('tech:approve:dept','tech:approve:gm','tech:admin'), async (req, res) => {
   const table = getTable('tech_documents');
   const doc = table.findById(req.params.id);
   if (!doc) return res.status(404).json({ error: '资料不存在' });

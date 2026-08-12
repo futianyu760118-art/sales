@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>阿米巴经营管理 - 降本攻坚</title><link rel="stylesheet" href="common.css">
+<style>
+.ap-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.ap-top h2{margin:0}
+.ym-box{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ym-box input,.ym-box select{padding:7px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.ym-box input[type=number]{width:90px}
+.tabs{display:flex;gap:4px;margin-bottom:14px;overflow-x:auto;border-bottom:2px solid #eee}
+.tabs button{border:none;background:none;padding:10px 14px;white-space:nowrap;cursor:pointer;color:#666;font-size:13px}
+.tabs button.ac{color:#667eea;border-bottom:2px solid #667eea;font-weight:700}
+.tc{display:none}.tc.ac{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.cardx{background:#fff;border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.cardx .n{font-size:24px;font-weight:800;color:#667eea}
+.cardx .l{font-size:12px;color:#888;margin-top:4px}
+.dash{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.panel{background:#fff;border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);min-height:200px}
+.panel h3{font-size:14px;margin:0 0 10px;color:#333}
+.ring{width:150px;height:150px;border-radius:50%;margin:6px auto;display:flex;align-items:center;justify-content:center}
+.ring .inner{background:#fff;width:104px;height:104px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .inner b{font-size:26px;font-weight:800;color:#333}
+.ring .inner span{font-size:11px;color:#999}
+.sb{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.tbl{overflow:auto;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);max-height:64vh}
+.tbl table{width:100%;border-collapse:collapse}
+.tbl th,.tbl td{padding:9px 11px;text-align:left;border-bottom:1px solid #eee;font-size:13px}
+.tbl th{background:#f8f9fa;font-weight:600;color:#666;white-space:nowrap}
+.tbl tr:hover{background:#f8f9ff}
+.tbl td.em{text-align:center;color:#bbb;padding:24px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);justify-content:center;align-items:flex-start;z-index:1000;padding-top:36px}
+.mo.ac{display:flex}
+.mb{background:#fff;padding:22px;border-radius:12px;width:92%;max-width:640px;max-height:82vh;overflow-y:auto}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{margin-bottom:10px}
+.fg label{display:block;margin-bottom:4px;color:#555;font-weight:500;font-size:13px}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.fg textarea{min-height:60px;resize:vertical}
+.btn{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:500;font-size:13px;color:#fff;background:#999}
+.btn:hover{opacity:.85}
+.b1{background:#667eea}.b2{background:#27ae60}.b3{background:#e74c3c}.b4{background:#f39c12}.b5{background:#3498db}.bs{padding:5px 10px;font-size:12px}
+.badge{padding:3px 8px;border-radius:12px;font-size:11px;white-space:nowrap;display:inline-block;color:#fff}
+.badge.green{background:#27ae60}.badge.yellow{background:#f1c40f;color:#7a6400}.badge.orange{background:#e67e22}.badge.red{background:#e74c3c}.badge.blue{background:#3498db}.badge.gray{background:#95a5a6}
+.warn td{color:#e67e22}
+/* 树 */
+.tree{list-style:none;padding-left:0}
+.tree ul{list-style:none;padding-left:20px;border-left:1px dashed #e0e0e0;margin-left:6px}
+.tree li{padding:6px 8px;margin:2px 0;border-radius:6px;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tree li:hover{background:#f8f9ff}
+.tree .lv1{font-weight:600}.tree .lv2{color:#555}
+.tree .tag{font-size:10px;padding:2px 6px;border-radius:8px;background:#eef1ff;color:#667eea}
+/* 图表 */
+.hbar-row{display:grid;grid-template-columns:90px 1fr 70px;gap:8px;align-items:center;margin:7px 0;font-size:12px}
+.hbar{height:14px;background:#edf0f7;border-radius:7px;overflow:hidden}
+.hbar i{display:block;height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:7px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:8px}
+.legend span{display:flex;align-items:center;gap:5px;font-size:11px;color:#666}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.pie{width:170px;height:170px;border-radius:50%;margin:0 auto}
+.flow-step{display:inline-block;padding:4px 12px;border-radius:6px;background:#f0f0f0;color:#888;font-size:12px;margin:0 4px}
+.flow-step.on{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.arrow{color:#bbb}
+.kpi-grade{font-weight:800;font-size:15px}
+.kpi-grade.A{color:#27ae60}.kpi-grade.B{color:#667eea}.kpi-grade.C{color:#f39c12}.kpi-grade.D{color:#e74c3c}
+/* 核算报表树状汇总 */
+.stmt-row{background:#fff;border-radius:8px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden}
+.stmt-lv1{border-left:4px solid #667eea}
+.stmt-lv2{border-left:4px solid #9b59b6;margin-left:24px;background:#fafbff}
+.stmt-head{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;flex-wrap:wrap}
+.stmt-head:hover{background:#f8f9ff}
+.stmt-arrow{transition:transform .2s}
+.stmt-name{margin-right:6px;color:#333}
+.stmt-metrics{display:flex;flex-wrap:wrap;gap:10px;padding:0 14px 10px 36px;border-top:1px dashed #f0f0f0;background:#fcfcfc}
+.stmt-m{display:flex;align-items:center;gap:4px;font-size:12px}
+.stmt-m .lbl{color:#999}
+.stmt-m b{font-weight:700}
+.stmt-children{padding:4px 0}
+@media(max-width:900px){.dash{grid-template-columns:1fr}.fr{grid-template-columns:1fr}.stmt-metrics{flex-direction:column;gap:4px;padding-left:14px}}
+</style></head>
+<body data-page-title="阿米巴经营管理" data-page-perm="amiba:view">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="amiba">
+  <div class="ap-top">
+    <h2>阿米巴经营管理（降本攻坚）</h2>
+    <div class="ym-box">
+      <span>年度</span><input id="yearInput" type="number">
+      <span>月份</span><select id="monthInput"><option value="">全年</option></select>
+      <button class="btn b1" onclick="reloadCurrent()">刷新</button>
+    </div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="ac" onclick="switchTab('dashboard')">经营驾驶舱</button>
+    <button onclick="switchTab('org')">组织架构</button>
+    <button onclick="switchTab('target')">降本目标</button>
+    <button onclick="switchTab('account')">经营核算</button>
+    <button onclick="switchTab('price')">内部定价</button>
+    <button onclick="switchTab('standard')">收支标准</button>
+    <button onclick="switchTab('trade')">交易明细</button>
+    <button onclick="switchTab('value')">价值总表</button>
+    <button onclick="switchTab('statement')">核算报表</button>
+    <button onclick="switchTab('improve')">改善先锋</button>
+    <button onclick="switchTab('dispute')">争议仲裁</button>
+    <button onclick="switchTab('train')">培训激励</button>
+    <button onclick="switchTab('report')">月度月报</button>
+    <button onclick="switchTab('ext')">外部API</button>
+  </div>
+  <div class="tc ac" id="tab-dashboard"><div id="dashboardBox"></div></div>
+  <div class="tc" id="tab-org"><div id="orgBox"></div></div>
+  <div class="tc" id="tab-target"><div id="targetBox"></div></div>
+  <div class="tc" id="tab-account"><div id="accountBox"></div></div>
+  <div class="tc" id="tab-price"><div id="priceBox"></div></div>
+  <div class="tc" id="tab-standard"><div id="standardBox"></div></div>
+  <div class="tc" id="tab-trade"><div id="tradeBox"></div></div>
+  <div class="tc" id="tab-value"><div id="valueBox"></div></div>
+  <div class="tc" id="tab-statement"><div id="statementBox"></div></div>
+  <div class="tc" id="tab-improve"><div id="improveBox"></div></div>
+  <div class="tc" id="tab-dispute"><div id="disputeBox"></div></div>
+  <div class="tc" id="tab-train"><div id="trainBox"></div></div>
+  <div class="tc" id="tab-report"><div id="reportBox"></div></div>
+  <div class="tc" id="tab-ext"><div id="extBox"></div></div>
+</div>
+<div class="mo" id="formModal"><div class="mb" id="formBox"></div></div>
+<script src="common.js"></script>
+<script>
+const API='/api/amiba';
+const Y=new Date().getFullYear();
+let currentTab='dashboard';
+let meta={amiba_types:[],improve_types:[],dispute_types:[],price_status:[],audit_status:[],project_status:[],amibas:[]};
+let caches={};
+document.getElementById('yearInput').value=Y;
+(function(){for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'月';document.getElementById('monthInput').appendChild(o)}})();
+function year(){return Number(document.getElementById('yearInput').value)||Y}
+function month(){return document.getElementById('monthInput').value?Number(document.getElementById('monthInput').value):''}
+function yuan(v){v=Number(v)||0;const a=Math.abs(v);if(a>=100000000)return (v/100000000).toFixed(2)+'亿';if(a>=10000)return (v/10000).toFixed(1)+'万';return Math.round(v).toLocaleString()}
+function yuan2(v){return (Number(v)||0).toLocaleString(undefined,{maximumFractionDigits:2})}
+function percent(v){return (Number(v)||0).toFixed(1).replace(/\.0$/,'')+'%'}
+function badge(v){const t=String(v||'-');let c='blue';if(['已完成','已生效','已通过','已裁决','已签署','启用','试点中','执行中','A'].includes(t))c='green';if(['待审核','待初审','待终审','草稿','待处理','立项','B','执行'].includes(t))c='yellow';if(['执行中','审核中','C'].includes(t))c='orange';if(['已驳回','已失效','已终止','已停用','D'].includes(t))c='red';if(['待签'].includes(t))c='gray';return `<span class="badge ${c}">${esc(t)}</span>`}
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function applyPerms(){if(window.PermissionCheck)PermissionCheck.applyToPage()}
+function tabName(n){return {dashboard:'经营驾驶舱',org:'组织架构',target:'降本目标',account:'经营核算',price:'内部定价',standard:'收支标准',trade:'交易明细',value:'价值总表',statement:'核算报表',improve:'改善先锋',dispute:'争议仲裁',train:'培训激励',report:'月度月报',ext:'外部API'}[n]}
+// 各Tab操作流程与核算标准（不修改任何表头，仅作为说明面板注入Tab顶部）
+const _TAB_INFO={
+dashboard:{flow:'各模块录入数据 → 「经营核算」执行月度核算 → 「核算报表」生成各巴核算表 → 驾驶舱自动汇总展示',std:'降本达成率 = 实际节约额 ÷ 目标额；利润 = 总收入 − 总成本；累计降本 = 各巴已完成改善项目节约额之和'},
+org:{flow:'新增巴单元（一级巴=部门/二级巴=班组） → 绑定巴长（取自「系统组织模块」真实人员） → 一级巴设置关联销售员（用于归集订单收入）',std:'巴长必须为系统组织架构中在职人员；关联销售员的订单自动归入该巴收入；停用的巴不参与核算'},
+target:{flow:'设置公司年度降本总目标 → 「一键拆解」按权重分配到一级巴 → 各巴长签署电子责任状 → 月度跟踪达成率',std:'达成率 = 实际节约 ÷ 目标额；实际节约由「改善项目」结项数据自动汇总；达成率 < 80% 标红预警'},
+account:{flow:'点击「月度自动核算」→ 系统按巴关联的部门/销售员自动归集订单收入与成本 → 可手工调整 → 保存',std:'利润 = 收入 −（材料+能耗+人工+管理费+内部交易+其他成本）；本期节约 =（上期单位成本 − 本期单位成本）× 本期收入'},
+price:{flow:'从物料库检索取基数（物料代码/名称/单位/单价） → 设置系数 → 系统自动算内部单价（基数×系数） → 提交审核 → 审批通过后生效',std:'内部单价 = 物料库单价（基数）× 系数；审核流程：财务提交 → 推行办审核 → 委员会审批 → 生效后计入核算；支持 Excel 导入/导出'},
+standard:{flow:'选择部门（巴）+ 方向（收入/支出） → 从物料库选物料（自动带出单价基数） → 设置系数 → 自动算标准价 → 可批量生成',std:'标准价 = 物料库单价 × 系数；标准金额 = 标准价 × 标准数量；收入标准=该巴对外提供服务收费；支出标准=该巴接受其他巴服务付费'},
+trade:{flow:'选择提供方巴/接收方巴 → 填写服务编号 → 点「查询定价清单带价」自动带出单价 → 填数量 → 保存 → 点「结算」计入核算',std:'总金额 = 数量 × 单价；服务编号关联定价清单自动带价；仅「已结算」的交易计入经营核算与价值总表；可按巴切换子表查看'},
+value:{flow:'交易明细结算后自动汇总 → 查看各部门价值排行 → 查看各经办人创造价值排行',std:'提供价值 = 作为提供方巴的交易总额（该部门创造的价值）；接收价值 = 作为接收方巴的交易总额（占用的成本）；净创造价值 = 提供价值 − 接收价值；正值=价值净输出部门'},
+statement:{flow:'选择巴 → 点「生成」→ 收入行从交易明细按服务编号自动归集 → 手工填写费用行和总工时 → 点「保存」',std:'经营附加值 = 总收入 − 总费用；单位时间附加值 = 附加值 ÷ 总工时；净利润率 = 净利润 ÷ 总收入；阶梯奖励：利润率<10%→10%、10~20%→15%、≥20%→20%；奖金池 = 净利润 × 奖励比例（亏损为0）'},
+improve:{flow:'提报改善项目 → 精益专员评审立项 → 执行中跟进进度 → 结项核算节约额 → 优秀项目归档为标杆案例',std:'节约额 = 上期成本 − 本期成本；结项后的节约额自动计入「降本目标」的实际达成；成本热力测绘按单位成本从高到低排列，识别改善潜力'},
+dispute:{flow:'巴长提交争议（定价/成本/责任/结算） → 推行办初审 → 委员会终审 → 裁决结果写入核算基准',std:'定价争议：对内部单价有异议；成本争议：对成本归集有异议；终审通过后裁决金额调整核算数据'},
+train:{flow:'记录培训场次（主题/类型/参加人数/完成人数） → 巴长能力考核 → 系统按经营成果测算激励奖金 → 自动同步巴长KPI',std:'激励奖金 = 累计降本节约额 × 提奖比例（默认20%）；巴长KPI = 目标达成率50% + 利润率30% + 改善项目贡献20%；KPI等级 A/B/C/D'},
+report:{flow:'点击「一键生成本月月报」→ 系统自动汇总各巴经营数据生成月报内容 → 编辑补充 → 发布/归档',std:'月报汇总各巴当月核算数据、降本达成、改善成果、争议处理等；发布后可供委员会审阅'},
+  ext:{flow:'外部系统（金蝶/WMS/MES）通过 X-API-Key 调用 /api/external/* → 拉取阿米巴数据(OUT)或回传应收应付(BACK) → 本系统自动归集到核算表',std:'应收(AR)金额按应收确认收入；应付(AP)金额按应付确认成本；BACK 回传自动加锁，后续 OUT 推送不再覆盖；所有调用记录在同步登记中可查'}
+};
+function _infoPanel(name){
+  const info=_TAB_INFO[name];if(!info)return'';
+  return `<details class="tab-info" style="background:linear-gradient(135deg,#f0f4ff,#e8eeff);border-left:4px solid #667eea;padding:8px 14px;margin-bottom:10px;border-radius:0 6px 6px 0;font-size:13px;color:#444;animation:fadeIn .2s">
+    <summary style="cursor:pointer;font-weight:700;color:#667eea;user-select:none">📋 操作流程与核算标准 <span style="font-size:11px;color:#999;font-weight:400">（点击展开/收起）</span></summary>
+    <div style="margin-top:8px;line-height:1.8">
+      <div style="margin-bottom:4px"><span style="display:inline-block;background:#27ae60;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px;margin-right:6px">操作流程</span>${esc(info.flow)}</div>
+      <div><span style="display:inline-block;background:#e67e22;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px;margin-right:6px">核算标准</span>${esc(info.std)}</div>
+    </div>
+  </details>`;
+}
+function switchTab(name){currentTab=name;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('ac',b.textContent.includes(tabName(name))));document.querySelectorAll('.tc').forEach(c=>c.classList.remove('ac'));const tabDiv=document.getElementById('tab-'+name);if(!tabDiv)return;tabDiv.classList.add('ac');const box=tabDiv.querySelector('[id$="Box"]');const old=tabDiv.querySelector('.tab-info');const panel=document.createElement('div');panel.innerHTML=_infoPanel(name);const first=panel.firstChild;if(old&&first){tabDiv.replaceChild(first,old)}else if(!old&&first&&box){tabDiv.insertBefore(first,box)}loadTab(name)}
+function reloadCurrent(){loadTab(currentTab,true)}
+async function getJson(url,opt){const r=await fetch(url,opt);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+async function postJson(url,body){return getJson(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})})}
+async function putJson(url,body){return getJson(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})})}
+async function delJson(url){return getJson(url,{method:'DELETE'})}
+async function loadMeta(){try{meta=await getJson(`${API}/meta`)}catch(e){}}
+async function loadTab(name,force){
+  await loadMeta();
+  if(name==='dashboard')return loadDashboard();
+  if(name==='org')return loadOrg();
+  if(name==='target')return loadTarget();
+  if(name==='account')return loadAccount();
+  if(name==='price')return loadPrice();
+  if(name==='standard')return loadStandard();
+  if(name==='trade')return loadTrade();
+  if(name==='value')return loadValue();
+  if(name==='statement')return loadStatement();
+  if(name==='improve')return loadImprove();
+  if(name==='dispute')return loadDispute();
+  if(name==='train')return loadTrain();
+  if(name==='report')return loadReport();
+  if(name==='ext')return loadExt();
+}
+function renderTable(cols,rows,span){if(!rows||!rows.length)return `<div class="tbl"><table><tbody><tr><td class="em" colspan="${span}">暂无数据</td></tr></tbody></table></div>`;return `<div class="tbl"><table><thead><tr>${cols.map(c=>`<th>${c[0]}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr${r._warn?' class="warn"':''}>${cols.map(c=>`<td>${c[1](r)??''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function openForm(){document.getElementById('formModal').classList.add('ac')}
+function closeForm(){document.getElementById('formModal').classList.remove('ac')}
+function field(f,row){let [k,l,t,opt]=f;let v=row?row[k]??'':'';if(t==='select'){const arr=(opt&&opt.length)?opt:(meta[k+'s']||[]);const srch=arr.length>30?' data-searchable="1"':'';return `<div class="fg"><label>${l}</label><select id="ff_${k}"${srch}>${arr.map(o=>{const val=typeof o==='object'?o.id:o;const txt=typeof o==='object'?o.name:o;return `<option value="${esc(val)}" ${String(v)===String(val)?'selected':''}>${esc(txt)}</option>`}).join('')}</select></div>`}if(t==='textarea')return `<div class="fg"><label>${l}</label><textarea id="ff_${k}">${esc(v)}</textarea></div>`;return `<div class="fg"><label>${l}</label><input id="ff_${k}" type="${t==='number'?'number':t==='date'?'date':'text'}" value="${esc(v)}"></div>`}
+function formFields(fields,row){let h='<div>';for(let i=0;i<fields.length;i++){const a=fields[i],b=fields[i+1];if(a[2]==='textarea'){h+=field(a,row);continue}if(b&&b[2]!=='textarea'){h+='<div class="fr">'+field(a,row)+field(b,row)+'</div>';i++}else h+='<div class="fr">'+field(a,row)+'</div>'}return h+'</div>'}
+function readForm(fields){const o={};fields.forEach(f=>{const el=document.getElementById('ff_'+f[0]);if(el)o[f[0]]=f[2]==='number'?(Number(el.value)||0):el.value});return o}
+function amibaSelect(key,label){return [key,label,'select',meta.amibas.map(a=>({id:a.id,name:a.name}))]}
+window.onclick=e=>{if(e.target.id==='formModal')closeForm()};
+
+// ===== 通用：导出 Excel / 下载模板 / 导入 Excel =====
+// 用法：exportExcel('/api/amiba/target/export?year=2026', '降本目标_2026.xlsx')
+async function exportExcel(url, fallbackName){
+  try{
+    const r=await fetch(url,{headers:{'x-user-id':localStorage.getItem('currentUserId')||''}});
+    if(!r.ok){const j=await r.json().catch(()=>({}));return alert('导出失败：'+(j.error||'HTTP '+r.status))}
+    const blob=await r.blob();
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    // 尝试从 Content-Disposition 取文件名
+    const cd=r.headers.get('Content-Disposition')||'';
+    const m=cd.match(/filename\*?=(?:UTF-8'')?["']?([^";]+)/i);
+    a.download= m?decodeURIComponent(m[1]) : (fallbackName||'export.xlsx');
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 500);
+  }catch(e){alert('导出失败：'+e.message)}
+}
+async function importExcel(endpoint, fileInputId, onSuccess){
+  const el=document.getElementById(fileInputId); if(!el||!el.files[0])return;
+  const fd=new FormData(); fd.append('file', el.files[0]);
+  try{
+    const r=await fetch(endpoint,{method:'POST',headers:{'x-user-id':localStorage.getItem('currentUserId')||''},body:fd});
+    const j=await r.json().catch(()=>({})); if(!r.ok)throw new Error(j.error||'HTTP '+r.status);
+    const errTxt=j.errors&&j.errors.length?'\n部分错误：'+j.errors.slice(0,5).map(e=>'第'+e.row+'行: '+(e.errors||[]).join(';')).join('\n'):'';
+    alert((j.message||'导入完成')+errTxt);
+    if(typeof onSuccess==='function')onSuccess(); else location.reload();
+  }catch(e){alert('导入失败：'+e.message)}
+  el.value='';
+}
+
+// ===== 驾驶舱 =====
+async function loadDashboard(){
+  const d=await getJson(`${API}/dashboard?year=${year()}`);
+  const ms=await getJson(`${API}/trade-detail/master-summary?year=${year()}`).catch(()=>({overview:{},dept_rows:[],person_rows:[]}));
+  const acc=await getJson(`${API}/account/profitList?year=${year()}&month=${month()===''?'':month()}&limit=999`).catch(()=>({data:[]}));
+  const improves=await getJson(`${API}/improve?year=${year()}&limit=999`).catch(()=>({data:[]}));
+  const g=d.achievement_gauge||{};
+  const comp=Math.min(100,Number(g.value)||0);
+  const deptRows=ms.dept_rows||[];
+  const accMap={};(acc.data||[]).forEach(a=>{accMap[Number(a.amiba_id)]=a});
+  const saveMap={};(improves.data||[]).filter(p=>p.status==='已完成').forEach(p=>{saveMap[Number(p.amiba_id)]=(saveMap[Number(p.amiba_id)]||0)+Number(p.save_amount||0)});
+  const snapCols=[['部门(巴)',r=>esc(r.amiba_name)],['收入(创造)',r=>`<b style="color:#27ae60">${yuan(r.provide_value)}</b>`],['接收(占用)',r=>yuan(r.receive_value)],['净创造价值',r=>`<b style="color:${r.net_value>=0?'#27ae60':'#e74c3c'};font-size:14px">${yuan(r.net_value)}</b>`],['交易笔数',r=>(r.provide_count||0)+(r.receive_count||0)],['核算利润',r=>{const a=accMap[Number(r.amiba_id)];return a?`<span style="color:${a.profit>=0?'#27ae60':'#e74c3c'}">${yuan(a.profit)}</span>`:'<span style="color:#bbb">-</span>'}],['利润率',r=>{const a=accMap[Number(r.amiba_id)];return a?percent(a.profit_rate):'-'}],['累计降本',r=>{const s=saveMap[Number(r.amiba_id)]||0;return s?`<b style="color:#27ae60">${yuan(s)}</b>`:'<span style="color:#bbb">-</span>'}]];
+  document.getElementById('dashboardBox').innerHTML=`
+  <div class="grid">
+    <div class="cardx"><div class="n">${d.overview.amiba_count||0}</div><div class="l">在运巴单元</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">${d.overview.pioneer_count||0}</div><div class="l">先锋试点巴</div></div>
+    <div class="cardx"><div class="n" style="color:#27ae60">${yuan(d.overview.total_save)}</div><div class="l">累计降本节约</div></div>
+    <div class="cardx"><div class="n" style="color:#667eea">${percent(g.value)}</div><div class="l">总目标达成率</div></div>
+    <div class="cardx"><div class="n">${d.overview.finished_improve||0}/${d.overview.improve_count||0}</div><div class="l">改善结项/总数</div></div>
+    <div class="cardx"><div class="n" style="color:#e74c3c">${d.overview.dispute_open||0}</div><div class="l">待处理争议</div></div>
+  </div>
+  <div class="dash">
+    <div class="panel"><h3>公司总降本达成率</h3>
+      <div class="ring" style="background:conic-gradient(#27ae60 ${comp*3.6}deg,#edf0f7 0)"><div class="inner"><b>${Math.round(comp)}%</b><span>目标 ${yuan(g.target)}</span></div></div>
+      <p style="text-align:center;font-size:12px;color:#888;margin:6px 0 0">实际节约 ${yuan(g.real)}</p>
+    </div>
+    <div class="panel"><h3>各阿米巴利润排行</h3>${profitBars(d.profit_rank||[])}</div>
+    <div class="panel"><h3>成本结构占比</h3>${costPie(d.cost_structure||[])}</div>
+  </div>
+  <div class="dash">
+    <div class="panel" style="grid-column:span 2"><h3>月度收入/成本/利润趋势</h3>${trendSvg(d.cost_trend||[])}</div>
+    <div class="panel"><h3>降本改善成果累计</h3>${cumulSvg(d.improve_cumulative||[])}</div>
+  </div>
+  <h3 style="margin:18px 0 8px;color:#333">📋 各阿米巴月度经营快照（${year()}年）<span style="font-size:12px;color:#888;font-weight:400">· 共 ${deptRows.length} 个巴</span></h3>
+  ${renderTable(snapCols,deptRows.slice().sort((a,b)=>b.net_value-a.net_value),snapCols.length)}`;
+  applyPerms();
+}
+function profitBars(list){if(!list.length)return '<div style="color:#bbb;font-size:12px;text-align:center;padding:30px 0">暂无核算数据，请先到「经营核算」执行月度核算</div>';const max=Math.max(1,...list.map(x=>Math.abs(x.value)));return list.map(x=>{const w=Math.abs(x.value)/max*100;const neg=x.value<0;return `<div class="hbar-row"><span>${esc(x.name)}</span><div class="hbar"><i style="width:${w}%;background:${neg?'linear-gradient(90deg,#e74c3c,#c0392b)':'linear-gradient(90deg,#667eea,#764ba2)'}"></i></div><b>${yuan(x.value)}</b></div>`}).join('')}
+function costPie(list){const total=list.reduce((s,x)=>s+(Number(x.value)||0),0);if(!total)return '<div style="color:#bbb;font-size:12px;text-align:center;padding:30px 0">暂无成本数据</div>';const colors=['#667eea','#f39c12','#27ae60','#e74c3c','#9b59b6','#3498db'];let acc=0;let grad='';list.forEach((x,i)=>{const pct=(x.value/total)*360;grad+=`${colors[i%colors.length]} ${acc}deg ${acc+pct}deg`;acc+=pct;if(i<list.length-1)grad+=','});return `<div class="pie" style="background:conic-gradient(${grad})"></div><div class="legend">${list.map((x,i)=>`<span><i style="background:${colors[i%colors.length]}"></i>${esc(x.name)} ${percent(x.value/total*100)}</span>`).join('')}</div>`}
+function trendSvg(t){const W=560,H=170,pad=28;const months=t;const mx=Math.max(1,...months.map(m=>Math.max(m.income,m.cost,Math.abs(m.profit))));const x=i=>pad+i*(W-pad*2)/11;const y=v=>H-pad-(v/mx)*(H-pad*2);const line=key=>{const pts=months.map((m,i)=>`${x(i)},${y(Math.max(0,m[key]))}`).join(' ');return `<polyline points="${pts}" fill="none" stroke="${key==='income'?'#27ae60':key==='cost'?'#e67e22':'#667eea'}" stroke-width="2"/>`};return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:180px">${[0.25,0.5,0.75,1].map(f=>`<line x1="${pad}" y1="${H-pad-f*(H-pad*2)}" x2="${W-pad}" y2="${H-pad-f*(H-pad*2)}" stroke="#eee"/>`).join('')}${line('income')}${line('cost')}${line('profit')}${months.map((m,i)=>i%2?'':`<text x="${x(i)}" y="${H-pad+14}" font-size="10" fill="#999" text-anchor="middle">${m.month}月</text>`).join('')}<g><circle cx="${x(0)}" cy="${y(0)}" r="0"/></g></svg><div class="legend"><span><i style="background:#27ae60"></i>收入</span><span><i style="background:#e67e22"></i>成本</span><span><i style="background:#667eea"></i>利润</span></div>`}
+function cumulSvg(t){const W=560,H=170,pad=28;const mx=Math.max(1,...t.map(x=>x.save));const x=i=>pad+i*(W-pad*2)/11;const y=v=>H-pad-(v/mx)*(H-pad*2);const bw=(W-pad*2)/11-6;const pts=t.map((m,i)=>`${x(i)},${y(m.save)}`).join(' ');return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:180px">${t.map((m,i)=>`<rect x="${x(i)-bw/2}" y="${y(m.save)}" width="${bw}" height="${H-pad-y(m.save)}" fill="#27ae60" opacity="0.55" rx="2"/>`).join('')}<polyline points="${pts}" fill="none" stroke="#27ae60" stroke-width="2"/>${t.map((m,i)=>i%2?'':`<text x="${x(i)}" y="${H-pad+14}" font-size="10" fill="#999" text-anchor="middle">${m.month}月</text>`).join('')}</svg><p style="text-align:center;font-size:12px;color:#888;margin:4px 0 0">累计节约 ${yuan(t.length?t[t.length-1].save:0)}</p>`}
+
+// ===== 组织架构（采用系统原有架构人员）=====
+let orgOpts={departments:[],personnel:[]};
+async function ensureOrgOpts(){if(!orgOpts.departments.length){try{orgOpts=await getJson(`${API}/org-options`)}catch(e){}}return orgOpts}
+async function loadOrg(){
+  const [tree,list]=await Promise.all([getJson(`${API}/org/tree`),getJson(`${API}/org/list?limit=999`)]);
+  await ensureOrgOpts();
+  caches.org=list.data||[];
+  const flatCols=[['序号',(_,i)=>`<b style="color:#667eea">${i+1}</b>`],['巴名称',r=>`<b>${esc(r.amiba_name)}</b>`],['层级',r=>r.amiba_level===1?'<span class="badge green">一级巴</span>':'<span class="badge yellow">二级巴</span>'],['类型',r=>esc(r.amiba_type||'-')],['所属部门',r=>esc(r.department||'-')],['巴长',r=>esc(r.charge_user_name||'-')],['关联销售',r=>esc(r.sales_person||'-')],['产品类别',r=>esc(r.product_category||'-')],['状态',r=>badge(r.status)],['操作',r=>`<button class="btn bs b4" onclick="orgForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b1" onclick="bindForm(${r.id})" data-perm="amiba:edit">绑定</button> <button class="btn bs b3" onclick="delOrg(${r.id})" data-perm="amiba:delete">删除</button>`]];
+  document.getElementById('orgBox').innerHTML=`
+  <div class="sb"><button class="btn b2" onclick="orgForm()" data-perm="amiba:create">新增巴单元</button><button class="btn b1" onclick="syncOrg()" data-perm="amiba:edit">🔄 同步系统组织架构</button><button class="btn b5" onclick="exportExcel('${API}/org/export')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto;color:#999;font-size:12px">巴长与部门直接取自「系统组织模块」真实人员/架构；一级巴可设置关联销售员用于归集订单</span></div>
+  <div class="panel"><h3>组织架构树</h3>${renderTree(tree)}</div>
+  <h3 style="margin:14px 0 8px;color:#333">📋 巴单元列表（${(list.data||[]).length} 条）</h3>
+  ${renderTable(flatCols,list.data||[],flatCols.length)}`;
+  applyPerms();
+}
+function renderTree(nodes){if(!nodes||!nodes.length)return '<div style="color:#bbb;font-size:12px;padding:20px;text-align:center">暂无巴单元，请新增</div>';const cls=lv=>lv===1?'lv1':'lv2';const walk=arr=>`<ul class="tree">${arr.map(o=>`<li class="${cls(o.amiba_level)}">${o.amiba_level===1?'🏢':'🔹'}<b>${esc(o.amiba_name)}</b><span class="tag">${esc(o.amiba_type)}</span>${o.charge_user_name?`<span style="font-size:11px;color:#667eea">👤 巴长:${esc(o.charge_user_name)}</span>`:''}${o.department?`<span style="font-size:11px;color:#888">🏢 ${esc(o.department)}</span>`:''}${o.sales_person?`<span style="font-size:11px;color:#27ae60">销售:${esc(o.sales_person)}</span>`:''} ${badge(o.status)} <button class="btn bs b4" onclick="orgForm(${o.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b1" onclick="bindForm(${o.id})" data-perm="amiba:edit">绑定巴长</button> <button class="btn bs b3" onclick="delOrg(${o.id})" data-perm="amiba:delete">删除</button>${o.children&&o.children.length?walk(o.children):''}</li>`).join('')}</ul>`;return walk(nodes)}
+const orgFields=[['parent_id','上级巴','number'],['amiba_level','巴层级','select',[{id:1,name:'一级巴'},{id:2,name:'二级巴'}]],['amiba_name','巴名称','text'],['amiba_type','巴类型','select'],['department_id','所属部门(系统架构)','select',[]],['charge_personnel_id','巴长(系统人员)','select',[]],['sales_person','关联销售员','text'],['product_category','产品类别','text'],['sort','排序','number'],['status','状态','select',[{id:'启用',name:'启用'},{id:'停用',name:'停用'}]]];
+function orgSelectOpts(){const depts=orgOpts.departments.map(d=>({id:d.id,name:d.name}));const pers=orgOpts.personnel.map(p=>({id:p.id,name:p.name+(p.department_name?'（'+p.department_name+'）':'')}));return{depts,pers}}
+async function orgForm(id){await ensureOrgOpts();let row={amiba_level:1,amiba_type:'生产',status:'启用'};if(id){const list=await getJson(`${API}/org/list?limit=999`);row=(list.data||[]).find(x=>x.id===id)||row}const {depts,pers}=orgSelectOpts();const fields=orgFields.map(f=>{if(f[0]==='amiba_type')return [f[0],f[1],f[2],meta.amiba_types];if(f[0]==='department_id')return ['department_id','所属部门(系统架构)','select',depts];if(f[0]==='charge_personnel_id')return ['charge_personnel_id','巴长(系统人员)','select',pers];return f});const box=document.getElementById('formBox');box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}巴单元</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(fields,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveOrg(${id||0})">保存</button></div>`;openForm();applyPerms()}
+async function saveOrg(id){const data=readForm(orgFields);if(!data.amiba_name)return alert('请填写巴名称');if(id)await putJson(`${API}/org/${id}`,data);else await postJson(`${API}/org`,data);closeForm();loadOrg()}
+async function delOrg(id){if(!confirm('确定删除该巴单元？'))return;await delJson(`${API}/org/${id}`);loadOrg()}
+async function bindForm(id){await ensureOrgOpts();const list=await getJson(`${API}/org/list?limit=999`);const o=(list.data||[]).find(x=>x.id===id);const {pers}=orgSelectOpts();const box=document.getElementById('formBox');box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>绑定巴长 - ${esc(o.amiba_name)}</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${field(['charge_personnel_id','巴长（系统人员）','select',pers],o)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveBind(${id})">保存</button></div>`;openForm()}
+async function saveBind(id){const el=document.getElementById('ff_charge_personnel_id');const pid=el?Number(el.value)||0:0;await postJson(`${API}/org/${id}/bindUser`,{charge_personnel_id:pid});closeForm();loadOrg()}
+// 从系统组织架构同步：拉取 org_departments 活跃部门，智能匹配/补建巴单元
+async function syncOrg(){
+  if(!confirm('从系统组织架构同步部门到阿米巴？\n\n将执行：\n· 读取系统「组织管理」中所有活跃部门\n· 智能匹配已有巴（按 department_id 或名称）→ 补充关联\n· 未匹配的部门自动创建巴单元（含部门负责人→巴长）\n· 已有巴单元不会被删除，仅更新关联信息'))return;
+  try{
+    const j=await postJson(`${API}/org/sync`,{});
+    if(j.error)return alert(j.error);
+    // 展示同步详情
+    const newRows=(j.details||[]).filter(d=>d.action==='新建').map(d=>'· '+d.amiba+' ['+d.type+']').join('\n');
+    const updRows=(j.details||[]).filter(d=>d.action==='更新').map(d=>'· '+d.amiba+' ← '+d.dept+' ('+d.changes.join(',')+')').join('\n');
+    alert(j.message+(newRows?'\n\n新建巴单元：\n'+newRows.slice(0,500):'')+(updRows?'\n\n更新关联：\n'+updRows.slice(0,500):''));
+    loadOrg();
+  }catch(e){alert('同步失败：'+e.message)}
+}
+
+// ===== 降本目标 =====
+async function loadTarget(){const c=await getJson(`${API}/target/company?year=${year()}`);const list=await getJson(`${API}/target/list?year=${year()}&month=${month()===''?0:month()}&limit=999`);caches.target=list.data||[];const cols=[['巴单元',r=>esc(r.amiba_name)],['目标额',r=>yuan(r.target_amount)],['实际节约',r=>yuan(r.real_amount)],['达成率',r=>`<b style="color:${r.completion_rate>=100?'#27ae60':r.completion_rate>=80?'#f39c12':'#e74c3c'}">${percent(r.completion_rate)}</b>`],['责任状',r=>r.sign_status==='已签署'?badge('已签署')+'<span style="font-size:11px;color:#999">'+(r.sign_time||'').substring(0,10)+'</span>':badge('待签')],['巴长',r=>esc(r.duty_user_name||'')],['操作',r=>`<button class="btn bs b4" onclick="targetForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b5" onclick="signTarget(${r.id})" data-perm="amiba:edit" ${r.sign_status==='已签署'?'disabled':''}>签署</button> <button class="btn bs b3" onclick="delTarget(${r.id})" data-perm="amiba:delete">删除</button>`]];document.getElementById('targetBox').innerHTML=`
+  <div class="panel"><h3>${year()}年度公司降本总目标</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+      <div class="cardx"><div class="n">${yuan(c.total_cost_target)}</div><div class="l">降本总目标</div></div>
+      <div class="cardx"><div class="n">${yuan(c.material_reduce_target)}</div><div class="l">材料降本</div></div>
+      <div class="cardx"><div class="n">${yuan(c.energy_reduce_target)}</div><div class="l">能耗降本</div></div>
+      <div class="cardx"><div class="n">${yuan(c.fee_reduce_target)}</div><div class="l">费用降本</div></div>
+      <div class="cardx"><div class="n">${yuan(c.loss_reduce_target)}</div><div class="l">损耗降本</div></div>
+    </div>
+    <div style="margin-top:10px"><button class="btn b4" onclick="companyForm()" data-perm="amiba:edit">编辑公司目标</button></div>
+  </div>
+  <div class="sb" style="margin-top:14px"><button class="btn b5" onclick="decompose()" data-perm="amiba:calc">一键拆解到一级巴</button><button class="btn b2" onclick="targetForm()" data-perm="amiba:create">新增巴目标</button><button class="btn b4" onclick="document.getElementById('targetFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/target/export?year=${year()}')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/target/template" target="_blank" data-perm="amiba:view">下载模板</a><input type="file" id="targetFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/target/import', 'targetFile', ()=>loadTarget())"><span style="margin-left:auto">未达标（&lt;80%）将标红预警 · 共 <b>${list.total||0}</b> 条</span></div>
+  ${renderTable(cols,(list.data||[]).map(r=>Object.assign({_warn:r.warn},r)),cols.length)}`;applyPerms()}
+async function companyForm(){const c=await getJson(`${API}/target/company?year=${year()}`);const f=[['total_cost_target','降本总目标','number'],['material_reduce_target','材料降本目标','number'],['energy_reduce_target','能耗降本目标','number'],['fee_reduce_target','费用降本目标','number'],['loss_reduce_target','损耗降本目标','number']];document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${year()}年度公司降本总目标</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(f,c)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveCompany()">保存</button></div>`;openForm()}
+async function saveCompany(){const f=['total_cost_target','material_reduce_target','energy_reduce_target','fee_reduce_target','loss_reduce_target'];const o={year:year()};f.forEach(k=>o[k]=Number(document.getElementById('ff_'+k).value)||0);await postJson(`${API}/target/company`,o);closeForm();loadTarget()}
+async function decompose(){if(!confirm(`将公司总目标拆解到各一级巴（${month()===''?'全年':month()+'月'}）？\n未指定权重则均分。`))return;const j=await postJson(`${API}/target/amiba/decompose`,{year:year(),month:month()===''?0:month()});alert('已拆解 '+j.created+' 个巴目标');loadTarget()}
+const targetFields=[['amiba_id','巴单元','select',[]],['target_amount','目标额','number'],['real_amount','实际节约','number'],['month','月份(0全年)','number'],['duty_user_name','责任人','text']];
+async function targetForm(id){let row={year:year(),month:0};if(id)row=(caches.target||[]).find(x=>x.id===id)||row;const ff=targetFields.map(f=>f[0]==='amiba_id'?amibaSelect('amiba_id','巴单元'):f);document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}巴目标</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(ff,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveTarget(${id||0})">保存</button></div>`;openForm()}
+async function saveTarget(id){const data=readForm(targetFields);data.year=year();data.amiba_name=(meta.amibas.find(a=>a.id===Number(data.amiba_id))||{}).name||'';if(id)data.id=id;await postJson(`${API}/target`,data);closeForm();loadTarget()}
+async function signTarget(id){if(!confirm('确认签署该巴降本责任状？签署后进入执行中。'))return;await postJson(`${API}/target/${id}/sign`,{});loadTarget()}
+async function delTarget(id){if(!confirm('确定删除？'))return;await delJson(`${API}/target/${id}`);loadTarget()}
+
+// ===== 经营核算 =====
+async function loadAccount(){
+  const list=await getJson(`${API}/account/profitList?year=${year()}&month=${month()===''?'':month()}&limit=999`);
+  caches.account=list.data||[];
+  // 同步拉取应收/应付
+  const arList=await getJson(`${API}/ar?year=${year()}&limit=999`).catch(()=>({data:[],summary:{}}));
+  const apList=await getJson(`${API}/ap?year=${year()}&limit=999`).catch(()=>({data:[],summary:{}}));
+  const arSm=arList.summary||{};
+  const apSm=apList.summary||{};
+  const cols=[['巴单元',r=>esc(r.amiba_name)],['收入',r=>yuan(r.income_total)],['材料',r=>yuan2(r.material_cost)],['能耗',r=>yuan2(r.energy_cost)],['人工',r=>yuan2(r.labor_cost)],['管理费',r=>yuan2(r.manage_fee)],['内部交易',r=>yuan2(r.internal_trade_cost)],['其他',r=>yuan2(r.other_cost)],['总成本',r=>`<b>${yuan2(r.total_cost)}</b>`],['利润',r=>`<b style="color:${r.profit>=0?'#27ae60':'#e74c3c'}">${yuan(r.profit)}</b>`],['利润率',r=>percent(r.profit_rate)],['单位成本',r=>r.unit_cost],['本期节约',r=>`<span style="color:${r.save_amount>=0?'#27ae60':'#e74c3c'}">${yuan2(r.save_amount)}</span>`],['来源',r=>badge(r.source)],['操作',r=>`<button class="btn bs b4" onclick="accountForm(${r.id})" data-perm="amiba:calc">调整</button>`]];
+  const arCols=[['单据号',r=>esc(r.document_no)],['巴单元',r=>esc(r.amiba_name)],['客户',r=>esc(r.customer_name)],['应收金额',r=>`<b style="color:#3498db">¥${yuan2(r.amount)}</b>`],['已收',r=>yuan2(r.paid_amount)],['未收',r=>`<b style="color:${(Number(r.amount)||0)-(Number(r.paid_amount)||0)>0?'#e67e22':'#27ae60'}">¥${yuan2((Number(r.amount)||0)-(Number(r.paid_amount)||0))}</b>`],['账期',r=>esc((r.trade_date||'').substring(0,10))+' ~ '+esc((r.due_date||'').substring(0,10))],['状态',r=>badge(r.status)],['来源',r=>esc(r.source||'')]];
+  const apCols=[['单据号',r=>esc(r.document_no)],['巴单元',r=>esc(r.amiba_name)],['供应商',r=>esc(r.supplier_name)],['应付金额',r=>`<b style="color:#e67e22">¥${yuan2(r.amount)}</b>`],['已付',r=>yuan2(r.paid_amount)],['未付',r=>`<b style="color:${(Number(r.amount)||0)-(Number(r.paid_amount)||0)>0?'#e74c3c':'#27ae60'}">¥${yuan2((Number(r.amount)||0)-(Number(r.paid_amount)||0))}</b>`],['账期',r=>esc((r.trade_date||'').substring(0,10))+' ~ '+esc((r.due_date||'').substring(0,10))],['状态',r=>badge(r.status)],['来源',r=>esc(r.source||'')]];
+  document.getElementById('accountBox').innerHTML=`
+  <div class="grid">
+    <div class="cardx"><div class="n" style="color:#3498db">¥${yuan2(arSm.total_amount||0)}</div><div class="l">应收总额(AR) · 按应收确认收入</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">¥${yuan2(arSm.outstanding||0)}</div><div class="l">未收回款</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">¥${yuan2(apSm.total_amount||0)}</div><div class="l">应付总额(AP) · 按应付确认成本</div></div>
+    <div class="cardx"><div class="n" style="color:#e74c3c">¥${yuan2(apSm.outstanding||0)}</div><div class="l">未付欠款</div></div>
+  </div>
+  <div class="sb"><button class="btn b5" onclick="runCalc()" data-perm="amiba:calc">▶ ${year()}年${month()===''?'全年':month()+'月'}月度自动核算</button><button class="btn b2" onclick="accountForm()" data-perm="amiba:calc">手工录入</button><button class="btn b5" onclick="exportExcel('${API}/account/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto;color:#999;font-size:12px">收入=应收(AR)金额 · 材料成本=应付(AP)金额；无AR/AP时回退订单/询价推算</span></div>
+  ${renderTable(cols,list.data||[],cols.length)}
+  <h3 style="margin:18px 0 8px">📥 应收单据（AR · 来源：外部API /api/external/receive → amiba_ar）</h3>
+  ${renderTable(arCols,arList.data||[],arCols.length)}
+  <h3 style="margin:18px 0 8px">📤 应付单据（AP · 来源：外部API /api/external/receive → amiba_ap）</h3>
+  ${renderTable(apCols,apList.data||[],apCols.length)}`;
+  applyPerms();
+}
+async function runCalc(){if(!confirm(`执行${year()}年${month()===''?'全部':month()+'月'}巴单元月度核算？\n系统将按巴关联的部门/销售自动归集收入与成本。`))return;const j=await postJson(`${API}/account/calc`,{year:year(),month:month()===''?new Date().getMonth()+1:month()});alert(j.message||'核算完成');loadAccount()}
+const accountFields=[['amiba_id','巴单元','select',[]],['month','月份','number'],['income_total','收入','number'],['material_cost','材料成本','number'],['energy_cost','能耗成本','number'],['labor_cost','人工成本','number'],['manage_fee','管理费用','number'],['internal_trade_cost','内部交易成本','number'],['other_cost','其他成本','number'],['income_locked','锁定收入(1/0)','number']];
+async function accountForm(id){let row={year:year(),month:month()===''?new Date().getMonth()+1:month()};if(id)row=(caches.account||[]).find(x=>x.id===id)||row;const ff=accountFields.map(f=>f[0]==='amiba_id'?amibaSelect('amiba_id','巴单元'):f);document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'调整':'手工录入'}核算明细</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(ff,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveAccount(${id||0})">保存</button></div>`;openForm()}
+async function saveAccount(id){const data=readForm(accountFields);data.year=year();data.amiba_name=(meta.amibas.find(a=>a.id===Number(data.amiba_id))||{}).name||'';if(id)data.id=id;await postJson(`${API}/account`,data);closeForm();loadAccount()}
+
+// ===== 内部定价 =====
+async function loadPrice(){const list=await getJson(`${API}/price?limit=999`);caches.price=list.data||[];const cols=[['产品名称',r=>esc(r.product_name)],['编码',r=>esc(r.product_code)],['提供方',r=>esc(r.from_amiba_name)],['接收方',r=>esc(r.to_amiba_name)],['基数',r=>r.base_price?yuan2(r.base_price):'<span style="color:#ccc">-</span>'],['系数',r=>r.coefficient?`<b style="color:#667eea">${r.coefficient}</b>`:'<span style="color:#ccc">-</span>'],['内部单价',r=>yuan2(r.trade_price)+' '+esc(r.unit||'')],['状态',r=>badge(r.price_status)],['审批',r=>badge(r.audit_status)],['生效期',r=>esc((r.effect_time||'').substring(0,10))],['操作',r=>`<button class="btn bs b4" onclick="priceForm(${r.id})" data-perm="amiba:edit">编辑</button> ${r.price_status==='待审核'?`<button class="btn bs b5" onclick="auditPrice(${r.id},'通过')" data-perm="amiba:audit">通过</button> <button class="btn bs b3" onclick="auditPrice(${r.id},'驳回')" data-perm="amiba:audit">驳回</button>`:''} <button class="btn bs b3" onclick="delPrice(${r.id})" data-perm="amiba:delete">删除</button>`]];document.getElementById('priceBox').innerHTML=`<div class="sb"><input id="priceKw" placeholder="搜索产品/巴" onkeydown="if(event.key==='Enter')loadPrice()"> <button class="btn b1" onclick="loadPrice()">查询</button> <button class="btn b2" onclick="priceForm()" data-perm="amiba:create">新增定价</button><button class="btn b4" onclick="document.getElementById('priceFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/price/export')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/price/template" target="_blank">下载模板</a><input type="file" id="priceFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/price/import', 'priceFile', ()=>loadPrice())"><span style="margin-left:auto">💡 定价基数=物料库单价×系数 · 流程：财务提交 → 推行办审核 → 委员会审批 → 生效计入核算</span></div>${renderTable(cols,list.data||[],cols.length)}`;applyPerms()}
+const priceFields=[['product_name','产品名称','text'],['product_code','产品编码','text'],['from_amiba_id','提供方巴','select',[]],['to_amiba_id','接收方巴','select',[]],['trade_price','内部单价','number'],['unit','单位','text'],['effect_time','生效日期','date'],['expire_time','失效日期','date']];
+function recalcPrice(){const b=Number(document.getElementById('ff_base_price')?.value)||0;const c=Number(document.getElementById('ff_coefficient')?.value);const tp=document.getElementById('ff_trade_price');const coef=document.getElementById('ff_coefficient');let price=0;if(b>0){const cc=c||(c===0?1:c);price=cc?b*cc:b;if(coef&&!coef.value)coef.value=1}if(tp){tp.value=(price||b).toFixed(4)}}
+async function priceForm(id){let row={unit:'元',coefficient:1,effect_time:new Date().toISOString().substring(0,10)};if(id)row=(caches.price||[]).find(x=>x.id===id)||row;
+  const box=document.getElementById('formBox');
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}内部交易定价</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>
+  <input type="hidden" id="ff_material_id" value="${row.material_id||0}">
+  ${materialPicker('price',row.material_name||row.product_name,'')}
+  <div class="fr">${field(['product_code','产品编码','text'],row)}${field(['product_name','产品名称','text'],row)}</div>
+  <div class="fr">${field(amibaSelect('from_amiba_id','提供方巴'),row)}${field(amibaSelect('to_amiba_id','接收方巴'),row)}</div>
+  <div class="fr">${field(['base_price','基数(物料库单价)','number'],row)}${field(['coefficient','系数','number'],row)}</div>
+  <div class="fr">${field(['trade_price','内部单价(=基数×系数)','number'],row)}${field(['unit','单位','text'],row)}</div>
+  <div class="fr">${field(['effect_time','生效日期','date'],row)}${field(['expire_time','失效日期','date'],row)}</div>
+  <div style="background:#f0f4ff;padding:8px 12px;border-radius:6px;font-size:12px;color:#555;margin:6px 0">💡 定价基数取物料库单价，内部单价 = 基数 × 系数（系数缺省1）。改基数/系数自动重算。</div>
+  <div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="savePrice(${id||0})">提交</button></div>`;
+  ['base_price','coefficient'].forEach(k=>{const e=document.getElementById('ff_'+k);if(e)e.addEventListener('input',recalcPrice)});
+  openForm();applyPerms()}
+async function savePrice(id){const g=k=>{const e=document.getElementById('ff_'+k);return e?(e.type==='number'?(Number(e.value)||0):e.value):''};const data={material_id:Number(g('material_id'))||0,product_code:g('product_code'),product_name:g('product_name'),material_code:g('product_code'),material_name:g('product_name'),base_price:Number(g('base_price'))||0,coefficient:Number(g('coefficient'))||0,trade_price:Number(g('trade_price'))||0,unit:g('unit'),from_amiba_id:Number(g('from_amiba_id'))||0,to_amiba_id:Number(g('to_amiba_id'))||0,effect_time:g('effect_time'),expire_time:g('expire_time')};data.from_amiba_name=(meta.amibas.find(a=>a.id===Number(data.from_amiba_id))||{}).name||'';data.to_amiba_name=(meta.amibas.find(a=>a.id===Number(data.to_amiba_id))||{}).name||'';if(id)data.id=id;const j=await postJson(`${API}/price`,data);if(j.error)return alert(j.error);closeForm();loadPrice()}
+async function auditPrice(id,result){const opinion=prompt(result==='通过'?'审批意见(可空):':'驳回原因:','')||'';await postJson(`${API}/price/${id}/audit`,{audit_result:result,audit_opinion:opinion});loadPrice()}
+async function delPrice(id){if(!confirm('确定删除？'))return;await delJson(`${API}/price/${id}`);loadPrice()}
+
+// ===== 部门收支标准（内部定价基数=物料库单价×系数）=====
+let _matSearchTimer=null;
+async function searchMaterials(kw,cb){try{const j=await getJson(`${API}/materials/search?keyword=${encodeURIComponent(kw)}&limit=20`);cb(j.data||[])}catch(e){cb([])}}
+// 物料选择器：输入框 + 结果下拉，选中后回调
+function materialPicker(prefix,val,extra){return `<div class="fg" style="position:relative"><label>物料库检索（取代码/名称/单位/单价）</label><input id="ff_${prefix}_kw" type="text" value="${esc(val||'')}" placeholder="输入物料代码/名称搜索，选中自动带出基数" autocomplete="off" oninput="onMatSearch('${prefix}')"><div id="ff_${prefix}_drop" style="display:none;position:absolute;top:62px;left:0;right:0;max-height:240px;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:6px;z-index:30;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>${extra||''}</div>`}
+function onMatSearch(prefix){const el=document.getElementById('ff_'+prefix+'_kw');clearTimeout(_matSearchTimer);_matSearchTimer=setTimeout(()=>{const kw=el.value.trim();if(!kw){document.getElementById('ff_'+prefix+'_drop').style.display='none';return}searchMaterials(kw,list=>{const drop=document.getElementById('ff_'+prefix+'_drop');if(!list.length){drop.innerHTML='<div style="padding:10px;color:#999;font-size:12px">无匹配物料</div>';drop.style.display='block';return}drop.innerHTML=list.map(m=>`<div style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px" onmouseenter="this.style.background='#f0f4ff'" onmouseleave="this.style.background=''" onclick="pickMat('${prefix}',${m.material_id})"><b>${esc(m.material_name)}</b> <span style="color:#888">${esc(m.material_code)}</span> · ${esc(m.unit)} · <span style="color:#27ae60">¥${yuan2(m.unit_price)}</span></div>`).join('');drop.style.display='block'})},280)}
+async function pickMat(prefix,id){try{const m=await getJson(`${API}/materials/${id}`);const fill=['material_code','material_name','unit'];fill.forEach(k=>{const e=document.getElementById('ff_'+k);if(e){e.value=m[k]||''}});const bp=document.getElementById('ff_base_price');if(bp&&m.unit_price){bp.value=m.unit_price}document.getElementById('ff_material_id')&&(document.getElementById('ff_material_id').value=m.material_id);document.getElementById('ff_'+prefix+'_kw').value=m.material_name+' ('+m.material_code+')';document.getElementById('ff_'+prefix+'_drop').style.display='none';recalcStandard()}catch(e){alert('取物料失败: '+e.message)}}
+function recalcStandard(){const b=Number(document.getElementById('ff_base_price')?.value)||0;const c=Number(document.getElementById('ff_coefficient')?.value);const sp=document.getElementById('ff_standard_price');const coef=document.getElementById('ff_coefficient');let price=0;if(b>0){const cc=c||(c===0?1:c);price=cc?b*cc:b;if(coef&&!coef.value)coef.value=1}if(sp){sp.value=(price||b).toFixed(4)}const q=Number(document.getElementById('ff_quantity_std')?.value)||0;const amt=document.getElementById('ff_amount_std');if(amt&&price){amt.value=(price*q).toFixed(2)}}
+async function loadStandard(){
+  const [list,byAmiba]=await Promise.all([getJson(`${API}/dept-standard?limit=999&year=${year()}${month()!==''?'&month='+month():''}`),getJson(`${API}/dept-standard/by-amiba?year=${year()}`)]);
+  caches.standard=list.data||[];
+  const sm=list.summary||{};
+  const cols=[['部门(巴)',r=>esc(r.amiba_name)],['方向',r=>r.direction==='收入'?'<span class="badge green">收入</span>':'<span class="badge orange">支出</span>'],['物料代码',r=>esc(r.material_code)],['物料/项目',r=>esc(r.item_name||r.material_name)],['单位',r=>esc(r.unit)],['基数(物料单价)',r=>yuan2(r.base_price)],['系数',r=>`<b style="color:#667eea">${r.coefficient||'-'}</b>`],['标准价',r=>`<b style="color:#27ae60">${yuan2(r.standard_price)}</b>`],['数量',r=>r.quantity_std],['标准金额',r=>`<b>${yuan2(r.amount_std)}</b>`],['年度',r=>r.year],['状态',r=>badge(r.status)],['操作',r=>`<button class="btn bs b4" onclick="standardForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b3" onclick="delStandard(${r.id})" data-perm="amiba:delete">删除</button>`]];
+  const baCols=[['部门(巴)',r=>esc(r.amiba_name)],['收入标准',r=>`<b style="color:#27ae60">${yuan2(r.income)}</b>`],['收入项',r=>r.income_items],['支出标准',r=>`<b style="color:#e67e22">${yuan2(r.expense)}</b>`],['支出项',r=>r.expense_items],['收支净额',r=>`<b style="color:${r.net>=0?'#27ae60':'#e74c3c'}">${yuan2(r.net)}</b>`]];
+  document.getElementById('standardBox').innerHTML=`
+  <div class="panel" style="margin-bottom:14px"><h3>${year()}年度各部门收支标准汇总</h3>${renderTable(baCols,byAmiba.data||[],baCols.length)}</div>
+  <div class="grid">
+    <div class="cardx"><div class="n">${sm.count||0}</div><div class="l">标准项总数</div></div>
+    <div class="cardx"><div class="n" style="color:#27ae60">${sm.income_count||0}</div><div class="l">收入标准项</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">${sm.expense_count||0}</div><div class="l">支出标准项</div></div>
+    <div class="cardx"><div class="n" style="color:#27ae60">¥${yuan2(sm.income_amount)}</div><div class="l">收入标准合计</div></div>
+    <div class="cardx"><div class="n" style="color:#e74c3c">¥${yuan2(sm.expense_amount)}</div><div class="l">支出标准合计</div></div>
+  </div>
+  <div class="sb" style="margin-top:6px">
+    <select id="stdDirFilter" onchange="filterStandard()"><option value="">全部方向</option><option value="收入">收入</option><option value="支出">支出</option></select>
+    <input id="stdKw" placeholder="搜索物料/部门" onkeydown="if(event.key==='Enter')filterStandard()">
+    <button class="btn b1" onclick="filterStandard()">查询</button>
+    <button class="btn b2" onclick="standardForm()" data-perm="amiba:create">新增收支标准</button>
+    <button class="btn b4" onclick="document.getElementById('stdFile').click()" data-perm="amiba:create">导入Excel</button>
+    <button class="btn b5" onclick="exportExcel('${API}/standard/export?year=${year()}')" data-perm="amiba:export">导出Excel</button>
+    <a class="btn" style="background:#7f8c8d" href="${API}/standard/template" target="_blank">下载模板</a>
+    <input type="file" id="stdFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/standard/import', 'stdFile', ()=>loadStandard())">
+    <span style="margin-left:auto;color:#667eea;font-size:12px">💡 内部定价基数 = 物料库单价 × 系数，标准价自动计算</span>
+  </div>
+  ${renderTable(cols,list.data||[],cols.length)}`;
+  applyPerms();
+}
+async function filterStandard(){const dir=document.getElementById('stdDirFilter').value;const kw=document.getElementById('stdKw').value;const list=await getJson(`${API}/dept-standard?limit=999&year=${year()}&direction=${dir}&keyword=${encodeURIComponent(kw)}`);caches.standard=list.data||[];document.querySelector('#tab-standard .tbl')?.remove();const cols=[['部门(巴)',r=>esc(r.amiba_name)],['方向',r=>r.direction==='收入'?'<span class="badge green">收入</span>':'<span class="badge orange">支出</span>'],['物料代码',r=>esc(r.material_code)],['物料/项目',r=>esc(r.item_name||r.material_name)],['单位',r=>esc(r.unit)],['基数',r=>yuan2(r.base_price)],['系数',r=>`<b style="color:#667eea">${r.coefficient||'-'}</b>`],['标准价',r=>`<b style="color:#27ae60">${yuan2(r.standard_price)}</b>`],['数量',r=>r.quantity_std],['标准金额',r=>`<b>${yuan2(r.amount_std)}</b>`],['状态',r=>badge(r.status)],['操作',r=>`<button class="btn bs b4" onclick="standardForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b3" onclick="delStandard(${r.id})" data-perm="amiba:delete">删除</button>`]];document.getElementById('standardBox').insertAdjacentHTML('beforeend',renderTable(cols,list.data||[],cols.length));applyPerms()}
+async function standardForm(id){let row={direction:'支出',unit:'个',coefficient:1,year:year(),status:'启用',quantity_std:0};if(id)row=(caches.standard||[]).find(x=>x.id===id)||row;
+  const box=document.getElementById('formBox');
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}部门收支标准</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>
+  <input type="hidden" id="ff_material_id" value="${row.material_id||0}">
+  <div class="fr">${field(amibaSelect('amiba_id','部门(巴)'),row)}${field(['direction','方向(收入/支出)','select',[{id:'收入',name:'收入标准'},{id:'支出',name:'支出标准'}]],row)}</div>
+  ${materialPicker('mat',row.material_name,row.material_code?('当前物料：'+esc(row.material_code)):'' )}
+  <div class="fr">${field(['material_code','物料代码','text'],row)}${field(['item_name','项目/物料名称','text'],row)}</div>
+  <div class="fr">${field(['unit','单位','text'],row)}${field(['base_price','基数(物料库单价)','number'],row)}</div>
+  <div class="fr">${field(['coefficient','系数','number'],row)}${field(['standard_price','标准价(=基数×系数)','number'],row)}</div>
+  <div class="fr">${field(['quantity_std','标准数量','number'],row)}${field(['amount_std','标准金额(=标准价×数量)','number'],row)}</div>
+  <div class="fr">${field(['year','年度','number'],row)}${field(['status','状态','select',[{id:'启用',name:'启用'},{id:'停用',name:'停用'}]],row)}</div>
+  ${field(['remarks','备注','textarea'],row)}
+  <div style="background:#f0f4ff;padding:8px 12px;border-radius:6px;font-size:12px;color:#555;margin:6px 0">公式：标准价 = 物料库单价(基数) × 系数；标准金额 = 标准价 × 标准数量。改系数/基数/数量自动重算。</div>
+  <div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveStandard(${id||0})">保存</button></div>`;
+  // 绑定自动重算
+  ['base_price','coefficient','quantity_std'].forEach(k=>{const e=document.getElementById('ff_'+k);if(e)e.addEventListener('input',recalcStandard)});
+  openForm();applyPerms();
+}
+async function saveStandard(id){const g=k=>{const e=document.getElementById('ff_'+k);return e?(e.type==='number'?(Number(e.value)||0):e.value):''};const data={amiba_id:Number(g('amiba_id'))||0,amiba_name:(meta.amibas.find(a=>a.id===Number(g('amiba_id')))||{}).name||'',direction:g('direction'),material_id:Number(g('material_id'))||0,material_code:g('material_code'),material_name:g('item_name'),item_name:g('item_name'),unit:g('unit'),base_price:Number(g('base_price'))||0,coefficient:Number(g('coefficient'))||0,standard_price:Number(g('standard_price'))||0,quantity_std:Number(g('quantity_std'))||0,amount_std:Number(g('amount_std'))||0,year:Number(g('year'))||year(),status:g('status'),remarks:g('remarks')};if(!data.amiba_id)return alert('请选择部门');if(!data.material_name)return alert('请选择物料或填写项目名称');if(id)data.id=id;const j=await postJson(`${API}/dept-standard`,data);if(j.error)return alert(j.error);closeForm();loadStandard()}
+async function delStandard(id){if(!confirm('确定删除该收支标准？'))return;await delJson(`${API}/dept-standard/${id}`);loadStandard()}
+
+// ===== 内部交易明细（按巴子表 + 关联定价清单 + 经办人）=====
+let _tradeAmibaFilter=''; // 当前子表筛选（巴名称），''=全部
+function tradeCols(){return [['交易编号',r=>esc(r.trade_no)],['交易日期',r=>esc((r.trade_date||'').substring(0,10))],['提供方巴',r=>`<b style="color:#27ae60">${esc(r.from_amiba)}</b>`],['接收方巴',r=>`<span style="color:#e67e22">${esc(r.to_amiba)}</span>`],['服务编号',r=>esc(r.service_no)],['服务名称',r=>esc(r.product_name)],['单位',r=>esc(r.unit)],['数量',r=>r.quantity],['单价',r=>yuan2(r.unit_price)],['总金额',r=>`<b>${yuan2(r.total_amount)}</b>`],['结算状态',r=>badge(r.settle_status)],['经办人',r=>`<span style="color:#667eea">${esc(r.creator_person||'-')}</span>`],['操作',r=>`<button class="btn bs b4" onclick="tradeForm(${r.id})" data-perm="amiba:edit">编辑</button> ${r.settle_status!=='已结算'?`<button class="btn bs b5" onclick="settleTrade(${r.id})" data-perm="amiba:edit">结算</button>`:''} <button class="btn bs b3" onclick="delTrade(${r.id})" data-perm="amiba:delete">删除</button>`]]}
+async function loadTrade(){
+  const list=await getJson(`${API}/trade-detail?limit=999&year=${year()}${month()!==''?'&month='+month():''}`);
+  caches.trade=list.data||[];
+  const sm=list.summary||{};
+  // 按巴汇总子表（每个巴作为一个子表入口）
+  const amibaSet={};(list.data||[]).forEach(d=>{if(d.from_amiba)amibaSet[d.from_amiba]=1;if(d.to_amiba)amibaSet[d.to_amiba]=1});
+  const subTabs=Object.keys(amibaSet);
+  const subBtns=`<button class="btn ${_tradeAmibaFilter===''?'b1':''}" style="${_tradeAmibaFilter===''?'':'background:#bbb'}" onclick="_tradeAmibaFilter='';filterTradeByAmiba()">全部总表</button>`+subTabs.map(n=>`<button class="btn ${_tradeAmibaFilter===n?'b1':''}" style="${_tradeAmibaFilter===n?'':'background:#bbb'}" onclick="_tradeAmibaFilter='${n.replace(/'/g,"\\'")}';filterTradeByAmiba()">${esc(n)}子表</button>`).join('');
+  const rows=_tradeAmibaFilter?(list.data||[]).filter(d=>d.from_amiba===_tradeAmibaFilter||d.to_amiba===_tradeAmibaFilter):(list.data||[]);
+  document.getElementById('tradeBox').innerHTML=`
+  <div class="grid">
+    <div class="cardx"><div class="n">${sm.count||0}</div><div class="l">交易笔数</div></div>
+    <div class="cardx"><div class="n" style="color:#27ae60">¥${yuan2(sm.total_amount)}</div><div class="l">交易总金额</div></div>
+    <div class="cardx"><div class="n" style="color:#667eea">¥${yuan2(sm.settled_amount)}</div><div class="l">已结算金额</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">${sm.unsettled_count||0}</div><div class="l">未结算笔数</div></div>
+  </div>
+  <div class="sb" style="background:#f8f9ff;padding:8px;border-radius:8px;margin-bottom:8px"><span style="font-size:12px;color:#667eea;font-weight:600">📋 子表切换：</span>${subBtns||'<span style="color:#999;font-size:12px">暂无数据</span>'}</div>
+  <div class="sb">
+    <input id="tradeKw" placeholder="搜索编号/服务/巴/经办人" onkeydown="if(event.key==='Enter')searchTrade()">
+    <button class="btn b1" onclick="searchTrade()">查询</button>
+    <button class="btn b2" onclick="tradeForm()" data-perm="amiba:create">新增明细</button>
+    <button class="btn b4" onclick="document.getElementById('tradeFile').click()" data-perm="amiba:create">导入Excel/CSV</button>
+    <button class="btn b1" onclick="document.getElementById('wbFile').click()" data-perm="amiba:create">📥 导入核算表工作簿</button>
+    <button class="btn b5" onclick="exportTrade()" data-perm="amiba:export">导出${_tradeAmibaFilter?'当前子表':''}</button>
+    <a class="btn" style="background:#7f8c8d" href="${API}/trade-detail/template" target="_blank">下载模板</a>
+    <input type="file" id="tradeFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrade(event)">
+    <input type="file" id="wbFile" accept=".xlsx,.xls" style="display:none" onchange="importWorkbook(event)">
+    <span style="margin-left:auto;color:#667eea;font-size:12px">🔗 服务编号关联定价清单自动带价 · 经办人用于个人创造价值核算</span>
+  </div>
+  ${renderTable(tradeCols(),rows,tradeCols().length)}`;
+  applyPerms();
+}
+async function filterTradeByAmiba(){loadTrade()}
+async function searchTrade(){const kw=document.getElementById('tradeKw').value;const list=await getJson(`${API}/trade-detail?limit=999&keyword=${encodeURIComponent(kw)}`);caches.trade=list.data||[];document.querySelector('#tab-trade .tbl')?.remove();document.getElementById('tradeBox').insertAdjacentHTML('beforeend',renderTable(tradeCols(),list.data||[],tradeCols().length));applyPerms()}
+// 查询定价清单自动带价（关联定价主数据）
+async function lookupPrice(){const sn=(document.getElementById('ff_service_no')||{}).value||'';const fa=(document.getElementById('ff_from_amiba')||{}).value||'';const ta=(document.getElementById('ff_to_amiba')||{}).value||'';const fid=(meta.amibas.find(a=>a.name===fa)||{}).id||0;const tid=(meta.amibas.find(a=>a.name===ta)||{}).id||0;if(!sn&&!fid&&!tid)return alert('请先填写服务编号或提供方/接收方');try{const j=await getJson(`${API}/price/lookup?service_no=${encodeURIComponent(sn)}&from_amiba_id=${fid}&to_amiba_id=${tid}`);if(j.matched&&j.price){const fill=k=>{const e=document.getElementById('ff_'+k);if(e&&j.price[k]!==undefined)e.value=j.price[k]};fill('unit_price');fill('unit');fill('product_name');const ph=document.getElementById('ff_price_id');if(ph)ph.value=j.price.price_id;recalcTradeTotal();alert('✓ 已从定价清单带价：'+(j.price.product_name||sn)+' 单价 '+yuan2(j.price.unit_price)+' '+(j.price.unit||''))}else if(j.candidates&&j.candidates.length){const msg=j.candidates.map((p,i)=>(i+1)+'. '+p.product_code+' '+(p.product_name||'')+' ¥'+p.unit_price+' '+(p.from_amiba_name||'')+'→'+(p.to_amiba_name||'')).join('\n');const idx=prompt('定价清单匹配候选（输入序号选择，取消则不带价）：\n'+msg);if(idx){const c=j.candidates[Number(idx)-1];if(c){const e1=document.getElementById('ff_unit_price');if(e1)e1.value=c.unit_price;const e2=document.getElementById('ff_unit');if(e2)e2.value=c.unit||'';const e3=document.getElementById('ff_product_name');if(e3)e3.value=c.product_name||'';const e4=document.getElementById('ff_price_id');if(e4)e4.value=c.price_id;recalcTradeTotal()}}}else{alert('定价清单未匹配，请先在「内部定价」维护该服务的内部单价')}}catch(e){alert('查询失败: '+e.message)}}
+function recalcTradeTotal(){const q=Number(document.getElementById('ff_quantity')?.value)||0;const p=Number(document.getElementById('ff_unit_price')?.value)||0;const t=document.getElementById('ff_total_amount');if(t&&!t.value&&q&&p)t.value=(q*p).toFixed(2)}
+const tradeFields=[['trade_no','交易编号','text'],['trade_date','交易日期','date'],['from_amiba','提供方巴','select',[]],['to_amiba','接收方巴','select',[]],['service_no','服务编号','text'],['product_name','服务名称','text'],['unit','单位','text'],['quantity','数量','number'],['unit_price','单价','number'],['total_amount','总金额(留空自动算)','number'],['settle_status','结算状态','select',[{id:'未结算',name:'未结算'},{id:'已结算',name:'已结算'},{id:'已确认',name:'已确认'},{id:'已撤销',name:'已撤销'}]],['creator_person','经办人(创造人)','text'],['remarks','备注','textarea']];
+async function tradeForm(id){await ensureOrgOpts();let row={trade_date:new Date().toISOString().substring(0,10),settle_status:'未结算',unit:'个'};if(id)row=(caches.trade||[]).find(x=>x.id===id)||row;if(_tradeAmibaFilter)row.from_amiba=_tradeAmibaFilter;const pers=orgOpts.personnel.map(p=>({id:p.name,name:p.name+(p.department_name?'（'+p.department_name+'）':'')}));const ff=tradeFields.map(f=>{if(f[0]==='from_amiba')return ['from_amiba','提供方巴','select',meta.amibas.map(a=>({id:a.name,name:a.name}))];if(f[0]==='to_amiba')return ['to_amiba','接收方巴','select',meta.amibas.map(a=>({id:a.name,name:a.name}))];if(f[0]==='creator_person')return ['creator_person','经办人(创造人)','select',pers];return f});const idxService=ff.findIndex(f=>f[0]==='service_no');const insertLookup=idxService>=0?`<div style="margin:-4px 0 8px"><button type="button" class="btn b5 bs" onclick="lookupPrice()">🔗 查询定价清单带价</button> <span style="font-size:11px;color:#888">填好服务编号/提供方/接收方后点击，自动带出单价/单位/名称</span></div>`:'';document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}交易明细${_tradeAmibaFilter?' · '+esc(_tradeAmibaFilter)+'子表':''}</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div><input type="hidden" id="ff_price_id" value="${row.price_id||0}">${formFields(ff,row)}${insertLookup}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveTrade(${id||0})">保存</button></div>`;['quantity','unit_price'].forEach(k=>{const e=document.getElementById('ff_'+k);if(e)e.addEventListener('input',recalcTradeTotal)});openForm();applyPerms()}
+async function saveTrade(id){const data=readForm(tradeFields);data.price_id=Number(document.getElementById('ff_price_id')?.value)||0;if(id)data.id=id;const j=await postJson(`${API}/trade-detail`,data);if(j.error)return alert(j.error);closeForm();loadTrade()}
+async function settleTrade(id){if(!confirm('确认结算该笔交易？结算后金额将计入经营核算与价值总表。'))return;await postJson(`${API}/trade-detail/batch-settle`,{ids:[id],settle_status:'已结算'});loadTrade()}
+async function delTrade(id){if(!confirm('确定删除该笔交易明细？'))return;await delJson(`${API}/trade-detail/${id}`);loadTrade()}
+async function importTrade(event){const file=event.target.files[0];if(!file)return;const fd=new FormData();fd.append('file',file);try{const r=await fetch(`${API}/trade-detail/import`,{method:'POST',headers:{'x-user-id':localStorage.getItem('currentUserId')||''},body:fd});const j=await r.json();if(!r.ok)throw new Error(j.error||'导入失败');alert(j.message+(j.errors&&j.errors.length?'\n部分错误：'+j.errors.slice(0,5).map(e=>'第'+e.row+'行: '+e.errors.join(';')).join('\n'):''));loadTrade()}catch(e){alert('导入失败: '+e.message)}event.target.value=''}
+// 导入完整核算表工作簿（定价清单 + 各巴交易明细子表，按子表名称自动建巴/带价/汇总）
+async function importWorkbook(event){const file=event.target.files[0];if(!file)return;if(!confirm(`确认导入工作簿「${file.name}」？\n将自动识别：\n· [定价清单]表 → 内部定价主数据\n· [交易明细-XXX巴]各子表 → 交易明细（按子表名识别巴单元，缺失自动补建）\n· 交易明细按服务编号关联定价清单自动带价\n· 重复交易编号将自动跳过`))return;const fd=new FormData();fd.append('file',file);try{const r=await fetch(`${API}/workbook/import`,{method:'POST',headers:{'x-user-id':localStorage.getItem('currentUserId')||''},body:fd});const j=await r.json();if(!r.ok)throw new Error(j.error||'导入失败');const res=j.result||{};const sheetDetail=(res.sheets||[]).filter(s=>s.imported>0).map(s=>`· ${s.name}: ${s.imported}条`).join('\n');alert(`${j.message}\n\n明细：\n${sheetDetail||'(无有效数据)'}${res.amibas_created&&res.amibas_created.length?'\n\n新建巴单元：'+res.amibas_created.join('、'):''}${res.errors&&res.errors.length?'\n\n部分错误：'+res.errors.slice(0,3).map(e=>e.sheet+'第'+e.row+'行: '+e.error).join('\n'):''}`);loadTrade()}catch(e){alert('工作簿导入失败: '+e.message)}event.target.value=''}
+async function exportTrade(){const fid=_tradeAmibaFilter?(meta.amibas.find(a=>a.name===_tradeAmibaFilter)||{}).id||0:0;const url=`${API}/trade-detail/export?year=${year()}${month()!==''?'&month='+month():''}${fid?'&amiba_id='+fid:''}`;const r=await fetch(url,{headers:{'x-user-id':localStorage.getItem('currentUserId')||''}});if(!r.ok)return alert('导出失败');const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='阿米巴交易明细_'+(_tradeAmibaFilter?_tradeAmibaFilter+'_子表_':'')+year()+'.xlsx';a.click()}
+
+// ===== 价值总表（各部门/各人创造价值核算 · 管理调整依据）=====
+async function loadValue(){
+  const ms=await getJson(`${API}/trade-detail/master-summary?year=${year()}${month()!==''?'&month='+month():''}${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'&settled=1':''}`);
+  const o=ms.overview||{};
+  const deptRows=ms.dept_rows||[];
+  const personRows=ms.person_rows||[];
+  const maxNet=Math.max(1,...deptRows.map(r=>Math.abs(r.net_value)));
+  const maxPerson=Math.max(1,...personRows.map(r=>Math.abs(r.create_value)));
+  const deptCols=[['排名',(_,i)=>`<b style="color:#667eea">${i+1}</b>`],['部门(巴)',r=>esc(r.amiba_name)],['提供价值(创造)',r=>`<b style="color:#27ae60">${yuan(r.provide_value)}</b>`],['提供笔数',r=>r.provide_count],['接收价值(占用)',r=>`<span style="color:#e67e22">${yuan(r.receive_value)}</span>`],['接收笔数',r=>r.receive_count],['净创造价值',r=>`<b style="color:${r.net_value>=0?'#27ae60':'#e74c3c'};font-size:14px">${yuan(r.net_value)}</b>`,1],['价值条形',r=>{const w=Math.abs(r.net_value)/maxNet*100;return `<div class="hbar" style="width:120px"><i style="width:${w}%;background:${r.net_value>=0?'linear-gradient(90deg,#27ae60,#2ecc71)':'linear-gradient(90deg,#e74c3c,#c0392b)'}"></i></div>`}],['占比',r=>percent(o.total_value?r.provide_value/o.total_value*100:0)]];
+  const personCols=[['排名',(_,i)=>`<b style="color:#667eea">${i+1}</b>`],['经办人',r=>`<b>${esc(r.creator_person)}</b>`],['所属巴',r=>esc(r.amiba_name)],['创造价值',r=>`<b style="color:#27ae60;font-size:14px">${yuan(r.create_value)}</b>`,1],['条形',r=>{const w=r.create_value/maxPerson*100;return `<div class="hbar" style="width:120px"><i style="width:${w}%;background:linear-gradient(90deg,#667eea,#764ba2)"></i></div>`}],['处理价值',r=>`<span style="color:#888">${yuan(r.handle_value)}</span>`],['交易笔数',r=>r.count],['占比',r=>percent(o.total_value?r.create_value/o.total_value*100:0)]];
+  document.getElementById('valueBox').innerHTML=`
+  <div class="grid">
+    <div class="cardx"><div class="n">${o.total_trades||0}</div><div class="l">交易总笔数</div></div>
+    <div class="cardx"><div class="n" style="color:#667eea">${yuan(o.total_value)}</div><div class="l">交易总金额</div></div>
+    <div class="cardx"><div class="n" style="color:#27ae60">${yuan(o.settled_value)}</div><div class="l">已结算金额</div></div>
+    <div class="cardx"><div class="n">${o.dept_count||0}</div><div class="l">参与巴单元</div></div>
+    <div class="cardx"><div class="n">${o.person_count||0}</div><div class="l">参与经办人</div></div>
+  </div>
+  <div class="dash">
+    <div class="panel"><h3>🏆 创造价值最高部门</h3><div style="text-align:center;padding:14px"><div style="font-size:28px;font-weight:800;color:#27ae60">${esc(o.top_dept||'-')}</div><div style="font-size:13px;color:#888;margin-top:6px">净创造价值 <b style="color:#27ae60">${yuan(o.top_dept_value)}</b></div></div></div>
+    <div class="panel"><h3>👤 创造价值最高个人</h3><div style="text-align:center;padding:14px"><div style="font-size:28px;font-weight:800;color:#667eea">${esc(o.top_person||'-')}</div><div style="font-size:13px;color:#888;margin-top:6px">创造价值 <b style="color:#27ae60">${yuan(o.top_person_value)}</b></div></div></div>
+    <div class="panel"><h3>📊 说明</h3><div style="font-size:12px;color:#666;padding:8px;line-height:1.7">· <b>提供价值</b>：作为提供方巴的交易额（该部门创造）<br>· <b>接收价值</b>：作为接收方巴的交易额（占用成本）<br>· <b>净创造价值</b>=提供-接收，正值=价值净输出<br>· 数据由「交易明细」自动汇总，供管理调整参考</div></div>
+  </div>
+  <div class="sb" style="margin-top:14px"><label style="font-size:13px;color:#555"><input type="checkbox" id="onlySettled" onchange="loadValue()" ${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'checked':''}> 仅统计已结算交易</label><button class="btn b5" onclick="exportExcel('${API}/value/export?year=${year()}${month()!==''?'&month='+month():''}${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'&settled=1':''}')" data-perm="amiba:export">📥 导出价值总表(双Sheet)</button><span style="margin-left:auto;color:#999;font-size:12px">统计期间：${year()}年${month()===''?'全年':month()+'月'} · 共 ${deptRows.length} 部门 / ${personRows.length} 经办人</span></div>
+  <h3 style="margin:10px 0 8px;color:#333">🏢 各部门价值核算总表（按净创造价值排序）</h3>
+  ${renderTable(deptCols,deptRows,deptCols.length)}
+  <h3 style="margin:18px 0 8px;color:#333">👤 个人创造价值排行（按创造价值排序）</h3>
+  ${renderTable(personCols,personRows,personCols.length)}`;
+  applyPerms();
+}
+
+// ===== 阿米巴核算报表（9区块22行标准格式 · 收入自动归集）=====
+let _stmtAmibaId=0;
+let _stmtView='detail'; // detail=核算表 | yearly=年度总表 | monthly=月度表
+let _stmtTreeExpanded={}; // 一级巴展开/收起状态：id => true/false
+async function loadStatement(){
+  if(!_stmtAmibaId&&meta.amibas&&meta.amibas.length)_stmtAmibaId=meta.amibas[0].id;
+  const list=await getJson(`${API}/statement?year=${year()}${month()!==''?'&month='+month():''}&limit=999`);
+  caches.statement=list.data||[];
+  const sm=list.summary||{};
+  const amibaOpts=(meta.amibas||[]).map(a=>`<option value="${a.id}" ${Number(_stmtAmibaId)===Number(a.id)?'selected':''}>${esc(a.name)}</option>`).join('');
+  // 树形汇总（按组织架构）：一级巴显示下级汇总，点击下钻查看二级巴
+  const treeRes=await getJson(`${API}/statement/tree?year=${year()}${month()!==''?'&month='+month():''}`).catch(()=>({summary:{},roots:[],flat:[]}));
+  const tSm=treeRes.summary||{};
+  document.getElementById('statementBox').innerHTML=`
+  <div class="grid">
+    <div class="cardx"><div class="n">${sm.count||0}</div><div class="l">已生成核算表</div></div>
+    <div class="cardx"><div class="n" style="color:#27ae60">${yuan(tSm.total_revenue)}</div><div class="l">总收入合计（含下级汇总）</div></div>
+    <div class="cardx"><div class="n" style="color:#e74c3c">${yuan(tSm.total_expense)}</div><div class="l">总费用合计</div></div>
+    <div class="cardx"><div class="n" style="color:#667eea">${yuan(tSm.value_added)}</div><div class="l">经营附加值合计</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">¥${yuan2(tSm.bonus_pool)}</div><div class="l">奖金池合计</div></div>
+    <div class="cardx"><div class="n">${percent(tSm.profit_margin)}</div><div class="l">平均净利润率</div></div>
+  </div>
+  <div class="sb" style="margin-top:10px">
+    <select onchange="_stmtAmibaId=Number(this.value)||0;loadStmtView()"><option value="0">-- 选择巴单元查看核算表 --</option>${amibaOpts}</select>
+    <div style="display:flex;gap:3px;border:1px solid #ddd;border-radius:6px;overflow:hidden">
+      <button class="btn bs ${_stmtView==='detail'?'b1':''}" style="${_stmtView==='detail'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='detail';loadStmtView()">核算表</button>
+      <button class="btn bs ${_stmtView==='yearly'?'b1':''}" style="${_stmtView==='yearly'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='yearly';loadStmtView()">📅 年度总表</button>
+      <button class="btn bs ${_stmtView==='monthly'?'b1':''}" style="${_stmtView==='monthly'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='monthly';loadStmtView()">📆 月度表</button>
+    </div>
+    <button class="btn b5" onclick="genStatement()" data-perm="amiba:calc">▶ 生成当前巴核算表</button>
+    <button class="btn b1" onclick="genAllStatement()" data-perm="amiba:calc">⚡ 一键生成全部巴</button>
+    <button class="btn b4" onclick="exportExcel('${API}/statement/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export">📥 导出全部巴核算表(多Sheet)</button>
+    <span style="margin-left:auto;color:#667eea;font-size:12px">🌲 按组织架构树形汇总 · 一级巴点击▼展开下级明细</span>
+  </div>
+  <h3 style="margin:6px 0 8px;color:#333">🌲 核算汇总（按组织架构树状）· ${year()}年${month()===''?'全年':month()+'月'}</h3>
+  <div id="statementTree">${renderStatementTree(treeRes.roots||[])}</div>
+  <details style="margin-top:14px"><summary style="cursor:pointer;color:#888;font-size:12px">📋 查看全部巴核算表明细（平铺）</summary>
+    <div style="margin-top:8px">${renderTable([['巴单元',r=>`<a onclick="_stmtAmibaId=${r.amiba_id};loadStmtView()" style="color:#667eea;cursor:pointer;font-weight:600">${esc(r.amiba_name)}</a>`],['总收入',r=>yuan(r.total_revenue)],['总费用',r=>`<span style="color:#e74c3c">${yuan(r.total_expense)}</span>`],['经营附加值',r=>`<b style="color:${r.value_added>=0?'#27ae60':'#e74c3c'}">${yuan(r.value_added)}</b>`],['总工时',r=>r.total_hours+'h'],['单位时间附加值',r=>`<b>${yuan2(r.value_per_hour)}</b>/h`],['净利润率',r=>`<b style="color:${r.profit_margin>=15?'#27ae60':r.profit_margin>=0?'#f39c12':'#e74c3c'}">${percent(r.profit_margin)}</b>`],['奖励比例',r=>percent(r.bonus_rate)],['团队奖金池',r=>`<b style="color:#e67e22">¥${yuan2(r.bonus_pool)}</b>`],['状态',r=>badge(r.status)],['来源',r=>badge(r.source)]],list.data||[],11)}</div>
+  </details>
+  <div id="statementDetail"></div>`;
+  applyPerms();
+  if(_stmtAmibaId)loadStmtView();
+}
+
+// 树状汇总渲染：一级巴为节点行，点击▼展开显示下级明细
+function renderStatementTree(roots){
+  if(!roots||!roots.length)return '<div style="color:#bbb;font-size:13px;padding:24px;text-align:center">暂无巴单元</div>';
+  const levelClass=lv=>lv===1?'stmt-lv1':'stmt-lv2';
+  function row(node){
+    const a=node.aggregate||{};
+    const hasChild=node.has_children;
+    const expanded=_stmtTreeExpanded[node.id];
+    const arrow=hasChild?(expanded?'▼':'▶'):'·';
+    const selfMark=node.self?`<span class="badge green" style="margin-left:6px">已核算</span>`:(!hasChild?`<span class="badge gray" style="margin-left:6px">未生成</span>`:'');
+    return `<div class="stmt-row ${levelClass(node.amiba_level)}" data-id="${node.id}" data-haschild="${hasChild?'1':'0'}">
+      <div class="stmt-head" style="cursor:${hasChild?'pointer':'default'}" onclick="${hasChild?`toggleStmtNode(${node.id})`:''}">
+        <span class="stmt-arrow" style="display:inline-block;width:16px;color:#667eea;font-size:11px">${arrow}</span>
+        <span class="stmt-icon">${node.amiba_level===1?'🏢':'🔹'}</span>
+        <b class="stmt-name">${esc(node.amiba_name)}</b>
+        <span class="tag" style="font-size:10px;padding:1px 6px;border-radius:8px;background:#eef1ff;color:#667eea">${esc(node.amiba_type)}</span>
+        ${selfMark}
+        ${node.charge_user_name?`<span style="font-size:11px;color:#888">👤 ${esc(node.charge_user_name)}</span>`:''}
+        ${node.department?`<span style="font-size:11px;color:#888">🏢 ${esc(node.department)}</span>`:''}
+        ${hasChild?`<span style="font-size:11px;color:#9b59b6">📊 下级 ${node.child_count} 个巴</span>`:''}
+      </div>
+      <div class="stmt-metrics">
+        <span class="stmt-m"><span class="lbl">收入</span><b style="color:#27ae60">${yuan(a.total_revenue)}</b></span>
+        <span class="stmt-m"><span class="lbl">费用</span><b style="color:#e74c3c">${yuan(a.total_expense)}</b></span>
+        <span class="stmt-m"><span class="lbl">附加值</span><b style="color:${a.value_added>=0?'#27ae60':'#e74c3c'}">${yuan(a.value_added)}</b></span>
+        <span class="stmt-m"><span class="lbl">工时</span><b>${(a.total_hours||0).toLocaleString()}h</b></span>
+        <span class="stmt-m"><span class="lbl">单位附加值</span><b>${yuan2(a.value_per_hour)}/h</b></span>
+        <span class="stmt-m"><span class="lbl">净利润率</span><b style="color:${a.profit_margin>=15?'#27ae60':a.profit_margin>=0?'#f39c12':'#e74c3c'}">${percent(a.profit_margin)}</b></span>
+        <span class="stmt-m"><span class="lbl">奖金池</span><b style="color:#e67e22">¥${yuan2(a.bonus_pool)}</b></span>
+        ${hasChild?`<button class="btn bs b4" onclick="event.stopPropagation();_stmtAmibaId=${node.id};loadStmtView()" data-perm="amiba:view">查看核算表</button>`:''}
+      </div>
+    </div>
+    ${hasChild?`<div class="stmt-children" style="display:${expanded?'block':'none'}">${node.children.map(row).join('')}</div>`:''}`;
+  }
+  return roots.map(row).join('');
+}
+
+function toggleStmtNode(id){
+  _stmtTreeExpanded[id]=!_stmtTreeExpanded[id];
+  // 找到对应节点行，切换其下方 .stmt-children 的显示 + 箭头
+  const rows=document.querySelectorAll('.stmt-row');
+  for(const r of rows){
+    if(r.getAttribute('data-id')===String(id)){
+      const next=r.nextElementSibling;
+      if(next&&next.classList.contains('stmt-children')){
+        next.style.display=_stmtTreeExpanded[id]?'block':'none';
+      }
+      const arrow=r.querySelector('.stmt-arrow');
+      if(arrow)arrow.textContent=_stmtTreeExpanded[id]?'▼':'▶';
+      break;
+    }
+  }
+}
+async function loadStmtView(){
+  if(!_stmtAmibaId)return;
+  if(_stmtView==='yearly')return loadStatementYearly();
+  if(_stmtView==='monthly')return loadStatementMonthly();
+  return loadStatementDetail();
+}
+// 年度总表（22行×12月，对标Excel「人事行政-总表」格式）
+async function loadStatementYearly(){
+  if(!_stmtAmibaId)return;
+  const y=year();
+  const stmt=await getJson(`${API}/statement/yearly?amiba_id=${_stmtAmibaId}&year=${y}`);
+  caches.stmtYearly=stmt;
+  const monthCols=stmt.month_columns||[1,2,3,4,5,6,7,8,9,10,11,12];
+  const fmtVal=(v,isRate)=>{
+    if(v===''||v==null||v===undefined)return '';
+    if(isRate)return Number(v)+'%';
+    const n=Number(v)||0;
+    if(!n)return '<span style="color:#ddd">0</span>';
+    return yuan2(n);
+  };
+  const rowsHtml=(stmt.rows||[]).map(l=>{
+    if(l.is_header)return `<tr style="background:#667eea;color:#fff;font-weight:700"><td colspan="${4+monthCols.length}">${esc(l.item_name)}</td></tr>`;
+    const bg=l.is_subtotal?'background:#f0f4ff;font-weight:700':l.is_calc?'background:#f9f9f9;font-weight:600':'';
+    const indent=(l.section==='收入'||l.section==='费用')?'padding-left:20px':'';
+    const monthCells=monthCols.map(m=>{
+      const v=(l.months||[])[m-1];
+      const isToday=m===new Date().getMonth()+1&&y===new Date().getFullYear();
+      const canDrill=(l.section==='收入'&&l.service_no&&v!==''&&v!=null&&Number(v)!==0);
+      return `<td style="text-align:right;${isToday?'background:#fffde7':''}${canDrill?';color:#667eea;cursor:pointer;text-decoration:underline dotted':''}" ${canDrill?`onclick="drillStatement(${_stmtAmibaId},${y},${m},0,'${esc(l.service_no)}','${esc(l.item_name)}')"`:''}>${fmtVal(v,l.is_rate)}</td>`;
+    }).join('');
+    const totalStr=l.is_rate?(l.total?Number(l.total)+'%':''):(l.total!==''&&l.total!=null?'<b>'+yuan2(l.total)+'</b>':'');
+    return `<tr style="${bg}"><td style="${indent}">${esc(l.item_name)}</td><td style="text-align:center;color:#999">${l.line_no||''}</td><td style="text-align:right;font-weight:600">${totalStr}</td><td style="color:#aaa;font-size:11px">${esc((l.formula||'').substring(0,30))}</td>${monthCells}</tr>`;
+  }).join('');
+  const box=document.getElementById('statementDetail');
+  if(!box)return;
+  box.innerHTML=`
+  <div class="panel" style="margin-top:18px">
+    <h3>${esc(stmt.amiba_name)}阿米巴年度总表 <span style="font-size:13px;color:#888">· ${stmt.year}年 · 22行×12月</span></h3>
+    <div style="overflow:auto;max-height:70vh">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap">
+      <thead><tr style="background:#f8f9fa;position:sticky;top:0">
+        <th style="text-align:left;padding:6px;min-width:140px">项目</th>
+        <th style="width:40px">行次</th>
+        <th style="text-align:right;width:90px">合计</th>
+        <th style="text-align:left;width:100px">计算公式</th>
+        ${monthCols.map(m=>`<th style="text-align:right;width:75px">${m}月</th>`).join('')}
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#888">💡 年度总表自动汇总12个月核算数据，收入行从交易明细按月归集，费用行/工时需在各月核算表中录入后保存。当月列高亮显示。</div>
+  </div>`;
+  applyPerms();
+}
+// 月度表（22行×31日，对标Excel「人事行政-X月」格式）
+async function loadStatementMonthly(){
+  if(!_stmtAmibaId)return;
+  const y=year();
+  const m=month()===''?new Date().getMonth()+1:month();
+  const stmt=await getJson(`${API}/statement/monthly?amiba_id=${_stmtAmibaId}&year=${y}&month=${m}`);
+  caches.stmtMonthly=stmt;
+  const dayCols=stmt.day_columns||Array.from({length:31},(_,i)=>i+1);
+  const fmtVal=(v)=>{
+    if(v===''||v==null||v===undefined)return '';
+    const n=Number(v)||0;
+    if(!n)return '';
+    return yuan2(n);
+  };
+  const rowsHtml=(stmt.rows||[]).map(l=>{
+    if(l.is_header)return `<tr style="background:#667eea;color:#fff;font-weight:700"><td colspan="${4+dayCols.length}">${esc(l.item_name)}</td></tr>`;
+    const bg=l.is_subtotal?'background:#f0f4ff;font-weight:700':l.is_calc?'background:#f9f9f9;font-weight:600':'';
+    const indent=(l.section==='收入'||l.section==='费用')?'padding-left:20px':'';
+    const dayCells=dayCols.map(d=>{
+      const v=(l.days||[])[d-1];
+      const isToday=d===new Date().getDate()&&m===new Date().getMonth()+1&&y===new Date().getFullYear();
+      const canDrill=(l.section==='收入'&&l.service_no&&v!==''&&v!=null&&Number(v)!==0);
+      return `<td style="text-align:right;${isToday?'background:#fffde7;font-weight:600':''}${canDrill?';color:#667eea;cursor:pointer;text-decoration:underline dotted':''}" ${canDrill?`onclick="drillStatement(${_stmtAmibaId},${y},${m},${d},'${esc(l.service_no)}','${esc(l.item_name)}')"`:''}>${fmtVal(v)}</td>`;
+    }).join('');
+    const totalStr=l.is_rate?(l.total?Number(l.total)+'%':''):(l.total!==''&&l.total!=null?(l.is_subtotal||l.is_calc?'<b>'+yuan2(l.total)+'</b>':yuan2(l.total)):'');
+    return `<tr style="${bg}"><td style="${indent}">${esc(l.item_name)}${l.service_no?'<span style="color:#aaa;font-size:10px"> ['+esc(l.service_no)+']</span>':''}</td><td style="text-align:center;color:#999">${l.line_no||''}</td><td style="text-align:right;font-weight:600">${totalStr}</td><td style="color:#aaa;font-size:11px">${esc((l.formula||'').substring(0,25))}</td>${dayCells}</tr>`;
+  }).join('');
+  const box=document.getElementById('statementDetail');
+  if(!box)return;
+  box.innerHTML=`
+  <div class="panel" style="margin-top:18px">
+    <h3>${esc(stmt.amiba_name)}阿米巴月度表 <span style="font-size:13px;color:#888">· ${stmt.year}年${stmt.month}月 · 22行×31日 · 共${stmt.days_in_month||30}天</span></h3>
+    <div style="overflow:auto;max-height:70vh">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap">
+      <thead><tr style="background:#f8f9fa;position:sticky;top:0">
+        <th style="text-align:left;padding:6px;min-width:130px">项目</th>
+        <th style="width:36px">行次</th>
+        <th style="text-align:right;width:80px">合计</th>
+        <th style="text-align:left;width:80px">计算公式</th>
+        ${dayCols.map(d=>`<th style="text-align:right;width:48px">${d}</th>`).join('')}
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#888">💡 月度表按天展示收入明细（从交易明细按日归集），费用行/工时为月度合计。当日列高亮显示。</div>
+  </div>`;
+  applyPerms();
+}
+// 数据穿透：点击收入单元格查看交易明细
+async function drillStatement(amibaId,y,m,d,svcNo,itemName){
+  const title=`${itemName||svcNo} - 穿透明细`;
+  const dateDesc=d?`${y}年${m}月${d}日`:`${y}年${m}月`;
+  showDrillModal(title,dateDesc,svcNo,'加载中...');
+  try{
+    const url=`${API}/statement/drill?amiba_id=${amibaId}&year=${y}&month=${m}${d?'&day='+d:''}${svcNo?'&service_no='+encodeURIComponent(svcNo):''}`;
+    const r=await getJson(url);
+    showDrillModal(title,dateDesc,svcNo,r);
+  }catch(e){
+    showDrillModal(title,dateDesc,svcNo,null,e.message);
+  }
+}
+function showDrillModal(title,dateDesc,svcNo,r,err){
+  const box=document.getElementById('formBox');
+  if(!box)return;
+  if(r==='加载中...'){
+    box.innerHTML=`<h3 style="margin:0 0 10px">🔍 ${esc(title)}</h3><div style="color:#999;padding:30px;text-align:center">加载中...</div>`;
+    document.getElementById('formModal').classList.add('ac');
+    return;
+  }
+  if(err){
+    box.innerHTML=`<h3 style="margin:0 0 10px">🔍 ${esc(title)}</h3><div style="color:#e74c3c;padding:20px">❌ ${esc(err)}</div>`;
+    document.getElementById('formModal').classList.add('ac');
+    return;
+  }
+  const rows=r.data||[];
+  const s=r.summary||{};
+  const rowsHtml=rows.length?rows.map(d=>`<tr>
+    <td style="white-space:nowrap">${esc(d.trade_no||'-')}</td>
+    <td style="white-space:nowrap">${esc((d.trade_date||'').substring(0,10))}</td>
+    <td>${esc(d.from_amiba||'-')}</td>
+    <td>${esc(d.to_amiba||'-')}</td>
+    <td style="white-space:nowrap">${esc(d.service_no||'-')} ${d.product_name?'<br><span style="color:#888;font-size:11px">'+esc(d.product_name)+'</span>':''}</td>
+    <td style="text-align:right">${yuan2(d.quantity)}</td>
+    <td style="text-align:right">${esc(d.unit||'')}</td>
+    <td style="text-align:right">${yuan2(d.unit_price)}</td>
+    <td style="text-align:right;font-weight:600">${yuan2(d.total_amount)}</td>
+    <td>${badge(d.settle_status)}</td>
+    <td>${esc(d.creator_person||'-')}</td>
+    <td style="color:#888;font-size:11px">${esc(d.remarks||'')}</td>
+  </tr>`).join(''):`<tr><td colspan="12" class="em">无交易明细数据</td></tr>`;
+  box.innerHTML=`
+    <h3 style="margin:0 0 6px">🔍 ${esc(title)}</h3>
+    <div style="color:#888;font-size:13px;margin-bottom:12px">
+      📅 ${esc(dateDesc)}
+      ${svcNo?' · 🔗 服务编号: <b>'+esc(svcNo)+'</b>':''}
+      · 📊 共 <b style="color:#667eea">${s.count||0}</b> 笔
+      · 💰 金额 <b style="color:#27ae60">${yuan2(s.total_amount||0)}</b>
+      · 📦 数量 <b>${yuan2(s.total_qty||0)}</b>
+    </div>
+    <div style="overflow:auto;max-height:55vh;border:1px solid #eee;border-radius:6px">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:#f8f9fa;position:sticky;top:0">
+        <th style="padding:6px">交易编号</th><th>交易日期</th><th>提供方巴</th><th>接收方巴</th>
+        <th>服务编号/名称</th><th style="text-align:right">数量</th><th>单位</th>
+        <th style="text-align:right">单价</th><th style="text-align:right">总金额</th>
+        <th>结算状态</th><th>经办人</th><th>备注</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    </div>
+    <div style="margin-top:12px;text-align:right">
+      <button class="btn" style="background:#999" onclick="document.getElementById('formModal').classList.remove('ac')">关闭</button>
+    </div>`;
+  document.getElementById('formModal').classList.add('ac');
+}
+async function loadStatementDetail(){
+  if(!_stmtAmibaId)return;
+  const m=month()===''?new Date().getMonth()+1:month();
+  const stmt=await getJson(`${API}/statement/detail?amiba_id=${_stmtAmibaId}&year=${year()}&month=${m}`);
+  caches.stmtDetail=stmt;
+  // 渲染 22 行标准核算表
+  const rowsHtml=(stmt.lines||[]).map(l=>{
+    if(l.is_header)return `<tr style="background:#667eea;color:#fff;font-weight:700"><td colspan="4">${esc(l.item_name)}</td></tr>`;
+    const amtStr=l.is_rate?(l.amount!==''&&l.amount!=null?(Number(l.amount)+'%'):''):(l.amount!==''&&l.amount!=null?(l.is_subtotal||l.is_calc?'¥'+yuan2(l.amount):'<input type="number" step="0.01" value="'+(Number(l.amount)||0)+'" data-line="'+l.line_no+'" data-field="'+(l.field||'amount')+'" data-section="'+l.section+'" style="width:110px;text-align:right;padding:3px 6px;border:1px solid #ddd;border-radius:4px">'):'');
+    const bg=l.is_subtotal?'background:#f0f4ff;font-weight:700':l.is_calc?'background:#f9f9f9;font-weight:600':'';
+    const indent=(l.section==='收入'||l.section==='费用')?'padding-left:24px':'';
+    return `<tr style="${bg}"><td style="${indent}">${esc(l.item_name)}${l.service_no?'<span style="color:#aaa;font-size:11px"> ['+esc(l.service_no)+']</span>':''}${l.trade_count?'<span style="color:#27ae60;font-size:11px"> ('+l.trade_count+'笔)</span>':''}</td><td style="text-align:center;color:#999">${l.line_no||''}</td><td style="color:#888;font-size:12px">${esc(l.formula||'')}</td><td style="text-align:right">${amtStr}</td></tr>`;
+  }).join('');
+  const box=document.getElementById('statementDetail');
+  if(!box)return;
+  box.innerHTML=`
+  <div class="panel" style="margin-top:18px">
+    <h3>${esc(stmt.amiba_name)}阿米巴核算表 <span style="font-size:13px;color:#888">· ${stmt.year}年${stmt.month}月 · ${badge(stmt.status)} ${badge(stmt.source)}</span></h3>
+    <div style="overflow:auto;max-height:70vh">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:#f8f9fa"><th style="text-align:left;padding:8px">项目</th><th style="width:50px">行次</th><th style="text-align:left;width:40%">计算公式/说明</th><th style="text-align:right;width:140px">金额</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn b5" onclick="genStatement()" data-perm="amiba:calc">▶ 重新生成（自动归集收入）</button>
+      <button class="btn b2" onclick="saveStatement()" data-perm="amiba:edit">💾 保存（含手工调整）</button>
+      <button class="btn b4" onclick="exportExcel('${API}/statement/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export">📥 导出</button>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#888">💡 收入行由「交易明细」按服务编号自动归集（绿色笔数），费用行/总工时可手工录入后保存。修改后点击"保存"。</div>
+  </div>`;
+  applyPerms();
+}
+function collectStmtEdits(){
+  // 从输入框收集手工编辑的费用/工时
+  const lines=(caches.stmtDetail&&caches.stmtDetail.lines)||[];
+  const inputs=document.querySelectorAll('#statementDetail input[data-line]');
+  inputs.forEach(inp=>{
+    const lineNo=Number(inp.dataset.line);const field=inp.dataset.field;const section=inp.dataset.section;
+    const l=lines.find(x=>Number(x.line_no)===lineNo&&(section?x.section===section:true));
+    if(l){ if(field==='total_hours'){l.amount=Number(inp.value)||0;} else {l.amount=Number(inp.value)||0;} }
+  });
+  return lines;
+}
+async function saveStatement(){if(!_stmtAmibaId)return alert('请先选择巴单元');const m=month()===''?new Date().getMonth()+1:month();const lines=collectStmtEdits();const th=(lines.find(l=>l.field==='total_hours')||{}).amount||0;const j=await postJson(`${API}/statement`,{amiba_id:_stmtAmibaId,year:year(),month:m,lines:lines,total_hours:th,status:'已确认'});if(j.error)return alert(j.error);alert('核算表已保存');loadStatement()}
+async function genStatement(){if(!_stmtAmibaId)return alert('请先选择巴单元');const m=month()===''?new Date().getMonth()+1:month();const j=await postJson(`${API}/statement/generate`,{amiba_id:_stmtAmibaId,year:year(),month:m});if(j.error)return alert(j.error);alert((j.message||'生成完成')+'\n收入行已从交易明细自动归集');loadStatementDetail();loadStatement()}
+async function genAllStatement(){const m=month()===''?new Date().getMonth()+1:month();if(!confirm(`一键生成所有巴的核算表（${year()}年${m}月）？\n将自动从每个巴的交易明细归集收入行。`))return;const j=await postJson(`${API}/statement/generate-all`,{year:year(),month:m});alert(j.message||'生成完成');loadStatement()}
+
+// ===== 改善 & 先锋 =====
+async function loadImprove(){const [imp,pio,map]=await Promise.all([getJson(`${API}/improve?limit=999`),getJson(`${API}/pioneer?limit=999`),getJson(`${API}/cost-map/analysis?year=${year()}`)]);caches.improve=imp.data||[];caches.pioneer=pio.data||[];
+  const impCols=[['项目名称',r=>esc(r.project_name)],['巴单元',r=>esc(r.amiba_name)],['类型',r=>badge(r.improve_type)],['目标节约',r=>yuan(r.target_value)],['实际',r=>yuan(r.real_value)],['节约额',r=>`<b style="color:#27ae60">${yuan2(r.save_amount)}</b>`],['状态',r=>badge(r.status)],['标杆',r=>r.is_case?'<span class="badge green">案例</span>':''],['操作',r=>(r.status!=='已完成'?'<button class="btn bs b5" onclick="finishImprove('+r.id+')" data-perm="amiba:calc">结项</button> ':'')+'<button class="btn bs b4" onclick="improveForm('+r.id+')" data-perm="amiba:edit">编辑</button> <button class="btn bs b3" onclick="delImprove('+r.id+')" data-perm="amiba:delete">删除</button>']];
+  const pioCols=[['巴单元',r=>esc(r.amiba_name)],['状态',r=>badge(r.pioneer_status)],['周期',r=>esc((r.start_time||'').substring(0,10))+' ~ '+esc((r.end_time||'').substring(0,10))],['目标',r=>esc(r.target_desc)],['前成本',r=>yuan2(r.before_cost)],['后成本',r=>yuan2(r.after_cost)],['节约',r=>`<b style="color:#27ae60">${yuan2(r.total_save)}</b>`],['操作',r=>`<button class="btn bs b4" onclick="pioneerForm(${r.amiba_id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b3" onclick="delPioneer(${r.id})" data-perm="amiba:delete">取消</button>`]];
+  const mapRows=(map.ranks||[]).map(r=>`<div class="hbar-row"><span>${esc(r.amiba_name)}</span><div class="hbar"><i style="width:${Math.min(100,r.heat)}%;background:linear-gradient(90deg,#f39c12,#e74c3c)"></i></div><b>${r.unit_cost}</b></div>`).join('');
+  document.getElementById('improveBox').innerHTML=`
+  <div class="panel"><h3>成本热力测绘（潜力识别 · 单位成本排行）</h3>${mapRows||'<div style="color:#bbb;font-size:12px;text-align:center;padding:20px">请先执行月度核算</div>'}<p style="font-size:12px;color:#888;margin-top:8px">💡 ${esc(map.suggestion||'')}</p></div>
+  <div class="panel"><h3>先锋试点巴 <button class="btn bs b2" onclick="pioneerForm()" data-perm="amiba:edit" style="float:right">设置试点巴</button></h3>${renderTable(pioCols,pio.data||[],pioCols.length)}</div>
+  <h3 style="margin:14px 0 8px">降本改善项目闭环</h3>
+  <div class="sb"><button class="btn b2" onclick="improveForm()" data-perm="amiba:create">新增改善项目</button><button class="btn b4" onclick="document.getElementById('impFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/improve/export?year=${year()}')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/improve/template" target="_blank">下载模板</a><input type="file" id="impFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/improve/import', 'impFile', ()=>loadImprove())"><span style="margin-left:auto">流程：提报 → 精益评审立项 → 过程跟进 → 结项核算 → 案例归档</span></div>
+  ${renderTable(impCols,imp.data||[],impCols.length)}`;applyPerms()}
+const improveFields=[['project_name','项目名称','text'],['amiba_id','巴单元','select',[]],['improve_type','改善类型','select'],['year','年度','number'],['month','月份(0全年)','number'],['target_value','目标节约','number'],['real_value','实际节约','number'],['apply_user','提报人','text'],['owner','负责人','text'],['status','状态','select']];
+async function improveForm(id){let row={year:year(),month:0,improve_type:'费用',status:'立项'};if(id)row=(caches.improve||[]).find(x=>x.id===id)||row;const ff=improveFields.map(f=>f[0]==='amiba_id'?amibaSelect('amiba_id','巴单元'):f[0]==='improve_type'?[f[0],f[1],f[2],meta.improve_types]:f[0]==='status'?[f[0],f[1],f[2],['立项','执行中','已完成','已归档','已终止']]:f);document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}改善项目</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(ff,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveImprove(${id||0})">保存</button></div>`;openForm()}
+async function saveImprove(id){const data=readForm(improveFields);data.amiba_name=(meta.amibas.find(a=>a.id===Number(data.amiba_id))||{}).name||'';if(id)data.id=id;await postJson(`${API}/improve`,data);closeForm();loadImprove()}
+async function finishImprove(id){const row=(caches.improve||[]).find(x=>x.id===id)||{};const real=prompt('实际节约金额:',row.real_value||row.target_value||0);if(real===null)return;const save=prompt('核算节约金额:',Number(real)||0);if(save===null)return;await postJson(`${API}/improve/${id}/finish`,{real_value:Number(real)||0,save_amount:Number(save)||0});loadImprove()}
+async function delImprove(id){if(!confirm('确定删除？'))return;await delJson(`${API}/improve/${id}`);loadImprove()}
+async function pioneerForm(amibaId){let row={pioneer_status:'试点中',start_time:new Date().toISOString().substring(0,10)};if(amibaId)row=(caches.pioneer||[]).find(x=>x.amiba_id===amibaId)||{amiba_id:amibaId,pioneer_status:'试点中',start_time:new Date().toISOString().substring(0,10)};const f=[['amiba_id','巴单元','select',[]],['pioneer_status','试点状态','select',[{id:'试点中',name:'试点中'},{id:'已结项',name:'已结项'}]],['start_time','开始日期','date'],['end_time','结束日期','date'],['target_desc','试点目标','textarea'],['before_cost','前成本(单位)','number'],['after_cost','后成本(单位)','number']];const ff=f.map(x=>x[0]==='amiba_id'?amibaSelect('amiba_id','巴单元'):x);document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>设置先锋试点巴</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(ff,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="savePioneer()">保存</button></div>`;openForm()}
+async function savePioneer(){const data=readForm([['amiba_id',''],['pioneer_status',''],['start_time',''],['end_time',''],['target_desc',''],['before_cost',''],['after_cost','']]);await postJson(`${API}/pioneer/set`,data);closeForm();loadImprove()}
+async function delPioneer(id){if(!confirm('取消该巴的试点？'))return;await delJson(`${API}/pioneer/${id}`);loadImprove()}
+
+// ===== 争议仲裁 =====
+async function loadDispute(){const list=await getJson(`${API}/dispute?limit=999`);caches.dispute=list.data||[];const cols=[['发起方',r=>esc(r.from_amiba_name)],['对方',r=>esc(r.to_amiba_name)],['类型',r=>badge(r.dispute_type)],['争议描述',r=>`<span title="${esc(r.dispute_desc)}">${esc((r.dispute_desc||'').substring(0,30))}${(r.dispute_desc||'').length>30?'…':''}</span>`],['金额',r=>yuan(r.amount)],['提报人',r=>esc(r.apply_user)],['审批',r=>badge(r.audit_result)],['状态',r=>badge(r.status)],['操作',r=>`<button class="btn bs b4" onclick="disputeForm(${r.id})" data-perm="amiba:edit">编辑</button> ${r.status==='待处理'||r.status==='待终审'?`<button class="btn bs b5" onclick="auditDispute(${r.id})" data-perm="amiba:audit">仲裁</button>`:''}`]];document.getElementById('disputeBox').innerHTML=`<div style="margin-bottom:10px">${['巴长提交','推行办初审','委员会终审','裁决写入核算'].map((s,i)=>`<span class="flow-step">${i+1}. ${s}</span><span class="arrow">→</span>`).join('').replace(/<span class="arrow">→<\/span>$/,'')}</div><div class="sb"><button class="btn b2" onclick="disputeForm()" data-perm="amiba:create">提交争议</button><button class="btn b5" onclick="exportExcel('${API}/dispute/export')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto">共 <b>${list.total||0}</b> 条</span></div>${renderTable(cols,list.data||[],cols.length)}`;applyPerms()}
+const disputeFields=[['from_amiba_id','发起方巴','select',[]],['to_amiba_id','对方巴','select',[]],['dispute_type','争议类型','select'],['dispute_desc','争议描述','textarea'],['amount','争议金额','number'],['apply_user','提报人','text']];
+async function disputeForm(id){let row={dispute_type:'定价',apply_user:(JSON.parse(localStorage.getItem('user')||'{}').name)||''};if(id)row=(caches.dispute||[]).find(x=>x.id===id)||row;const ff=disputeFields.map(f=>f[0]==='from_amiba_id'?amibaSelect('from_amiba_id','发起方巴'):f[0]==='to_amiba_id'?amibaSelect('to_amiba_id','对方巴'):f[0]==='dispute_type'?[f[0],f[1],f[2],meta.dispute_types]:f);document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'提交'}争议</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(ff,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveDispute(${id||0})">保存</button></div>`;openForm()}
+async function saveDispute(id){const data=readForm(disputeFields);data.from_amiba_name=(meta.amibas.find(a=>a.id===Number(data.from_amiba_id))||{}).name||'';data.to_amiba_name=(meta.amibas.find(a=>a.id===Number(data.to_amiba_id))||{}).name||'';if(id)data.id=id;await postJson(`${API}/dispute`,data);closeForm();loadDispute()}
+async function auditDispute(id){const row=(caches.dispute||[]).find(x=>x.id===id)||{};const isFinal=row.status==='待终审';const action=isFinal?'终审':'初审';const pass=confirm(`【${action}】点击"确定"=通过，"取消"=驳回`);const opinion=prompt((pass?'通过意见(可空):':'驳回原因:'),row.audit_opinion||'')||'';await postJson(`${API}/dispute/${id}/audit`,{action,pass,audit_opinion:opinion});loadDispute()}
+
+// ===== 培训激励 =====
+async function loadTrain(){const [tr,bo,kpi]=await Promise.all([getJson(`${API}/train?limit=999`),getJson(`${API}/bonus/calc?year=${year()}`),getJson(`${API}/kpi/sync?year=${year()}`)]);caches.train=tr.data||[];
+  const trCols=[['培训主题',r=>esc(r.train_name)],['类型',r=>esc(r.train_type)],['内容',r=>`<span title="${esc(r.train_content)}">${esc((r.train_content||'').substring(0,24))}…</span>`],['时间',r=>esc((r.train_time||'').substring(0,10))],['参加',r=>r.participant_num],['完成',r=>r.finish_num],['操作',r=>`<button class="btn bs b4" onclick="trainForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b3" onclick="delTrain(${r.id})" data-perm="amiba:delete">删除</button>`]];
+  const boCols=[['巴单元',r=>esc(r.amiba_name)],['项目数',r=>r.project_count],['累计节约',r=>yuan(r.total_save)],['提奖比例',r=>percent(r.rate*100)],['测算奖金',r=>`<b style="color:#e67e22">¥${yuan2(r.bonus)}</b>`]];
+  const kpiCols=[['巴单元',r=>esc(r.amiba_name)],['巴长',r=>esc(r.chief)],['目标达成',r=>percent(r.target_rate)],['利润率',r=>percent(r.profit_rate)],['改善项目',r=>r.improve_count],['KPI评分',r=>`<b>${r.kpi_score}</b>`],['等级',r=>`<span class="kpi-grade ${r.grade}">${r.grade}</span>`]];
+  document.getElementById('trainBox').innerHTML=`
+  <div class="grid"><div class="cardx"><div class="n">${tr.data?.length||0}</div><div class="l">培训场次</div></div><div class="cardx"><div class="n" style="color:#e67e22">¥${yuan2(bo.total_bonus)}</div><div class="l">测算激励总额</div></div><div class="cardx"><div class="n" style="color:#27ae60">${yuan(bo.total_save)}</div><div class="l">累计降本节约</div></div></div>
+  <div class="sb" style="margin-top:6px"><button class="btn b2" onclick="trainForm()" data-perm="amiba:edit">新增培训</button><button class="btn b4" onclick="document.getElementById('trainFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/train/export')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/train/template" target="_blank">下载模板</a><input type="file" id="trainFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/train/import', 'trainFile', ()=>loadTrain())"></div>
+  <h3 style="margin:6px 0 8px">培训记录</h3>${renderTable(trCols,tr.data||[],trCols.length)}
+  <h3 style="margin:16px 0 8px">激励奖金测算（节约额 × 提奖比例，默认20%）</h3>${renderTable(boCols,bo.list||[],boCols.length)}
+  <h3 style="margin:16px 0 8px">巴长经营KPI（目标达成50% + 利润率30% + 改善贡献20%）</h3>${renderTable(kpiCols,kpi.list||[],kpiCols.length)}`;applyPerms()}
+const trainFields=[['train_name','培训主题','text'],['train_type','培训类型','text'],['train_content','培训内容','textarea'],['train_time','培训时间','date'],['participant_num','参加人数','number'],['finish_num','完成人数','number']];
+async function trainForm(id){let row={train_time:new Date().toISOString().substring(0,10),train_type:'阿米巴经营'};if(id)row=(caches.train||[]).find(x=>x.id===id)||row;document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}培训记录</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(trainFields,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveTrain(${id||0})">保存</button></div>`;openForm()}
+async function saveTrain(id){const data=readForm(trainFields);if(id)data.id=id;await postJson(`${API}/train`,data);closeForm();loadTrain()}
+async function delTrain(id){if(!confirm('确定删除？'))return;await delJson(`${API}/train/${id}`);loadTrain()}
+
+// ===== 月报 =====
+async function loadReport(){const list=await getJson(`${API}/report?year=${year()}&limit=999`);caches.report=list.data||[];const cols=[['年月',r=>r.year+'-'+String(r.month).padStart(2,'0')],['内容',r=>`<span title="${esc(r.report_content)}">${esc((r.report_content||'').substring(0,40).replace(/\n/g,' '))}…</span>`],['状态',r=>badge(r.publish_status)],['生成时间',r=>esc((r.created_at||'').substring(0,16))],['操作',r=>`<button class="btn bs b4" onclick="reportForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b5" onclick="genReport()" data-perm="amiba:calc">生成最新月报</button>`]];document.getElementById('reportBox').innerHTML=`<div class="sb"><button class="btn b5" onclick="genReport()" data-perm="amiba:calc">一键生成本月月报</button><button class="btn b2" onclick="reportForm()" data-perm="amiba:edit">新建月报</button><button class="btn b4" onclick="exportExcel('${API}/report/export?year=${year()}')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto">共 <b>${list.total||0}</b> 份</span></div>${renderTable(cols,list.data||[],cols.length)}`;applyPerms()}
+async function genReport(){const m=month()===''?new Date().getMonth()+1:month();const j=await postJson(`${API}/report/generate`,{year:year(),month:m});if(!confirm('已生成月报内容，是否保存？'))return;await postJson(`${API}/report`,{year:year(),month:m,report_content:j.report_content,publish_status:'草稿'});loadReport()}
+async function reportForm(id){let row={year:year(),month:month()===''?new Date().getMonth()+1:month(),publish_status:'草稿'};if(id)row=(caches.report||[]).find(x=>x.id===id)||row;const f=[['year','年度','number'],['month','月份','number'],['publish_status','状态','select',[{id:'草稿',name:'草稿'},{id:'已发布',name:'已发布'},{id:'已归档',name:'已归档'}]],['file_url','附件链接','text'],['report_content','月报内容','textarea']];document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新建'}月报</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(f,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveReport(${id||0})">保存</button></div>`;openForm()}
+async function saveReport(id){const data=readForm([['year',''],['month',''],['publish_status',''],['file_url',''],['report_content','']]);if(id)data.id=id;await postJson(`${API}/report`,data);closeForm();loadReport()}
+
+// ===== 外部API对接（供金蝶/WMS/MES 调用 · X-API-Key 鉴权）=====
+const EXT_API_KEY = 'HJ-EBMS-KEY-2026-SECRET';
+const EXT_BASE = '/api/external';
+
+async function extFetch(path, opt) {
+  const headers = Object.assign({}, (opt && opt.headers) || {}, { 'X-API-Key': EXT_API_KEY });
+  if (opt && opt.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  const r = await fetch(EXT_BASE + path, Object.assign({}, opt || {}, { headers }));
+  const j = await r.json().catch(() => ({}));
+  return { ok: r.ok, status: r.status, data: j };
+}
+
+async function loadExt() {
+  const [statusRes, modulesRes, registryRes, lockedRes] = await Promise.all([
+    extFetch('/status'),
+    extFetch('/modules'),
+    extFetch('/registry?limit=20'),
+    extFetch('/locked')
+  ]);
+  const st = statusRes.data || {};
+  const mods = (modulesRes.data && modulesRes.data.data) || [];
+  const reg = (registryRes.data && registryRes.data.data) || [];
+  const regSummary = (registryRes.data && registryRes.data.summary) || {};
+  const locked = (lockedRes.data && lockedRes.data.data) || [];
+
+  document.getElementById('extBox').innerHTML = `
+  <div class="card" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:13px;opacity:.9">外部 API 对接服务</div>
+        <div style="font-size:20px;font-weight:700;margin:4px 0">${esc(st.service || 'EBMS External API')} · v${esc(st.version || '1.0')}</div>
+        <div style="font-size:12px;opacity:.9">状态：${st.code === 0 ? '🟢 正常连通' : '🔴 ' + esc(st.message || '')} · 阿米巴模块：${st.amiba_module ? '✅ 已暴露' : '❌'} · 服务器时间：${esc(st.server_time || '')}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.15);padding:10px 14px;border-radius:8px;font-size:12px">
+        <div>X-API-Key（外部系统调用凭证）</div>
+        <code style="font-size:13px;color:#fff">${esc(EXT_API_KEY)}</code>
+      </div>
+    </div>
+  </div>
+  <div class="grid" style="margin-top:14px">
+    <div class="cardx"><div class="n">${mods.length}</div><div class="l">暴露业务模块</div></div>
+    <div class="cardx"><div class="n" style="color:#667eea">${mods.reduce((s2, m) => s2 + (m.table_count || 0), 0)}</div><div class="l">暴露表总数</div></div>
+    <div class="cardx"><div class="n" style="color:#27ae60">${regSummary.out || 0}</div><div class="l">OUT 推送记录</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">${regSummary.back || 0}</div><div class="l">BACK 回传记录</div></div>
+    <div class="cardx"><div class="n" style="color:#e74c3c">${regSummary.locked || 0}</div><div class="l">已锁定（不再覆盖）</div></div>
+  </div>
+  <div class="panel" style="margin-top:14px">
+    <h3>暴露的表清单（含阿米巴全部业务表）</h3>
+    <div class="tbl" style="max-height:none">
+      <table>
+        <thead><tr><th>模块</th><th>表名</th><th>显示名</th><th>说明</th><th>取数据 URL</th></tr></thead>
+        <tbody>${mods.map(m => (m.tables || []).map(t => `<tr><td>${esc(m.module)}</td><td><code>${esc(t.table)}</code></td><td>${esc(t.name)}</td><td style="font-size:12px;color:#888">${esc(t.desc || '')}</td><td><code style="font-size:11px">/api/external/data/${esc(t.table)}?limit=10</code></td></tr>`).join('')).join('')}</tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:14px">
+    <h3>同步登记清单（最新 20 条）</h3>
+    ${renderTable([
+      ['方向', r => r.direction === 'OUT' ? '<span class="badge blue">OUT</span>' : '<span class="badge green">BACK</span>'],
+      ['表', r => `<code style="font-size:12px">${esc(r.source_table)}</code>`],
+      ['业务键', r => esc(r.source_key || '')],
+      ['状态', r => badge(r.status)],
+      ['锁定', r => r.locked ? '🔒' : ''],
+      ['摘要', r => esc((r.response_summary || '').substring(0, 60))],
+      ['时间', r => esc((r.created_at || '').substring(0, 19))]
+    ], reg, 7)}
+  </div>
+  <div class="panel" style="margin-top:14px">
+    <h3>已锁定记录（外部已回传 · 不再推送覆盖）</h3>
+    ${locked.length ? renderTable([
+      ['表', r => `<code style="font-size:12px">${esc(r.source_table)}</code>`],
+      ['业务键', r => esc(r.source_key || '')],
+      ['锁定时间', r => esc((r.created_at || '').substring(0, 19))],
+      ['备注', r => esc(r.remark || '')]
+    ], locked, 4) : '<div style="color:#bbb;font-size:13px;padding:20px;text-align:center">暂无锁定记录</div>'}
+  </div>
+  <div class="panel" style="margin-top:14px">
+    <h3>外部调用示例（curl）</h3>
+    <pre style="background:#2c3e50;color:#ecf0f1;padding:14px;border-radius:6px;overflow:auto;font-size:12px;line-height:1.7">
+# 1. 连通性自检
+curl -H "X-API-Key: ${EXT_API_KEY}" ${window.location.origin}${EXT_BASE}/status
+
+# 2. 业务模块清单
+curl -H "X-API-Key: ${EXT_API_KEY}" ${window.location.origin}${EXT_BASE}/modules
+
+# 3. 推送应收(AR) → 写入 amiba_ar，自动确认收入
+curl -X POST -H "X-API-Key: ${EXT_API_KEY}" -H "Content-Type: application/json" \\
+  ${window.location.origin}${EXT_BASE}/receive -d '{
+  "source_table": "amiba_ar",
+  "source_key":   "AR2026-001",
+  "data":         {"amiba_id":3,"customer_name":"客户X","amount":50000,"trade_date":"2026-07-15","status":"open"},
+  "remark":       "金蝶推送"
+}'
+
+# 4. 推送应付(AP) → 写入 amiba_ap，自动确认成本
+curl -X POST -H "X-API-Key: ${EXT_API_KEY}" -H "Content-Type: application/json" \\
+  ${window.location.origin}${EXT_BASE}/receive -d '{
+  "source_table": "amiba_ap",
+  "source_key":   "AP2026-001",
+  "data":         {"amiba_id":1,"supplier_name":"供应商Y","amount":30000,"trade_date":"2026-07-12","status":"open"},
+  "remark":       "金蝶推送"
+}'
+
+# 5. 拉取阿米巴交易明细（OUT，自动登记）
+curl -H "X-API-Key: ${EXT_API_KEY}" "${window.location.origin}${EXT_BASE}/data/amiba_trade_detail?limit=10"
+
+# 6. 查看同步清单
+curl -H "X-API-Key: ${EXT_API_KEY}" "${window.location.origin}${EXT_BASE}/registry?limit=20"
+    </pre>
+  </div>`;
+  applyPerms();
+}
+
+loadDashboard();
+</script>
+<script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="feature-gate.js"></script><script>FeatureGate.init();</script>
+</body></html>

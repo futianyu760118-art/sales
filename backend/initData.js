@@ -6,23 +6,71 @@ const tableNames = ['users', 'products', 'customers', 'materials', 'pricing_stan
   'operation_logs', 'samples', 'projects', 'orders', 'assessment_cycles', 'training_plans',
   'roles', 'permissions', 'role_permissions', 'user_roles', 'feedback', 'bom_pricing', 'workflow_rules',
   'annual_plan_goals', 'annual_department_plans', 'annual_kpis', 'annual_okrs', 'annual_action_plans',
-  'annual_risks', 'annual_reviews', 'annual_ai_records', 'material_check_issues'];
+  'annual_risks', 'annual_reviews', 'annual_ai_records', 'material_check_issues',
+  // ===== 阿米巴经营管理（降本攻坚）=====
+  'amiba_org', 'amiba_cost_target_company', 'amiba_cost_target', 'amiba_trade_price',
+  'amiba_account_detail', 'amiba_cost_improve', 'amiba_pioneer', 'amiba_dispute',
+  'amiba_train', 'amiba_month_report', 'amiba_audit_flow', 'amiba_trade_detail',
+  'amiba_dept_standard', 'amiba_statement',
+  // ===== 应收/应付（按巴归集，由外部API接收）=====
+  'amiba_ar', 'amiba_ap',
+  // ===== 经营中心：费用库 / 人工库 =====
+  'expenses', 'labor',
+  // ===== 产销协调会 =====
+  'prod_coord_meetings', 'prod_coord_issues',
+  // ===== IM即时通讯 =====
+  'im_conversations', 'im_conversation_members', 'im_messages', 
+  'im_message_receipts', 'im_notification_rules', 'im_push_logs',
+  // ===== PSI产销存 =====
+  'psi_headers', 'psi_lines',
+  // ===== Action待办 =====
+  'sop_actions',
+  // ===== 预警引擎 =====
+  'alert_rules', 'alert_logs',
+  // ===== KPI指标 =====
+  'kpi_standards', 'kpi_actuals',
+  // ===== 数据获取配置 =====
+  'data_fetch_configs',
+  // ===== SOP系统核心表 =====
+  'sys_organizations', 'md_products', 'md_customers', 'md_suppliers', 'md_boms',
+  'demand_forecasts', 'supply_capacities', 'supply_mrps',
+  'sop_meetings', 'sop_meeting_attendees',
+  'self_check_templates', 'self_check_records',
+  'flow_configs', 'block_logs', 'audit_logs'];
 tableNames.forEach(name => ensureTable(name));
 
 // 初始化用户
 const userTable = getTable('users');
 if (userTable.all().length === 0) {
-  userTable.insert({ username: 'admin', password: 'admin123', name: '超级管理员', role: 'admin', created_at: now() });
-  userTable.insert({ username: 'sales01', password: 'sales123', name: '张三（销售）', role: 'sales', created_at: now() });
-  userTable.insert({ username: 'sales02', password: 'sales123', name: '李四（销售）', role: 'sales', created_at: now() });
-  userTable.insert({ username: 'smgr01', password: 'smgr123', name: '陈经理（销售经理）', role: 'sales_manager', created_at: now() });
-  userTable.insert({ username: 'engineer01', password: 'eng123', name: '王工（工程师）', role: 'engineer', created_at: now() });
-  userTable.insert({ username: 'purchase01', password: 'pur123', name: '赵采购', role: 'purchase', created_at: now() });
-  userTable.insert({ username: 'finance01', password: 'fin123', name: '周财务', role: 'finance', created_at: now() });
-  userTable.insert({ username: 'viewer01', password: 'view123', name: '审计查看', role: 'viewer', created_at: now() });
-  userTable.insert({ username: 'pmgr01', password: 'pmgr123', name: '项目经理', role: 'project_manager', created_at: now() });
-  userTable.insert({ username: 'rdmgr01', password: 'rdmgr123', name: '研发经理', role: 'rd_manager', created_at: now() });
-  console.log('用户数据初始化完成（10个账户：admin/sales01/sales02/smgr01/engineer01/purchase01/finance01/viewer01/pmgr01/rdmgr01）');
+  // 关键修复：用户表为空时，先尝试从时间戳快照恢复（防止更新/损坏后用默认账号覆盖真实用户）
+  let restored = false;
+  try {
+    const backup = require('./lib/user-backup');
+    const r = backup.restoreLatest('users');
+    if (r.ok) {
+      // 恢复后重新加载缓存
+      userTable._invalidate();
+      console.log('[initData] 用户表为空，' + r.message + '（未播种默认账号，保护真实用户数据）');
+      restored = true;
+    }
+  } catch (e) {
+    console.warn('[initData] 用户表快照恢复失败:', e.message);
+  }
+  // 仅当无任何备份可恢复时，才播种默认账号（真正的首次部署）
+  if (!restored) {
+    userTable.insert({ username: 'admin', password: 'admin123', name: '超级管理员', role: 'admin', created_at: now() });
+    userTable.insert({ username: 'sales01', password: 'sales123', name: '张三（销售）', role: 'sales', created_at: now() });
+    userTable.insert({ username: 'sales02', password: 'sales123', name: '李四（销售）', role: 'sales', created_at: now() });
+    userTable.insert({ username: 'smgr01', password: 'smgr123', name: '陈经理（销售经理）', role: 'sales_manager', created_at: now() });
+    userTable.insert({ username: 'engineer01', password: 'eng123', name: '王工（工程师）', role: 'engineer', created_at: now() });
+    userTable.insert({ username: 'purchase01', password: 'pur123', name: '赵采购', role: 'purchase', created_at: now() });
+    userTable.insert({ username: 'finance01', password: 'fin123', name: '周财务', role: 'finance', created_at: now() });
+    userTable.insert({ username: 'viewer01', password: 'view123', name: '审计查看', role: 'viewer', created_at: now() });
+    userTable.insert({ username: 'pmgr01', password: 'pmgr123', name: '项目经理', role: 'project_manager', created_at: now() });
+    userTable.insert({ username: 'rdmgr01', password: 'rdmgr123', name: '研发经理', role: 'rd_manager', created_at: now() });
+    console.log('用户数据初始化完成（10个账户：admin/sales01/sales02/smgr01/engineer01/purchase01/finance01/viewer01/pmgr01/rdmgr01）');
+    console.log('⚠️  这是首次部署的默认账号，请尽快在系统设置中修改密码！');
+  }
 }
 
 // 初始化产品
@@ -387,6 +435,21 @@ const permissions = [
     { name: '图纸审批', code: 'drawing:approve', module: '物料管理', description: '审批图纸文件', created_at: now() },
     { name: '图纸上传', code: 'drawing:upload', module: '物料管理', description: '上传图纸文件', created_at: now() },
     { name: '图纸删除', code: 'drawing:delete', module: '物料管理', description: '删除图纸文件', created_at: now() },
+    // 费用库（经营中心）
+    { name: '查看费用库', code: 'expense:view', module: '费用库', description: '查看费用明细与费用分析', created_at: now() },
+    { name: '创建费用', code: 'expense:create', module: '费用库', description: '新增/导入/同步费用记录', created_at: now() },
+    { name: '编辑费用', code: 'expense:edit', module: '费用库', description: '修改费用明细', created_at: now() },
+    { name: '删除费用', code: 'expense:delete', module: '费用库', description: '删除费用记录', created_at: now() },
+    // 人工库（经营中心）
+    { name: '查看人工库', code: 'labor:view', module: '人工库', description: '查看人工支出明细与成本分析', created_at: now() },
+    { name: '创建人工', code: 'labor:create', module: '人工库', description: '新增/导入/同步人工记录', created_at: now() },
+    { name: '编辑人工', code: 'labor:edit', module: '人工库', description: '修改人工明细', created_at: now() },
+    { name: '删除人工', code: 'labor:delete', module: '人工库', description: '删除人工记录', created_at: now() },
+    // 成品工价库（经营中心）
+    { name: '查看成品工价库', code: 'labor-rate:view', module: '成品工价库', description: '查看成品工价主数据、成本分析与质检', created_at: now() },
+    { name: '创建成品工价', code: 'labor-rate:create', module: '成品工价库', description: '新增/导入/同步成品工价', created_at: now() },
+    { name: '编辑成品工价', code: 'labor-rate:edit', module: '成品工价库', description: '修改成品工价明细、审核', created_at: now() },
+    { name: '删除成品工价', code: 'labor-rate:delete', module: '成品工价库', description: '删除成品工价记录', created_at: now() },
     // 核价管理
     { name: '查看核价', code: 'pricing:view', module: '核价管理', description: '查看核价表和详情', created_at: now() },
     { name: '创建核价', code: 'pricing:create', module: '核价管理', description: '新增核价记录', created_at: now() },
@@ -461,7 +524,15 @@ const permissions = [
     { name: '系统配置', code: 'system:config', module: '系统管理', description: '修改系统配置', created_at: now() },
     // 问题反馈
     { name: '提交反馈', code: 'feedback:create', module: '问题反馈', description: '提交问题反馈', created_at: now() },
-    { name: '处理反馈', code: 'feedback:handle', module: '问题反馈', description: '处理和关闭反馈', created_at: now() }
+    { name: '处理反馈', code: 'feedback:handle', module: '问题反馈', description: '处理和关闭反馈', created_at: now() },
+    // 阿米巴经营管理（降本攻坚）
+    { name: '查看阿米巴', code: 'amiba:view', module: '阿米巴经营', description: '查看阿米巴组织/目标/核算/看板', created_at: now() },
+    { name: '创建阿米巴', code: 'amiba:create', module: '阿米巴经营', description: '新增巴单元/目标/改善项目/争议', created_at: now() },
+    { name: '编辑阿米巴', code: 'amiba:edit', module: '阿米巴经营', description: '修改阿米巴数据、绑定巴长、签署责任状', created_at: now() },
+    { name: '删除阿米巴', code: 'amiba:delete', module: '阿米巴经营', description: '删除阿米巴记录', created_at: now() },
+    { name: '审批阿米巴', code: 'amiba:audit', module: '阿米巴经营', description: '内部定价审批、争议仲裁', created_at: now() },
+    { name: '核算阿米巴', code: 'amiba:calc', module: '阿米巴经营', description: '月度核算、目标拆解、结项核算', created_at: now() },
+    { name: '导出阿米巴', code: 'amiba:export', module: '阿米巴经营', description: '导出阿米巴经营数据', created_at: now() }
   ];
   // 增量补充缺失的权限（保留已存在的权限和已分配的角色权限）
   let permsAdded = 0;
@@ -473,6 +544,62 @@ const permissions = [
   });
   if (permsAdded > 0) {
     console.log('权限数据补充完成，新增 ' + permsAdded + ' 条缺失权限');
+  }
+
+  // ===== 新库（费用库/人工库）增量授权：跟随各角色已有的 material 权限自动补授 =====
+  // 设计：费用/人工库是经营中心基础数据，可见范围与物料库保持一致；
+  //      已部署环境 rpTable 已有数据，首次 grantPerms 不会执行，故此处每次启动做幂等增量补授。
+  try {
+    const _rpTable = getTable('role_permissions');
+    const _allRoles = roleTable.all();
+    const _allPerms = permTable.all();
+    const _code2id = {}; _allPerms.forEach(p => { _code2id[p.code] = p.id; });
+    const _allRP = _rpTable.all();
+    const _existing = new Set(_allRP.map(rp => rp.role_id + '|' + rp.permission_id));
+    let _rpAdded = 0;
+    const _grant = (roleId, code) => {
+      const pid = _code2id[code]; if (!pid) return;
+      const key = roleId + '|' + pid;
+      if (_existing.has(key)) return;
+      _rpTable.insert({ role_id: roleId, permission_id: pid, granted_at: now() });
+      _existing.add(key);
+      _rpAdded++;
+    };
+    _allRoles.forEach(role => {
+      if (role.code === 'admin') return; // admin 已拥有全部
+      const rolePermCodes = new Set(
+        _allRP.filter(rp => rp.role_id === role.id)
+          .map(rp => { const p = _allPerms.find(pm => pm.id === rp.permission_id); return p ? p.code : null; })
+          .filter(Boolean)
+      );
+      const isFinance = ['finance', 'cw1', 'hr_manager'].indexOf(role.code) >= 0;
+      const isEngineer = role.code === 'engineer';
+      // 与物料库同可见性：有 material:view 即补查看权限
+      if (rolePermCodes.has('material:view')) {
+        _grant(role.id, 'expense:view');
+        _grant(role.id, 'labor:view');
+        _grant(role.id, 'labor-rate:view');
+      }
+      // 财务/成本相关角色补全权（与 finance 一致）
+      if (isFinance) {
+        ['expense:create', 'expense:edit', 'expense:delete',
+         'labor:create', 'labor:edit', 'labor:delete',
+         'labor-rate:create', 'labor-rate:edit', 'labor-rate:delete'].forEach(c => _grant(role.id, c));
+      }
+      // 工程师：成品工价库 查看+创建+编辑
+      if (isEngineer) {
+        ['labor-rate:view', 'labor-rate:create', 'labor-rate:edit', 'im:view', 'im:send', 'im:search'].forEach(c => _grant(role.id, c));
+      }
+      // 所有非 admin 角色补授消息中心基础权限（IM 是基础沟通工具）
+      if (role.code !== 'admin') {
+        ['im:view', 'im:send'].forEach(c => _grant(role.id, c));
+      }
+    });
+    if (_rpAdded > 0) {
+      console.log('[initData] 费用库/人工库增量授权完成：补授 ' + _rpAdded + ' 条角色权限');
+    }
+  } catch (e) {
+    console.warn('[initData] 费用库/人工库增量授权失败:', e.message);
   }
 
 // 初始化角色权限关联
@@ -618,7 +745,11 @@ if (rpTable.all().length === 0) {
     // 数据清洗：完全
     'data-clean:view','data-clean:execute',
     // 图纸：完全
-    'drawing:preview','drawing:approve','drawing:upload','drawing:delete'
+    'drawing:preview','drawing:approve','drawing:upload','drawing:delete',
+    // 成品工价库：查看+创建+编辑（工程师维护工价）
+    'labor-rate:view','labor-rate:create','labor-rate:edit',
+    // 订单分析库：查看+核算（工程师从订单分析导入成品/自制/外加工工价）
+    'order-analysis:view','order-analysis:edit'
   ]);
 
   // ===== 采购人员（供应链岗，无可报价/无系统配置） =====
@@ -685,7 +816,16 @@ if (rpTable.all().length === 0) {
     // 数据清洗：只读
     'data-clean:view',
     // 图纸：只读
-    'drawing:preview'
+    'drawing:preview',
+    // 费用库/人工库（经营中心）：财务完全管理
+    'expense:view','expense:create','expense:edit','expense:delete',
+    'labor:view','labor:create','labor:edit','labor:delete',
+    // 成品工价库（经营中心）：财务完全管理
+    'labor-rate:view','labor-rate:create','labor-rate:edit','labor-rate:delete',
+    // 订单分析库（经营中心）：财务全权审核+核算
+    'order-analysis:view','order-analysis:audit','order-analysis:edit',
+    // 领料单（实际物料成本数据源）：财务完全管理
+    'material-issue:view','material-issue:create','material-issue:edit','material-issue:delete'
   ]);
 
   // ===== 只读用户（稽核/审计，全模块只读+报表导出，无可操作） =====
@@ -701,7 +841,13 @@ if (rpTable.all().length === 0) {
     // 权限/系统：只读
     'system:permission','system:config',
     // 图纸：只读
-    'drawing:preview'
+    'drawing:preview',
+    // 费用库/人工库：只读
+    'expense:view','labor:view',
+    // 成品工价库：只读
+    'labor-rate:view',
+    // 订单分析库/领料单：只读
+    'order-analysis:view','material-issue:view'
   ]);
 
   // ===== 项目经理（项目全流程管理） =====
@@ -776,6 +922,219 @@ Object.keys(annualRolePerms).forEach(roleCode => {
   });
 });
 if (annualPermsAdded > 0) console.log('年度经营计划角色权限补充完成，新增 ' + annualPermsAdded + ' 条');
+
+// ===== 阿米巴经营管理：角色权限补充（增量，不覆盖用户已配置项）=====
+const amibaRolePerms = {
+  admin: ['amiba:view','amiba:create','amiba:edit','amiba:delete','amiba:audit','amiba:calc','amiba:export'],
+  sales_manager: ['amiba:view','amiba:create','amiba:edit','amiba:audit','amiba:calc','amiba:export'],
+  rd_manager: ['amiba:view','amiba:create','amiba:edit','amiba:calc','amiba:export'],
+  project_manager: ['amiba:view','amiba:create','amiba:edit','amiba:calc','amiba:export'],
+  engineer: ['amiba:view','amiba:create','amiba:edit','amiba:calc'],
+  purchase: ['amiba:view','amiba:create','amiba:edit'],
+  finance: ['amiba:view','amiba:audit','amiba:export'],
+  viewer: ['amiba:view','amiba:export']
+};
+let amibaPermsAdded = 0;
+const _amibaRoleTable = roleTable;
+const _amibaPermTable = permTable;
+const _amibaRpTable = rpTable;
+Object.keys(amibaRolePerms).forEach(roleCode => {
+  const role = _amibaRoleTable.all().find(r => r.code === roleCode);
+  if (!role) return;
+  amibaRolePerms[roleCode].forEach(code => {
+    const perm = _amibaPermTable.all().find(p => p.code === code);
+    if (!perm) return;
+    const exists = _amibaRpTable.all().some(rp => rp.role_id === role.id && rp.permission_id === perm.id);
+    if (!exists) {
+      _amibaRpTable.insert({ role_id: role.id, permission_id: perm.id, granted_at: now() });
+      amibaPermsAdded++;
+    }
+  });
+});
+if (amibaPermsAdded > 0) console.log('阿米巴经营管理角色权限补充完成，新增 ' + amibaPermsAdded + ' 条');
+
+// ===== 阿米巴经营管理：示例数据初始化 =====
+const _amibaOrgTable = getTable('amiba_org');
+if (_amibaOrgTable.all().length === 0) {
+  const _yr = new Date().getFullYear();
+  // 一级巴：按部门归集系统数据（department_id 关联 orders/inquiries/projects）
+  const orgs = [
+    { parent_id: 0, amiba_level: 1, amiba_name: '生产制造巴', amiba_type: '生产', charge_user_name: '生产总监', department_id: 0, department: '生产部', status: '启用', sort: 1, created_at: now(), updated_at: now() },
+    { parent_id: 0, amiba_level: 1, amiba_name: '研发技术巴', amiba_type: '研发', charge_user_name: '研发经理', department_id: 0, department: '研发部', status: '启用', sort: 2, created_at: now(), updated_at: now() },
+    { parent_id: 0, amiba_level: 1, amiba_name: '营销销售巴', amiba_type: '营销', charge_user_name: '销售经理', department_id: 0, department: '销售部', sales_person: '张三', status: '启用', sort: 3, created_at: now(), updated_at: now() },
+    { parent_id: 0, amiba_level: 1, amiba_name: '供应链采购巴', amiba_type: '采购', charge_user_name: '采购主管', department_id: 0, department: '采购部', status: '启用', sort: 4, created_at: now(), updated_at: now() },
+    { parent_id: 2, amiba_level: 2, amiba_name: 'LED光源研发巴', amiba_type: '研发', charge_user_name: '光源组长', department_id: 0, department: '研发部', status: '启用', sort: 1, created_at: now(), updated_at: now() },
+    { parent_id: 1, amiba_level: 2, amiba_name: '组装生产巴', amiba_type: '生产', charge_user_name: '组装组长', department_id: 0, department: '生产部', status: '启用', sort: 1, created_at: now(), updated_at: now() }
+  ];
+  orgs.forEach(o => _amibaOrgTable.insert(o));
+  console.log('阿米巴组织数据初始化完成');
+}
+
+// 阿米巴组织架构 → 采用系统原有架构人员/部门（org_departments / org_personnel）
+(function linkAmibaToSystemOrg() {
+  let deptTable, persTable;
+  try { deptTable = getTable('org_departments'); deptTable._invalidate(); persTable = getTable('org_personnel'); persTable._invalidate(); }
+  catch (e) { return; }
+  const depts = deptTable.all();
+  const pers = persTable.all();
+  if (!depts.length) return;
+  const orgTable = getTable('amiba_org');
+  const findDept = kw => depts.find(d => d.name && d.name.includes(kw) && d.status !== '停用');
+  const findPerson = deptId => {
+    if (!deptId) return null;
+    return pers.find(p => p.department_id === deptId && p.linked_user_id && p.status !== '停用')
+        || pers.find(p => p.department_id === deptId && p.status !== '停用') || null;
+  };
+  let migrated = 0;
+  orgTable.all().forEach(o => {
+    if (o.charge_personnel_id) return; // 已采用系统人员
+    const nm = o.amiba_name || '';
+    let dept = null;
+    const hasPerson = dd => pers.some(p => p.department_id === dd.id && p.status !== '停用');
+    if (/研发|LED|开发|光源/.test(nm)) {
+      const cands = depts.filter(d => /研发|开发/.test(d.name || '') && d.status !== '停用');
+      dept = cands.find(hasPerson) || findDept('研发中心') || findDept('开发');
+    } else if (/销售|营销/.test(nm)) {
+      const cands = depts.filter(d => /销售/.test(d.name || '') && d.status !== '停用');
+      dept = cands.find(hasPerson) || findDept('销售中心');
+    } else if (/采购|供应链/.test(nm)) {
+      const cands = depts.filter(d => /供应链|采购/.test(d.name || '') && d.status !== '停用');
+      dept = cands.find(hasPerson) || findDept('供应链中心') || findDept('采购');
+    } else if (/品质/.test(nm)) {
+      dept = findDept('品质');
+    } else if (/生产|组装|精益|车间|包装|五金|压铸/.test(nm)) {
+      const workshops = depts.filter(d => /车间|组装|精益|包装|五金|压铸|光电/.test(d.name || '') && d.status !== '停用');
+      dept = workshops.find(hasPerson) || workshops[0] || findDept('精益车间');
+    }
+    if (!dept) dept = depts.find(hasPerson) || findDept('管理中心') || depts[0];
+    if (!dept) return;
+    const fields = { department_id: dept.id, department: dept.name, updated_at: now() };
+    const person = findPerson(dept.id);
+    if (person) {
+      fields.charge_personnel_id = person.id;
+      fields.charge_user_name = person.name;
+      fields.charge_user_id = person.linked_user_id || 0;
+    }
+    orgTable.update(o.id, fields);
+    migrated++;
+  });
+  if (migrated > 0) console.log('阿米巴组织架构已关联系统原有部门/人员：' + migrated + ' 条');
+})();
+
+const _amibaCompanyTargetTable = getTable('amiba_cost_target_company');
+if (_amibaCompanyTargetTable.all().length === 0) {
+  const _yr = new Date().getFullYear();
+  _amibaCompanyTargetTable.insert({
+    year: _yr, total_cost_target: 500000, material_reduce_target: 200000,
+    energy_reduce_target: 100000, fee_reduce_target: 120000, loss_reduce_target: 80000,
+    status: '执行中', created_at: now(), updated_at: now()
+  });
+  console.log('阿米巴公司降本目标初始化完成');
+}
+
+const _amibaPriceTable = getTable('amiba_trade_price');
+if (_amibaPriceTable.all().length === 0) {
+  const prices = [
+    { product_name: 'LED光源模组', product_code: 'LED-MOD-01', from_amiba_id: 5, to_amiba_id: 6, trade_price: 28, unit: '元', price_status: '已生效', audit_status: '已通过', effect_time: now().substring(0,10), created_at: now(), updated_at: now() },
+    { product_name: '驱动电源', product_code: 'DRV-50W', from_amiba_id: 5, to_amiba_id: 1, trade_price: 45, unit: '元', price_status: '待审核', audit_status: '待审核', effect_time: now().substring(0,10), created_at: now(), updated_at: now() }
+  ];
+  prices.forEach(p => _amibaPriceTable.insert(p));
+  console.log('阿米巴内部交易价格初始化完成');
+}
+
+const _amibaDeptStandardTable = getTable('amiba_dept_standard');
+if (_amibaDeptStandardTable.all().length === 0) {
+  const _yr2 = new Date().getFullYear();
+  // 部门收支标准：基数取物料库单价，标准价 = 基数 × 系数
+  const standards = [
+    { amiba_id: 5, amiba_name: 'LED光源研发巴', direction: '收入', material_id: 0, material_code: 'LED-MOD-01', material_name: 'LED光源模组', item_name: 'LED光源模组供货', unit: '个', base_price: 22, coefficient: 1.27, standard_price: 28, year: _yr2, quantity_std: 1000, amount_std: 28000, remarks: '提供方收入标准：基数22×系数1.27', status: '启用', created_at: now(), updated_at: now() },
+    { amiba_id: 6, amiba_name: '组装生产巴', direction: '支出', material_id: 0, material_code: 'LED-MOD-01', material_name: 'LED光源模组', item_name: '领用光源模组', unit: '个', base_price: 22, coefficient: 1.27, standard_price: 28, year: _yr2, quantity_std: 1000, amount_std: 28000, remarks: '接收方支出标准', status: '启用', created_at: now(), updated_at: now() },
+    { amiba_id: 1, amiba_name: '生产制造巴', direction: '支出', material_id: 0, material_code: 'DRV-50W', material_name: '驱动电源', item_name: '领用驱动电源', unit: '个', base_price: 36, coefficient: 1.25, standard_price: 45, year: _yr2, quantity_std: 500, amount_std: 22500, remarks: '基数36×系数1.25', status: '启用', created_at: now(), updated_at: now() },
+    { amiba_id: 1, amiba_name: '生产制造巴', direction: '收入', material_id: 0, material_code: 'FIN-GOODS', material_name: '成品灯具', item_name: '成品转移销售巴', unit: '套', base_price: 80, coefficient: 1.15, standard_price: 92, year: _yr2, quantity_std: 800, amount_std: 73600, remarks: '成品内部转移收入标准', status: '启用', created_at: now(), updated_at: now() }
+  ];
+  standards.forEach(s => _amibaDeptStandardTable.insert(s));
+  console.log('阿米巴部门收支标准初始化完成');
+}
+
+const _amibaImproveTable = getTable('amiba_cost_improve');
+if (_amibaImproveTable.all().length === 0) {
+  const _yr = new Date().getFullYear();
+  const projects = [
+    { amiba_id: 1, amiba_name: '生产制造巴', project_name: '优化SMT贴片工艺降低损耗', improve_type: '工艺', year: _yr, month: 1, target_value: 50000, real_value: 52000, save_amount: 52000, apply_user: '生产总监', owner: '组装组长', status: '已完成', audit_status: '已通过', finish_time: now(), is_case: true, created_at: now(), updated_at: now() },
+    { amiba_id: 1, amiba_name: '生产制造巴', project_name: '车间照明能耗改造', improve_type: '能耗', year: _yr, month: 2, target_value: 30000, real_value: 28000, save_amount: 28000, apply_user: '组装组长', owner: '设备员', status: '已完成', audit_status: '已通过', finish_time: now(), is_case: false, created_at: now(), updated_at: now() },
+    { amiba_id: 2, amiba_name: '研发技术巴', project_name: '国产化替代进口芯片', improve_type: '材料', year: _yr, month: 0, target_value: 80000, real_value: 0, save_amount: 0, apply_user: '研发经理', owner: '光源组长', status: '执行中', audit_status: '已通过', finish_time: '', is_case: false, created_at: now(), updated_at: now() }
+  ];
+  projects.forEach(p => _amibaImproveTable.insert(p));
+  console.log('阿米巴降本改善项目初始化完成');
+}
+
+const _amibaPioneerTable = getTable('amiba_pioneer');
+if (_amibaPioneerTable.all().length === 0) {
+  _amibaPioneerTable.insert({
+    amiba_id: 1, pioneer_status: '试点中', start_time: now().substring(0,10), end_time: '',
+    target_desc: '半年内单位制造成本下降15%', before_cost: 120, after_cost: 102, total_save: 18,
+    created_at: now(), updated_at: now()
+  });
+  console.log('阿米巴先锋试点巴初始化完成');
+}
+
+const _amibaDisputeTable = getTable('amiba_dispute');
+if (_amibaDisputeTable.all().length === 0) {
+  _amibaDisputeTable.insert({
+    from_amiba_id: 6, from_amiba_name: '组装生产巴', to_amiba_id: 5, to_amiba_name: 'LED光源研发巴',
+    dispute_type: '定价', dispute_desc: 'LED光源模组内部结算价偏高，申请下调至25元', amount: 30000,
+    apply_user: '组装组长', apply_time: now(), audit_result: '待初审', audit_opinion: '', audit_user: '', finish_time: '', status: '待处理',
+    created_at: now(), updated_at: now()
+  });
+  console.log('阿米巴争议仲裁示例初始化完成');
+}
+
+const _amibaTrainTable = getTable('amiba_train');
+if (_amibaTrainTable.all().length === 0) {
+  _amibaTrainTable.insert({
+    train_name: '阿米巴经营核算入门', train_content: '内部交易定价、单位成本核算、利润中心意识', train_type: '阿米巴经营',
+    train_time: now().substring(0,10), participant_num: 25, finish_num: 24, create_user: '推行办', created_at: now(), updated_at: now()
+  });
+  console.log('阿米巴培训记录初始化完成');
+}
+
+// 阿米巴内部交易明细（核算表模板示例）
+const _amibaTradeDetailTable = getTable('amiba_trade_detail');
+if (_amibaTradeDetailTable.all().length === 0) {
+  const _ym = new Date().toISOString().substring(0, 7) + '-15';
+  const details = [
+    { trade_no: 'PZ001', trade_date: _ym, from_amiba: '生产制造巴', from_amiba_id: 1, to_amiba: '营销销售巴', to_amiba_id: 3, service_no: 'SVC-001', quantity: 100, unit_price: 28, total_amount: 2800, settle_status: '已结算', remarks: '成品内部转移', created_at: now(), updated_at: now() },
+    { trade_no: 'PZ002', trade_date: _ym, from_amiba: 'LED光源研发巴', from_amiba_id: 5, to_amiba: '组装生产巴', to_amiba_id: 6, service_no: 'SVC-002', quantity: 200, unit_price: 15, total_amount: 3000, settle_status: '已结算', remarks: '光源模组供货', created_at: now(), updated_at: now() },
+    { trade_no: 'PZ003', trade_date: _ym, from_amiba: '研发技术巴', from_amiba_id: 2, to_amiba: '生产制造巴', to_amiba_id: 1, service_no: 'SVC-003', quantity: 1, unit_price: 5000, total_amount: 5000, settle_status: '未结算', remarks: '工艺技术支持', created_at: now(), updated_at: now() },
+    { trade_no: 'PZ004', trade_date: _ym, from_amiba: '供应链采购巴', from_amiba_id: 4, to_amiba: '生产制造巴', to_amiba_id: 1, service_no: 'SVC-004', quantity: 500, unit_price: 8, total_amount: 4000, settle_status: '已结算', remarks: '集中采购结算', created_at: now(), updated_at: now() }
+  ];
+  details.forEach(d => _amibaTradeDetailTable.insert(d));
+  console.log('阿米巴内部交易明细初始化完成');
+}
+
+// ===== 阿米巴应收(AR)/应付(AP)示例 =====
+const _amibaArTable = getTable('amiba_ar');
+if (_amibaArTable.all().length === 0) {
+  const _ym = new Date().toISOString().substring(0, 7) + '-10';
+  // 按应收确认收入：应收单据的 amount 即为本月确认收入
+  const arList = [
+    { amiba_id: 3, amiba_name: '营销销售巴', customer_name: '上海科技有限公司', document_no: 'AR202607-001', amount: 9120, paid_amount: 0, trade_date: _ym, due_date: _ym, status: 'open', source: 'demo', remarks: 'PRO-A100 100件', created_at: now(), updated_at: now() },
+    { amiba_id: 3, amiba_name: '营销销售巴', customer_name: '北京自动化公司', document_no: 'AR202607-002', amount: 12240, paid_amount: 12240, trade_date: _ym, due_date: _ym, status: 'closed', source: 'demo', remarks: 'PRO-C100 200件', created_at: now(), updated_at: now() }
+  ];
+  arList.forEach(d => _amibaArTable.insert(d));
+  console.log('阿米巴应收(AR)示例初始化完成');
+}
+const _amibaApTable = getTable('amiba_ap');
+if (_amibaApTable.all().length === 0) {
+  const _ym = new Date().toISOString().substring(0, 7) + '-08';
+  // 按应付确认成本：应付单据的 amount 即为本月确认成本
+  const apList = [
+    { amiba_id: 1, amiba_name: '生产制造巴', supplier_name: '深圳电子集团', document_no: 'AP202607-001', amount: 4800, paid_amount: 0, trade_date: _ym, due_date: _ym, status: 'open', source: 'demo', remarks: '电解电容批次', created_at: now(), updated_at: now() },
+    { amiba_id: 1, amiba_name: '生产制造巴', supplier_name: '宁波光电科技', document_no: 'AP202607-002', amount: 3600, paid_amount: 3600, trade_date: _ym, due_date: _ym, status: 'closed', source: 'demo', remarks: 'PCB板已对账', created_at: now(), updated_at: now() }
+  ];
+  apList.forEach(d => _amibaApTable.insert(d));
+  console.log('阿米巴应付(AP)示例初始化完成');
+}
 
 // 初始化用户角色关联
 const urTable = getTable('user_roles');

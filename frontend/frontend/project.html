@@ -407,7 +407,7 @@ async function loadPStats(){
 }
 async function loadProjects(page){
   pPage=page||1;
-  const p=new URLSearchParams({page:pPage,limit:50});
+  const p=new URLSearchParams({page:pPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('pKw').value,st=document.getElementById('pStatus').value,pt=document.getElementById('pType').value,lv=document.getElementById('pLevel').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(pt)p.set('project_type',pt);if(lv)p.set('level',lv);
   if(sortBy)p.set('sort_by',sortBy);if(sortOrder)p.set('sort_order',sortOrder);
@@ -446,7 +446,7 @@ async function loadProjects(page){
   }catch(e){console.error(e)}
 }
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -1079,7 +1079,7 @@ function renderProgressTable(){
   renderProgDashboard(recs);
   const tb=document.getElementById('progTb');
   if(!recs.length){tb.innerHTML='<tr><td colspan="25" class="em">暂无数据</td></tr>';var bdBtn=document.getElementById('progBatchDelBtn');if(bdBtn)bdBtn.style.display='none';var sa=document.getElementById('progSelectAll');if(sa)sa.checked=false;document.getElementById('progPg').innerHTML='';return}
-  const ps=50,total=recs.length,pages=Math.ceil(total/ps);
+  var ps = (window._pageSize || 50),total=recs.length,pages=Math.ceil(total/ps);
   if(progPage>pages)progPage=1;
   const offset=(progPage-1)*ps,pageRecs=recs.slice(offset,offset+ps);
   tb.innerHTML=pageRecs.map(({prog,p})=>{
@@ -1473,7 +1473,7 @@ async function openEditProgress(pid,progId){
 let sPage=1;
 async function loadSupply(page){
   sPage=page||1;
-  const p=new URLSearchParams({page:sPage,limit:50});
+  const p=new URLSearchParams({page:sPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('sKw').value,cl=document.getElementById('sClosed').value;
   if(kw)p.set('keyword',kw);if(cl)p.set('closed',cl);
   try{
@@ -1535,7 +1535,7 @@ async function delSupply(id){
 let spPage=1;
 async function loadSales(page){
   spPage=page||1;
-  const p=new URLSearchParams({page:spPage,limit:50});
+  const p=new URLSearchParams({page:spPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('spKw').value;if(kw)p.set('keyword',kw);
   try{
     const r=await fetch(API+'/sales-promotion/list?'+p);const d=await r.json();
@@ -1595,7 +1595,7 @@ async function delSales(id){
 let rPage=1;
 async function loadReviews(page){
   rPage=page||1;
-  const p=new URLSearchParams({page:rPage,limit:50});
+  const p=new URLSearchParams({page:rPage,limit:(window._pageSize||50)});
   try{
     const r=await fetch(API+'/reviews/list?'+p);const d=await r.json();
     const total=d.total||0;document.getElementById('rTc').textContent=total;

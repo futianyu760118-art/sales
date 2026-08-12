@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>销售快捷服务系统</title>
+  <title>企业经营管理平台（EBMS）-HJ</title>
   <style>
     * {
       margin: 0;
@@ -97,7 +97,7 @@
       <div class="logo">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23667eea'/%3E%3Ctext x='50' y='58' text-anchor='middle' fill='white' font-size='30' font-weight='bold'%3E%E9%94%80%3C/text%3E%3C/svg%3E" alt="Logo">
       </div>
-      <h1>销售快捷服务系统</h1>
+      <h1 id="loginTitle">企业经营管理平台（EBMS）-HJ</h1>
       <form id="loginForm">
         <div class="form-group">
           <label for="username">用户名</label>
@@ -113,6 +113,13 @@
     </div>
   </div>
 
+  <script src="brand.js"></script>
+  <script>
+    window.EBMS && window.EBMS.load().then(function(b){
+      document.title = b.fullName();
+      var el = document.getElementById('loginTitle'); if (el) el.textContent = b.fullName();
+    });
+  </script>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();

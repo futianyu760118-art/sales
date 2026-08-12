@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>问题反馈</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 问题反馈</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -30,7 +30,7 @@ tr:hover td{background:#f8f9ff}
 .st-open{background:#d4edda;color:#155724}.st-proc{background:#cce5ff;color:#004085}.st-resolved{background:#fff3cd;color:#856404}.st-closed{background:#e2e3e5;color:#383d41}
 .p-high{background:#f8d7da;color:#721c24}.p-medium{background:#fff3cd;color:#856404}.p-low{background:#d1ecf1;color:#0c5460}.p-urgent{background:#f5c6cb;color:#721c24;font-weight:700}
 .tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
-</style></head><body>
+</style></head><body data-page-title="问题反馈" data-page-perm="feedback:create">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -93,7 +93,7 @@ function swTab(name,btn){
 let fPage=1;
 async function loadList(page){
   fPage=page||1;
-  const p=new URLSearchParams({page:fPage,limit:50});
+  const p=new URLSearchParams({page:fPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('fKw').value,st=document.getElementById('fStatus').value,tp=document.getElementById('fType').value,pr=document.getElementById('fPriority').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(tp)p.set('type',tp);if(pr)p.set('priority',pr);
   try{
@@ -120,7 +120,7 @@ async function loadList(page){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -248,6 +248,7 @@ function renderField([key,label,type],data){
 
 loadList(1);
 </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body></html>

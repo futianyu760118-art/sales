@@ -1,9 +1,8 @@
 ﻿const express = require('express');
 const router = express.Router();
 const { getTable, now } = require('../db');
-const { requirePerm } = require('../auth-middleware');
-const { resolveDataScope, isInScope } = require('../data-scope');
-const { resolveDataScopeV2, buildScopeFilter, combineFilter, logDataPermission } = require('../data-scope-v2');
+const { requirePerm, getUserPermissions } = require('../auth-middleware');
+const { logDataPermission } = require('../data-scope-v2');
 
 // ==================== 研发项目主数据库 ====================
 // 基于供22模版：1.研发项目数据库 + 7.研发项目数据库 + 3.研发数据库-24年
@@ -14,18 +13,6 @@ router.get('/', requirePerm('project:view'), (req, res) => {
   const table = getTable('projects');
   table._invalidate();
   let records = table.all();
-  const scope = resolveDataScopeV2(req);
-  const scopeLegacy = resolveDataScope(req);
-  const scopeFilter = buildScopeFilter(scope, 'projects');
-  if (scope.enabled) {
-    records = records.filter(r => {
-      if (scopeFilter(r)) return true;
-      if (scopeLegacy.enabled && isInScope(scopeLegacy, r, { ownerField: 'owner' })) return true;
-      return false;
-    });
-  } else if (scopeLegacy.enabled) {
-    records = records.filter(r => isInScope(scopeLegacy, r, { ownerField: 'owner' }));
-  }
   if (status) records = records.filter(r => r.status === status);
   if (customer) records = records.filter(r => (r.customer_name || '').includes(customer));
   if (owner) records = records.filter(r => (r.owner || '').includes(owner));
@@ -73,12 +60,10 @@ router.get('/', requirePerm('project:view'), (req, res) => {
   const total = records.length;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   const data = records.slice(offset, offset + parseInt(limit));
-  logDataPermission(req, 'project.list', { table: 'projects', count: total, scope_mode: scope.mode || 'none' });
+  logDataPermission(req, 'project.list', { table: 'projects', count: total, scope_mode: 'none' });
   res.json({
     data, total, page: parseInt(page), limit: parseInt(limit),
-    scope: scope.enabled
-      ? { mode: scope.mode, label: labelScopeProject(scope.mode) }
-      : { mode: 'none', label: '全部数据' }
+    scope: { mode: 'none', label: '全部数据' }
   });
 });
 
@@ -135,16 +120,6 @@ router.get('/:id', requirePerm('project:view'), (req, res) => {
   const table = getTable('projects');
   const row = table.findById(req.params.id);
   if (!row) return res.status(404).json({ error: '项目不存在' });
-  const scope = resolveDataScopeV2(req);
-  let ok = true;
-  if (scope.enabled) {
-    ok = buildScopeFilter(scope, 'projects')(row);
-    if (!ok) {
-      const scopeLegacy = resolveDataScope(req);
-      if (scopeLegacy.enabled) ok = isInScope(scopeLegacy, row, { ownerField: 'owner' });
-    }
-  }
-  if (!ok) return res.status(403).json({ error: '无访问该项目的权限', code: 'DATA_SCOPE_DENIED' });
   // 关联进度节点
   const progTable = getTable('rd_project_progress');
   progTable._invalidate();
@@ -153,7 +128,7 @@ router.get('/:id', requirePerm('project:view'), (req, res) => {
   const reviewTable = getTable('rd_project_reviews');
   reviewTable._invalidate();
   row.review = reviewTable.all().find(r => r.project_id === row.id || (row.project_no && r.project_no === row.project_no)) || null;
-  logDataPermission(req, 'project.detail', { table: 'projects', record_id: row.id, scope_mode: scope.mode || 'none' });
+  logDataPermission(req, 'project.detail', { table: 'projects', record_id: row.id, scope_mode: 'none' });
   res.json(row);
 });
 
@@ -363,7 +338,15 @@ router.put('/:id/progress', requirePerm('project:edit'), (req, res) => {
       var oldVal = String(prog[f] || '').trim();
       // 标准化旧值再比较（避免日期格式差异导致误判）
       if (isDateLike(oldVal)) oldVal = normDate(oldVal);
-      if (String(newVal).trim() !== oldVal) changedCount++;
+      if (String(newVal).trim() !== oldVal) {
+        changedCount++;
+        // 记录每个节点的编辑次数（用于前端颜色递进）
+        if (!fields.node_edits) fields.node_edits = JSON.stringify(prog.node_edits ? JSON.parse(prog.node_edits) : {});
+        var edits;
+        try { edits = JSON.parse(fields.node_edits); } catch(e) { edits = {}; }
+        edits[f] = (edits[f] || 0) + 1;
+        fields.node_edits = JSON.stringify(edits);
+      }
       fields[f] = newVal;
     }
   });
@@ -917,7 +900,7 @@ router.get('/analysis/progress', requirePerm('project:view'), (req, res) => {
 // ==================== 立项申请书 ====================
 // 基于立项申请书模版：立项背景 → 研发目标 → 技术方案 → 计划 → 预期效益 → 资源需求 → 风险对策 → 审批
 
-router.get('/initiation/list', requirePerm('project:view'), (req, res) => {
+router.get('/initiation/list', requirePerm('initiation:view'), (req, res) => {
   const table = getTable('rd_project_initiation');
   table._invalidate();
   let records = table.all();
@@ -925,14 +908,14 @@ router.get('/initiation/list', requirePerm('project:view'), (req, res) => {
   res.json({ data: records });
 });
 
-router.get('/initiation/:projectId', requirePerm('project:view'), (req, res) => {
+router.get('/initiation/:projectId', requirePerm('initiation:view'), (req, res) => {
   const table = getTable('rd_project_initiation');
   table._invalidate();
   const row = table.all().find(r => r.project_id === Number(req.params.projectId));
   res.json(row || null);
 });
 
-router.post('/initiation', requirePerm('project:create'), (req, res) => {
+router.post('/initiation', requirePerm('initiation:apply'), (req, res) => {
   const table = getTable('rd_project_initiation');
   const b = req.body;
   const result = table.insert({
@@ -993,13 +976,37 @@ router.post('/initiation', requirePerm('project:create'), (req, res) => {
     approver: b.approver || '',
     approval_date: b.approval_date || '',
     approval_opinion: b.approval_opinion || '',
+    // 5阶段审批流：申请人立项发起 → 部门审核 → 研发/财务审核 → 总经理批准 → 项目经理执行
+    workflow_stage: b.workflow_stage || 'apply',
+    // 阶段1：申请人立项发起
+    step1_apply_date: b.step1_apply_date || now().substring(0, 10),
+    step1_applicant: b.step1_applicant || (b.applicant || ''),
+    // 阶段2：部门审核
+    step2_approver: b.step2_approver || '',
+    step2_date: b.step2_date || '',
+    step2_opinion: b.step2_opinion || '',
+    step2_result: b.step2_result || '',
+    // 阶段3：研发审核可行性 + 财务审核完整性/回报率/风险
+    step3_rd_reviewer: b.step3_rd_reviewer || '',
+    step3_rd_opinion: b.step3_rd_opinion || '',
+    step3_rd_date: b.step3_rd_date || '',
+    step3_finance_reviewer: b.step3_finance_reviewer || '',
+    step3_finance_opinion: b.step3_finance_opinion || '',
+    step3_finance_date: b.step3_finance_date || '',
+    // 阶段4：总经理批准
+    step4_approver: b.step4_approver || '',
+    step4_date: b.step4_date || '',
+    step4_opinion: b.step4_opinion || '',
+    // 阶段5：项目经理执行
+    step5_owner: b.step5_owner || (b.owner || ''),
+    step5_start_date: b.step5_start_date || (b.start_date || ''),
     created_at: now(),
     updated_at: now()
   });
   res.json({ message: '创建成功', data: table.findById(result.lastID) });
 });
 
-router.put('/initiation/:id', requirePerm('project:edit'), (req, res) => {
+router.put('/initiation/:id', requirePerm('initiation:view'), (req, res) => {
   const table = getTable('rd_project_initiation');
   if (!table.findById(req.params.id)) return res.status(404).json({ error: '不存在' });
   const fields = { updated_at: now() };
@@ -1021,7 +1028,15 @@ router.put('/initiation/:id', requirePerm('project:edit'), (req, res) => {
     'expected_outcome','economic_benefit','target_market',
     'budget_total','budget_detail','team_requirement',
     'risk_analysis','risk_measures',
-    'applicant','apply_date','approval_status','approver','approval_date','approval_opinion'
+    'applicant','apply_date','approval_status','approver','approval_date','approval_opinion',
+    // 5阶段审批字段
+    'workflow_stage',
+    'step1_apply_date','step1_applicant',
+    'step2_approver','step2_date','step2_opinion','step2_result',
+    'step3_rd_reviewer','step3_rd_opinion','step3_rd_date',
+    'step3_finance_reviewer','step3_finance_opinion','step3_finance_date',
+    'step4_approver','step4_date','step4_opinion',
+    'step5_owner','step5_start_date'
   ];
   allFields.forEach(f => {
     if (req.body[f] !== undefined) fields[f] = req.body[f];
@@ -1031,7 +1046,7 @@ router.put('/initiation/:id', requirePerm('project:edit'), (req, res) => {
   res.json({ message: '更新成功' });
 });
 
-router.delete('/initiation/:id', requirePerm('project:delete'), (req, res) => {
+router.delete('/initiation/:id', requirePerm('initiation:view'), (req, res) => {
   const table = getTable('rd_project_initiation');
   if (!table.findById(req.params.id)) return res.status(404).json({ error: '不存在' });
   table.delete(req.params.id);
@@ -1039,18 +1054,27 @@ router.delete('/initiation/:id', requirePerm('project:delete'), (req, res) => {
 });
 
 // 立项申请书统计
-router.get('/initiation/stats', requirePerm('project:view'), (req, res) => {
+router.get('/initiation/stats', requirePerm('initiation:view'), (req, res) => {
   const table = getTable('rd_project_initiation');
   table._invalidate();
   const all = table.all();
   const byStatus = {};
+  const byStage = {};
   all.forEach(r => {
     const s = r.approval_status || 'draft';
     byStatus[s] = (byStatus[s] || 0) + 1;
+    const st = r.workflow_stage || 'apply';
+    byStage[st] = (byStage[st] || 0) + 1;
   });
   res.json({
     total: all.length,
     by_status: byStatus,
+    by_stage: byStage,
+    stage_apply: byStage.apply || 0,
+    stage_dept: byStage.dept || 0,
+    stage_review: byStage.review || 0,
+    stage_gm: byStage.gm || 0,
+    stage_execute: byStage.execute || 0,
     draft: byStatus.draft || 0,
     submitted: byStatus.submitted || 0,
     approved: byStatus.approved || 0,
@@ -1058,8 +1082,69 @@ router.get('/initiation/stats', requirePerm('project:view'), (req, res) => {
   });
 });
 
+// 推进到下一阶段 - 权限与当前阶段绑定
+router.post('/initiation/:id/advance', requirePerm('initiation:view'), (req, res) => {
+  const table = getTable('rd_project_initiation');
+  const rec = table.findById(req.params.id);
+  if (!rec) return res.status(404).json({ error: '立项申请书不存在' });
+  const stageOrder = ['apply', 'dept', 'review', 'gm', 'execute'];
+  const cur = req.body.from_stage || rec.workflow_stage || 'apply';
+  const idx = stageOrder.indexOf(cur);
+  if (idx < 0 || idx >= stageOrder.length - 1) return res.status(400).json({ error: '已是最终阶段' });
+  const next = stageOrder[idx + 1];
+  // 当前阶段需要的权限码
+  const stagePermMap = {
+    apply: 'initiation:apply',
+    dept: 'initiation:dept-review',
+    review: 'initiation:rd-review', // review阶段任一可推进，财务用 finance-review
+    gm: 'initiation:gm-approve',
+    execute: 'initiation:execute'
+  };
+  const reviewPerms = ['initiation:rd-review', 'initiation:finance-review'];
+  const required = cur === 'review' ? reviewPerms : [stagePermMap[cur]];
+  // 权限校验
+  const userId = req.body.user_id || req.body.userId || req.query.user_id || req.headers['x-user-id'];
+  if (userId) {
+    const { isAdmin, perms } = getUserPermissions(userId);
+    if (!isAdmin) {
+      const ok = required.some(p => perms && perms.has(p));
+      if (!ok) return res.status(403).json({ error: `无权限推进当前阶段（${cur}），需要以下权限之一：${required.join(', ')}`, code: 'PERMISSION_DENIED' });
+    }
+  }
+  const fields = { workflow_stage: next, updated_at: now() };
+  // 推进时同时把当前阶段的审批人/日期写入对应字段
+  if (cur === 'apply') {
+    fields.step1_applicant = req.body.reviewer || rec.step1_applicant || rec.applicant || '';
+    fields.step1_apply_date = now().substring(0, 10);
+  } else if (cur === 'dept') {
+    fields.step2_approver = req.body.reviewer || rec.step2_approver || '';
+    fields.step2_date = now().substring(0, 10);
+    fields.step2_opinion = req.body.opinion || '';
+    fields.step2_result = req.body.result || '通过';
+  } else if (cur === 'review') {
+    if (req.body.rd_reviewer) fields.step3_rd_reviewer = req.body.rd_reviewer;
+    if (req.body.rd_opinion) fields.step3_rd_opinion = req.body.rd_opinion;
+    if (req.body.finance_reviewer) fields.step3_finance_reviewer = req.body.finance_reviewer;
+    if (req.body.finance_opinion) fields.step3_finance_opinion = req.body.finance_opinion;
+    fields.step3_rd_date = now().substring(0, 10);
+    fields.step3_finance_date = now().substring(0, 10);
+  } else if (cur === 'gm') {
+    fields.step4_approver = req.body.reviewer || rec.step4_approver || '';
+    fields.step4_date = now().substring(0, 10);
+    fields.step4_opinion = req.body.opinion || '';
+    if (req.body.result === 'reject') {
+      fields.workflow_stage = 'rejected';
+      fields.approval_status = 'rejected';
+    } else {
+      fields.approval_status = 'approved';
+    }
+  }
+  table.update(req.params.id, fields);
+  res.json({ message: '已推进到阶段：' + next, stage: next, data: table.findById(req.params.id) });
+});
+
 // 立项批准 → 自动创建研发项目
-router.post('/initiation/:id/approve-to-project', requirePerm('project:create'), (req, res) => {
+router.post('/initiation/:id/approve-to-project', requirePerm('initiation:execute'), (req, res) => {
   const initTable = getTable('rd_project_initiation');
   const rec = initTable.findById(req.params.id);
   if (!rec) return res.status(404).json({ error: '立项申请书不存在' });

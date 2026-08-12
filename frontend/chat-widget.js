@@ -130,7 +130,7 @@
     body.innerHTML = `
 <div class="msg-bubble ai">
   <div class="msg-content">
-👋 你好！我是销售快捷服务系统AI助手
+👋 你好！我是企业经营管理平台（EBMS）-HJ AI助手
 
 我可以帮你：
 📊 <b>数据分析</b> - 查询询价、核价、客户等业务数据

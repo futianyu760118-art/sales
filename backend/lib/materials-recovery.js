@@ -2,8 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const MATERIALS_FILE = path.join(__dirname, '..', 'database', 'materials.json');
-const MATERIALS_BAK = path.join(__dirname, '..', 'database', 'materials.json.bak');
+const MATERIALS_FILE = path.join(__dirname, '..', '..', 'database', 'materials.json');
+const MATERIALS_BAK = path.join(__dirname, '..', '..', 'database', 'materials.json.bak');
 const THRESHOLD_BYTES = 50 * 1024;
 const COOLDOWN_MS = 60 * 1000;
 
@@ -52,11 +52,14 @@ async function recover(reason, hooks) {
           material_code: code, material_name: item.material_name || item.name || '',
           category: item.material_category || item.category || '', specs: item.spec_model || item.specification || item.specs || '',
           material_type: item.material_type || item.type || '', unit: item.unit_of_measure || item.unit || item.uom || '',
-          unit_price: Number(item.unit_price || item.price || 0),
+          unit_price: Number(item.order_unit_price || item.unit_price || item.price || 0),
           standard_cost: Number(item.standard_cost || item.cost || 0),
           supplier: item.brand || item.supplier_name || item.supplier || '',
           status: item.status === 1 ? 'active' : (item.status === 0 ? 'inactive' : (item.status || 'active')),
-          classification: item.classification || '通用物料', updated_at: now()
+          classification: item.classification || '',
+          classification2: (/自制|委外/.test(item.material_type || item.type || '')) ? '专用物料' : '通用物料',
+          last_outbound_date: item.last_outbound_date || '',
+          updated_at: now()
         };
         const invRec = inv.agg ? inv.agg[code] : null;
         if (invRec) { mapped.inventory_qty = Math.round(invRec.on_hand * 1000) / 1000; mapped.available_qty = Math.round(invRec.available * 1000) / 1000; }

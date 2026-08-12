@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 费用库</title><link rel="stylesheet" href="common.css">
+<style>
+.tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
+.tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tv button.ac{color:#667eea;border-bottom-color:#667eea;font-weight:600}
+.tc{display:none}.tc.ac{display:block}
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:760px;max-width:95%;max-height:90vh;overflow:auto}
+.em{text-align:center;color:#999;padding:30px}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:46px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.st-paid{background:#d4edda;color:#155724}.st-unpaid{background:#f8d7da;color:#721c24}.st-partial{background:#fff3cd;color:#856404}
+.tbl-wrap{overflow-x:auto;max-height:62vh;overflow-y:auto}
+.pg{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;color:#666;flex-wrap:wrap;gap:8px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.panel h3{margin:0 0 10px;font-size:14px;color:#444}
+.hbar{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+.hbar .lb{width:140px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.hbar .track{flex:1;height:16px;background:#f0f2f8;border-radius:4px;overflow:hidden}
+.hbar .fill{height:100%;border-radius:4px}
+.hbar .val{font-weight:600;color:#333;width:96px;text-align:right;flex-shrink:0}
+.trend{display:flex;align-items:flex-end;gap:4px;height:140px;padding:8px 0}
+.trend i{flex:1;min-width:14px;background:linear-gradient(180deg,#667eea,#764ba2);border-radius:3px 3px 0 0;position:relative;cursor:pointer}
+.trend i:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:3px 6px;border-radius:4px;font-size:11px;white-space:nowrap;z-index:5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.qcard{background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:10px}
+.sev-severe{color:#e74c3c;font-weight:700}.sev-warning{color:#f39c12;font-weight:700}.sev-info{color:#888}
+.chk-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee;font-size:13px}
+.chk-row:last-child{border:none}
+.rules{background:#fafbff;border:1px solid #e8ebf7;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.rules-h{padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:#555;background:#fafbff;user-select:none}
+.rules-h:hover{background:#f0f3ff}
+.rules-b{max-height:0;overflow:hidden;transition:max-height .25s ease;padding:0 14px}
+.rules.open .rules-b{max-height:680px;padding:8px 14px 10px}
+.rules-arrow{transition:transform .2s;font-size:12px;color:#999}
+.rules.open .rules-arrow{transform:rotate(90deg)}
+.rules ul{margin:4px 0 0;padding-left:18px;font-size:12px;color:#555;line-height:1.8}
+.rules li{margin-bottom:2px}.rules li b{color:#667eea}.rules li .req{color:#e74c3c}
+</style></head><body data-page-title="费用库" data-page-perm="expense:view">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="expense">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>费用库</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn b1" onclick="openAdd()" data-perm="expense:create">新增费用</button>
+<button class="btn b2" onclick="ImportDropzone.open()" data-perm="expense:create">批量导入</button>
+<a class="btn bs" href="#" onclick="dlTpl();return false" style="background:#eee;color:#555;text-decoration:none">下载导入模板</a>
+<button class="btn b4" onclick="exportCsv()" data-perm="expense:view">导出CSV</button>
+<button class="btn b3" onclick="batchDelete()" data-perm="expense:delete">批量删除</button>
+</div>
+</div>
+
+<div class="tv" id="tabNav">
+<button class="ac" onclick="swTab('list',this)">费用明细</button>
+<button onclick="swTab('analysis',this)">费用分析</button>
+<button onclick="swTab('quality',this)">数据质检</button>
+<button onclick="swTab('ext',this)">外部对接</button>
+</div>
+
+<!-- ===== 费用明细 ===== -->
+<div class="tc ac" id="tab-list">
+<div class="sg" id="statCards"></div>
+<div class="panel">
+<h3>筛选条件</h3>
+<div class="sb">
+<input type="text" id="f_kw" placeholder="关键字(名称/编码/发票号)" style="width:200px">
+<select id="f_cat"><option value="">全部大类</option></select>
+<select id="f_dept"><option value="">全部部门</option></select>
+<select id="f_ps"><option value="">全部支付状态</option><option>未付</option><option>部分付款</option><option>已付</option></select>
+<select id="f_src"><option value="">全部来源</option><option>手工录入</option><option>Excel导入</option><option>外部API</option></select>
+<select id="f_period"><option value="">全部账期</option></select>
+<input type="date" id="f_from" title="发生起">
+<input type="date" id="f_to" title="发生止">
+<button class="btn b1" onclick="loadList(1)">查询</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="resetFilter()">重置</button>
+</div>
+</div>
+<div class="tbl-wrap">
+<table id="tbl">
+<thead><tr>
+<th style="width:30px"><input type="checkbox" onclick="toggleAll(this)"></th>
+<th>费用编码</th><th>费用名称</th><th>费用大类</th><th>所属部门</th>
+<th>发生日期</th><th>账期</th><th class="r">金额</th><th class="r">税额</th><th class="r">价税合计</th>
+<th>收款方</th><th>支付状态</th><th>来源</th><th>操作</th>
+</tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div class="pg" id="pg"></div>
+</div>
+
+<!-- ===== 费用分析 ===== -->
+<div class="tc" id="tab-analysis">
+<div class="sb">
+<select id="a_period"><option value="">全部账期</option></select>
+<select id="a_cat"><option value="">全部大类</option></select>
+<select id="a_dept"><option value="">全部部门</option></select>
+<select id="a_src"><option value="">全部来源</option></select>
+<input type="date" id="a_from"><input type="date" id="a_to">
+<button class="btn b1" onclick="loadStats()">分析</button>
+</div>
+<div id="anaBox"></div>
+</div>
+
+<!-- ===== 数据质检 ===== -->
+<div class="tc" id="tab-quality">
+<div style="margin-bottom:10px"><button class="btn b1" onclick="loadQuality()">运行质检</button></div>
+<div id="qBox"><div class="em">点击「运行质检」检查数据完整性与合理性</div></div>
+</div>
+
+<!-- ===== 外部对接 ===== -->
+<div class="tc" id="tab-ext">
+<div class="panel">
+<h3>外部 API 对接配置（恒剑OA 数据供给）</h3>
+<p style="font-size:12px;color:#888;margin:0 0 10px;line-height:1.7">
+认证：<b>HMAC-SHA256 签名</b>，待签名串 = <code>timestamp + appkey + endpoint_code + query_string</code>。<br>
+数据源：<b>①科目余额</b>（费用类科目发生额 → 费用）+ <b>②供应商付款</b>（发票明细 → 费用）。同步按费用编码去重更新（OA-SB-* / OA-SP-*）。
+</p>
+<div class="gr">
+<div class="fg"><label>是否启用</label><select id="ext_enabled"><option value="false">未启用</option><option value="true">启用</option></select></div>
+<div class="fg"><label>接口地址 Base URL <span style="color:#e74c3c">*</span></label><input id="ext_base_url" placeholder="https://192.168.0.127:18084"><div style="font-size:11px;color:#e74c3c;margin-top:2px">⚠ 对方 18084 是 <b>HTTPS</b> 端口，必须以 <b>https://</b> 开头（用 http 会收到 nginx HTML 错误页）</div></div>
+<div class="fg"><label>App Key</label><input id="ext_app_key" placeholder="ak_xxxxxxxx"></div>
+<div class="fg"><label>App Secret</label><input id="ext_app_secret" placeholder="HMAC 签名密钥"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>TLS Servername <span style="color:#999;font-weight:normal;font-size:11px">（base_url 是 IP 时必填）</span></label><input id="ext_server_name" placeholder="hjoa.chinahy-soft.com"><div style="font-size:11px;color:#666;margin-top:2px">当 base_url 用 IP（如 192.168.0.127）时，TLS 握手需用证书里的域名（SAN）才能通过校验。</div></div>
+<div class="gr">
+<div class="fg"><label>启用数据源（多选）</label>
+<div style="display:flex;gap:14px;padding-top:6px;font-size:13px">
+<label><input type="checkbox" id="ext_src_sb" checked> ①科目余额</label>
+<label><input type="checkbox" id="ext_src_sp" checked> ②供应商付款</label>
+</div></div>
+<div class="fg"><label>&nbsp;</label><div style="padding-top:6px"><button class="btn b4" onclick="testConn()" data-perm="expense:view">🔌 测试连接</button> <span id="testResult" style="font-size:12px;margin-left:6px"></span></div></div>
+</div>
+
+<div style="border-top:1px dashed #eee;margin:10px 0;padding-top:10px">
+<h4 style="margin:0 0 8px;font-size:13px;color:#667eea">① 科目余额 subject-balances</h4>
+<div class="gr">
+<div class="fg"><label>Endpoint Code（签名用）</label><input id="ext_sb_endpoint" value="int:finance.subject_balances.list"></div>
+<div class="fg"><label>科目类别筛选（如"损益"，留空=全部）</label><input id="ext_sb_category" placeholder="留空拉全部科目"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>年份（留空=全部）</label><input id="ext_sb_year" placeholder="如 2026"></div>
+<div class="fg"><label>月份（1-12，留空=全部）</label><input id="ext_sb_month" placeholder="如 7"></div>
+</div>
+<p style="font-size:11px;color:#999;margin:4px 0 0">映射：科目名称→费用名称，贷方发生额→金额，期间→账期，核算项目→关联项目</p>
+</div>
+
+<div style="border-top:1px dashed #eee;margin:10px 0;padding-top:10px">
+<h4 style="margin:0 0 8px;font-size:13px;color:#667eea">② 供应商付款 supplier-payment <span style="font-weight:normal;color:#999;font-size:11px">（暂不可用）</span></h4>
+<div style="background:#fff3cd;border:1px solid #f0d877;border-radius:6px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:8px">
+⚠ OA 的 supplier-payment 接口走 <b>OAuth2 Password 认证</b>（非 HMAC），当前 HMAC 凭证体系下无法对接。如需启用，需另配 OAuth2 用户名密码。
+</div>
+<div class="gr">
+<div class="fg"><label>Endpoint Code</label><input id="ext_sp_endpoint" value="int:materials.supplier_payment.list" disabled style="background:#f5f6fa;color:#999"></div>
+<div class="fg"><label>排款月份 YYYY-MM（留空=全部）</label><input id="ext_sp_month" placeholder="如 2026-07" disabled style="background:#f5f6fa;color:#999"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>供应商名称（模糊）</label><input id="ext_sp_supplier" placeholder="留空拉全部供应商" disabled style="background:#f5f6fa;color:#999"></div>
+<div class="fg"></div>
+</div>
+</div>
+
+<div style="text-align:right;margin-top:8px">
+<button class="btn b2" onclick="saveExt()" data-perm="expense:edit">保存配置</button>
+<button class="btn b1" onclick="syncExt()" data-perm="expense:create">立即同步</button>
+</div>
+<div id="extResult" style="margin-top:10px;font-size:13px"></div>
+</div>
+</div>
+
+</div><!-- /main-content -->
+
+<!-- ===== 表单弹窗 ===== -->
+<div class="mo" id="formModal">
+<div class="mb">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 id="formTitle" style="margin:0">新增费用</h3>
+<span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
+</div>
+<form id="expenseForm" onsubmit="saveForm();return false">
+<div class="rules" id="formRules">
+  <div class="rules-h" onclick="togRules()"><span>📋 填写规则（点击展开/收起）</span><span class="rules-arrow">▶</span></div>
+  <div class="rules-b"><ul>
+    <li><b>费用编码</b>：留空将自动生成（格式 <b>FY年月-流水号</b>，如 FY202607-0001）；手动填写时不可重复</li>
+    <li><b>费用名称</b> <span class="req">*</span>：必填，简明描述费用事由（如"7月差旅费-客户拜访"）</li>
+    <li><b>费用大类</b>：在标准大类中选择（办公费/差旅费/水电费/房租/运输/营销/招待/研发/检测/模具/耗材/维修/通讯/财务费/税费/保险/福利/培训/其他）</li>
+    <li><b>发生日期</b>：费用实际发生的日期；<b>归属账期</b>留空时按发生日期自动推导为 YYYY-MM</li>
+    <li><b>金额（不含税）</b>：填写不含税金额；改金额或税率时<b>税额、价税合计自动计算</b>（税额 = 金额 × 税率 ÷ 100）</li>
+    <li><b>税率(%)</b>：输入数字税率（如 6 表示 6%）；若直接修改税额，则价税合计 = 金额 + 税额</li>
+    <li><b>支付状态</b>：未付 / 部分付款 / 已付，用于统计应付应收</li>
+    <li><b>收款方/供应商</b>、<b>发票号</b>、<b>经办人</b>：便于对账与追溯</li>
+    <li>带 <span class="req">*</span> 为必填项，其余可留空</li>
+  </ul></div>
+</div>
+<input type="hidden" id="f_id">
+<div class="gr">
+<div class="fg"><label>费用编码</label><input id="f_code" placeholder="留空则自动生成"></div>
+<div class="fg"><label>费用名称 <span style="color:#e74c3c">*</span></label><input id="f_name"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>费用大类</label><select id="f_category"><option value="">请选择</option></select></div>
+<div class="fg"><label>费用细类</label><input id="f_type"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>所属部门</label><input id="f_department" list="deptList"></div>
+<div class="fg"><label>关联项目</label><input id="f_project"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>收款方/供应商</label><input id="f_supplier"></div>
+<div class="fg"><label>经办人</label><input id="f_payee"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>发生日期</label><input type="date" id="f_occur_date"></div>
+<div class="fg"><label>归属账期</label><input id="f_account_period" placeholder="YYYY-MM（留空按发生日期推导）"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>金额（不含税）</label><input type="number" step="0.01" id="f_amount" oninput="calcTotal()"></div>
+<div class="fg"><label>税率(%)</label><input type="number" step="0.01" id="f_tax_rate" oninput="calcTotal()"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>税额</label><input type="number" step="0.01" id="f_tax_amount" oninput="calcTotal(true)"></div>
+<div class="fg"><label>价税合计</label><input type="number" step="0.01" id="f_total_amount" readonly style="background:#f5f6fa"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>币种</label><select id="f_currency"><option>CNY</option><option>USD</option><option>EUR</option><option>HKD</option></select></div>
+<div class="fg"><label>支付方式</label><select id="f_payment_method"><option value="">请选择</option><option>银行转账</option><option>现金</option><option>支票</option><option>承兑汇票</option><option>微信</option><option>支付宝</option><option>其他</option></select></div>
+</div>
+<div class="gr">
+<div class="fg"><label>支付状态</label><select id="f_payment_status"><option>未付</option><option>部分付款</option><option>已付</option></select></div>
+<div class="fg"><label>发票类型</label><select id="f_invoice_type"><option value="">无</option><option>增专</option><option>增普</option><option>普通发票</option><option>收据</option><option>无票</option></select></div>
+</div>
+<div class="fg"><label>发票号</label><input id="f_invoice_no"></div>
+<div class="fg"><label>备注</label><textarea id="f_remarks"></textarea></div>
+<div style="text-align:right;margin-top:10px">
+<button type="button" class="btn bs" style="background:#eee;color:#555" onclick="closeForm()">取消</button>
+<button type="submit" class="btn b2">保存</button>
+</div>
+</form>
+</div>
+</div>
+<datalist id="deptList"></datalist>
+
+<script src="common.js"></script>
+<script src="fetch-auth.js"></script>
+<script src="import-dropzone.js"></script>
+<script>
+const API='/api/expenses';
+let meta={}, curPage=1, total=0, LIMIT=20, selected=new Set(), sortKey='id', sortOrder='DESC';
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function yuan(n){return '¥'+(Math.round((Number(n)||0)*100)/100).toLocaleString()}
+function toast(m){let d=document.createElement('div');d.textContent=m;d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:6px;z-index:9999;font-size:13px';document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function qs(){const p=new URLSearchParams();['f_kw','f_cat','f_dept','f_ps','f_src','f_period','f_from','f_to'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({f_kw:'keyword',f_cat:'category',f_dept:'department',f_ps:'payment_status',f_src:'source',f_period:'account_period',f_from:'occur_from',f_to:'occur_to'}[id],v)});p.set('sort_by',sortKey);p.set('sort_order',sortOrder);return p}
+
+function swTab(name,btn){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('ac'));document.getElementById('tab-'+name).classList.add('ac');document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));btn.classList.add('ac');if(name==='analysis')loadStats();if(name==='quality')loadQuality();if(name==='ext')loadExt();}
+
+// ===== 筛选项 =====
+async function loadFilterOpts(){
+  try{
+    const r=await fetch(API+'/meta/filter-options');meta=await r.json();
+    fillSel('f_cat',meta.standard_categories||meta.categories);
+    fillSel('f_dept',meta.departments);
+    fillSel('f_period',(meta.account_periods||[]));
+    fillSel('f_category',meta.standard_categories||[]);
+    const dl=document.getElementById('deptList');dl.innerHTML=(meta.departments||[]).map(d=>'<option value="'+esc(d)+'">').join('');
+    // 分析页筛选项同步
+    fillSel('a_period',meta.account_periods||[]);
+    fillSel('a_cat',meta.standard_categories||[]);
+    fillSel('a_dept',meta.departments||[]);
+  }catch(e){console.error(e)}
+}
+function fillSel(id,arr){const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;const first=sel.options[0]?sel.options[0].outerHTML:'';sel.innerHTML=first+(arr||[]).map(v=>'<option>'+esc(v)+'</option>').join('');sel.value=cur;}
+function togRules(){document.getElementById('formRules').classList.toggle('open');}
+
+// ===== 统计卡片 =====
+async function loadStatCards(){
+  try{
+    const r=await fetch(API+'/dashboard/stats');const d=await r.json();
+    const cards=[
+      {n:d.total,l:'费用记录数',c:'#667eea'},
+      {n:yuan(d.total_amount),l:'费用总额(不含税)',c:'#27ae60'},
+      {n:yuan(d.total_with_tax),l:'价税合计',c:'#764ba2'},
+      {n:yuan(d.unpaid_amount),l:'未付金额',c:'#e74c3c'},
+      {n:yuan(d.paid_amount),l:'已付金额',c:'#16a085'},
+      {n:(d.last_month?((d.mom_percent>=0?'+':'')+d.mom_percent+'%'):'-'),l:'环比上月',c:'#f39c12'}
+    ];
+    document.getElementById('statCards').innerHTML=cards.map(c=>'<div class="sc"><div class="n" style="color:'+c.c+'">'+esc(c.n)+'</div><div class="l">'+c.l+'</div></div>').join('');
+  }catch(e){}
+}
+
+// ===== 列表 =====
+async function loadList(p){
+  curPage=p||1;
+  try{
+    const r=await fetch(API+'?'+qs().toString()+'&page='+curPage+'&limit='+LIMIT);
+    const d=await r.json();total=d.total;
+    const tb=document.getElementById('tb');
+    if(!d.data.length){tb.innerHTML='<tr><td colspan="14" class="em">暂无费用记录，点击「新增费用」或「批量导入」</td></tr>'}
+    else{
+      tb.innerHTML=d.data.map(r=>'<tr>'+
+        '<td><input type="checkbox" class="row-sel" data-id="'+r.id+'"'+(selected.has(r.id)?' checked':'')+'></td>'+
+        '<td>'+esc(r.expense_code)+'</td>'+
+        '<td>'+esc(r.expense_name)+'</td>'+
+        '<td>'+esc(r.expense_category)+'</td>'+
+        '<td>'+esc(r.department)+'</td>'+
+        '<td>'+esc(r.occur_date)+'</td>'+
+        '<td>'+esc(r.account_period)+'</td>'+
+        '<td class="r">'+esc(yuan(r.amount))+'</td>'+
+        '<td class="r">'+esc(yuan(r.tax_amount))+'</td>'+
+        '<td class="r"><b>'+esc(yuan(r.total_amount))+'</b></td>'+
+        '<td>'+esc(r.supplier)+'</td>'+
+        '<td>'+psBadge(r.payment_status)+'</td>'+
+        '<td>'+srcBadge(r.source)+'</td>'+
+        '<td><button class="btn bs b4" onclick="openEdit('+r.id+')" data-perm="expense:edit">编辑</button> <button class="btn bs b3" onclick="del('+r.id+')" data-perm="expense:delete">删</button></td>'+
+        '</tr>').join('');
+    }
+    renderPg();
+    applyPerms();
+  }catch(e){toast('加载失败: '+e.message)}
+}
+function psBadge(s){const m={'已付':'st-paid','未付':'st-unpaid','部分付款':'st-partial'};return '<span class="badge '+(m[s]||'')+'">'+esc(s||'-')+'</span>'}
+function srcBadge(s){const c={'手工录入':'#95a5a6','Excel导入':'#2980b9','外部API':'#e67e22'};return '<span class="badge" style="background:'+(c[s]?'rgba(0,0,0,.06)':'')+';color:'+(c[s]||'#999')+'">'+esc(s||'-')+'</span>'}
+function renderPg(){const pages=Math.ceil(total/LIMIT)||1;const el=document.getElementById('pg');el.innerHTML='<span>共 '+total+' 条，第 '+curPage+'/'+pages+' 页</span><div>'+(curPage>1?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage-1)+')">上一页</button>':'')+(curPage<pages?'<button class="btn bs" style="background:#eee;margin-left:6px" onclick="loadList('+(curPage+1)+')">下一页</button>':'')+'</div>'}
+function toggleAll(el){document.querySelectorAll('.row-sel').forEach(c=>{c.checked=el.checked;if(el.checked)selected.add(Number(c.dataset.id));else selected.clear()})}
+function resetFilter(){['f_kw','f_cat','f_dept','f_ps','f_src','f_period','f_from','f_to'].forEach(id=>document.getElementById(id).value='');loadList(1)}
+
+// ===== 新增/编辑 =====
+function openAdd(){resetForm();document.getElementById('formTitle').textContent='新增费用';document.getElementById('f_occur_date').value=new Date().toISOString().substring(0,10);document.getElementById('f_account_period').value=new Date().toISOString().substring(0,7);document.getElementById('formModal').classList.add('ac')}
+async function openEdit(id){try{const r=await fetch(API+'/'+id);const d=await r.json();fillForm(d);document.getElementById('formTitle').textContent='编辑费用';document.getElementById('formModal').classList.add('ac')}catch(e){toast('加载失败')}}
+function resetForm(){['f_id','f_code','f_name','f_type','f_department','f_project','f_supplier','f_payee','f_occur_date','f_account_period','f_amount','f_tax_rate','f_tax_amount','f_total_amount','f_invoice_no','f_remarks'].forEach(id=>document.getElementById(id).value='');document.getElementById('f_payment_status').value='未付';document.getElementById('f_currency').value='CNY';document.getElementById('f_payment_method').value='';document.getElementById('f_invoice_type').value='';document.getElementById('f_category').value='';}
+function fillForm(r){document.getElementById('f_id').value=r.id||'';document.getElementById('f_code').value=r.expense_code||'';document.getElementById('f_name').value=r.expense_name||'';document.getElementById('f_category').value=r.expense_category||'';document.getElementById('f_type').value=r.expense_type||'';document.getElementById('f_department').value=r.department||'';document.getElementById('f_project').value=r.project||'';document.getElementById('f_supplier').value=r.supplier||'';document.getElementById('f_payee').value=r.payee||'';document.getElementById('f_occur_date').value=r.occur_date||'';document.getElementById('f_account_period').value=r.account_period||'';document.getElementById('f_amount').value=r.amount||'';document.getElementById('f_tax_rate').value=r.tax_rate||'';document.getElementById('f_tax_amount').value=r.tax_amount||'';document.getElementById('f_total_amount').value=r.total_amount||'';document.getElementById('f_currency').value=r.currency||'CNY';document.getElementById('f_payment_method').value=r.payment_method||'';document.getElementById('f_payment_status').value=r.payment_status||'未付';document.getElementById('f_invoice_type').value=r.invoice_type||'';document.getElementById('f_invoice_no').value=r.invoice_no||'';document.getElementById('f_remarks').value=r.remarks||'';}
+function closeForm(){document.getElementById('formModal').classList.remove('ac')}
+function calcTotal(byTax){const amt=Number(document.getElementById('f_amount').value)||0;const rate=Number(document.getElementById('f_tax_rate').value)||0;let tax=Number(document.getElementById('f_tax_amount').value);if(!byTax||!document.getElementById('f_tax_amount').value){tax=Math.round(amt*rate/100*100)/100;document.getElementById('f_tax_amount').value=tax}document.getElementById('f_total_amount').value=Math.round((amt+Number(tax))*100)/100}
+async function saveForm(){
+  const id=document.getElementById('f_id').value;
+  if(!document.getElementById('f_name').value){toast('费用名称必填');return}
+  const body={expense_code:document.getElementById('f_code').value,expense_name:document.getElementById('f_name').value,expense_category:document.getElementById('f_category').value,expense_type:document.getElementById('f_type').value,department:document.getElementById('f_department').value,project:document.getElementById('f_project').value,supplier:document.getElementById('f_supplier').value,payee:document.getElementById('f_payee').value,occur_date:document.getElementById('f_occur_date').value,account_period:document.getElementById('f_account_period').value,amount:document.getElementById('f_amount').value,tax_rate:document.getElementById('f_tax_rate').value,tax_amount:document.getElementById('f_tax_amount').value,total_amount:document.getElementById('f_total_amount').value,currency:document.getElementById('f_currency').value,payment_method:document.getElementById('f_payment_method').value,payment_status:document.getElementById('f_payment_status').value,invoice_type:document.getElementById('f_invoice_type').value,invoice_no:document.getElementById('f_invoice_no').value,remarks:document.getElementById('f_remarks').value,source:document.getElementById('f_source')&&document.getElementById('f_source').value||'手工录入'};
+  try{
+    const r=await fetch(id?API+'/'+id:''+API+'/',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();if(!r.ok){toast(d.error||'保存失败');return}
+    toast('保存成功');closeForm();loadList(curPage);loadStatCards();
+  }catch(e){toast('保存失败: '+e.message)}
+}
+async function del(id){if(!confirm('确认删除该费用记录？'))return;try{const r=await fetch(API+'/'+id,{method:'DELETE'});const d=await r.json();if(!r.ok){toast(d.error);return}toast('已删除');loadList(curPage);loadStatCards()}catch(e){toast(e.message)}}
+async function batchDelete(){const ids=[...selected];if(!ids.length){toast('请勾选要删除的记录');return}if(!confirm('确认删除选中的 '+ids.length+' 条记录？'))return;try{const r=await fetch(API+'/batch-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});const d=await r.json();if(!r.ok){toast(d.error);return}toast(d.message);selected.clear();loadList(curPage);loadStatCards()}catch(e){toast(e.message)}}
+
+// ===== 导出/模板 =====
+function exportCsv(){const p=qs().toString();window.open(API+'/export/csv'+(p?('?'+p):''),'_blank')}
+function dlTpl(){window.open('/api/import/template/expenses','_blank')}
+
+// ===== 分析 =====
+function aQs(){const p=new URLSearchParams();['a_period','a_cat','a_dept','a_src','a_from','a_to'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({a_period:'account_period',a_cat:'category',a_dept:'department',a_src:'source',a_from:'occur_from',a_to:'occur_to'}[id],v)});return p}
+async function loadStats(){
+  const box=document.getElementById('anaBox');box.innerHTML='<div class="em">分析中...</div>';
+  try{
+    const r=await fetch(API+'/dashboard/stats?'+aQs().toString());const d=await r.json();
+    const maxBar=v=>Math.max(1,...v);
+    const bars=(arr,color)=>{const m=maxBar(arr.map(x=>x.value));return arr.map(x=>'<div class="hbar"><span class="lb" title="'+esc(x.name)+'">'+esc(x.name)+'</span><div class="track"><div class="fill" style="width:'+(x.value/m*100)+'%;background:'+color+'"></div></div><span class="val">'+yuan(x.value)+'</span></div>').join('')};
+    const trendMax=Math.max(1,...(d.by_month||[]).map(x=>x.amount));
+    const trend=(d.by_month||[]).map(x=>'<i style="height:'+Math.max(3,x.amount/trendMax*120)+'px" data-tip="'+esc(x.month)+' '+yuan(x.amount)+'"></i>').join('');
+    const topItems=(d.top_items||[]).slice(0,10).map(x=>'<tr><td>'+esc(x.expense_name)+'</td><td>'+esc(x.expense_category)+'</td><td>'+esc(x.department)+'</td><td>'+esc(x.occur_date)+'</td><td class="r"><b>'+yuan(x.amount)+'</b></td></tr>').join('');
+    box.innerHTML=
+    '<div class="sg">'+
+      card(d.total,'费用记录数','#667eea')+card(yuan(d.total_amount),'费用总额(不含税)','#27ae60')+
+      card(yuan(d.total_tax),'税额合计','#f39c12')+card(yuan(d.total_with_tax),'价税合计','#764ba2')+
+      card(yuan(d.unpaid_amount),'未付金额','#e74c3c')+card(yuan(d.paid_amount),'已付金额','#16a085')+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h3>📈 月度费用趋势</h3>'+(trend?'<div class="trend">'+trend+'</div>':'<div class="em">无数据</div>')+(d.last_month?'<p style="font-size:12px;color:#888;margin:8px 0 0">'+esc(d.last_month)+' 环比 '+((d.mom_percent>=0?'+':'')+d.mom_percent+'%')+'</p>':'')+'</div>'+
+      '<div class="panel"><h3>🗂 按支付状态分布</h3>'+bars(d.by_payment_status,'#e67e22')||'<div class="em">无数据</div>'+'</div>'+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h3>🏷 按费用大类</h3>'+bars(d.by_category,'#667eea')+'</div>'+
+      '<div class="panel"><h3>🏢 按部门</h3>'+bars(d.by_department,'#27ae60')+'</div>'+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="panel"><h3>🔗 按数据来源</h3>'+bars(d.by_source,'#2980b9')+'</div>'+
+      '<div class="panel"><h3>🏆 TOP收款方</h3>'+bars(d.top_suppliers,'#8e44ad')+'</div>'+
+    '</div>'+
+    '<div class="panel"><h3>💰 费用金额 TOP</h3>'+(topItems?'<table><thead><tr><th>费用名称</th><th>大类</th><th>部门</th><th>发生日期</th><th class="r">金额</th></tr></thead><tbody>'+topItems+'</tbody></table>':'<div class="em">无数据</div>')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
+}
+function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+'">'+esc(n)+'</div><div class="l">'+l+'</div></div>'}
+
+// ===== 质检 =====
+async function loadQuality(){
+  const box=document.getElementById('qBox');box.innerHTML='<div class="em">质检中...</div>';
+  try{
+    const r=await fetch(API+'/quality-check');const d=await r.json();
+    const sev={severe:'严重',warning:'警告',info:'提示'};
+    const sevCls={severe:'sev-severe',warning:'sev-warning',info:'sev-info'};
+    const issues=(d.issues||[]).slice(0,200).map(i=>'<div class="chk-row"><span><span class="'+sevCls[i.severity]+'">['+sev[i.severity]+']</span> '+esc(i.message)+' <small style="color:#999">'+esc(i.expense_name||i.expense_code)+'</small></span><a onclick="openEdit('+i.id+')" style="color:#667eea;cursor:pointer">去修复</a></div>').join('');
+    box.innerHTML=
+    '<div class="sg">'+card(d.total,'记录总数','#667eea')+card(d.affected+' ('+(d.total?(Math.round(d.affected/d.total*1000)/10):0)+'%)','存在问题','#e74c3c')+card(d.pass_rate+'%','通过率','#27ae60')+card(d.issue_count,'问题数','#f39c12')+'</div>'+
+    '<div class="panel"><h3>问题清单</h3>'+(issues||'<div class="em">未发现问题</div>')+'</div>';
+  }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">'+esc(e.message)+'</div>'}
+}
+
+// ===== 外部对接 =====
+async function loadExt(){
+  try{
+    const r=await fetch(API+'/external/config');const d=await r.json();
+    document.getElementById('ext_enabled').value=String(d.enabled===true);
+    document.getElementById('ext_base_url').value=d.base_url||'';
+    document.getElementById('ext_app_key').value=d.app_key||'';
+    document.getElementById('ext_app_secret').value=d.app_secret||'';
+    const srcs=d.sources||['subject_balances','supplier_payment'];
+    document.getElementById('ext_src_sb').checked=srcs.indexOf('subject_balances')>=0;
+    document.getElementById('ext_src_sp').checked=srcs.indexOf('supplier_payment')>=0;
+    document.getElementById('ext_sb_endpoint').value=d.sb_endpoint||'int:finance.subject_balances.list';
+    document.getElementById('ext_sb_category').value=d.sb_subject_category||'';
+    document.getElementById('ext_sb_year').value=d.sb_fiscal_year||'';
+    document.getElementById('ext_sb_month').value=d.sb_fiscal_month||'';
+    document.getElementById('ext_sp_endpoint').value=d.sp_endpoint||'int:materials.supplier_payment.list';
+    document.getElementById('ext_sp_month').value=d.sp_payment_month||'';
+    document.getElementById('ext_sp_supplier').value=d.sp_supplier_name||'';
+    document.getElementById('ext_server_name').value=d.server_name||'hjoa.chinahy-soft.com';
+  }catch(e){}
+}
+// 协议校验：防止用户填 http（对方是 HTTPS，会返回 nginx HTML 错误页导致 JSON.parse 失败）
+function validateExtCfg(){
+  const url=document.getElementById('ext_base_url').value.trim();
+  const ak=document.getElementById('ext_app_key').value.trim();
+  const as=document.getElementById('ext_app_secret').value.trim();
+  if(!url||!ak||!as) return '请填写 Base URL / AppKey / AppSecret';
+  if(url.startsWith('http://')) return 'Base URL 必须以 https:// 开头（对方 18084 是 HTTPS 端口，用 http 会收到 nginx HTML 错误页）';
+  if(!url.startsWith('https://')) return 'Base URL 必须以 https:// 开头';
+  return null;
+}
+function gatherExtCfg(){
+  const sources=[];
+  if(document.getElementById('ext_src_sb').checked)sources.push('subject_balances');
+  if(document.getElementById('ext_src_sp').checked)sources.push('supplier_payment');
+  return {
+    enabled:document.getElementById('ext_enabled').value==='true',
+    base_url:document.getElementById('ext_base_url').value.trim(),
+    server_name:document.getElementById('ext_server_name').value.trim(),
+    app_key:document.getElementById('ext_app_key').value.trim(),
+    app_secret:document.getElementById('ext_app_secret').value.trim(),
+    sources:sources,
+    sb_endpoint:document.getElementById('ext_sb_endpoint').value.trim(),
+    sb_path:'/api/v1/basicdata/subject-balances',
+    sb_subject_category:document.getElementById('ext_sb_category').value.trim(),
+    sb_fiscal_year:document.getElementById('ext_sb_year').value.trim(),
+    sb_fiscal_month:document.getElementById('ext_sb_month').value.trim(),
+    sp_endpoint:document.getElementById('ext_sp_endpoint').value.trim(),
+    sp_path:'/api/v1/materials/supplier-payment',
+    sp_payment_month:document.getElementById('ext_sp_month').value.trim(),
+    sp_supplier_name:document.getElementById('ext_sp_supplier').value.trim()
+  };
+}
+async function saveExt(){
+  const err=validateExtCfg();if(err){toast(err);return}
+  try{const r=await fetch(API+'/external/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(gatherExtCfg())});const d=await r.json();if(!r.ok){toast(d.error);return}toast(d.message)}catch(e){toast(e.message)}
+}
+async function testConn(){
+  const el=document.getElementById('testResult');
+  const verr=validateExtCfg();
+  if(verr){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(verr)+'</span>';return}
+  el.innerHTML='<span style="color:#888">测试中...</span>';
+  try{
+    const r=await fetch(API+'/external/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(gatherExtCfg())});
+    const d=await r.json();
+    if(d.ok){el.innerHTML='<span style="color:#27ae60">✓ 连接成功（科目余额 '+esc(d.subject_balances.extra||'')+'）</span>';return}
+    let h='<span style="color:#e74c3c">✗ 失败</span><div style="font-size:11px;color:#666;margin-top:4px;line-height:1.6">';
+    h+='health.ping：'+(d.ping.ok?'<span style="color:#27ae60">✓</span>':'<span style="color:#e74c3c">✗ '+esc(d.ping.error||'')+'</span>')+'<br>';
+    h+='科目余额：'+(d.subject_balances.ok?'<span style="color:#27ae60">✓</span>':'<span style="color:#e74c3c">✗ '+esc(d.subject_balances.error||'')+'</span>');
+    if(d.hint)h+='<br><b style="color:#f39c12">排查：'+esc(d.hint)+'</b>';
+    h+='</div>';
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>'}
+}
+async function syncExt(){
+  const el=document.getElementById('extResult');el.innerHTML='<span style="color:#888">正在同步（可能需要数十秒，取决于数据量）...</span>';
+  try{
+    const r=await fetch(API+'/sync-from-external',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d=await r.json();
+    if(!r.ok){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(d.error)+'</span>';return}
+    const sb=d.subject_balances||{}, sp=d.supplier_payment||{};
+    let html='<div style="color:#27ae60;font-weight:600;margin-bottom:6px">'+esc(d.message)+'</div>';
+    html+='<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">';
+    if(d.subject_balances)html+='<div style="background:#f0f3ff;padding:8px 12px;border-radius:6px"><b>①科目余额</b><br>拉取 '+sb.total+' 条 · 新增 '+sb.added+' · 更新 '+sb.updated+' · 跳过 '+sb.skipped+'</div>';
+    if(d.supplier_payment)html+='<div style="background:#fff3e0;padding:8px 12px;border-radius:6px"><b>②供应商付款</b><br>供应商 '+sp.total+' · 新增 '+sp.added+' · 更新 '+sp.updated+' · 跳过 '+sp.skipped+'</div>';
+    html+='</div>';
+    if(d.errors&&d.errors.length)html+='<div style="color:#e74c3c;margin-top:8px;font-size:12px">⚠ '+d.errors.map(esc).join('<br>')+'</div>';
+    el.innerHTML=html;
+    loadList(curPage);loadStatCards();
+  }catch(e){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>'}
+}
+
+function applyPerms(){if(window.PermissionCheck)PermissionCheck.applyToPage()}
+
+// 行选中事件
+document.addEventListener('change',e=>{if(e.target.classList.contains('row-sel')){const id=Number(e.target.dataset.id);if(e.target.checked)selected.add(id);else selected.delete(id)}});
+
+// 初始化
+loadFilterOpts().then(()=>{loadStatCards();loadList(1)});
+ImportDropzone.init('','expenses',function(){loadList(curPage);loadStatCards()});
+</script>
+<script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

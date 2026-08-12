@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const outbox = require('../lib/material-outbox');
 
 function migrateMaterialDataOnce() {
   const table = getTable('materials');
@@ -178,6 +179,112 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
   const materials = matTable.all().filter(matFilter);
   const bomItems = bomTable.all();
 
+  // ===== 已接未交付订单所需物料统计（2026-07-01 之后创建）=====
+  const orderTable = getTable('orders');
+  orderTable._invalidate();
+  const allOrders = orderTable.all();
+  const UNDELIVERED_CUTOFF = '2026-07-01';
+  // 已接订单：created_at >= 2026-07-01；未交付：completed_qty < quantity
+  const openOrders = allOrders.filter(o => {
+    const ca = String(o.created_at || '');
+    if (ca.substring(0, 10) < UNDELIVERED_CUTOFF) return false;
+    const q = Number(o.quantity) || 0;
+    const cq = Number(o.completed_qty) || 0;
+    return q > 0 && cq < q;
+  });
+  const totalOrderUnits = openOrders.reduce((s, o) => s + ((Number(o.quantity) || 0) - (Number(o.completed_qty) || 0)), 0);
+  // BOM 中所有产品（按 product_id 去重）
+  const productIds = [...new Set(bomItems.map(b => b.product_id).filter(Boolean))];
+  const productCount = productIds.length;
+  // 每个产品对各物料的用量（过滤掉费用行/空 quantity/空 code）
+  const productMatUsage = {}; // product_id -> { code -> totalQty }
+  for (const b of bomItems) {
+    if (!b.product_id) continue;
+    const code = String(b.code || '').trim();
+    if (!code || code === '费用') continue;
+    const qty = Number(b.quantity) || 0;
+    if (qty <= 0) continue;
+    if (!productMatUsage[b.product_id]) productMatUsage[b.product_id] = {};
+    productMatUsage[b.product_id][code] = (productMatUsage[b.product_id][code] || 0) + qty;
+  }
+  // 每个物料在所有产品中的平均用量（按产品数平均）
+  const matAvgUsage = {};
+  for (const pid of productIds) {
+    const usage = productMatUsage[pid] || {};
+    for (const [code, qty] of Object.entries(usage)) {
+      matAvgUsage[code] = (matAvgUsage[code] || 0) + qty / productCount;
+    }
+  }
+  // 每个物料的"订单单位数 × 平均用量" = 总需求
+  // 订单单位数在 productCount 个产品间均摊
+  const matRequired = {}; // code -> 总需求
+  for (const [code, avgQty] of Object.entries(matAvgUsage)) {
+    // 每个产品承担 (totalOrderUnits / productCount) 单位，需求量 = avgQty × totalUnits / productCount
+    const required = avgQty * totalOrderUnits / productCount;
+    if (required > 0) matRequired[code] = required;
+  }
+  // 物料库存映射 code -> inventory_qty
+  const matByCode = {};
+  for (const m of materials) {
+    if (m.material_code) matByCode[String(m.material_code)] = m;
+  }
+  // 计算缺口 TOP 列表（库存 < 需求的物料）
+  const matShortageList = [];
+  for (const [code, required] of Object.entries(matRequired)) {
+    const m = matByCode[code];
+    if (!m) continue; // 物料不存在于物料库（可能是 BOM 里有但物料库没同步）
+    const onHand = Number(m.inventory_qty) || 0;
+    const shortage = Math.max(0, required - onHand);
+    if (shortage <= 0) continue; // 库存足够
+    matShortageList.push({
+      material_code: code,
+      material_name: m.material_name || '',
+      classification: m.classification || '通用物料',
+      required: +required.toFixed(2),
+      on_hand: onHand,
+      shortage: +shortage.toFixed(2),
+      unit: m.unit || '',
+      unit_price: Number(m.unit_price) || 0,
+      shortage_value: +(shortage * (Number(m.standard_cost) || Number(m.unit_price) || 0)).toFixed(2)
+    });
+  }
+  matShortageList.sort((a, b) => b.shortage - a.shortage);
+  // 总览统计
+  const orderMaterialStats = {
+    cutoff_date: UNDELIVERED_CUTOFF,
+    order_count: openOrders.length,
+    total_order_units: totalOrderUnits,
+    product_count: productCount,
+    required_material_kinds: Object.keys(matRequired).length,
+    matched_material_kinds: Object.keys(matRequired).filter(c => matByCode[c]).length,
+    shortage_kinds: matShortageList.length,
+    shortage_units_total: +matShortageList.reduce((s, x) => s + x.shortage, 0).toFixed(2),
+    shortage_value_total: +matShortageList.reduce((s, x) => s + x.shortage_value, 0).toFixed(2),
+    top_shortage: matShortageList.slice(0, 15),
+    note: '订单 product_code 暂未关联，按 BOM 全产品平均用量 × 订单未交单位数估算；仅作趋势参考'
+  };
+
+  // ===== 物料使用情况（按时间段）=====
+  const USAGE_RANGE_DAYS = { '7d': 7, '30d': 30, '90d': 90, '180d': 180, 'all': null };
+  const usageRangeKey = String(req.query.usage_range || 'all');
+  const usageRangeDays = USAGE_RANGE_DAYS.hasOwnProperty(usageRangeKey) ? USAGE_RANGE_DAYS[usageRangeKey] : null;
+  const nowMs = Date.now();
+  const usageCutoffMs = (usageRangeDays !== null) ? (nowMs - usageRangeDays * 86400000) : null;
+  function inUsageRange(dateStr) {
+    if (usageCutoffMs === null) return true;
+    if (!dateStr) return false;
+    const t = new Date(dateStr.replace(' ', 'T')).getTime();
+    // 过滤无效日期 + 明显异常的"未来日期"（> 今天+30 天，多半是同步脏数据）
+    if (!isFinite(t) || t > nowMs + 30 * 86400000) return false;
+    return t >= usageCutoffMs;
+  }
+  // 排序键：无效或异常未来日期返回 0（排到末尾）
+  const _toTs = s => {
+    const t = new Date(s || 0).getTime();
+    if (!isFinite(t) || t > nowMs + 30 * 86400000) return 0;
+    return t;
+  };
+
   const totalMaterials = materials.length;
   const byClassification = {};
   const byClassification2 = {};
@@ -207,7 +314,9 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     if (qty > 0) inStockCount++;
     inventoryTotalQty += qty;
     const cost = Number(m.standard_cost) || Number(m.unit_price) || 0;
-    const invVal = qty * cost;
+    const invVal = (m.inv_ending_balance !== undefined && m.inv_ending_balance !== null)
+      ? Number(m.inv_ending_balance)
+      : qty * cost;
     inventoryTotalValue += invVal;
     if (cls) inventoryByClassification[cls] = (inventoryByClassification[cls] || 0) + qty;
     if (cls) inventoryValueByClassification[cls] = (inventoryValueByClassification[cls] || 0) + invVal;
@@ -237,7 +346,10 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     .filter(m => Number(m.inventory_qty) > 0)
     .sort((a, b) => (Number(b.inventory_qty) || 0) - (Number(a.inventory_qty) || 0))
     .slice(0, 10)
-    .map(m => ({ material_code: m.material_code, material_name: m.material_name, inventory_qty: Number(m.inventory_qty) || 0, classification: m.classification || '通用物料', unit: m.unit || '', inventory_value: (Number(m.inventory_qty)||0) * (Number(m.standard_cost) || Number(m.unit_price) || 0) }));
+    .map(m => {
+      const _iv = (m.inv_ending_balance !== undefined && m.inv_ending_balance !== null) ? Number(m.inv_ending_balance) : (Number(m.inventory_qty)||0) * (Number(m.standard_cost) || Number(m.unit_price) || 0);
+      return { material_code: m.material_code, material_name: m.material_name, inventory_qty: Number(m.inventory_qty) || 0, classification: m.classification || '通用物料', unit: m.unit || '', inventory_value: _iv };
+    });
 
   const monthlyPurchaseSuggestion = materials
     .filter(m => m.monthly_usage > 0)
@@ -262,7 +374,9 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
   const procurementDueItems = [];
   materials.forEach(m => {
     const inv = Number(m.inventory_qty) || 0;
-    procurementInventoryValue += inv * (Number(m.unit_price) || 0);
+    procurementInventoryValue += (m.inv_ending_balance !== undefined && m.inv_ending_balance !== null)
+      ? Number(m.inv_ending_balance)
+      : inv * (Number(m.unit_price) || 0);
     if (Number(m.procurement_enabled) === 1) {
       procurementEnabledCount++;
       const next = m.next_purchase_date || computeNextPurchaseDate(m);
@@ -292,6 +406,46 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     .sort((a, b) => new Date(b.event_time) - new Date(a.event_time))
     .slice(0, 20);
 
+  // ===== 物料使用情况统计（按时间段筛选 last_outbound_date）=====
+  const activeMats = materials.filter(m => m.last_outbound_date && inUsageRange(m.last_outbound_date));
+  const usageActiveCount = activeMats.length;
+  const usageTotalCount = materials.length;
+  const usageCoveragePct = usageTotalCount > 0 ? +(usageActiveCount / usageTotalCount * 100).toFixed(1) : 0;
+  // 月用量 TOP（活跃物料中按 monthly_usage 排序；若 monthly_usage 全为 0 则按最近出库时间降序兜底）
+  let topUsedByMonthly = activeMats
+    .filter(m => Number(m.monthly_usage) > 0)
+    .sort((a, b) => (Number(b.monthly_usage) || 0) - (Number(a.monthly_usage) || 0));
+  if (topUsedByMonthly.length === 0) {
+    topUsedByMonthly = [...activeMats].sort((a, b) => _toTs(b.last_outbound_date) - _toTs(a.last_outbound_date));
+  }
+  topUsedByMonthly = topUsedByMonthly.slice(0, 10).map(m => ({
+    material_code: m.material_code,
+    material_name: m.material_name,
+    monthly_usage: Number(m.monthly_usage) || 0,
+    last_outbound_date: (m.last_outbound_date || '').substring(0, 10),
+    classification: m.classification || '通用物料'
+  }));
+  // 最近出库 TOP（按时间倒序，无效日期排到最后）
+  const topRecentOutbound = [...activeMats]
+    .sort((a, b) => _toTs(b.last_outbound_date) - _toTs(a.last_outbound_date))
+    .slice(0, 10)
+    .map(m => ({
+      material_code: m.material_code,
+      material_name: m.material_name,
+      last_outbound_date: (m.last_outbound_date || '').substring(0, 10),
+      monthly_usage: Number(m.monthly_usage) || 0,
+      classification: m.classification || '通用物料'
+    }));
+  const usageStats = {
+    range: usageRangeKey,
+    range_label: usageRangeDays === null ? '全部' : ('近 ' + usageRangeDays + ' 天'),
+    active_count: usageActiveCount,
+    total_count: usageTotalCount,
+    coverage_pct: usageCoveragePct,
+    top_used: topUsedByMonthly,
+    top_recent: topRecentOutbound
+  };
+
   res.json({
     totalMaterials, byClassification, byClassification2, byCategory, byStatus, totalCost, lowInventoryCount, lowInventoryItems, topUsed, topCost, monthlyPurchaseSuggestion, bomTotalItems: bomItems.length,
     // 即时仪表盘便捷字段
@@ -312,6 +466,8 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
     procurement_due: procurementDueCount,
     procurement_due_items: procurementDueItems.sort((a, b) => b.overdue_days - a.overdue_days),
     timeline,
+    usage_stats: usageStats,
+    order_material_stats: orderMaterialStats,
     filters: filterMeta
   });
 });
@@ -749,6 +905,7 @@ router.post('/inventory/batch-update', requirePerm('material:edit'), (req, res) 
     });
     if (Object.keys(fields).length > 1) {
       matTable.update(item.id, fields);
+      if (mat.material_code) outbox.queue('update', mat.material_code, item.id, outbox.toExternalPayload(Object.assign({}, mat, fields)));
       updated++;
       if ((classChanged || typeChanged) && mat.material_code) {
         const bomFields = { updated_at: ts };
@@ -1391,6 +1548,13 @@ router.post('/', requirePerm('material:create'), (req, res) => {
     volume: volume ? Number(volume) : 0,
     bom_usage_count: 0, used_in_products: '', created_at: now(), updated_at: now()
   });
+  if (material_code) {
+    outbox.queue('create', material_code, result.lastID, outbox.toExternalPayload({
+      material_code, material_name, specs, material_type: material_type || category, unit,
+      supplier, status, unit_price: unit_price ? Number(unit_price) : 0, standard_cost: standard_cost ? Number(standard_cost) : 0,
+      inventory_qty: inventory_qty ? Number(inventory_qty) : 0, min_inventory: min_inventory ? Number(min_inventory) : 0, classification
+    }));
+  }
   res.json({ message: '物料创建成功', data: table.findById(result.lastID) });
 });
 
@@ -1441,6 +1605,9 @@ router.put('/:id', requirePerm('material:edit'), (req, res) => {
     }
   }
 
+  const _merged = Object.assign({}, existing, fields);
+  if (_merged.material_code) outbox.queue('update', _merged.material_code, existing.id, outbox.toExternalPayload(_merged));
+
   res.json({ message: '物料更新成功', data: table.findById(req.params.id), bomSynced });
 });
 
@@ -1455,6 +1622,7 @@ router.post('/batch-delete', requirePerm('material:delete'), (req, res) => {
   ids.forEach(id => {
     const existing = table.findById(id);
     if (!existing) { notFound.push(id); return; }
+    if (existing.material_code) outbox.queue('delete', existing.material_code, id, { material_code: existing.material_code });
     table.delete(id);
     deleted++;
   });
@@ -1476,6 +1644,7 @@ router.post('/batch-status', requirePerm('material:edit'), (req, res) => {
     const existing = table.findById(id);
     if (!existing) { notFound.push(id); return; }
     table.update(id, { status, updated_at: ts });
+    if (existing.material_code) outbox.queue('update', existing.material_code, id, outbox.toExternalPayload(Object.assign({}, existing, { status })));
     updated++;
   });
   res.json({ message: '批量状态更新完成', updated, status, not_found: notFound });
@@ -1485,6 +1654,7 @@ router.delete('/:id', requirePerm('material:delete'), (req, res) => {
   const table = getTable('materials');
   const existing = table.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: '物料不存在' });
+  if (existing.material_code) outbox.queue('delete', existing.material_code, req.params.id, { material_code: existing.material_code });
   table.delete(req.params.id);
   res.json({ message: '物料删除成功' });
 });

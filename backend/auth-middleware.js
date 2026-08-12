@@ -13,6 +13,60 @@
  */
 const { getTable } = require('./db');
 
+/**
+ * 合并组织模块权限到运行时权限集合
+ * 将 org_position_perms（岗位默认权限）、org_position_roles（岗位角色）、
+ * org_personnel_perms（人员个性化 grant/deny）合并到 permIds 中。
+ * @param {number} userId - 系统用户 ID
+ * @param {Set<number>} permIds - 已有的权限 ID 集合（会被原地修改）
+ * @returns {Set<number>} 合并后的权限 ID 集合
+ */
+function mergeOrgPermissions(userId, permIds) {
+  if (!userId) return permIds;
+  try {
+    const personnelTable = getTable('org_personnel');
+    const posPermsTable = getTable('org_position_perms');
+    const posRolesTable = getTable('org_position_roles');
+    const perPermsTable = getTable('org_personnel_perms');
+    const rpTable = getTable('role_permissions');
+    const roleTable = getTable('roles');
+    const permTable = getTable('permissions');
+    [personnelTable, posPermsTable, posRolesTable, perPermsTable, rpTable, roleTable, permTable]
+      .forEach(t => { try { t._invalidate(); } catch(e) {} });
+
+    // 通过 linked_user_id 找到对应的组织人员
+    const person = personnelTable.all().find(p => Number(p.linked_user_id) === Number(userId));
+    if (!person) return permIds;
+
+    const orgRoleIds = new Set();
+    // 1. 岗位默认权限 + 岗位角色
+    if (person.position_id) {
+      posPermsTable.all().filter(pp => pp.position_id === person.position_id)
+        .forEach(pp => permIds.add(pp.permission_id));
+      posRolesTable.all().filter(pr => pr.position_id === person.position_id)
+        .forEach(pr => orgRoleIds.add(pr.role_id));
+    }
+    // 2. 角色展开（admin 拥有全部权限）
+    orgRoleIds.forEach(rid => {
+      const role = roleTable.findById(rid);
+      if (role && role.code === 'admin') {
+        permTable.all().forEach(p => permIds.add(p.id));
+      }
+    });
+    orgRoleIds.forEach(rid => {
+      rpTable.all().filter(rp => rp.role_id === rid).forEach(rp => permIds.add(rp.permission_id));
+    });
+    // 3. 人员个性化调整（在角色展开之后，确保 deny 能覆盖角色权限）
+    perPermsTable.all().filter(pp => pp.personnel_id === person.id).forEach(o => {
+      if (o.type === 'grant') permIds.add(o.permission_id);
+      else if (o.type === 'deny') permIds.delete(o.permission_id);
+    });
+  } catch (e) {
+    // 组织模块表可能未初始化，静默忽略
+  }
+  return permIds;
+}
+
 function getUserPermissions(userId) {
   if (!userId) return { isAdmin: false, perms: new Set() };
 
@@ -55,6 +109,8 @@ function getUserPermissions(userId) {
   userRoleIds.forEach(rid => {
     rpTable.all().filter(rp => rp.role_id === rid).forEach(rp => permIds.add(rp.permission_id));
   });
+  // 合并组织模块权限（岗位默认 + 岗位角色 + 人员个性化 grant/deny）
+  mergeOrgPermissions(user.id, permIds);
   const perms = new Set();
   permIds.forEach(pid => {
     const p = permTable.findById(pid);
@@ -103,4 +159,4 @@ function requireAnyPerm(...codes) {
   };
 }
 
-module.exports = { requirePerm, requireAnyPerm, getUserPermissions, extractUserId };
+module.exports = { requirePerm, requireAnyPerm, getUserPermissions, extractUserId, mergeOrgPermissions };

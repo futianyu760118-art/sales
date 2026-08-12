@@ -1,13 +1,15 @@
-﻿version: '3.8'
+version: '3.8'
 services:
   sales-service-system:
-    build: .
+    image: sales-service-system-fixed:latest
     container_name: sales-service-system
     ports:
       - "3010:3010"
     volumes:
       - ./database:/app/database
       - ./uploads:/app/uploads
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
     environment:
       - PORT=3010
       - NODE_ENV=production

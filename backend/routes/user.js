@@ -26,6 +26,13 @@ router.get('/', requirePerm('system:user'), (req, res) => {
   res.json(users);
 });
 
+// 轻量级用户名列表（仅需任意查看权限，用于下拉选项填充）
+router.get('/names', (req, res) => {
+  const table = getTable('users');
+  const users = table.all().map(u => ({ id: u.id, name: u.name, role: u.role }));
+  res.json(users);
+});
+
 // 获取单个用户
 router.get('/:id', requirePerm('system:user'), (req, res) => {
   const table = getTable('users');

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>样品管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 样品管理</title><link rel="stylesheet" href="common.css">
 <style>
 .sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
@@ -25,7 +25,12 @@ tr:hover td{background:#f8f9ff}
 .st-pending{background:#fff3cd;color:#856404}.st-confirmed{background:#d1ecf1;color:#0c5460}.st-producing{background:#cce5ff;color:#004085}
 .st-sent{background:#d4edda;color:#155724}.st-customer{background:#e8daef;color:#76448a}.st-completed{background:#d5f5e3;color:#1e8449}
 .tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
-</style></head><body>
+.ord-link{color:#667eea;text-decoration:none;font-weight:600}
+.ord-link:hover{text-decoration:underline}
+.ord-stat{display:inline-block;padding:1px 6px;border-radius:8px;font-size:11px;background:#f0f4ff;color:#4a5dc8;margin-right:3px}
+.ord-amt{font-weight:600;color:#2c7a4b}
+.ord-empty{color:#bbb;font-size:11px}
+</style><script src="fetch-auth.js"></script></head><body data-page-title="样品管理" data-page-perm="sample:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -42,8 +47,8 @@ tr:hover td{background:#f8f9ff}
 </div>
 <div class="tbl-wrap">
 <table><thead><tr>
-<th>样品编号</th><th>客户</th><th>询价单号</th><th>产品名称</th><th>产品代码</th><th>数量</th><th>类型</th><th>状态</th><th>发出日期</th><th>确认日期</th><th>操作</th>
-</tr></thead><tbody id="sTb"><tr><td colspan="11" class="em">暂无数据</td></tr></tbody></table>
+<th>样品编号</th><th>客户</th><th>询价单号</th><th>产品名称</th><th>产品代码</th><th>数量</th><th>类型</th><th>状态</th><th>发出日期</th><th>确认日期</th><th>关联订单（审核台）</th><th>操作</th>
+</tr></thead><tbody id="sTb"><tr><td colspan="12" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="sPg" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -53,10 +58,20 @@ tr:hover td{background:#f8f9ff}
 
 <script>
 const API='/api/samples';
+const ORDER_API='/api/order-analysis';
 const statusMap={pending:'待确认',confirmed:'已确认',producing:'生产中',sent:'已发出',customer_confirmed:'客户已确认',completed:'已完成'};
 const statusCls={pending:'st-pending',confirmed:'st-confirmed',producing:'st-producing',sent:'st-sent',customer_confirmed:'st-customer',completed:'st-completed'};
+const rvMap={pending:'待审核',reviewing:'审核中',approved:'已通过',rejected:'已驳回',none:'未提交'};
 
-let sPage=1;
+// 客户 → 关联订单聚合（缓存：loadList 时拉一次；切换筛选重新拉）
+// { [customerName]: {count, amount, latestRv, latestOrderNo, latestOrderId, ids:[...]} }
+let orderByCustomer = {};
+let orderByInquiryNo = {};
+let _orderLoadToken = 0;
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtMoney(n){var v=Math.round((Number(n)||0)*100)/100;return '¥'+v.toLocaleString()}
+
 async function loadStats(){
   try{
     const r=await fetch(API+'/stats');const d=await r.json();
@@ -71,24 +86,69 @@ async function loadStats(){
   }catch(e){console.error(e)}
 }
 
+// 从订单分析库（审核台）拉所有订单，按客户名/询价号建立索引，供样品列表关联展示
+// 增量：limit 9999 覆盖现有数据规模；网络失败不影响样品列表主流程
+async function loadRelatedOrders(token){
+  try{
+    const r=await fetch(ORDER_API+'?limit=9999&sort_by=created_at&sort_order=DESC');
+    if(!r.ok) return;
+    const d=await r.json();
+    if(token!==_orderLoadToken) return; // 过期
+    const byCust={}, byInq={};
+    (d.data||[]).forEach(o=>{
+      const cn=String(o.customer_name||'').trim();
+      const amt=Number(o.order_amount)||0;
+      const rv=o.review_status||'none';
+      if(cn){
+        if(!byCust[cn]) byCust[cn]={count:0,amount:0,latestRv:rv,latestOrderNo:o.order_no,latestOrderId:o.id,ids:[]};
+        const g=byCust[cn];
+        g.count++;
+        g.amount+=amt;
+        g.ids.push(o.id);
+        // 用最早创建/最大ID的订单作为 latest（已按 created_at DESC 取，后到优先）
+      }
+      // 注：订单分析库无 inquiry_no 字段，无法按询价号直接关联；此处仅做客户维度聚合
+    });
+    orderByCustomer=byCust;
+    orderByInquiryNo=byInq;
+  }catch(e){console.warn('关联订单加载失败（不影响样品列表）',e.message)}
+}
+
 async function loadList(page){
   sPage=page||1;
-  const p=new URLSearchParams({page:sPage,limit:50});
+  const p=new URLSearchParams({page:sPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('sKw').value,st=document.getElementById('sStatus').value,iq=document.getElementById('sInquiry').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(iq)p.set('inquiry_no',iq);
+  // 拉样品前先触发关联订单索引拉取，渲染前会再次等待一次
+  const token=++_orderLoadToken;
+  const orderPromise=loadRelatedOrders(token);
   try{
     const r=await fetch(API+'?'+p);const d=await r.json();
     const total=d.total||0;document.getElementById('sTc').textContent=total;
     const recs=d.data||[],tb=document.getElementById('sTb');
-    if(!recs.length){tb.innerHTML='<tr><td colspan="11" class="em">暂无数据</td></tr>';renderPg('sPg',total,sPage,loadList);return}
-    tb.innerHTML=recs.map(s=>`<tr>
-      <td><b>${s.sample_no||'-'}</b></td>
-      <td>${s.customer_name||'-'}</td>
-      <td>${s.inquiry_no||'-'}</td>
-      <td>${(s.product_name||'').substring(0,18)}</td>
-      <td>${s.product_code||'-'}</td>
+    if(!recs.length){tb.innerHTML='<tr><td colspan="12" class="em">暂无数据</td></tr>';renderPg('sPg',total,sPage,loadList);return}
+    // 等关联订单索引就绪（最多 800ms，过期不阻塞渲染）
+    await Promise.race([orderPromise, new Promise(res=>setTimeout(res,800))]);
+    tb.innerHTML=recs.map(s=>{
+      const cn=String(s.customer_name||'').trim();
+      const g=orderByCustomer[cn];
+      let ordCell='<span class="ord-empty">无</span>';
+      if(g&&g.count){
+        const rvLabel=rvMap[g.latestRv]||'未提交';
+        const rvColor=g.latestRv==='approved'?'#27ae60':(g.latestRv==='rejected'?'#e74c3c':(g.latestRv==='pending'||g.latestRv==='reviewing'?'#f39c12':'#888'));
+        ordCell=`<a class="ord-link" href="order-analysis.html?order_id=${g.latestOrderId}" title="查看该客户关联订单">${esc(g.latestOrderNo||'-')}</a>`+
+                 ` <span class="ord-stat">${g.count} 单</span>`+
+                 ` <span class="ord-amt">${fmtMoney(g.amount)}</span>`+
+                 ` <span style="font-size:10px;color:${rvColor}">[${rvLabel}]</span>`;
+      }
+      return `<tr>
+      <td><b>${esc(s.sample_no||'-')}</b></td>
+      <td>${esc(s.customer_name||'-')}</td>
+      <td>${esc(s.inquiry_no||'-')}</td>
+      <td>${esc((s.product_name||'').substring(0,18))}</td>
+      <td>${esc(s.product_code||'-')}</td>
       <td>${s.quantity||0}</td>
-      <td>${s.sample_type||'-'}</td>
+      <td>${esc(s.sample_type||'-')}</td>
       <td>
         <span class="badge ${statusCls[s.status]||''}">${statusMap[s.status]||s.status||'-'}</span>
         <select style="margin-left:4px;padding:1px 3px;font-size:11px;border:1px solid #ddd;border-radius:3px" onchange="changeStatus(${s.id},this.value)">
@@ -96,19 +156,20 @@ async function loadList(page){
           ${Object.entries(statusMap).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
         </select>
       </td>
-      <td>${s.send_date||'-'}</td>
-      <td>${s.confirm_date||'-'}</td>
+      <td>${esc(s.send_date||'-')}</td>
+      <td>${esc(s.confirm_date||'-')}</td>
+      <td>${ordCell}</td>
       <td style="white-space:nowrap">
         <button class="btn bs b4" onclick="openEdit(${s.id})">编辑</button>
         <button class="btn bs b3" onclick="delItem(${s.id})">删除</button>
       </td>
-    </tr>`).join('');
+    </tr>`;}).join('');
     renderPg('sPg',total,sPage,loadList);
   }catch(e){console.error(e)}
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -224,5 +285,9 @@ loadStats();
 loadList(1);
 </script>
 <script src="chat-widget.js"></script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
+
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
+<script src="data-scope.js"></script><script>window.DataScope && window.DataScope.load().then(()=>{try{window.DataScope.renderBanner('.search-bar');}catch(e){}});</script>
 </body></html>

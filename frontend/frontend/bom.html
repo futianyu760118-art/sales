@@ -377,7 +377,7 @@ function formatNum(n){return Math.round(n).toLocaleString()}
 
 async function loadBom(page){
   bomPage=page||1;
-  const p=new URLSearchParams({page:bomPage,limit:50});
+  const p=new URLSearchParams({page:bomPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('bomKw').value,mt=document.getElementById('bomMatType').value;
   const cls=document.getElementById('bomCls').value,st=document.getElementById('bomStatus').value;
   const kp=document.getElementById('bomKey').value,lv=document.getElementById('bomLevel').value;
@@ -436,7 +436,7 @@ function renderMatType(t){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;

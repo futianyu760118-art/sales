@@ -235,7 +235,7 @@ async function loadFilterOpts(){
 
 async function loadMaterials(page){
   mPage=page||1;
-  const p=new URLSearchParams({page:mPage,limit:50});
+  const p=new URLSearchParams({page:mPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('mKw').value,cat=document.getElementById('mCat').value;
   const cls=document.getElementById('mCls').value,st=document.getElementById('mStat').value;
   if(kw)p.set('keyword',kw);if(cat)p.set('category',cat);
@@ -448,7 +448,7 @@ function startInlineEdit(td){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=50,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 50),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;

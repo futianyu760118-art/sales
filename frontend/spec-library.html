@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>规格书库</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 规格书库</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;border-bottom:2px solid #eee;margin-bottom:16px}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
@@ -24,7 +24,7 @@ tr:hover td{background:#f8f9ff}
 .fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
 .fg textarea{resize:vertical;min-height:50px}
 .gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-</style></head><body>
+</style></head><body data-page-title="规格书库" data-page-perm="spec:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -93,7 +93,7 @@ function swTab(name,btn){
 
 async function loadSpecSheets(page){
   sPage=page||1;
-  const p=new URLSearchParams({page:sPage,limit:20});
+  const p=new URLSearchParams({page:sPage,limit:(window._pageSize||20)});
   const kw=document.getElementById('sKw').value,st=document.getElementById('sStatus').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);
   try{
@@ -121,7 +121,7 @@ async function loadSpecSheets(page){
 
 async function loadConfigSheets(page){
   cPage=page||1;
-  const p=new URLSearchParams({page:cPage,limit:20});
+  const p=new URLSearchParams({page:cPage,limit:(window._pageSize||20)});
   const kw=document.getElementById('cKw').value,st=document.getElementById('cStatus').value;
   if(kw)p.set('keyword',kw);if(st)p.set('status',st);
   try{
@@ -147,7 +147,7 @@ async function loadConfigSheets(page){
 }
 
 function renderPg(elId,total,page,fn){
-  const ps=20,pages=Math.ceil(total/ps),el=document.getElementById(elId);
+  var ps = (window._pageSize || 20),pages=Math.ceil(total/ps),el=document.getElementById(elId);
   if(pages<=1){el.innerHTML='';return}
   let h='';
   if(page>1)h+=`<button class="btn bs" onclick="${fn.name}(${page-1})">上一页</button> `;
@@ -285,6 +285,7 @@ async function batchExport(format){
 
 loadSpecSheets(1);
 </script>
+<script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
 </body></html>
