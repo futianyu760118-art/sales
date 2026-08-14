@@ -182,7 +182,7 @@ tr:hover td{background:#f8f9ff}
 <div class="gr2">
 <div class="fg"><label>是否启用</label><select id="ext_enabled"><option value="false">未启用</option><option value="true">启用</option></select></div>
 <div class="fg"><label>接口地址 Base URL</label><input id="ext_base_url" placeholder="http://127.0.0.1:5000/api/external"></div>
-<div class="fg"><label>X-API-Key（鉴权头）</label><input id="ext_api_key" placeholder="HJ-EBMS-KEY-2026-SECRET"></div>
+<div class="fg"><label>X-API-Key（鉴权头）</label><input id="ext_api_key" placeholder="请输入 X-API-Key"></div>
 <div class="fg"><label>工价数据表</label><input id="ext_data_table" value="t_BOSAssemblyPriceEntry"></div>
 </div>
 <div class="gr2">
@@ -201,7 +201,7 @@ tr:hover td{background:#f8f9ff}
 <div class="panel">
 <h3>使用说明（HJ 基础数据库-对外接口）</h3>
 <ul style="font-size:12px;color:#555;line-height:1.8;padding-left:18px">
-<li><b>接口约定</b>：所有请求走 <code>GET</code>，需携带 <code>X-API-Key</code> 头（如 <code>HJ-EBMS-KEY-2026-SECRET</code>）</li>
+<li><b>接口约定</b>：所有请求走 <code>GET</code>，需携带 <code>X-API-Key</code> 头（由环境变量 <code>EBMS_EXTERNAL_API_KEY</code> 注入，或在配置中填写）</li>
 <li><b>默认数据源</b>：
   <ul>
     <li>工价明细：<code>t_BOSAssemblyPriceEntry</code>（含 <code>FItemID, FPrice, WProcedure, FNOTE</code>）</li>

@@ -887,11 +887,20 @@ async function reportForm(id){let row={year:year(),month:month()===''?new Date()
 async function saveReport(id){const data=readForm([['year',''],['month',''],['publish_status',''],['file_url',''],['report_content','']]);if(id)data.id=id;await postJson(`${API}/report`,data);closeForm();loadReport()}
 
 // ===== 外部API对接（供金蝶/WMS/MES 调用 · X-API-Key 鉴权）=====
-const EXT_API_KEY = 'HJ-EBMS-KEY-2026-SECRET';
+// 密钥不再硬编码：由运维从环境变量 EBMS_EXTERNAL_API_KEY 提供，按需输入并缓存在浏览器本地。
+let EXT_API_KEY = (localStorage.getItem('ebms_ext_api_key') || '').trim();
 const EXT_BASE = '/api/external';
 
+function resolveExtKey() {
+  if (!EXT_API_KEY) {
+    EXT_API_KEY = (window.prompt('请输入外部接口 X-API-Key（由运维从环境变量 EBMS_EXTERNAL_API_KEY 提供）', '') || '').trim();
+    if (EXT_API_KEY) localStorage.setItem('ebms_ext_api_key', EXT_API_KEY);
+  }
+  return EXT_API_KEY;
+}
+
 async function extFetch(path, opt) {
-  const headers = Object.assign({}, (opt && opt.headers) || {}, { 'X-API-Key': EXT_API_KEY });
+  const headers = Object.assign({}, (opt && opt.headers) || {}, { 'X-API-Key': resolveExtKey() });
   if (opt && opt.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
   const r = await fetch(EXT_BASE + path, Object.assign({}, opt || {}, { headers }));
   const j = await r.json().catch(() => ({}));

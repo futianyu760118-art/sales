@@ -8,7 +8,7 @@
  *
  * 外部接口约定（HJ 基础数据库对外接口）：
  *   base_url      例：http://127.0.0.1:5000/api/external
- *   api_key       例：HJ-EBMS-KEY-2026-SECRET （请求头 X-API-Key）
+ *   api_key       X-API-Key 鉴权头（由环境变量 EBMS_EXTERNAL_API_KEY 注入，或在配置页填写）
  *   data_table    同步表（默认 t_BOSAssemblyPriceEntry）
  *   item_table    产品主数据表（默认 t_ICItemCore，用于关联 FNumber/FName）
  *
@@ -45,6 +45,7 @@ const fs = require('fs');
 const path = require('path');
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const { EXTERNAL_API_KEY } = require('../lib/secrets');
 
 ensureTable('product_labor_rate');
 
@@ -495,7 +496,7 @@ const ERP_CFG_FILE = path.join(__dirname, '..', '..', 'database', 'product_labor
 const DEFAULT_CFG = {
   enabled: false,
   base_url: 'http://127.0.0.1:5000/api/external',  // 对外接口 base
-  api_key: 'HJ-EBMS-KEY-2026-SECRET',             // X-API-Key
+  api_key: EXTERNAL_API_KEY,                      // X-API-Key（环境变量 EBMS_EXTERNAL_API_KEY）
   data_table: 't_BOSAssemblyPriceEntry',          // 工价明细表
   item_table: 't_ICItemCore',                     // 产品主数据表（用于关联）
   limit: 5000
@@ -783,7 +784,7 @@ router.post('/sync-from-external', requirePerm('labor-rate:create'), async (req,
     return res.status(400).json({ error: '外部对接未启用，请先在「外部对接」配置 base_url 并启用' });
   }
   if (!cfg.api_key) {
-    return res.status(400).json({ error: '缺少 X-API-Key，请在配置中填写 api_key' });
+    return res.status(400).json({ error: '缺少 X-API-Key，请设置环境变量 EBMS_EXTERNAL_API_KEY 或在配置中填写 api_key' });
   }
   const dataTable = cfg.data_table || 't_BOSAssemblyPriceEntry';
   const itemTable = cfg.item_table || 't_ICItemCore';
@@ -891,7 +892,7 @@ router.post('/sync-from-external', requirePerm('labor-rate:create'), async (req,
 router.get('/external/bom-tree', requirePerm('labor-rate:view'), async (req, res) => {
   const cfg = Object.assign({}, loadErpCfg(), req.query || {});
   if (!cfg.base_url) return res.status(400).json({ error: '外部对接未配置 base_url' });
-  if (!cfg.api_key) return res.status(400).json({ error: '缺少 X-API-Key' });
+  if (!cfg.api_key) return res.status(400).json({ error: '缺少 X-API-Key（环境变量 EBMS_EXTERNAL_API_KEY 或配置中填写）' });
   const bomId = String(req.query.bom_id || '').trim();
   if (!bomId) return res.status(400).json({ error: 'bom_id 必填（例：?bom_id=JFS22-B1WB10S27-46-01）' });
   let raw;

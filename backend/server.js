@@ -7,6 +7,9 @@ const fs = require('fs');
 const os = require('os');
 const { now: dbNow } = require('./db');
 
+// ===== 密钥自检：外部对接密钥必须通过环境变量注入，代码中不硬编码 =====
+require('./lib/secrets').warnMissing();
+
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {

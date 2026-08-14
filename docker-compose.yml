@@ -14,4 +14,7 @@ services:
       - PORT=3010
       - NODE_ENV=production
       - TZ=Asia/Shanghai
+      - EBMS_APP_KEY=${EBMS_APP_KEY}
+      - EBMS_APP_SECRET=${EBMS_APP_SECRET}
+      - EBMS_EXTERNAL_API_KEY=${EBMS_EXTERNAL_API_KEY}
     restart: unless-stopped
