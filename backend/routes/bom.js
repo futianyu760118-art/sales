@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const { getTable, now: dbNow } = require('../db');
 const { requirePerm } = require('../auth-middleware');
@@ -896,7 +897,7 @@ router.post('/import-excel', upload.single('file'), requirePerm('bom:create'), (
 
     // 根据BOM明细同步建立订单汇总产品信息（无总表时自动补建）
     let summarySync = null;
-    try { summarySync = syncBomToSummary(); } catch (e) { console.error('同步订单汇总失败:', e.message); }
+    try { summarySync = syncBomToSummary(); } catch (e) { logger.error('同步订单汇总失败:', e.message); }
 
     res.json({
       message: '导入成功',

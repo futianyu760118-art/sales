@@ -3,6 +3,7 @@
  * 支持: 企微/钉钉/飞书Webhook、短信(SMS)、邮件(Email)、WebSocket
  */
 const { getTable, now } = require('../db');
+const logger = require('./logger');
 
 // 推送通道配置（实际部署时应从环境变量或配置文件读取）
 const CHANNEL_CONFIG = {
@@ -115,7 +116,7 @@ async function pushSMS(content, phone, templateCode) {
   
   // 实际对接阿里云/腾讯云短信API
   // 此处为示例实现
-  console.log(`[SMS] 发送短信到 ${phone}: ${content}`);
+  logger.info(`[SMS] 发送短信到 ${phone}: ${content}`);
   return { success: true, provider: CHANNEL_CONFIG.SMS.provider };
 }
 
@@ -129,7 +130,7 @@ async function pushEmail(content, email, subject) {
   
   // 实际需使用nodemailer等库对接SMTP
   // 此处为示例实现
-  console.log(`[EMAIL] 发送邮件到 ${email}: ${subject} - ${content}`);
+  logger.info(`[EMAIL] 发送邮件到 ${email}: ${subject} - ${content}`);
   return { success: true };
 }
 

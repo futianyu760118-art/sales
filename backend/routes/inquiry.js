@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
@@ -48,7 +49,7 @@ function logOperation(action, operator, detail, inquiry_id) {
   try {
     const logTable = getTable('operation_logs');
     logTable.insert({ action, operator, detail, inquiry_id: inquiry_id || null, created_at: now() });
-  } catch (e) { console.error('记录操作日志失败:', e.message); }
+  } catch (e) { logger.error('记录操作日志失败:', e.message); }
 }
 
 // 解析导入文件为JSON数组（支持 xlsx/xls/csv/tsv）

@@ -10,6 +10,7 @@
  * 数据均来自系统内既有表，外部不对接。
  */
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
@@ -1639,9 +1640,9 @@ router.get('/:id/tree', requirePerm('order-analysis:view'), async (req, res) => 
     if (!prod.tree || !prod.tree.length) {
       try {
         const bomSearchKey = order.bom_no || prod.product_code.replace(/^3\.1\./, '').split('-').slice(0, -2).join('-');
-        console.log('[DEBUG] BOM search:', { order_no: order.order_no, bom_no: order.bom_no, product_code: prod.product_code, bomSearchKey });
+        logger.info('[DEBUG] BOM search:', { order_no: order.order_no, bom_no: order.bom_no, product_code: prod.product_code, bomSearchKey });
         const bomData = await fetchExternal('boms.list', { bom_no: bomSearchKey, page: 1, page_size: 1 });
-        console.log('[DEBUG] bomData:', { total: bomData.total, items: bomData.items ? bomData.items.length : 0 });
+        logger.info('[DEBUG] bomData:', { total: bomData.total, items: bomData.items ? bomData.items.length : 0 });
         if (bomData.items && bomData.items.length > 0) {
           const bomId = bomData.items[0].bom_id;
           const detailData = await fetchExternal('bom_details.list', { bom_id: bomId, page: 1, page_size: 200 });
@@ -1965,7 +1966,7 @@ router.put('/:id/product-rates', requirePerm('order-analysis:edit'), async (req,
       }
     }
   } catch (e) {
-    console.warn('[order-analysis] 同步工价到 product_labor_rate 失败:', e.message);
+    logger.warn('[order-analysis] 同步工价到 product_labor_rate 失败:', e.message);
   }
 
   res.json({ message: '工价已保存' + (synced ? `，已同步 ${synced} 条到成品工价库` : ''), rates, synced });
@@ -2143,7 +2144,7 @@ router.post('/:id/sync-rates-to-library', requirePerm('order-analysis:edit'), as
       }
     }
   } catch (e) {
-    console.warn('[order-analysis] BOM 明细同步失败:', e.message);
+    logger.warn('[order-analysis] BOM 明细同步失败:', e.message);
   }
 
   res.json({

@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
@@ -227,7 +228,7 @@ router.post('/classification-rules/auto-classify', requirePerm('material:edit'),
           });
         }
       });
-    } catch (e) { console.error('同步BOM分类失败:', e.message); }
+    } catch (e) { logger.error('同步BOM分类失败:', e.message); }
 
     return res.json({
       message: `已按分类标准更新${results.length}条物料分类`,

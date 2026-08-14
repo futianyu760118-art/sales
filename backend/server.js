@@ -1,4 +1,5 @@
 ﻿const express = require('express');
+const logger = require('./lib/logger');
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
@@ -33,9 +34,9 @@ app.use(express.urlencoded({ extended: true }));
 try {
   const backup = require('./lib/user-backup');
   const r = backup.snapshot();
-  console.log('[backup] 关键表快照: ' + (r.snapshoted.length ? r.snapshoted.join(', ') : '无') + (r.skipped.length ? ' | 跳过: ' + r.skipped.join(', ') : ''));
+  logger.info('[backup] 关键表快照: ' + (r.snapshoted.length ? r.snapshoted.join(', ') : '无') + (r.skipped.length ? ' | 跳过: ' + r.skipped.join(', ') : ''));
 } catch (e) {
-  console.warn('[backup] 快照失败(非致命):', e.message);
+  logger.warn('[backup] 快照失败(非致命):', e.message);
 }
 
 // 初始化数据
@@ -45,10 +46,10 @@ require('./initData');
 try {
   const sopSeed = require('./sop-seed');
   const seeded = sopSeed.run();
-  if (seeded.length) console.log('[sop-seed] 已灌入种子数据: ' + seeded.join(', '));
-  else console.log('[sop-seed] 各表已有数据，跳过');
+  if (seeded.length) logger.info('[sop-seed] 已灌入种子数据: ' + seeded.join(', '));
+  else logger.info('[sop-seed] 各表已有数据，跳过');
 } catch (e) {
-  console.error('[sop-seed] 种子数据初始化失败(非致命):', e.message);
+  logger.error('[sop-seed] 种子数据初始化失败(非致命):', e.message);
 }
 
 // 注意：权限设置由用户在权限管理页面配置并持久化保存，服务器启动时不再覆盖用户设置
@@ -73,8 +74,8 @@ try {
       synced++;
     }
   });
-  if (synced > 0) console.log(`已同步 ${synced} 个询价客户到客户管理`);
-} catch(e) { console.error('客户同步失败:', e.message); }
+  if (synced > 0) logger.info(`已同步 ${synced} 个询价客户到客户管理`);
+} catch(e) { logger.error('客户同步失败:', e.message); }
 
 const routes = require('./routes');
 app.use('/api', routes);
@@ -96,10 +97,10 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // 启用：环境变量 ENABLE_PERIODIC_TASKS=1 启动服务
 // 手动触发：访问 /api/material-check/run 或在物料库自检待办页点「▶ 运行自检」
 if (process.env.ENABLE_PERIODIC_TASKS === '1') {
-  try { require('./lib/material-check-scheduler').startScheduler(); console.log('[material-check] 周期自检已启用（环境变量 ENABLE_PERIODIC_TASKS=1）'); }
-  catch (e) { console.error('[material-check] 调度器启动失败:', e.message); }
+  try { require('./lib/material-check-scheduler').startScheduler(); logger.info('[material-check] 周期自检已启用（环境变量 ENABLE_PERIODIC_TASKS=1）'); }
+  catch (e) { logger.error('[material-check] 调度器启动失败:', e.message); }
 } else {
-  console.log('[material-check] 周期自检已禁用（默认）。如需启用：set ENABLE_PERIODIC_TASKS=1 启动服务。或访问 /api/material-check/run 手动触发。');
+  logger.info('[material-check] 周期自检已禁用（默认）。如需启用：set ENABLE_PERIODIC_TASKS=1 启动服务。或访问 /api/material-check/run 手动触发。');
 }
 
 // ===== 物料数据完整性自愈 =====
@@ -111,20 +112,20 @@ const recovery = require('./lib/materials-recovery');
 function ensureMaterialsHealth(){
   const h = recovery.check();
   if(!h.ok || h.tooSmall){
-    console.log('[startup] materials.json 异常（size=' + h.size + '），启动自动恢复...');
-    recovery.recover('startup', { log: (m) => console.log('[recovery] ' + m) });
+    logger.info('[startup] materials.json 异常（size=' + h.size + '），启动自动恢复...');
+    recovery.recover('startup', { log: (m) => logger.info('[recovery] ' + m) });
   } else {
-    console.log('[startup] materials.json 大小正常 (' + (h.size/1024/1024).toFixed(1) + ' MB)');
+    logger.info('[startup] materials.json 大小正常 (' + (h.size/1024/1024).toFixed(1) + ' MB)');
   }
 }
 // 暴露给路由的惰性触发
-global._recoverMaterialsNow = (reason) => recovery.recover(reason, { log: (m) => console.log('[recovery] ' + m) });
+global._recoverMaterialsNow = (reason) => recovery.recover(reason, { log: (m) => logger.info('[recovery] ' + m) });
 setTimeout(ensureMaterialsHealth, 5000);
 
 // 关闭物料自动恢复周期任务 —— 周期任务在 13MB 写盘期间阻塞事件循环，
 // 而且 material_check_issues.json 累积会撑到 80MB+
 // 改为按需手动触发 + 路由惰性触发，需要时由用户在 UI 点「恢复」按钮或后端运维时手动跑
-console.log('[startup] 材料自动恢复：仅启动时 + 按需触发，已禁用周期任务（避免长时间写盘阻塞）');
+logger.info('[startup] 材料自动恢复：仅启动时 + 按需触发，已禁用周期任务（避免长时间写盘阻塞）');
 
 let httpsServer = null;
 const certPfxPath = path.join(__dirname, 'cert', 'server.pfx');
@@ -136,11 +137,11 @@ if (fs.existsSync(certPfxPath)) {
     const pfxData = fs.readFileSync(certPfxPath);
     const pfxPassphrase = process.env.HTTPS_PFX_PASSPHRASE || '';
     if (!pfxPassphrase) {
-      console.warn('⚠️ HTTPS_PFX_PASSPHRASE 环境变量未设置, HTTPS 将无法启动');
+      logger.warn('⚠️ HTTPS_PFX_PASSPHRASE 环境变量未设置, HTTPS 将无法启动');
     }
     httpsServer = https.createServer({ pfx: pfxData, passphrase: pfxPassphrase }, app);
   } catch(e) {
-    console.log('HTTPS证书加载失败，仅使用HTTP:', e.message);
+    logger.info('HTTPS证书加载失败，仅使用HTTP:', e.message);
   }
 } else if (fs.existsSync(certCrtPath) && fs.existsSync(certKeyPath)) {
   try {
@@ -149,7 +150,7 @@ if (fs.existsSync(certPfxPath)) {
       key: fs.readFileSync(certKeyPath)
     }, app);
   } catch(e) {
-    console.log('HTTPS证书加载失败，仅使用HTTP:', e.message);
+    logger.info('HTTPS证书加载失败，仅使用HTTP:', e.message);
   }
 }
 const server = http.createServer(app);
@@ -207,16 +208,16 @@ wss.on('connection', (ws) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`局域网访问: http://${LOCAL_IP}:${PORT}`);
-  console.log(`WebSocket: ws://localhost:${PORT}/ws`);
+  logger.info(`Server running on http://localhost:${PORT}`);
+  logger.info(`局域网访问: http://${LOCAL_IP}:${PORT}`);
+  logger.info(`WebSocket: ws://localhost:${PORT}/ws`);
 
   if (httpsServer) {
     const HTTPS_PORT = PORT + 1;
     httpsServer.listen(HTTPS_PORT, '0.0.0.0', () => {
-      console.log(`HTTPS Server running on https://localhost:${HTTPS_PORT}`);
-      console.log(`局域网HTTPS访问: https://${LOCAL_IP}:${HTTPS_PORT}`);
-      console.log(`截图/拍照功能请使用HTTPS地址访问`);
+      logger.info(`HTTPS Server running on https://localhost:${HTTPS_PORT}`);
+      logger.info(`局域网HTTPS访问: https://${LOCAL_IP}:${HTTPS_PORT}`);
+      logger.info(`截图/拍照功能请使用HTTPS地址访问`);
     });
   }
 
@@ -233,10 +234,10 @@ server.listen(PORT, '0.0.0.0', () => {
     try {
       const result = syncPricingToQuote();
       if (result.created > 0 || result.updated > 0) {
-        console.log(`[定时同步] ${result.summary}`);
+        logger.info(`[定时同步] ${result.summary}`);
       }
     } catch(e) {
-      console.error('[定时同步] 核价→报价同步失败:', e.message);
+      logger.error('[定时同步] 核价→报价同步失败:', e.message);
     }
   }
 
@@ -246,7 +247,7 @@ server.listen(PORT, '0.0.0.0', () => {
     setInterval(runSync, SYNC_INTERVAL);
   }, 30000);
 
-  console.log(`定时同步: 核价库→报价库 每5分钟自动同步`);
+  logger.info(`定时同步: 核价库→报价库 每5分钟自动同步`);
 
   // 定时自动化引擎：每30分钟自动扫描问题、自我学习、总结归纳、生成计划、输出行动
   const AI_AUTO_INTERVAL = 30 * 60 * 1000;
@@ -272,20 +273,20 @@ server.listen(PORT, '0.0.0.0', () => {
             const planCount = (result.plans || []).length;
             const actionCount = (result.actions || []).filter(a => a.status === 'created').length;
             if (scanCount > 0 || actionCount > 0) {
-              console.log(`[AI自动引擎] 扫描${scanCount}个问题, 学习${learnCount}条, 计划${planCount}个, 新增行动${actionCount}条`);
+              logger.info(`[AI自动引擎] 扫描${scanCount}个问题, 学习${learnCount}条, 计划${planCount}个, 新增行动${actionCount}条`);
             } else {
-              console.log(`[AI自动引擎] 运行完成，暂无新问题`);
+              logger.info(`[AI自动引擎] 运行完成，暂无新问题`);
             }
           } catch(e) {
-            console.error('[AI自动引擎] 解析结果失败:', e.message);
+            logger.error('[AI自动引擎] 解析结果失败:', e.message);
           }
         });
       });
-      req.on('error', e => console.error('[AI自动引擎] 请求失败:', e.message));
+      req.on('error', e => logger.error('[AI自动引擎] 请求失败:', e.message));
       req.write(postData);
       req.end();
     } catch(e) {
-      console.error('[AI自动引擎] 执行失败:', e.message);
+      logger.error('[AI自动引擎] 执行失败:', e.message);
     }
   }
 
@@ -294,7 +295,7 @@ server.listen(PORT, '0.0.0.0', () => {
     setInterval(runAiAutoEngine, AI_AUTO_INTERVAL);
   }, 60000);
 
-  console.log(`AI自动引擎: 每30分钟自动扫描→学习→总结→计划→行动`);
+  logger.info(`AI自动引擎: 每30分钟自动扫描→学习→总结→计划→行动`);
 
   // 外部数据同步调度器：按配置频率自动同步供应商/客户
   const fs = require('fs');
@@ -330,7 +331,7 @@ server.listen(PORT, '0.0.0.0', () => {
             const r = JSON.parse(body);
             const counts = Object.values(r.results || {}).map(v => v.imported || 0);
             const total = counts.reduce((a, b) => a + b, 0);
-            console.log(`[外部同步] ${enabledMods.map(([n])=>n).join(',')} 完成, 导入${total}条`);
+            logger.info(`[外部同步] ${enabledMods.map(([n])=>n).join(',')} 完成, 导入${total}条`);
           } catch (e) {}
         });
       });
@@ -342,10 +343,8 @@ server.listen(PORT, '0.0.0.0', () => {
 
   // 每30秒检查一次是否需要同步
   setInterval(runExternalSync, 30000);
-  console.log('外部同步调度器: 按配置频率自动同步');
+  logger.info('外部同步调度器: 按配置频率自动同步');
   } else {
-    console.log('[startup] 周期任务已禁用（物料自检/核价同步/AI引擎/外部API），设置 ENABLE_PERIODIC_TASKS=1 启用');
+    logger.info('[startup] 周期任务已禁用（物料自检/核价同步/AI引擎/外部API），设置 ENABLE_PERIODIC_TASKS=1 启用');
   }
 });
-
-// test write at 16:19:06

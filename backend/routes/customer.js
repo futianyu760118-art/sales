@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const multer = require('multer');
 const XLSX = require('xlsx');
@@ -218,7 +219,7 @@ router.post('/import-xlsx', upload.single('file'), requirePerm('customer:create'
 
     res.json({ imported, skipped, results });
   } catch (e) {
-    console.error('导入客户资料失败:', e);
+    logger.error('导入客户资料失败:', e);
     res.status(500).json({ error: '导入失败: ' + e.message });
   }
 });
@@ -688,7 +689,7 @@ router.post('/ocr-recognize', upload.single('image'), requirePerm('customer:crea
 
     res.json({ message: '识别完成', data: info });
   } catch (e) {
-    console.error('OCR识别失败:', e.message);
+    logger.error('OCR识别失败:', e.message);
     res.status(500).json({ error: '识别失败: ' + e.message });
   }
 });
@@ -1234,7 +1235,7 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
     inquiry.topByCustomer = Object.entries(inqByCust)
       .sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([label, value]) => ({ label, value }));
-  } catch (e) { console.error('analytics inquiry:', e.message); }
+  } catch (e) { logger.error('analytics inquiry:', e.message); }
 
   // 订单聚合
   const order = { total: 0, byStatus: {}, totalAmount: 0, customerCount: 0, topByCustomer: [] };
@@ -1254,7 +1255,7 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
       .sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([label, value]) => ({ label, value: Math.round(value) }));
     order.totalAmount = Math.round(order.totalAmount);
-  } catch (e) { console.error('analytics order:', e.message); }
+  } catch (e) { logger.error('analytics order:', e.message); }
 
   // 样品聚合
   const sample = { total: 0, byStatus: {}, customerCount: 0 };
@@ -1269,7 +1270,7 @@ router.get('/analytics', requirePerm('customer:view'), (req, res) => {
       if (cn) { custSet.add(cn); bizNames.add(cn); }
     });
     sample.customerCount = custSet.size;
-  } catch (e) { console.error('analytics sample:', e.message); }
+  } catch (e) { logger.error('analytics sample:', e.message); }
 
   // 业务活跃度：有任意业务往来的客户数 / 无业务往来的客户数
   const activeBusiness = bizNames.size;

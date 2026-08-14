@@ -2,6 +2,7 @@
 // 外部写入接口配置后由 sendOne/flush 真正回传，未配置则优雅暂存。
 // 注意：仅在本地 CRUD 路由(material.js)入队，外部拉取同步(external-sync)不入队，避免回环。
 const crypto = require('crypto');
+const logger = require('./logger');
 const https = require('https');
 const http = require('http');
 const { getTable, now } = require('../db');
@@ -90,7 +91,7 @@ function queue(op, materialCode, recordId, payload) {
       op, payload: JSON.stringify(payload || {}), status: 'pending',
       attempts: 0, last_error: '', created_at: now(), updated_at: now(), sent_at: ''
     });
-  } catch (e) { console.error('[outbox] queue error:', e.message); }
+  } catch (e) { logger.error('[outbox] queue error:', e.message); }
 }
 
 function list({ status, keyword, page = 1, pageSize = 100 } = {}) {

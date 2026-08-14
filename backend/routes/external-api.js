@@ -4,6 +4,7 @@
  * 认证方式: HMAC-SHA256
  */
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const https = require('https');
 const crypto = require('crypto');
@@ -537,13 +538,13 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
         while (dp <= 20) {
           const dd = await callExternalAPI('order_details.list', { page: dp, page_size: 200 });
           const batch = dd.items || dd.data || [];
-          if (!batch.length) { console.log('[enrich] page', dp, 'empty, stopping'); break; }
-          console.log('[enrich] page', dp, 'got', batch.length, 'items');
+          if (!batch.length) { logger.info('[enrich] page', dp, 'empty, stopping'); break; }
+          logger.info('[enrich] page', dp, 'got', batch.length, 'items');
           let pageMatched = 0, pageEnriched = 0;
           for (const d of batch) {
             const oNo = (d.order_no || '').trim();
             const ex = allOrd[oNo];
-            if (!ex) { if (dp === 1 && pageMatched === 0 && pageEnriched === 0) console.log('[enrich] first unmatched:', oNo); continue; }
+            if (!ex) { if (dp === 1 && pageMatched === 0 && pageEnriched === 0) logger.info('[enrich] first unmatched:', oNo); continue; }
             pageMatched++;
             if (ex.product_code && ex.product_name) continue;
             const patch = {};
@@ -559,7 +560,7 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
               enrichedCount++;
             }
           }
-          console.log('[enrich] page', dp, 'matched:', pageMatched, 'enriched:', pageEnriched);
+          logger.info('[enrich] page', dp, 'matched:', pageMatched, 'enriched:', pageEnriched);
           if (batch.length < 200) break;
           dp++;
         }
@@ -568,7 +569,7 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
           const stillMissing = orderTable.all().filter(o => o.product_code && !o.product_name);
           if (stillMissing.length) {
             const unknownCodes = [...new Set(stillMissing.map(o => o.product_code))];
-            console.log('[enrich] looking up', unknownCodes.length, 'unknown codes from products.list+materials.list');
+            logger.info('[enrich] looking up', unknownCodes.length, 'unknown codes from products.list+materials.list');
             try {
               const extSync = require('./external-sync');
               const codeMap = {};
@@ -579,7 +580,7 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
                   const c = (p.product_code || p.code || p.model || '').trim();
                   if (c) codeMap[c] = p.product_name || p.name || '';
                 });
-              } catch (e) { console.error('[enrich] products.list error:', e.message); }
+              } catch (e) { logger.error('[enrich] products.list error:', e.message); }
               // 再从 materials.list 查找
               try {
                 const matItems = await extSync.fetchAllPages('materials.list', 200);
@@ -587,8 +588,8 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
                   const c = (m.material_code || m.code || '').trim();
                   if (c && !codeMap[c]) codeMap[c] = m.material_name || m.name || '';
                 });
-              } catch (e) { console.error('[enrich] materials.list error:', e.message); }
-              console.log('[enrich] lookup codes fetched:', Object.keys(codeMap).length);
+              } catch (e) { logger.error('[enrich] materials.list error:', e.message); }
+              logger.info('[enrich] lookup codes fetched:', Object.keys(codeMap).length);
               for (const o of stillMissing) {
                 const name = codeMap[o.product_code];
                 if (name) {
@@ -597,10 +598,10 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
                   enrichedCount++;
                 }
               }
-            } catch (e) { console.error('[enrich] lookup error:', e.message); }
+            } catch (e) { logger.error('[enrich] lookup error:', e.message); }
           }
         }
-      } catch (e) { console.error('[sync-orders] product enrichment error:', e.message); }
+      } catch (e) { logger.error('[sync-orders] product enrichment error:', e.message); }
     }
 
     // 2.5 将产品写入 order_products（确保展开后能看到产品列表）
@@ -806,7 +807,7 @@ router.post('/sync-order-status', requirePerm('order:edit'), async (req, res) =>
     }
     if (statusLockedSkipped) {
       // 暴露给前端：被锁的订单数量
-      console.log('[sync-order-status] 跳过 '+ statusLockedSkipped +' 条已本地锁定状态');
+      logger.info('[sync-order-status] 跳过 '+ statusLockedSkipped +' 条已本地锁定状态');
     }
   }
 
@@ -1146,7 +1147,7 @@ async function fetchAllPOs(maxAgeMs = 5 * 60 * 1000) {
     }
   } catch (e) {
     // 静默失败：POs 拉不到不影响订单列表
-    console.warn('[orders-with-progress] POs fetch failed:', e.message);
+    logger.warn('[orders-with-progress] POs fetch failed:', e.message);
   }
   _poCache = items;
   _poCacheTs = Date.now();

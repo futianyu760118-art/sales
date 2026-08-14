@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
@@ -34,7 +35,7 @@ function persistIssuesAsync() {
   if (!_issuesCache) return Promise.resolve();
   const data = _issuesCache;
   return fs.promises.writeFile(ISSUES_FILE, JSON.stringify(data), 'utf8').catch(e => {
-    console.error('[material-check] persist error:', e.message);
+    logger.error('[material-check] persist error:', e.message);
   });
 }
 function persistIssues() {
@@ -562,12 +563,12 @@ router.post('/auto-fix', requirePerm('material:edit'), async (req, res) => {
         await f.writeFile(issueFile, JSON.stringify({ records: existingIssues, nextId: issuesStore.nextId, updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19) }));
       } catch (e) {}
     }
-    console.log('[auto-fix] ' + rule.id + ': 关闭了 ' + closed + ' 条已修复的 issue');
+    logger.info('[auto-fix] ' + rule.id + ': 关闭了 ' + closed + ' 条已修复的 issue');
   }
 
   res.json({ message: `自动修复完成：${updated} 条物料（同时关闭已修复的 issue）`, updated });
   } catch (e) {
-    console.error('[auto-fix] 异常:', e.message);
+    logger.error('[auto-fix] 异常:', e.message);
     res.status(500).json({ error: '自动修复失败: ' + e.message });
   }
 });
