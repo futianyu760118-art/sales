@@ -25,7 +25,10 @@ router.use('/import', require('./import'));
 router.use('/permissions', require('./permission'));
 router.use('/feedback', require('./feedback'));
 router.use('/settings', require('./settings'));
-router.use('/test', require('./test'));
+// 测试端点仅开发环境暴露，生产环境不挂载（P0-3）
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/test', require('./test'));
+}
 router.use('/compliance', require('./compliance'));
 router.use('/configs', require('./config'));
 router.use('/chat', require('./chat'));
