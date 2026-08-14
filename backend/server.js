@@ -6,6 +6,7 @@ const https = require('https');
 const fs = require('fs');
 const os = require('os');
 const { now: dbNow } = require('./db');
+const { verifyToken } = require('./lib/auth-token');
 
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
@@ -177,18 +178,45 @@ app.set('broadcastDataChange', broadcastDataChange);
 
 wss.on('connection', (ws) => {
   let user = '';
+  let authed = false;
+
+  function reject(reason) {
+    try {
+      if (ws.readyState === WebSocket.OPEN) {
+        // 先发送失败原因，待其刷出后再关闭，保证客户端能收到 auth_failed 与正常关闭码
+        ws.send(JSON.stringify({ type: 'auth_failed', reason }), () => {
+          ws.close(4401, reason || '未认证');
+        });
+        return;
+      }
+    } catch (e) {}
+    ws.close(4401, reason || '未认证');
+  }
+
   ws.on('message', (data) => {
     try {
       const msg = JSON.parse(data);
       if (msg.type === 'auth') {
-        user = msg.user;
+        // 鉴权：必须携带登录签发的 token，身份以 token 为准，不再信任客户端自报 user。
+        const payload = verifyToken(msg.token);
+        if (!payload || !payload.username) {
+          reject('未认证或 token 无效');
+          return;
+        }
+        user = payload.username;
+        authed = true;
         wsClients.set(user, ws);
+        return;
       }
       if (msg.type === 'chat' && msg.channel_id) {
+        if (!authed) {
+          reject('未认证');
+          return;
+        }
         const broadcast = JSON.stringify({
           type: 'chat',
           channel_id: msg.channel_id,
-          sender: msg.sender || user,
+          sender: user, // 以鉴权身份为准，忽略客户端 sender
           content: msg.content,
           msg_type: msg.msg_type || 'text',
           created_at: dbNow()

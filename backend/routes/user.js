@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getTable, now: dbNow } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const { issueToken } = require('../lib/auth-token');
 
 // 登录
 // GET /login is public - no auth
@@ -16,7 +17,11 @@ router.post('/login', (req, res) => {
   if (!user) {
     return res.status(401).json({ error: '用户名或密码错误' });
   }
-  res.json({ message: '登录成功', user: { id: user.id, username: user.username, name: user.name, role: user.role } });
+  res.json({
+    message: '登录成功',
+    user: { id: user.id, username: user.username, name: user.name, role: user.role },
+    token: issueToken(user)
+  });
 });
 
 // 获取用户列表
