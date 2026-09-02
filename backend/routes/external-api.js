@@ -27,6 +27,40 @@ function assertConfigured() {
   }
 }
 
+// ===== TLS 证书校验 =====
+// 外部系统使用自签证书。为消除中间人风险，禁用 rejectUnauthorized:false，
+// 改为开启证书校验，并通过内部 CA 证书建立信任链（https.request 的 ca 选项）。
+// 将内部 CA 证书放到 backend/cert/external-ca.crt（或 .pem），
+// 或用环境变量 EXTERNAL_API_CA_CERT 指定证书文件路径。
+const CA_CERT_PATHS = [
+  process.env.EXTERNAL_API_CA_CERT,
+  path.join(__dirname, '..', 'cert', 'external-ca.crt'),
+  path.join(__dirname, '..', 'cert', 'external-ca.pem'),
+].filter(Boolean);
+let _caCert = null;
+let _caCertLoaded = false;
+function loadCaCert() {
+  if (_caCertLoaded) return _caCert;
+  _caCertLoaded = true;
+  const caPath = CA_CERT_PATHS.find(p => fs.existsSync(p));
+  if (!caPath) {
+    console.warn('[external-api] 未找到内部 CA 证书（backend/cert/external-ca.crt 或 EXTERNAL_API_CA_CERT），外部接口请求将因证书校验失败而失败；请放置 CA 证书后重启');
+    return _caCert;
+  }
+  try {
+    _caCert = fs.readFileSync(caPath);
+    console.log('[external-api] 已加载内部 CA 证书：' + caPath);
+  } catch (e) {
+    console.warn('[external-api] 加载 CA 证书失败（' + caPath + '）：' + e.message);
+  }
+  return _caCert;
+}
+// 返回 https.request 的 TLS 选项：开启证书校验，并用内部 CA 建立信任链
+function tlsOptions() {
+  const ca = loadCaCert();
+  return { rejectUnauthorized: true, ...(ca ? { ca } : {}) };
+}
+
 // HMAC-SHA256 签名
 function sign(secret, data) {
   return crypto.createHmac('sha256', secret).update(data, 'utf8').digest('hex');
@@ -61,7 +95,7 @@ function callExternalAPI(endpointCode, queryParams = {}) {
       port: url.port || 443,
       path: '/api/v1/external/' + endpointPath(endpointCode) + (qs ? '?' + qs : ''),
       method: 'GET',
-      rejectUnauthorized: false,  // 自签证书
+      ...tlsOptions(),
       headers: {
         'X-App-Key': CONFIG.APP_KEY,
         'X-Timestamp': timestamp,
@@ -107,7 +141,7 @@ function callDataSupply(dataType, queryParams = {}) {
       port: url.port || 443,
       path: '/api/v1/basicdata/data-supply/data/' + dataType + (qs ? '?' + qs : ''),
       method: 'GET',
-      rejectUnauthorized: false,
+      ...tlsOptions(),
       headers: {
         'X-App-Key': CONFIG.APP_KEY,
         'X-Timestamp': timestamp,
@@ -1001,7 +1035,7 @@ function callExternalWrite(endpointCode, payload, method) {
     const options = {
       hostname: url.hostname, port: url.port || 443,
       path: '/api/v1/external/' + endpointPath(endpointCode),
-      method: method || 'POST', rejectUnauthorized: false,
+      method: method || 'POST', ...tlsOptions(),
       headers: {
         'X-App-Key': CONFIG.APP_KEY, 'X-Timestamp': timestamp,
         'X-Signature': signature, 'X-Body-Sig': bodySig,
