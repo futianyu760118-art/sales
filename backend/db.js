@@ -16,9 +16,20 @@ const CRITICAL_TABLES = new Set([
   'org_personnel', 'org_position_perms', 'org_position_roles', 'org_personnel_perms'
 ]);
 
+// 大表清单：这些表记录量大、写入频繁，同步 fs.writeFileSync 会阻塞事件循环，
+// 改为走 _saveAsync 异步串行写盘（每表一条写链，保证顺序与最终一致性）。
+const LARGE_TABLES = new Set([
+  'materials', 'orders', 'customers', 'products', 'suppliers',
+  'amiba_trade_detail', 'amiba_account_detail', 'amiba_dept_standard',
+  'chat_messages', 'im_messages', 'im_conversations',
+  'operation_logs', 'audit_logs', 'email_logs', 'sync_logs', 'writeback_log'
+]);
+
 // [H1] 单进程内每表一把 FIFO 写互斥锁：解决 _cache 内存状态被并发写覆盖的问题。
 // 同一张表的 insert/update/delete 串行执行；不是分布式锁，多实例部署需更上层方案。
 const _tableTail = new Map();
+// 大表异步写盘串行链：确保同表多次异步写按调用顺序落盘，避免乱序覆盖造成数据回退
+const _saveTail = new Map();
 function withTableLock(name, fn) {
   const prev = _tableTail.get(name) || Promise.resolve();
   const next = prev.then(fn, fn);
@@ -108,6 +119,14 @@ class JsonTable {
   _save() {
     // 防御：缓存为空时绝不写盘，避免用 "null" 覆盖主文件和 .bak 造成数据全丢
     if (!this._cache) return;
+    // 大表走异步串行写盘：同步捕获快照，避免阻塞事件循环，同时保证写入顺序
+    if (LARGE_TABLES.has(this.name)) {
+      const snapshot = this._cache;
+      const prev = _saveTail.get(this.name) || Promise.resolve();
+      const next = prev.then(() => this._saveAsync(snapshot)).catch(() => undefined);
+      _saveTail.set(this.name, next);
+      return;
+    }
     // 原子写入：先写临时文件再重命名，避免并发读到的截断/半写 JSON
     const tmp = this.filePath + '.tmp';
     const content = JSON.stringify(this._cache, null, 2);
@@ -126,11 +145,13 @@ class JsonTable {
     }
   }
 
-  // 异步写盘：不阻塞事件循环，适用于大文件（materials/issues）
-  // 在写盘期间仍能响应其它 HTTP 请求
-  async _saveAsync() {
+  // 异步写盘：不阻塞事件循环，适用于大文件（materials 等大表）
+  // snapshot：调用时刻同步捕获的缓存快照，防止异步执行时 _cache 已被置空/重载
+  async _saveAsync(snapshot) {
+    const cache = snapshot || this._cache;
+    if (!cache) return;
     const tmp = this.filePath + '.tmp';
-    const content = JSON.stringify(this._cache, null, 2);
+    const content = JSON.stringify(cache, null, 2);
     const fsp = fs.promises;
     try {
       await fsp.writeFile(tmp, content, 'utf8');

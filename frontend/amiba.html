@@ -396,7 +396,7 @@ async function loadStandard(){
   caches.standard=list.data||[];
   const sm=list.summary||{};
   const cols=[['部门(巴)',r=>esc(r.amiba_name)],['方向',r=>r.direction==='收入'?'<span class="badge green">收入</span>':'<span class="badge orange">支出</span>'],['物料代码',r=>esc(r.material_code)],['物料/项目',r=>esc(r.item_name||r.material_name)],['单位',r=>esc(r.unit)],['基数(物料单价)',r=>yuan2(r.base_price)],['系数',r=>`<b style="color:#667eea">${r.coefficient||'-'}</b>`],['标准价',r=>`<b style="color:#27ae60">${yuan2(r.standard_price)}</b>`],['数量',r=>r.quantity_std],['标准金额',r=>`<b>${yuan2(r.amount_std)}</b>`],['年度',r=>r.year],['状态',r=>badge(r.status)],['操作',r=>`<button class="btn bs b4" onclick="standardForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b3" onclick="delStandard(${r.id})" data-perm="amiba:delete">删除</button>`]];
-  const baCols=[['部门(巴)',r=>esc(r.amiba_name)],['收入标准',r=>`<b style="color:#27ae60">${yuan2(r.income)}</b>`],['收入项',r=>r.income_items],['支出标准',r=>`<b style="color:#e67e22">${yuan2(r.expense)}</b>`],['支出项',r=>r.expense_items],['收支净额',r=>`<b style="color:${r.net>=0?'#27ae60':'#e74c3c'}">${yuan2(r.net)}</b>`]];
+  const baCols=[['部门(巴)',r=>esc(r.amiba_name)],['收入标准',r=>`<b style="color:#27ae60">${yuan2(r.income)}</b>`],['收入项',r=>esc(r.income_items)],['支出标准',r=>`<b style="color:#e67e22">${yuan2(r.expense)}</b>`],['支出项',r=>esc(r.expense_items)],['收支净额',r=>`<b style="color:${r.net>=0?'#27ae60':'#e74c3c'}">${yuan2(r.net)}</b>`]];
   document.getElementById('standardBox').innerHTML=`
   <div class="panel" style="margin-bottom:14px"><h3>${year()}年度各部门收支标准汇总</h3>${renderTable(baCols,byAmiba.data||[],baCols.length)}</div>
   <div class="grid">

@@ -1,17 +1,19 @@
 /**
  * 权限校验中间件
  * 检查请求发起者是否有指定权限码
- * 
+ *
  * 使用方式：
  *   const { requirePerm } = require('../auth-middleware');
  *   router.post('/', requirePerm('supplier:create'), (req, res) => { ... });
  *
  * 用户识别优先级：
- *   1. req.body.user_id / req.body.userId
- *   2. req.query.user_id / req.query.userId
- *   3. req.headers['x-user'] / req.headers['x-user-id']
+ *   1. Authorization: Bearer <token>（登录签发，服务端校验，不可伪造）——优先
+ *   2. 兼容旧客户端：req.body.user_id / req.query.user_id / x-user / x-user-id
+ *
+ * 未携带任何有效身份时，不再放行（此前无 userId 直接 next()，导致未认证即可访问全部接口）。
  */
 const { getTable } = require('./db');
+const { verifyToken } = require('./lib/auth-token');
 
 /**
  * 合并组织模块权限到运行时权限集合
@@ -120,6 +122,16 @@ function getUserPermissions(userId) {
 }
 
 function extractUserId(req) {
+  // 1. 优先：Authorization: Bearer <token>（登录签发，服务端校验，不可伪造）
+  const authz = req.headers['authorization'] || '';
+  const m = authz.match(/^Bearer\s+(.+)$/i);
+  if (m) {
+    const payload = verifyToken(m[1].trim());
+    if (payload && payload.uid !== undefined && payload.uid !== null) {
+      return Number(payload.uid);
+    }
+  }
+  // 2. 兼容旧客户端：仍信任自报身份（迁移期保留；前端全量带上 token 后可移除）
   return req.body.user_id || req.body.userId ||
          req.query.user_id || req.query.userId ||
          req.headers['x-user'] || req.headers['x-user-id'];
@@ -129,8 +141,9 @@ function requirePerm(code) {
   return (req, res, next) => {
     const userId = extractUserId(req);
 
+    // 未携带有效身份 → 401（不再放行，堵住未认证访问漏洞）
     if (!userId) {
-      return next();
+      return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
     }
 
     const { isAdmin, perms } = getUserPermissions(userId);
@@ -146,8 +159,9 @@ function requireAnyPerm(...codes) {
   return (req, res, next) => {
     const userId = extractUserId(req);
 
+    // 未携带有效身份 → 401（不再放行，堵住未认证访问漏洞）
     if (!userId) {
-      return next();
+      return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
     }
 
     const { isAdmin, perms } = getUserPermissions(userId);

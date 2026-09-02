@@ -3,6 +3,7 @@ const router = express.Router();
 const { getTable, now: dbNow } = require('../db');
 const { requirePerm } = require('../auth-middleware');
 const { issueToken } = require('../lib/auth-token');
+const { hashPassword, verifyPassword } = require('../lib/password');
 
 // 登录
 // GET /login is public - no auth
@@ -12,8 +13,7 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ error: '用户名和密码为必填项' });
   }
   const table = getTable('users');
-  // [SECURITY] 当前为明文密码比对（c8 待办）。下一期：bcrypt(cost=12) + 迁移期兼容明文
-  const user = table.all().find(u => u.username === username && u.password === password);
+  const user = table.all().find(u => u.username === username && verifyPassword(password, u.password));
   if (!user) {
     return res.status(401).json({ error: '用户名或密码错误' });
   }
@@ -58,7 +58,7 @@ router.post('/', requirePerm('system:user'), (req, res) => {
     return res.status(400).json({ error: '用户名已存在' });
   }
   const now = dbNow();
-  const result = table.insert({ username, password, name: name || username, role: role || 'sales', created_at: now });
+  const result = table.insert({ username, password: hashPassword(password), name: name || username, role: role || 'sales', created_at: now });
   const user = table.findById(result.lastID);
   res.json({ message: '用户创建成功', data: { id: user.id, username: user.username, name: user.name, role: user.role } });
 });
@@ -71,7 +71,7 @@ router.put('/:id', requirePerm('system:user'), (req, res) => {
   if (!user) return res.status(404).json({ error: '用户不存在' });
   const fields = {};
   if (username !== undefined) fields.username = username;
-  if (password !== undefined) fields.password = password;
+  if (password !== undefined) fields.password = hashPassword(password);
   if (name !== undefined) fields.name = name;
   if (role !== undefined) fields.role = role;
   table.update(req.params.id, fields);

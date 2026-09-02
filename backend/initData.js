@@ -1,5 +1,6 @@
 const { getTable, ensureTable, now } = require('./db');
 const logger = require('./lib/logger');
+const { hashPassword } = require('./lib/password');
 
 // 确保所有表存在
 const tableNames = ['users', 'products', 'customers', 'materials', 'pricing_standards',
@@ -59,16 +60,16 @@ if (userTable.all().length === 0) {
   }
   // 仅当无任何备份可恢复时，才播种默认账号（真正的首次部署）
   if (!restored) {
-    userTable.insert({ username: 'admin', password: 'admin123', name: '超级管理员', role: 'admin', created_at: now() });
-    userTable.insert({ username: 'sales01', password: 'sales123', name: '张三（销售）', role: 'sales', created_at: now() });
-    userTable.insert({ username: 'sales02', password: 'sales123', name: '李四（销售）', role: 'sales', created_at: now() });
-    userTable.insert({ username: 'smgr01', password: 'smgr123', name: '陈经理（销售经理）', role: 'sales_manager', created_at: now() });
-    userTable.insert({ username: 'engineer01', password: 'eng123', name: '王工（工程师）', role: 'engineer', created_at: now() });
-    userTable.insert({ username: 'purchase01', password: 'pur123', name: '赵采购', role: 'purchase', created_at: now() });
-    userTable.insert({ username: 'finance01', password: 'fin123', name: '周财务', role: 'finance', created_at: now() });
-    userTable.insert({ username: 'viewer01', password: 'view123', name: '审计查看', role: 'viewer', created_at: now() });
-    userTable.insert({ username: 'pmgr01', password: 'pmgr123', name: '项目经理', role: 'project_manager', created_at: now() });
-    userTable.insert({ username: 'rdmgr01', password: 'rdmgr123', name: '研发经理', role: 'rd_manager', created_at: now() });
+    userTable.insert({ username: 'admin', password: hashPassword('admin123'), name: '超级管理员', role: 'admin', created_at: now() });
+    userTable.insert({ username: 'sales01', password: hashPassword('sales123'), name: '张三（销售）', role: 'sales', created_at: now() });
+    userTable.insert({ username: 'sales02', password: hashPassword('sales123'), name: '李四（销售）', role: 'sales', created_at: now() });
+    userTable.insert({ username: 'smgr01', password: hashPassword('smgr123'), name: '陈经理（销售经理）', role: 'sales_manager', created_at: now() });
+    userTable.insert({ username: 'engineer01', password: hashPassword('eng123'), name: '王工（工程师）', role: 'engineer', created_at: now() });
+    userTable.insert({ username: 'purchase01', password: hashPassword('pur123'), name: '赵采购', role: 'purchase', created_at: now() });
+    userTable.insert({ username: 'finance01', password: hashPassword('fin123'), name: '周财务', role: 'finance', created_at: now() });
+    userTable.insert({ username: 'viewer01', password: hashPassword('view123'), name: '审计查看', role: 'viewer', created_at: now() });
+    userTable.insert({ username: 'pmgr01', password: hashPassword('pmgr123'), name: '项目经理', role: 'project_manager', created_at: now() });
+    userTable.insert({ username: 'rdmgr01', password: hashPassword('rdmgr123'), name: '研发经理', role: 'rd_manager', created_at: now() });
     logger.info('用户数据初始化完成（10个账户：admin/sales01/sales02/smgr01/engineer01/purchase01/finance01/viewer01/pmgr01/rdmgr01）');
     logger.info('⚠️  这是首次部署的默认账号，请尽快在系统设置中修改密码！');
   }
