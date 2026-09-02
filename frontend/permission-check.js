@@ -13,20 +13,23 @@
  */
 
 (function () {
-  // 全局：拦截 fetch 自动注入当前用户 id
+  // 全局：拦截 fetch 自动注入登录 token（优先）与当前用户 id（兼容旧客户端）
   const _fetch = window.fetch;
   window.fetch = function (input, init) {
     const uid = localStorage.getItem('currentUserId');
-    if (uid) {
+    const token = localStorage.getItem('authToken');
+    if (uid || token) {
       init = init || {};
-      let headers = init.headers;
-      if (headers instanceof Headers) {
-        if (!headers.has('x-user-id')) headers.set('x-user-id', uid);
-      } else if (headers && typeof headers === 'object') {
-        if (!headers['x-user-id']) headers['x-user-id'] = uid;
-      } else {
-        headers = Object.assign({}, headers, { 'x-user-id': uid });
+      let headers = {};
+      const h = init.headers;
+      if (h instanceof Headers) {
+        h.forEach(function (v, k) { headers[k] = v; });
+      } else if (h && typeof h === 'object' && !Array.isArray(h)) {
+        Object.keys(h).forEach(function (k) { headers[k] = h[k]; });
       }
+      // 服务端校验 token 作为身份来源；x-user-id 仅保留供老接口读取
+      if (token && !headers['Authorization']) headers['Authorization'] = 'Bearer ' + token;
+      if (uid && !headers['x-user-id']) headers['x-user-id'] = uid;
       init.headers = headers;
     }
     return _fetch.call(this, input, init);

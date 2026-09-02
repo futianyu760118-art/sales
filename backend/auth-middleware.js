@@ -6,11 +6,11 @@
  *   const { requirePerm } = require('../auth-middleware');
  *   router.post('/', requirePerm('supplier:create'), (req, res) => { ... });
  *
- * 用户识别优先级：
- *   1. Authorization: Bearer <token>（登录签发，服务端校验，不可伪造）——优先
- *   2. 兼容旧客户端：req.body.user_id / req.query.user_id / x-user / x-user-id
+ * 用户识别：
+ *   仅信任 Authorization: Bearer <token>（登录签发，服务端校验，不可伪造）。
+ *   不再信任客户端自报的 body/query user_id 或 x-user / x-user-id（可伪造）。
  *
- * 未携带任何有效身份时，不再放行（此前无 userId 直接 next()，导致未认证即可访问全部接口）。
+ * 未携带有效 token 时，不再放行（此前无 userId 直接 next()，且信任自报身份，导致未认证/冒充可访问全部接口）。
  */
 const { getTable } = require('./db');
 const { verifyToken } = require('./lib/auth-token');
@@ -122,7 +122,7 @@ function getUserPermissions(userId) {
 }
 
 function extractUserId(req) {
-  // 1. 优先：Authorization: Bearer <token>（登录签发，服务端校验，不可伪造）
+  // 仅信任服务端签发的 token（Authorization: Bearer <token>）。
   const authz = req.headers['authorization'] || '';
   const m = authz.match(/^Bearer\s+(.+)$/i);
   if (m) {
@@ -131,10 +131,7 @@ function extractUserId(req) {
       return Number(payload.uid);
     }
   }
-  // 2. 兼容旧客户端：仍信任自报身份（迁移期保留；前端全量带上 token 后可移除）
-  return req.body.user_id || req.body.userId ||
-         req.query.user_id || req.query.userId ||
-         req.headers['x-user'] || req.headers['x-user-id'];
+  return undefined;
 }
 
 function requirePerm(code) {

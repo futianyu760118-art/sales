@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
-const { requirePerm } = require('../auth-middleware');
+const { requirePerm, extractUserId } = require('../auth-middleware');
 
 // 确保表存在
 ['im_conversations', 'im_conversation_members', 'im_messages', 
@@ -19,7 +19,8 @@ function genId(prefix) {
 
 // 获取会话列表（含未读数、置顶、免打扰）
 router.get('/conversations', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { tab, keyword } = req.query;
   
   const convTable = getTable('im_conversations');
@@ -72,7 +73,8 @@ router.get('/conversations', (req, res) => {
 
 // 创建会话（单聊/群聊/系统通知）
 router.post('/conversations', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { conv_type, conv_name, member_ids, related_type, related_id } = req.body || {};
   
   if (!conv_type || !['SINGLE', 'GROUP', 'SYSTEM', 'MEETING_ROOM'].includes(conv_type)) {
@@ -159,6 +161,8 @@ function findSingleConversation(userId1, userId2) {
 
 // 获取消息历史（分页/游标/支持搜索）
 router.get('/conversations/:convId/messages', (req, res) => {
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { convId } = req.params;
   const { cursor, limit = 30, search } = req.query;
   
@@ -202,7 +206,8 @@ router.get('/conversations/:convId/messages', (req, res) => {
 
 // 发送消息
 router.post('/conversations/:convId/messages', async (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { convId } = req.params;
   const { msg_type, content, rich_content, reply_to_msg_id, mention_user_ids } = req.body || {};
   
@@ -298,7 +303,8 @@ router.post('/conversations/:convId/messages', async (req, res) => {
 // 撤回消息
 router.put('/messages/:msgId/recall', (req, res) => {
   if (!req.app) req.app = req;
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { msgId } = req.params;
   
   const msgTable = getTable('im_messages');
@@ -330,7 +336,8 @@ router.put('/messages/:msgId/recall', (req, res) => {
 
 // 标记消息已读
 router.put('/messages/:msgId/read', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { msgId } = req.params;
   
   const receiptTable = getTable('im_message_receipts');
@@ -351,7 +358,8 @@ router.put('/messages/:msgId/read', (req, res) => {
 
 // 标记会话全部已读
 router.put('/conversations/:convId/read-all', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { convId } = req.params;
   
   const memberTable = getTable('im_conversation_members');
@@ -386,6 +394,8 @@ router.put('/conversations/:convId/read-all', (req, res) => {
 
 // 获取成员列表
 router.get('/conversations/:convId/members', (req, res) => {
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { convId } = req.params;
   const memberTable = getTable('im_conversation_members');
   const userTable = getTable('users');
@@ -459,7 +469,8 @@ router.delete('/conversations/:convId/members/:userId', (req, res) => {
 
 // 设置免打扰
 router.put('/conversations/:convId/mute', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { convId } = req.params;
   const { is_muted, quiet_start, quiet_end } = req.body || {};
   
@@ -479,7 +490,8 @@ router.put('/conversations/:convId/mute', (req, res) => {
 
 // 置顶/取消置顶会话
 router.put('/conversations/:convId/pin', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { convId } = req.params;
   
   const memberTable = getTable('im_conversation_members');
@@ -498,7 +510,8 @@ router.put('/conversations/:convId/pin', (req, res) => {
 
 // 全局消息搜索
 router.get('/search', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { q, scope, msg_type } = req.query;
   
   if (!q) return res.status(400).json({ error: '搜索关键词必填' });
@@ -538,7 +551,8 @@ router.get('/search', (req, res) => {
 
 // 获取我的通知偏好
 router.get('/notifications/settings', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const ruleTable = getTable('im_notification_rules');
   
   let rule = ruleTable.all().find(r => r.user_id === userId);
@@ -566,7 +580,8 @@ router.get('/notifications/settings', (req, res) => {
 
 // 更新通知偏好
 router.put('/notifications/settings', (req, res) => {
-  const userId = req.user?.id || 1;
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const ruleTable = getTable('im_notification_rules');
   const b = req.body || {};
   
@@ -634,6 +649,8 @@ router.post('/push/external', async (req, res) => {
 
 // 查询推送日志
 router.get('/push/logs', (req, res) => {
+  const userId = extractUserId(req);
+  if (!userId) return res.status(401).json({ error: '未登录或会话已过期', code: 'UNAUTHORIZED' });
   const { channel, status } = req.query;
   const pushTable = getTable('im_push_logs');
   pushTable._invalidate();
