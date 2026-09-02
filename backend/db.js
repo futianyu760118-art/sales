@@ -1,4 +1,5 @@
 const fs = require('fs');
+const logger = require('./lib/logger');
 const path = require('path');
 
 const dataDir = path.join(__dirname, '../database');
@@ -55,7 +56,7 @@ class JsonTable {
                 const bakRaw = fs.readFileSync(bakFile, 'utf8').trim();
                 const bakParsed = JSON.parse(bakRaw);
                 if (bakParsed && Array.isArray(bakParsed.records)) {
-                  console.warn('[db] 表 ' + this.name + ' 主文件损坏，已从 .bak 恢复');
+                  logger.warn('[db] 表 ' + this.name + ' 主文件损坏，已从 .bak 恢复');
                   this._cache = bakParsed;
                   this._save(); // 把正确的内容覆盖回主文件
                   return this._cache;
@@ -73,7 +74,7 @@ class JsonTable {
       // 解析失败（如并发读到半写文件）：备份后置空，但不立即覆写，避免误删数据
       const bak = this.filePath + '.corrupt-' + Date.now();
       try { fs.copyFileSync(this.filePath, bak); } catch (_) {}
-      console.error('[db] 表 ' + this.name + ' JSON 解析失败，已备份至 ' + bak + '，暂以空表加载（未覆写原文件）');
+      logger.error('[db] 表 ' + this.name + ' JSON 解析失败，已备份至 ' + bak + '，暂以空表加载（未覆写原文件）');
       this._cache = { records: [], nextId: 1 };
     }
     // 关键表空状态自愈：若加载结果为空（更新截断/损坏），尝试从 .bak 恢复，
@@ -93,13 +94,13 @@ class JsonTable {
       if (!bakRaw) return false;
       const bakParsed = JSON.parse(bakRaw);
       if (bakParsed && Array.isArray(bakParsed.records) && bakParsed.records.length > 0) {
-        console.warn('[db] 关键表 ' + this.name + ' 加载为空，已从 .bak 恢复 ' + bakParsed.records.length + ' 条记录（防止更新丢数据）');
+        logger.warn('[db] 关键表 ' + this.name + ' 加载为空，已从 .bak 恢复 ' + bakParsed.records.length + ' 条记录（防止更新丢数据）');
         this._cache = bakParsed;
         this._save(); // 同步回主文件
         return true;
       }
     } catch (e) {
-      console.warn('[db] 关键表 ' + this.name + ' .bak 恢复失败: ' + e.message);
+      logger.warn('[db] 关键表 ' + this.name + ' .bak 恢复失败: ' + e.message);
     }
     return false;
   }

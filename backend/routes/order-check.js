@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
@@ -31,7 +32,7 @@ function persistIssuesAsync() {
   if (!_issuesCache) return Promise.resolve();
   const data = _issuesCache;
   return fs.promises.writeFile(ISSUES_FILE, JSON.stringify(data), 'utf8').catch(e => {
-    console.error('[order-check] persist error:', e.message);
+    logger.error('[order-check] persist error:', e.message);
   });
 }
 function persistIssues() {

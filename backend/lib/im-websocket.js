@@ -4,6 +4,8 @@
  */
 const { verifyToken } = require('./auth-token');
 
+const logger = require('./logger');
+
 /**
  * 创建IM WebSocket服务
  * @param {WebSocket.Server} wss - 现有WebSocket服务器
@@ -210,7 +212,7 @@ function setupIMWebSocket(wss, app) {
           });
         }
       } catch (e) {
-        console.error('IM WebSocket消息解析错误:', e.message);
+        logger.error('IM WebSocket消息解析错误:', e.message);
       }
     });
     
@@ -275,7 +277,7 @@ function setupIMWebSocket(wss, app) {
     getConversationSubscribers: (convId) => Array.from(convSubscribers.get(convId) || [])
   });
   
-  console.log('[IM WebSocket] IM实时消息服务已增强');
+  logger.info('[IM WebSocket] IM实时消息服务已增强');
 }
 
 module.exports = { setupIMWebSocket };

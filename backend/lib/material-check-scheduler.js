@@ -5,6 +5,7 @@
 //     MATERIAL_CHECK_INTERVAL_HOURS  间隔小时数（默认 6）
 //     MATERIAL_CHECK_FIRST_DELAY_MS   首次延迟毫秒数（默认 300000 = 5分钟）
 const fs = require('fs');
+const logger = require('./logger');
 const path = require('path');
 const { loadRules, runChecksBatch } = require('./material-check-runner');
 
@@ -15,15 +16,15 @@ function startScheduler() {
   const hours = parseFloat(process.env.MATERIAL_CHECK_INTERVAL_HOURS) || DEFAULT_INTERVAL_HOURS;
   const firstDelay = parseInt(process.env.MATERIAL_CHECK_FIRST_DELAY_MS) || DEFAULT_FIRST_DELAY_MS;
   const period = Math.max(1, hours) * 3600 * 1000;
-  console.log(`[material-check] 自检调度器已启动：首次 ${(firstDelay / 1000)}s 后，此后每 ${hours}h 执行一次（批量让出事件循环）`);
+  logger.info(`[material-check] 自检调度器已启动：首次 ${(firstDelay / 1000)}s 后，此后每 ${hours}h 执行一次（批量让出事件循环）`);
 
   const trigger = async (label) => {
     try {
       const t0 = Date.now();
       const r = await runOnce(label);
-      console.log(`[material-check] (${label}) 完成：扫描 ${r.materials_scanned} 物料 / ${r.bom_scanned} 行 BOM，新增 ${r.issues_created} 问题，重开 ${r.issues_reopened} 个，耗时 ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+      logger.info(`[material-check] (${label}) 完成：扫描 ${r.materials_scanned} 物料 / ${r.bom_scanned} 行 BOM，新增 ${r.issues_created} 问题，重开 ${r.issues_reopened} 个，耗时 ${((Date.now() - t0) / 1000).toFixed(1)}s`);
     } catch (e) {
-      console.error('[material-check] (' + label + ') 异常:', e.message);
+      logger.error('[material-check] (' + label + ') 异常:', e.message);
     }
   };
 

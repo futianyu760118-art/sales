@@ -1,4 +1,5 @@
 const { getTable, ensureTable, now } = require('./db');
+const logger = require('./lib/logger');
 
 // 确保所有表存在
 const tableNames = ['users', 'products', 'customers', 'materials', 'pricing_standards',
@@ -50,11 +51,11 @@ if (userTable.all().length === 0) {
     if (r.ok) {
       // 恢复后重新加载缓存
       userTable._invalidate();
-      console.log('[initData] 用户表为空，' + r.message + '（未播种默认账号，保护真实用户数据）');
+      logger.info('[initData] 用户表为空，' + r.message + '（未播种默认账号，保护真实用户数据）');
       restored = true;
     }
   } catch (e) {
-    console.warn('[initData] 用户表快照恢复失败:', e.message);
+    logger.warn('[initData] 用户表快照恢复失败:', e.message);
   }
   // 仅当无任何备份可恢复时，才播种默认账号（真正的首次部署）
   if (!restored) {
@@ -68,8 +69,8 @@ if (userTable.all().length === 0) {
     userTable.insert({ username: 'viewer01', password: 'view123', name: '审计查看', role: 'viewer', created_at: now() });
     userTable.insert({ username: 'pmgr01', password: 'pmgr123', name: '项目经理', role: 'project_manager', created_at: now() });
     userTable.insert({ username: 'rdmgr01', password: 'rdmgr123', name: '研发经理', role: 'rd_manager', created_at: now() });
-    console.log('用户数据初始化完成（10个账户：admin/sales01/sales02/smgr01/engineer01/purchase01/finance01/viewer01/pmgr01/rdmgr01）');
-    console.log('⚠️  这是首次部署的默认账号，请尽快在系统设置中修改密码！');
+    logger.info('用户数据初始化完成（10个账户：admin/sales01/sales02/smgr01/engineer01/purchase01/finance01/viewer01/pmgr01/rdmgr01）');
+    logger.info('⚠️  这是首次部署的默认账号，请尽快在系统设置中修改密码！');
   }
 }
 
@@ -86,7 +87,7 @@ if (prodTable.all().length === 0) {
     { external_model: 'PRO-F100', internal_model: 'INT-F001', category: '控制器', power: '80W', configuration: '支持以太网通信, 可编程逻辑控制', specs: '工业级IP40', created_at: now(), updated_at: now() }
   ];
   products.forEach(p => prodTable.insert(p));
-  console.log('产品数据初始化完成');
+  logger.info('产品数据初始化完成');
 }
 
 // 初始化核价标准
@@ -102,7 +103,7 @@ if (priceTable.all().length === 0) {
     { product_id: 7, cost_price: 200, min_price: 240, max_price: 300, profit_rate: 0.2, effective_date: '2024-01-01' }
   ];
   pricingData.forEach(p => priceTable.insert(p));
-  console.log('核价标准初始化完成');
+  logger.info('核价标准初始化完成');
 }
 
 // 初始化客户
@@ -119,7 +120,7 @@ if (custTable.all().length === 0) {
     { name: '南京精密仪器', source: '线上', contact: '孙总', phone: '13800138008', email: 'sun@nj-prec.com', created_at: now(), updated_at: now() }
   ];
   customers.forEach(c => custTable.insert(c));
-  console.log('客户数据初始化完成');
+  logger.info('客户数据初始化完成');
 }
 
 // 初始化物料
@@ -144,7 +145,7 @@ if (matTable.all().length === 0) {
     { product_id: 7, material_name: '以太网模块', material_code: 'ETH-001', status: 'normal', unit_price: 30, quantity: 1 }
   ];
   materials.forEach(m => matTable.insert(m));
-  console.log('物料数据初始化完成');
+  logger.info('物料数据初始化完成');
 }
 
 // 初始化示例询价单
@@ -249,7 +250,7 @@ if (inqTable.all().length === 0) {
     }
   ];
   inquiries.forEach(i => inqTable.insert(i));
-  console.log('询价单数据初始化完成');
+  logger.info('询价单数据初始化完成');
 }
 
 // 初始化状态变更记录
@@ -278,7 +279,7 @@ if (statusTable.all().length === 0) {
     { inquiry_id: 8, status: 'pending_pricing', changed_by: '李四', changed_at: '2024-03-20 15:00:00', reason: '提交核价' }
   ];
   changes.forEach(c => statusTable.insert(c));
-  console.log('状态变更记录初始化完成');
+  logger.info('状态变更记录初始化完成');
 }
 
 // 初始化评论/跟进记录
@@ -298,7 +299,7 @@ if (commentTable.all().length === 0) {
     { inquiry_id: 7, commenter: '王工', content: '协议开发预计3天完成，已开始编码', created_at: '2024-03-17 10:00:00' }
   ];
   comments.forEach(c => commentTable.insert(c));
-  console.log('评论数据初始化完成');
+  logger.info('评论数据初始化完成');
 }
 
 // 初始化RM消息记录
@@ -316,7 +317,7 @@ if (msgTable.all().length === 0) {
     { inquiry_id: 7, sender: '王工', content: '协议开发已完成80%，预计明天完成调试', msg_type: 'text', created_at: '2024-03-18 09:30:00' }
   ];
   messages.forEach(m => msgTable.insert(m));
-  console.log('RM消息数据初始化完成');
+  logger.info('RM消息数据初始化完成');
 }
 
 // 初始化操作日志
@@ -333,19 +334,19 @@ if (logTable.all().length === 0) {
     { action: '状态变更', operator: '张三', detail: '询价单 XJ20240103001 状态变更为 closed', inquiry_id: 3, created_at: '2024-02-10 10:00:00' }
   ];
   logs.forEach(l => logTable.insert(l));
-  console.log('操作日志初始化完成');
+  logger.info('操作日志初始化完成');
 }
 
-console.log('\n所有初始化数据完成！');
-console.log('===== 默认账户（共8个角色） =====');
-console.log('超级管理员：admin / admin123');
-console.log('销售经理：  smgr01 / smgr123');
-console.log('销售业务员：sales01 / sales123 | sales02 / sales123');
-console.log('工程师：    engineer01 / eng123');
-console.log('采购人员：  purchase01 / pur123');
-console.log('财务专员：  finance01 / fin123');
-console.log('只读账号：  viewer01 / view123');
-console.log('===================================');
+logger.info('\n所有初始化数据完成！');
+logger.info('===== 默认账户（共8个角色） =====');
+logger.info('超级管理员：admin / admin123');
+logger.info('销售经理：  smgr01 / smgr123');
+logger.info('销售业务员：sales01 / sales123 | sales02 / sales123');
+logger.info('工程师：    engineer01 / eng123');
+logger.info('采购人员：  purchase01 / pur123');
+logger.info('财务专员：  finance01 / fin123');
+logger.info('只读账号：  viewer01 / view123');
+logger.info('===================================');
 
 // 初始化考核周期
 const cycleTable = getTable('assessment_cycles');
@@ -360,7 +361,7 @@ if (cycleTable.all().length === 0) {
     targets: { conversion_rate: 35, timely_rate: 85, lost_rate: 15 },
     status: 'planned', created_at: '2024-04-01 00:00:00'
   });
-  console.log('考核周期初始化完成');
+  logger.info('考核周期初始化完成');
 }
 
 // 初始化培训计划
@@ -381,7 +382,7 @@ if (trainTable.all().length === 0) {
     description: '提升成交转化率，加强谈判能力',
     deadline: '2024-05-30', status: 'planned', created_at: '2024-03-25 10:00:00'
   });
-  console.log('培训计划初始化完成');
+  logger.info('培训计划初始化完成');
 }
 
 // ===== 初始化角色和权限 =====
@@ -399,7 +400,7 @@ if (roleTable.all().length === 0) {
     { name: '只读账号', code: 'viewer', description: '稽核/审计，全模块只读查看+报表导出', created_at: now(), updated_at: now() }
   ];
   roles.forEach(r => roleTable.insert(r));
-  console.log('角色数据初始化完成');
+  logger.info('角色数据初始化完成');
 }
 
 const permTable = getTable('permissions');
@@ -543,7 +544,7 @@ const permissions = [
     }
   });
   if (permsAdded > 0) {
-    console.log('权限数据补充完成，新增 ' + permsAdded + ' 条缺失权限');
+    logger.info('权限数据补充完成，新增 ' + permsAdded + ' 条缺失权限');
   }
 
   // ===== 新库（费用库/人工库）增量授权：跟随各角色已有的 material 权限自动补授 =====
@@ -596,10 +597,10 @@ const permissions = [
       }
     });
     if (_rpAdded > 0) {
-      console.log('[initData] 费用库/人工库增量授权完成：补授 ' + _rpAdded + ' 条角色权限');
+      logger.info('[initData] 费用库/人工库增量授权完成：补授 ' + _rpAdded + ' 条角色权限');
     }
   } catch (e) {
-    console.warn('[initData] 费用库/人工库增量授权失败:', e.message);
+    logger.warn('[initData] 费用库/人工库增量授权失败:', e.message);
   }
 
 // 初始化角色权限关联
@@ -894,7 +895,7 @@ if (rpTable.all().length === 0) {
     'drawing:preview','drawing:approve','drawing:upload','drawing:delete'
   ]);
 
-  console.log('角色权限关联初始化完成');
+  logger.info('角色权限关联初始化完成');
 }
 
 const annualRolePerms = {
@@ -921,7 +922,7 @@ Object.keys(annualRolePerms).forEach(roleCode => {
     }
   });
 });
-if (annualPermsAdded > 0) console.log('年度经营计划角色权限补充完成，新增 ' + annualPermsAdded + ' 条');
+if (annualPermsAdded > 0) logger.info('年度经营计划角色权限补充完成，新增 ' + annualPermsAdded + ' 条');
 
 // ===== 阿米巴经营管理：角色权限补充（增量，不覆盖用户已配置项）=====
 const amibaRolePerms = {
@@ -951,7 +952,7 @@ Object.keys(amibaRolePerms).forEach(roleCode => {
     }
   });
 });
-if (amibaPermsAdded > 0) console.log('阿米巴经营管理角色权限补充完成，新增 ' + amibaPermsAdded + ' 条');
+if (amibaPermsAdded > 0) logger.info('阿米巴经营管理角色权限补充完成，新增 ' + amibaPermsAdded + ' 条');
 
 // ===== 阿米巴经营管理：示例数据初始化 =====
 const _amibaOrgTable = getTable('amiba_org');
@@ -967,7 +968,7 @@ if (_amibaOrgTable.all().length === 0) {
     { parent_id: 1, amiba_level: 2, amiba_name: '组装生产巴', amiba_type: '生产', charge_user_name: '组装组长', department_id: 0, department: '生产部', status: '启用', sort: 1, created_at: now(), updated_at: now() }
   ];
   orgs.forEach(o => _amibaOrgTable.insert(o));
-  console.log('阿米巴组织数据初始化完成');
+  logger.info('阿米巴组织数据初始化完成');
 }
 
 // 阿米巴组织架构 → 采用系统原有架构人员/部门（org_departments / org_personnel）
@@ -1018,7 +1019,7 @@ if (_amibaOrgTable.all().length === 0) {
     orgTable.update(o.id, fields);
     migrated++;
   });
-  if (migrated > 0) console.log('阿米巴组织架构已关联系统原有部门/人员：' + migrated + ' 条');
+  if (migrated > 0) logger.info('阿米巴组织架构已关联系统原有部门/人员：' + migrated + ' 条');
 })();
 
 const _amibaCompanyTargetTable = getTable('amiba_cost_target_company');
@@ -1029,7 +1030,7 @@ if (_amibaCompanyTargetTable.all().length === 0) {
     energy_reduce_target: 100000, fee_reduce_target: 120000, loss_reduce_target: 80000,
     status: '执行中', created_at: now(), updated_at: now()
   });
-  console.log('阿米巴公司降本目标初始化完成');
+  logger.info('阿米巴公司降本目标初始化完成');
 }
 
 const _amibaPriceTable = getTable('amiba_trade_price');
@@ -1039,7 +1040,7 @@ if (_amibaPriceTable.all().length === 0) {
     { product_name: '驱动电源', product_code: 'DRV-50W', from_amiba_id: 5, to_amiba_id: 1, trade_price: 45, unit: '元', price_status: '待审核', audit_status: '待审核', effect_time: now().substring(0,10), created_at: now(), updated_at: now() }
   ];
   prices.forEach(p => _amibaPriceTable.insert(p));
-  console.log('阿米巴内部交易价格初始化完成');
+  logger.info('阿米巴内部交易价格初始化完成');
 }
 
 const _amibaDeptStandardTable = getTable('amiba_dept_standard');
@@ -1053,7 +1054,7 @@ if (_amibaDeptStandardTable.all().length === 0) {
     { amiba_id: 1, amiba_name: '生产制造巴', direction: '收入', material_id: 0, material_code: 'FIN-GOODS', material_name: '成品灯具', item_name: '成品转移销售巴', unit: '套', base_price: 80, coefficient: 1.15, standard_price: 92, year: _yr2, quantity_std: 800, amount_std: 73600, remarks: '成品内部转移收入标准', status: '启用', created_at: now(), updated_at: now() }
   ];
   standards.forEach(s => _amibaDeptStandardTable.insert(s));
-  console.log('阿米巴部门收支标准初始化完成');
+  logger.info('阿米巴部门收支标准初始化完成');
 }
 
 const _amibaImproveTable = getTable('amiba_cost_improve');
@@ -1065,7 +1066,7 @@ if (_amibaImproveTable.all().length === 0) {
     { amiba_id: 2, amiba_name: '研发技术巴', project_name: '国产化替代进口芯片', improve_type: '材料', year: _yr, month: 0, target_value: 80000, real_value: 0, save_amount: 0, apply_user: '研发经理', owner: '光源组长', status: '执行中', audit_status: '已通过', finish_time: '', is_case: false, created_at: now(), updated_at: now() }
   ];
   projects.forEach(p => _amibaImproveTable.insert(p));
-  console.log('阿米巴降本改善项目初始化完成');
+  logger.info('阿米巴降本改善项目初始化完成');
 }
 
 const _amibaPioneerTable = getTable('amiba_pioneer');
@@ -1075,7 +1076,7 @@ if (_amibaPioneerTable.all().length === 0) {
     target_desc: '半年内单位制造成本下降15%', before_cost: 120, after_cost: 102, total_save: 18,
     created_at: now(), updated_at: now()
   });
-  console.log('阿米巴先锋试点巴初始化完成');
+  logger.info('阿米巴先锋试点巴初始化完成');
 }
 
 const _amibaDisputeTable = getTable('amiba_dispute');
@@ -1086,7 +1087,7 @@ if (_amibaDisputeTable.all().length === 0) {
     apply_user: '组装组长', apply_time: now(), audit_result: '待初审', audit_opinion: '', audit_user: '', finish_time: '', status: '待处理',
     created_at: now(), updated_at: now()
   });
-  console.log('阿米巴争议仲裁示例初始化完成');
+  logger.info('阿米巴争议仲裁示例初始化完成');
 }
 
 const _amibaTrainTable = getTable('amiba_train');
@@ -1095,7 +1096,7 @@ if (_amibaTrainTable.all().length === 0) {
     train_name: '阿米巴经营核算入门', train_content: '内部交易定价、单位成本核算、利润中心意识', train_type: '阿米巴经营',
     train_time: now().substring(0,10), participant_num: 25, finish_num: 24, create_user: '推行办', created_at: now(), updated_at: now()
   });
-  console.log('阿米巴培训记录初始化完成');
+  logger.info('阿米巴培训记录初始化完成');
 }
 
 // 阿米巴内部交易明细（核算表模板示例）
@@ -1109,7 +1110,7 @@ if (_amibaTradeDetailTable.all().length === 0) {
     { trade_no: 'PZ004', trade_date: _ym, from_amiba: '供应链采购巴', from_amiba_id: 4, to_amiba: '生产制造巴', to_amiba_id: 1, service_no: 'SVC-004', quantity: 500, unit_price: 8, total_amount: 4000, settle_status: '已结算', remarks: '集中采购结算', created_at: now(), updated_at: now() }
   ];
   details.forEach(d => _amibaTradeDetailTable.insert(d));
-  console.log('阿米巴内部交易明细初始化完成');
+  logger.info('阿米巴内部交易明细初始化完成');
 }
 
 // ===== 阿米巴应收(AR)/应付(AP)示例 =====
@@ -1122,7 +1123,7 @@ if (_amibaArTable.all().length === 0) {
     { amiba_id: 3, amiba_name: '营销销售巴', customer_name: '北京自动化公司', document_no: 'AR202607-002', amount: 12240, paid_amount: 12240, trade_date: _ym, due_date: _ym, status: 'closed', source: 'demo', remarks: 'PRO-C100 200件', created_at: now(), updated_at: now() }
   ];
   arList.forEach(d => _amibaArTable.insert(d));
-  console.log('阿米巴应收(AR)示例初始化完成');
+  logger.info('阿米巴应收(AR)示例初始化完成');
 }
 const _amibaApTable = getTable('amiba_ap');
 if (_amibaApTable.all().length === 0) {
@@ -1133,7 +1134,7 @@ if (_amibaApTable.all().length === 0) {
     { amiba_id: 1, amiba_name: '生产制造巴', supplier_name: '宁波光电科技', document_no: 'AP202607-002', amount: 3600, paid_amount: 3600, trade_date: _ym, due_date: _ym, status: 'closed', source: 'demo', remarks: 'PCB板已对账', created_at: now(), updated_at: now() }
   ];
   apList.forEach(d => _amibaApTable.insert(d));
-  console.log('阿米巴应付(AP)示例初始化完成');
+  logger.info('阿米巴应付(AP)示例初始化完成');
 }
 
 // 初始化用户角色关联
@@ -1148,7 +1149,7 @@ if (urTable.all().length === 0) {
       urTable.insert({ user_id: u.id, role_id: role.id, assigned_at: now() });
     }
   });
-  console.log('用户角色关联初始化完成');
+  logger.info('用户角色关联初始化完成');
 }
 
 // 初始化示例反馈
@@ -1161,7 +1162,7 @@ if (fbTable.all().length === 0) {
     { title: '如何设置批量修改状态？', description: '不清楚批量修改状态的操作流程', type: 'question', priority: 'low', module: '询价管理', submitter: '赵采购', assignee: '张三', status: 'closed', resolution: '已提供操作指南', resolved_at: now(), created_at: now(), updated_at: now() }
   ];
   feedbacks.forEach(f => fbTable.insert(f));
-  console.log('反馈数据初始化完成');
+  logger.info('反馈数据初始化完成');
 }
 
 // ===== 初始化核价表 =====
@@ -1182,7 +1183,7 @@ if (bomTable.all().length === 0) {
       created_at: now(), updated_at: now() }
   ];
   bomData.forEach(b => bomTable.insert(b));
-  console.log('核价表数据初始化完成');
+  logger.info('核价表数据初始化完成');
 }
 
 // ===== 初始化流程规则（各模块功能开关） =====
@@ -1290,5 +1291,5 @@ if (wfTable.all().length === 0) {
   ];
 
   featureRules.forEach(r => wfTable.insert(r));
-  console.log('流程规则初始化完成（共' + featureRules.length + '条）');
+  logger.info('流程规则初始化完成（共' + featureRules.length + '条）');
 }

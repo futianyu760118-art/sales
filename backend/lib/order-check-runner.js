@@ -1,4 +1,5 @@
 const fs = require('fs');
+const logger = require('./logger');
 const path = require('path');
 
 const RULES_FILE = path.join(__dirname, '..', '..', 'database', 'order_check_rules.json');
@@ -7,7 +8,7 @@ function loadRules() {
   try {
     return JSON.parse(fs.readFileSync(RULES_FILE, 'utf8'));
   } catch (e) {
-    console.error('读取订单自检规则失败:', e.message);
+    logger.error('读取订单自检规则失败:', e.message);
     return { rules: [], severity_levels: {} };
   }
 }

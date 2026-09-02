@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
@@ -165,7 +166,7 @@ router.post('/ai-chat', requirePerm('ai:view'), async (req, res) => {
     });
     const data = await response.json();
     if (data.error) {
-      console.error('AI API Error:', data.error);
+      logger.error('AI API Error:', data.error);
       const fallback = generateLocalResponse(message, businessContext, user);
       return res.json({ reply: fallback, action_items: [], model: 'fallback', error: data.error.message });
     }
@@ -174,7 +175,7 @@ router.post('/ai-chat', requirePerm('ai:view'), async (req, res) => {
     saveAiMessage(user, message, aiReply, actionItems, context_type, context_id);
     res.json({ reply: aiReply, action_items, model });
   } catch(err) {
-    console.error('AI API fetch error:', err.message);
+    logger.error('AI API fetch error:', err.message);
     const fallback = generateLocalResponse(message, businessContext, user);
     res.json({ reply: fallback, action_items: [], model: 'fallback', error: err.message });
   }
@@ -425,7 +426,7 @@ function buildBusinessContext(contextType, contextId, message) {
         parts.push(`客户"${cust.name}": 询价${inqs.length}条, 项目${projs.length}个, 等级${cust.customer_level||'未知'}, 状态${cust.customer_status||'未知'}`);
       }
     }
-  } catch(e) { console.error('构建业务上下文失败:', e.message); }
+  } catch(e) { logger.error('构建业务上下文失败:', e.message); }
   return parts.join('\n');
 }
 

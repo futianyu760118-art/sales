@@ -40,6 +40,7 @@
  *   bom_no 精确 → product_code → audit_status=approved 且生效期内最新。
  */
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
@@ -363,7 +364,7 @@ router.get('/by-product/tree', requirePerm('labor-rate:view'), (req, res) => {
         collectFromBom(rc, 1);
       }
     }
-  } catch(e) { console.warn('[product-labor-rate] BOM 展开异常:', e.message); }
+  } catch(e) { logger.warn('[product-labor-rate] BOM 展开异常:', e.message); }
 
   // 4. 组装后代列表（按 depth 排序）
   const descendants = [...codeInfo.values()].sort((a, b) => a.depth - b.depth);

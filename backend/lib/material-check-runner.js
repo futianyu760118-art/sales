@@ -1,5 +1,6 @@
 // 物料库自检规则执行器（与路由解耦，便于调度器复用）
 const fs = require('fs');
+const logger = require('./logger');
 const path = require('path');
 
 const RULES_FILE = path.join(__dirname, '..', '..', 'database', 'material_check_rules.json');
@@ -8,7 +9,7 @@ function loadRules() {
   try {
     return JSON.parse(fs.readFileSync(RULES_FILE, 'utf8'));
   } catch (e) {
-    console.error('读取自检规则失败:', e.message);
+    logger.error('读取自检规则失败:', e.message);
     return { rules: [], severity_levels: {} };
   }
 }

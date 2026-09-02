@@ -1,5 +1,6 @@
 // 物料库数据自愈模块：用于检测 materials.json 损坏并自动从外部 API 恢复
 const fs = require('fs');
+const logger = require('./logger');
 const path = require('path');
 
 const MATERIALS_FILE = path.join(__dirname, '..', '..', 'database', 'materials.json');
@@ -24,7 +25,7 @@ async function recover(reason, hooks) {
   if (_running) return { skipped: 'busy' };
   if (Date.now() - _lastAt < COOLDOWN_MS) return { skipped: 'cooldown' };
   _running = true; _lastAt = Date.now();
-  const log = (hooks && hooks.log) || ((m) => console.log('[recovery] ' + m));
+  const log = (hooks && hooks.log) || ((m) => logger.info('[recovery] ' + m));
   try {
     log('触发自愈（' + reason + '），从外部 API 同步...');
     // 用注入的 runSyncFn（如果 routes 已加载），否则执行最小的 DB 操作

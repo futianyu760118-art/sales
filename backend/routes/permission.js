@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm, mergeOrgPermissions } = require('../auth-middleware');
@@ -907,7 +908,7 @@ router.post('/migrate-permissions', requirePerm('system:permission'), (req, res)
     });
     rpTable._invalidate();
   } catch (e) {
-    console.warn('[migrate-permissions] 费用库/人工库兜底授权失败:', e.message);
+    logger.warn('[migrate-permissions] 费用库/人工库兜底授权失败:', e.message);
   }
 
   res.json({

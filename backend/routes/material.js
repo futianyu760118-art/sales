@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
@@ -23,7 +24,7 @@ function migrateMaterialDataOnce() {
     if (Object.keys(fields).length) { fields.updated_at = now(); table.update(m.id, fields); }
   });
   if (certFixed > 0 || statFixed > 0) {
-    console.log(`[Material Migration] certificate_required: ${certFixed}, status: ${statFixed}`);
+    logger.info(`[Material Migration] certificate_required: ${certFixed}, status: ${statFixed}`);
   }
 }
 
@@ -158,7 +159,7 @@ router.get('/', requirePerm('material:view'), (req, res) => {
 router.post('/recover-from-external', requirePerm('material:edit'), async (req, res) => {
   try {
     const recovery = require('../lib/materials-recovery');
-    const result = await recovery.recover('manual', { log: (m) => console.log('[recovery] ' + m) });
+    const result = await recovery.recover('manual', { log: (m) => logger.info('[recovery] ' + m) });
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -1186,7 +1187,7 @@ function loadInventoryPolicy() {
     if (fs.existsSync(POLICY_FILE)) {
       return Object.assign({}, DEFAULT_POLICY, JSON.parse(fs.readFileSync(POLICY_FILE, 'utf8')));
     }
-  } catch (e) { console.error('读取库存策略失败: ', e.message); }
+  } catch (e) { logger.error('读取库存策略失败: ', e.message); }
   return Object.assign({}, DEFAULT_POLICY);
 }
 

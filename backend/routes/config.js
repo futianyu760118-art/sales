@@ -1,4 +1,5 @@
 const express = require('express');
+const logger = require('../lib/logger');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
@@ -163,7 +164,7 @@ router.post('/import-xlsx', requirePerm('config:create'), upload.single('file'),
     const result = configTable.insert(record);
     res.json({ message: '配置表导入成功', id: result.lastID, model });
   } catch (e) {
-    console.error('导入配置表失败:', e);
+    logger.error('导入配置表失败:', e);
     res.status(500).json({ error: '导入失败: ' + e.message });
   }
 });
@@ -319,7 +320,7 @@ router.post('/batch-import-xlsx', requirePerm('config:create'), upload.single('f
       details
     });
   } catch (e) {
-    console.error('批量导入配置表失败:', e);
+    logger.error('批量导入配置表失败:', e);
     res.status(500).json({ error: '导入失败: ' + e.message });
   }
 });
