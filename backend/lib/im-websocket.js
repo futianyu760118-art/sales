@@ -2,6 +2,7 @@
  * IM WebSocket服务增强
  * 扩展现有WebSocket以支持IM消息的实时推送
  */
+const { verifyToken } = require('./auth-token');
 
 /**
  * 创建IM WebSocket服务
@@ -80,24 +81,42 @@ function setupIMWebSocket(wss, app) {
       try {
         const msg = JSON.parse(data);
         
-        // 用户认证
+        // 用户认证：必须携带登录签发的 token，身份以 token 为准
         if (msg.type === 'im_auth') {
-          const userId = msg.user_id || msg.user;
+          const payload = verifyToken(msg.token);
+          if (!payload || payload.uid === undefined || payload.uid === null) {
+            try {
+              // 先发送失败原因，待其刷出后再关闭，保证客户端能收到 im_auth_failed 与正常关闭码
+              ws.send(JSON.stringify({
+                type: 'im_auth_failed',
+                reason: '未认证或 token 无效',
+                timestamp: Date.now()
+              }), () => ws.close(4401, '未认证'));
+            } catch (e) {
+              ws.close(4401, '未认证');
+            }
+            return;
+          }
+          const userId = payload.uid;
           ws._imUserId = userId;
-          
+
           if (!imClients.has(userId)) {
             imClients.set(userId, new Set());
           }
           imClients.get(userId).add(ws);
-          
+
           ws.send(JSON.stringify({
             type: 'im_auth_success',
             user_id: userId,
             online_users: Array.from(imClients.keys()),
             timestamp: Date.now()
           }));
+          return;
         }
-        
+
+        // 未认证连接不处理任何其它消息
+        if (ws._imUserId === null || ws._imUserId === undefined) return;
+
         // 订阅会话
         if (msg.type === 'im_subscribe' && msg.conv_id) {
           const convId = Number(msg.conv_id);

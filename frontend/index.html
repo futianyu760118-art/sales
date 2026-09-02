@@ -140,6 +140,7 @@
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('currentUserId', data.user.id);
         localStorage.setItem('currentUser', data.user.username);
+        localStorage.setItem('authToken', data.token);
         window.location.href = 'dashboard.html';
       } else {
         document.getElementById('errorMessage').textContent = data.error;

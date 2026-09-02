@@ -292,10 +292,10 @@ function initWebSocket() {
   state.ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
   
   state.ws.onopen = () => {
-    // 发送认证信息
+    // 发送认证信息（携带登录 token，身份以服务端校验为准）
     state.ws.send(JSON.stringify({
       type: 'im_auth',
-      user_id: state.currentUser?.id || 1
+      token: localStorage.getItem('authToken') || ''
     }));
   };
   
@@ -318,6 +318,9 @@ function handleWebSocketMessage(msg) {
   switch (msg.type) {
     case 'im_auth_success':
       console.log('IM连接成功');
+      break;
+    case 'im_auth_failed':
+      console.warn('IM鉴权失败:', msg.reason);
       break;
     case 'im_message':
       handleNewMessage(msg.data);

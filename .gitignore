@@ -15,6 +15,7 @@ uploads/
 
 # 数据库运行时数据
 database/*.json
+.auth-secret
 !database/.gitkeep
 database/database/*.json
 !database/database/.gitkeep
