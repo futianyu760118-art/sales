@@ -27,7 +27,36 @@ const LOCAL_IP = getLocalIP();
 const app = express();
 const PORT = parseInt(process.env.PORT) || 3010;
 
-app.use(cors());
+// CORS 白名单：仅允许前端部署域名与本地开发来源，拒绝任意来源跨域。
+// 生产前端域名通过环境变量 CORS_ALLOWED_ORIGINS 配置（逗号分隔，如 https://sales.example.com）。
+// 本地开发默认放行 localhost / 127.0.0.1 / 本机局域网 IP。
+const EXTRA_ALLOWED_ORIGINS = new Set(
+  (process.env.CORS_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => { try { return new URL(s).origin; } catch (e) { return s; } })
+);
+
+function isLocalOrigin(hostname) {
+  // Node 对 IPv6 的 hostname 带方括号（如 "[::1]"），先去掉再比较
+  const h = hostname.replace(/^\[|\]$/g, '');
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === LOCAL_IP;
+}
+
+app.use(cors({
+  origin(origin, callback) {
+    // 无 Origin 头：同源页面请求 / 服务端内部调用（如 /api/ai-assistant/auto-run）→ 放行
+    if (!origin) return callback(null, true);
+    try {
+      const url = new URL(origin);
+      if (isLocalOrigin(url.hostname)) return callback(null, true);
+      if (EXTRA_ALLOWED_ORIGINS.has(url.origin)) return callback(null, true);
+    } catch (e) { /* 非法 origin（如 "null"）→ 落入拒绝 */ }
+    // 非白名单来源：不下发 CORS 头，浏览器将拦截跨域响应
+    callback(null, false);
+  }
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
