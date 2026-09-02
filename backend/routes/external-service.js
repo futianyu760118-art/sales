@@ -14,12 +14,14 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const { getTable, now } = require('../db');
+const { EXTERNAL_API_KEY: API_KEY } = require('../lib/secrets');
 
-// ===== 固定 API Key（生产环境应放至环境变量或 system_settings） =====
-const API_KEY = process.env.EBMS_EXTERNAL_API_KEY || 'HJ-EBMS-KEY-2026-SECRET';
-
-// ===== API Key 校验中间件 =====
+// ===== API Key 校验中间件（密钥来自环境变量 EBMS_EXTERNAL_API_KEY，不再硬编码） =====
 function apiKeyAuth(req, res, next) {
+  if (!API_KEY) {
+    // 服务端未配置密钥：拒绝所有入站外部请求（fail-closed），避免误开接口
+    return res.status(503).json({ code: 503, message: '服务端未配置 EBMS_EXTERNAL_API_KEY 环境变量，外部接口已停用' });
+  }
   const key = req.headers['x-api-key'] || req.query.api_key;
   if (!key) return res.status(401).json({ code: 401, message: '缺少 X-API-Key 请求头' });
   const a = Buffer.from(String(key));

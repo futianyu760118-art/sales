@@ -18,12 +18,14 @@ const fetchExternal = externalSync.fetchExternal;
 const fetchAllPages = externalSync.fetchAllPages;
 const https = require('https');
 const crypto = require('crypto');
+const { APP_KEY: _ERP_KEY, APP_SECRET: _ERP_SECRET } = require('../lib/secrets');
 
 // SPC boms.tree 接口签名（basicdata 风格：timestamp + app_key + ep + qs）
-const _ERP_KEY = 'ak_745e44c96d4f4790';
-const _ERP_SECRET = 'c93b118d21c9403ead9819d3336f7afafcbda6deab9b4738b5c57278396d6336';
 function _callErpExt(ep, qs) {
   return new Promise((resolve) => {
+    if (!_ERP_KEY || !_ERP_SECRET) {
+      return resolve({ s: 0, b: '未配置环境变量 EBMS_APP_KEY / EBMS_APP_SECRET' });
+    }
     const ts = String(Math.floor(Date.now() / 1000));
     const signStr = ts + _ERP_KEY + ep + qs;
     const sign = crypto.createHmac('sha256', _ERP_SECRET).update(signStr).digest('hex');

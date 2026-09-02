@@ -11,13 +11,21 @@ const path = require('path');
 const fs = require('fs');
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const { APP_KEY, APP_SECRET } = require('../lib/secrets');
 
 // ===== 配置 =====
 const CONFIG = {
   BASE_URL: 'https://192.168.0.127:18084',
-  APP_KEY: 'ak_745e44c96d4f4790',
-  APP_SECRET: 'c93b118d21c9403ead9819d3336f7afafcbda6deab9b4738b5c57278396d6336',
+  APP_KEY,      // 环境变量 EBMS_APP_KEY
+  APP_SECRET,   // 环境变量 EBMS_APP_SECRET
 };
+
+// 缺失密钥时拒绝调用（由 server.js 启动时统一告警）
+function assertConfigured() {
+  if (!CONFIG.APP_KEY || !CONFIG.APP_SECRET) {
+    throw new Error('外部接口未配置：请设置环境变量 EBMS_APP_KEY / EBMS_APP_SECRET');
+  }
+}
 
 // HMAC-SHA256 签名
 function sign(secret, data) {
@@ -38,6 +46,7 @@ function endpointPath(code) {
 // 调用对外业务接口
 function callExternalAPI(endpointCode, queryParams = {}) {
   return new Promise((resolve, reject) => {
+    assertConfigured();
     const qs = Object.entries(queryParams)
       .filter(([_, v]) => v !== undefined && v !== null && v !== '')
       .map(([k, v]) => k + '=' + encodeURIComponent(v))
@@ -83,6 +92,7 @@ function callExternalAPI(endpointCode, queryParams = {}) {
 // 调用通用数据供给接口
 function callDataSupply(dataType, queryParams = {}) {
   return new Promise((resolve, reject) => {
+    assertConfigured();
     const qs = Object.entries(queryParams)
       .filter(([_, v]) => v !== undefined && v !== null && v !== '')
       .map(([k, v]) => k + '=' + encodeURIComponent(v))
@@ -982,6 +992,7 @@ router.post('/sync-all', requirePerm('system:config'), async (req, res) => {
 // 签名 POST：在 GET 拉取签名基础上增加 body 摘要，防篡改
 function callExternalWrite(endpointCode, payload, method) {
   return new Promise((resolve, reject) => {
+    assertConfigured();
     const bodyStr = JSON.stringify(payload || {});
     const timestamp = String(Math.floor(Date.now() / 1000));
     const bodySig = crypto.createHash('sha256').update(bodyStr).digest('hex');

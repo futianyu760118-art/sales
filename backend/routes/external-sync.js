@@ -6,12 +6,13 @@ const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
 const outbox = require('../lib/material-outbox');
 const bearerAuth = require('../lib/external-bearer-auth');
+const { APP_KEY, APP_SECRET } = require('../lib/secrets');
 
-// 外部同步连接配置（默认值；可通过 /api/external-sync/config 在系统设置中覆盖）
+// 外部同步连接配置（默认值来自环境变量；可通过 /api/external-sync/config 在系统设置中覆盖）
 const DEFAULT_CONFIG = {
   baseUrl: 'https://192.168.0.127:18084',
-  appKey: 'ak_745e44c96d4f4790',
-  appSecret: 'c93b118d21c9403ead9819d3336f7afafcbda6deab9b4738b5c57278396d6336',
+  appKey: APP_KEY,     // 环境变量 EBMS_APP_KEY
+  appSecret: APP_SECRET, // 环境变量 EBMS_APP_SECRET
   timeout: 30000
 };
 
@@ -83,6 +84,9 @@ const ENDPOINT_PATH = {
 function fetchExternal(endpointCode, params = {}) {
   const CONFIG = loadConfig();
   return new Promise((resolve, reject) => {
+    if (!CONFIG.appKey || !CONFIG.appSecret) {
+      return reject(new Error('外部同步未配置：请设置环境变量 EBMS_APP_KEY / EBMS_APP_SECRET，或在系统设置中填写连接配置'));
+    }
     const parts = [];
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null) parts.push(`${k}=${encodeURIComponent(v)}`);
