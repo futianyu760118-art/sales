@@ -54,4 +54,9 @@ router.use('/order-check', require('./order-check'));
 router.use('/sop', require('./sop'));
 router.use('/im', require('./im'));
 
+// AEOS M03 P1 foundation is opt-in until contract and UAT gates are closed.
+if (process.env.ENABLE_AEOS_M03 === '1') {
+  router.use('/aeos/management', require('./aeos-management'));
+}
+
 module.exports = router;
