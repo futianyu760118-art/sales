@@ -1,0 +1,21 @@
+{
+  "name": "ebms-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EBMS 经营管理系统后端（接入层/领域层/应用层）",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/devServer.js",
+    "test": "node --test",
+    "test:attribution": "node --test test/attribution.test.js",
+    "test:api": "node --test test/reasons.api.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}
