@@ -75,3 +75,7 @@ PERM_AUDIT*.txt
 PERM_AUDIT*.md
 material_audit_issues.csv
 _patch.js
+
+# SQLite 迁移残留（数据已在 sales.db）
+*.imported-*
+sales.db*
