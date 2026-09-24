@@ -82,7 +82,9 @@ app.use(express.urlencoded({ extended: true }));
 try {
   const backup = require('./lib/user-backup');
   const r = backup.snapshot();
-  logger.info('[backup] 关键表快照: ' + (r.snapshoted.length ? r.snapshoted.join(', ') : '无') + (r.skipped.length ? ' | 跳过: ' + r.skipped.join(', ') : ''));
+  const snap = (r && r.snapshoted) || [];
+  const skip = (r && r.skipped) || [];
+  logger.info('[backup] 关键表快照: ' + (snap.length ? snap.join(', ') : '无') + (skip.length ? ' | 跳过: ' + skip.join(', ') : ''));
 } catch (e) {
   logger.warn('[backup] 快照失败(非致命):', e.message);
 }

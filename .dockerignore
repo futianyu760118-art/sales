@@ -8,8 +8,10 @@ backend/node_modules
 frontend/node_modules
 
 # 运行时数据（卷挂载，不进镜像）
-database/*.json
+database/*
+!database/.gitkeep
 uploads
+logs
 *.log
 *.err
 
@@ -58,14 +60,13 @@ $RECYCLE.BIN
 *.bak
 dist
 build
-
-# 备份目录（运行时生成）
 database.bak.*
 uploads.bak.*
 ebms.bak.*
 
 # 文档
 README.md
+docs
 
 # Docker
 Dockerfile
