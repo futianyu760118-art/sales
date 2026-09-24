@@ -147,7 +147,7 @@ const ImportDropzone = {
         <div class="import-dropzone-modal" id="importModal">
           <div class="import-dropzone-header">
             <h3>批量导入${this.getTableLabel(tableName)}</h3>
-            <button class="import-close-btn" onclick="ImportDropzone.close()">&times;</button>
+            <button class="import-close-btn" onclick="ImportDropzone.close()" aria-label="关闭导入" title="关闭导入">${EBMSIcons.render('close', { size: 'sm', decorative: true })}</button>
           </div>
           <div id="dropzoneContent">
             <div class="import-dropzone-area" id="dropZone"
@@ -274,9 +274,9 @@ const ImportDropzone = {
         ['核价版本','pricing_version'],['版本','pricing_version'],['备注','remarks']
       ],
       product_labor_rate: [
-        ['BOM编号','bom_no'],['BOM','bom_no'],['bom_no','bom_no'],['编号','bom_no'],
+        ['BOM编号','bom_no'],['BOM','bom_no'],['bom_no','bom_no'],['编号','bom_no'],['物料编码','bom_no'],
         ['产品编码','product_code'],['编码','product_code'],
-        ['产品名称','product_name'],['名称','product_name'],
+        ['产品名称','product_name'],['名称','product_name'],['产品','product_name'],['产品名','product_name'],['物料名称','product_name'],
         ['工价(元/台)','labor_rate'],['工价','labor_rate'],['单台工价','labor_rate'],['成品工价','labor_rate'],
         ['计价方式','labor_rate_type'],['工价类型','labor_rate_type'],['类型','labor_rate_type'],
         ['工艺成本','process_cost'],
@@ -682,7 +682,7 @@ const ImportDropzone = {
       if (!isMatched) {
         badge = '<span class="mapping-match-badge unmatched">! 未匹配</span>';
       } else if (m.source === 'content') {
-        badge = '<span class="mapping-match-badge" style="background:#e0e7ff;color:#3730a3;">✦ 内容识别</span>';
+        badge = '<span class="mapping-match-badge" style="background:#e0e7ff;color:#3730a3;"> 内容识别</span>';
       } else {
         badge = '<span class="mapping-match-badge matched">√ 已匹配</span>';
       }
@@ -1268,7 +1268,7 @@ const ImportDropzone = {
       push('address', addrR > 0.5 ? addrR * 0.8 : 0);
       const compR = ratio(v => /公司|有限|集团|有限?公司|股份|厂|Co\.|Ltd\.|Inc\.|GmbH|S\.A\.|LLC/i.test(v));
       push('name', compR > 0.5 ? compR * 0.85 : 0);
-      const personR = ratio(v => /^[\u4e00-\u9fa5·]{2,5}$/.test(v) && !/公司|有限|集团|厂|部|室|中心/.test(v));
+      const personR = ratio(v => /^[\u4e00-\u9fa5]{2,5}$/.test(v) && !/公司|有限|集团|厂|部|室|中心/.test(v));
       push('contact_person', personR > 0.6 ? personR * 0.45 : 0);
     }
 

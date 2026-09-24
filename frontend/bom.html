@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - BOM管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - BOM管理</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -40,7 +41,7 @@ tr:hover td{background:#f8f9ff}
 .dash{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden}
 .dash-hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;cursor:pointer;user-select:none}
 .dash-hd h3{margin:0;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
-.dash-hd h3::before{content:"📊"}
+.dash-hd h3::before{content:""}
 .dash-toggle{font-size:18px;transition:transform .2s}
 .dash-toggle.collapsed{transform:rotate(-90deg)}
 .dash-bd{padding:14px 16px;max-height:600px;overflow:hidden;transition:max-height .3s,padding .3s}
@@ -114,7 +115,7 @@ tr:hover td{background:#f8f9ff}
 <h3>仪表盘</h3>
 <span style="display:flex;align-items:center;gap:10px">
 <span style="font-size:12px;opacity:.85" id="dashSyncTip">—</span>
-<span class="dash-toggle" id="dashToggle">▼</span>
+<span class="dash-toggle" id="dashToggle"></span>
 </span>
 </div>
 <div class="dash-bd" id="dashBd">
@@ -306,7 +307,7 @@ async function loadDashboard(){
       const cmpPeriod = cmp.period ? `${(cmp.period.start||'').substring(0,10)} ~ ${(cmp.period.end||'').substring(0,10)}` : '上一时段';
       document.getElementById('dashCompareRow').style.display = '';
       document.getElementById('dashCompareRow').innerHTML = `
-        <div style="grid-column:1/-1;font-size:12px;color:#bf6000;margin-bottom:4px">📊 同期对比：${cmpPeriod}</div>
+        <div style="grid-column:1/-1;font-size:12px;color:#bf6000;margin-bottom:4px"> 同期对比：${cmpPeriod}</div>
         <div class="dash-card"><div class="v">${formatNum(cmp.total||0)}</div><div class="l">上期 BOM行数</div></div>
         <div class="dash-card"><div class="v">${formatNum(cmp.enabled||0)}</div><div class="l">上期 已启用</div></div>
         <div class="dash-card"><div class="v">${formatNum(cmp.disabled||0)}</div><div class="l">上期 已禁用</div></div>
@@ -618,5 +619,6 @@ loadBom(1);
 loadDashboard();
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

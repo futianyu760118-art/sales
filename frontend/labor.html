@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 人工库</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 人工库</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -155,7 +156,7 @@ tr:hover td{background:#f8f9ff}
 </div>
 <form id="laborForm" onsubmit="saveForm();return false">
 <div class="rules" id="formRules">
-  <div class="rules-h" onclick="togRules()"><span>📋 填写规则（点击展开/收起）</span><span class="rules-arrow">▶</span></div>
+  <div class="rules-h" onclick="togRules()"><span> 填写规则（点击展开/收起）</span><span class="rules-arrow"></span></div>
   <div class="rules-b"><ul>
     <li><b>人工编码</b>：留空将自动生成（格式 <b>LR年月-流水号</b>，如 LR202607-0001）；手动填写时不可重复</li>
     <li><b>员工姓名</b> <span class="req">*</span>：必填；<b>工号</b>、<b>部门</b>、<b>岗位</b> 可手填或从历史记录选择</li>
@@ -339,16 +340,16 @@ async function loadStats(){
       card((d.total_hours||0).toLocaleString()+'h','总工时','#8e44ad')+card((d.total_pieces||0).toLocaleString(),'总件数','#e67e22')+card(yuan(d.cost_per_hour)+'/h','工时单价','#16a085')+
     '</div>'+
     '<div class="grid2">'+
-      '<div class="panel"><h3>📈 月度人工成本趋势</h3>'+(trend?'<div class="trend">'+trend+'</div>':'<div class="em">无数据</div>')+(d.last_month?'<p style="font-size:12px;color:#888;margin:8px 0 0">'+esc(d.last_month)+' 环比 '+((d.mom_percent>=0?'+':'')+d.mom_percent+'%')+'</p>':'')+'</div>'+
-      '<div class="panel"><h3>🧩 成本构成</h3>'+costDetailHtml+'</div>'+
+      '<div class="panel"><h3> 月度人工成本趋势</h3>'+(trend?'<div class="trend">'+trend+'</div>':'<div class="em">无数据</div>')+(d.last_month?'<p style="font-size:12px;color:#888;margin:8px 0 0">'+esc(d.last_month)+' 环比 '+((d.mom_percent>=0?'+':'')+d.mom_percent+'%')+'</p>':'')+'</div>'+
+      '<div class="panel"><h3> 成本构成</h3>'+costDetailHtml+'</div>'+
     '</div>'+
     '<div class="grid2">'+
-      '<div class="panel"><h3>👥 按人工类型</h3>'+bars(d.by_type,'#2980b9')+'</div>'+
-      '<div class="panel"><h3>🏢 按部门</h3>'+bars(d.by_department,'#27ae60')+'</div>'+
+      '<div class="panel"><h3> 按人工类型</h3>'+bars(d.by_type,'#2980b9')+'</div>'+
+      '<div class="panel"><h3> 按部门</h3>'+bars(d.by_department,'#27ae60')+'</div>'+
     '</div>'+
     '<div class="grid2">'+
-      '<div class="panel"><h3>📁 按项目</h3>'+bars(d.by_project,'#667eea')+'</div>'+
-      '<div class="panel"><h3>🏆 人工成本 TOP 员工</h3>'+(topEmp?'<table><thead><tr><th>员工</th><th class="r">合计金额</th></tr></thead><tbody>'+topEmp+'</tbody></table>':'<div class="em">无数据</div>')+'</div>'+
+      '<div class="panel"><h3> 按项目</h3>'+bars(d.by_project,'#667eea')+'</div>'+
+      '<div class="panel"><h3> 人工成本 TOP 员工</h3>'+(topEmp?'<table><thead><tr><th>员工</th><th class="r">合计金额</th></tr></thead><tbody>'+topEmp+'</tbody></table>':'<div class="em">无数据</div>')+'</div>'+
     '</div>';
   }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
 }
@@ -395,5 +396,6 @@ loadFilterOpts().then(()=>{loadStatCards();loadList(1)});
 ImportDropzone.init('','labor',function(){loadList(curPage);loadStatCards()});
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

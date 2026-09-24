@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EBMS企业经营管理系统 - 组织模块</title>
@@ -184,7 +185,7 @@
           <option value="">全部工作角色</option><option value="leader">负责人</option><option value="admin">管理员</option><option value="operator">操作员</option>
         </select>
         <select data-searchable="1" id="perSyncExempt" onchange="loadPersonnel()" title="免外部同步：标记后外部同步脚本不会覆盖手工修改">
-          <option value="">全部（同步状态）</option><option value="1">🔒 仅免同步</option><option value="0">正常同步</option>
+          <option value="">全部（同步状态）</option><option value="1"> 仅免同步</option><option value="0">正常同步</option>
         </select>
         <select data-searchable="1" id="perStatus" onchange="loadPersonnel()">
           <option value="">全部状态</option><option value="active">在职</option><option value="inactive">离职</option>
@@ -318,7 +319,7 @@
 
         <div class="form-group">
           <label>默认权限（勾选后，该岗位下所有人员默认拥有以下权限）</label>
-          <div class="help-text">⚠️ 注意：权限初始化、岗位默认权限、人员个性化权限，三者合并计算为人员最终权限</div>
+          <div class="help-text">️ 注意：权限初始化、岗位默认权限、人员个性化权限，三者合并计算为人员最终权限</div>
           <div id="pPerms" class="perm-picker"><div class="empty">加载中...</div></div>
         </div>
 
@@ -391,7 +392,7 @@
         <div class="form-group" style="border:1px solid #eee;border-radius:6px;padding:10px;">
           <label style="display:flex;align-items:center;gap:6px;">
             <input type="checkbox" id="batchChkSyncExempt" onchange="toggleBatchField('syncExempt', this.checked)">
-            <b>🔒 免外部同步</b>
+            <b> 免外部同步</b>
           </label>
           <select data-searchable="1" id="batchSyncExempt" disabled>
             <option value="true">设为免同步（保护手工编辑）</option>
@@ -458,14 +459,14 @@
         <div class="form-group" style="background:#fff8e1;border:1px solid #ffe0b2;border-radius:6px;padding:10px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
             <input type="checkbox" id="perSyncExemptSel" style="width:16px;height:16px;">
-            <span><b>🔒 免外部同步</b></span>
+            <span><b> 免外部同步</b></span>
           </label>
           <div class="help-text" style="margin-top:4px;">勾选后，外部数据同步脚本（如从其它 HR 系统导入）<b>不会覆盖本条人员的姓名、部门、岗位、手机号等字段</b>，保护手工编辑。需要时可以再取消勾选让同步生效。</div>
         </div>
 
         <div class="form-group" id="perDeptInfoPanel" style="background:#fafafa;border:1px solid #e8e8e8;border-radius:6px;padding:10px;">
           <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-            <span>📋 所在部门信息 <span style="font-weight:400;color:#999;">（实时来自部门管理）</span></span>
+            <span> 所在部门信息 <span style="font-weight:400;color:#999;">（实时来自部门管理）</span></span>
             <button type="button" class="btn btn-default btn-sm" onclick="refreshPerDeptInfoPanel()">↻ 刷新</button>
           </div>
           <div id="perDeptInfoBody" style="font-size:12px;color:#666;line-height:1.7;">选择所属部门后展示</div>
@@ -607,7 +608,7 @@ async function loadDepartments() {
     let html = '';
     rows.forEach((d, idx) => {
       const indent = d._depth * 18;
-      const toggle = d._hasChildren ? `<span class="tree-toggle" onclick="alert('子部门行已展开显示')">▾</span>` : '<span class="tree-toggle">·</span>';
+      const toggle = d._hasChildren ? `<span class="tree-toggle" data-icon="chevron" data-icon-size="xs" aria-hidden="true" onclick="alert('子部门行已展开显示')"></span>` : '<span class="tree-toggle"></span>';
       html += `<tr>
         <td class="col-seq">${idx + 1}</td>
         <td><div class="tree-row" style="padding-left:${indent}px;">${toggle}<strong>${escapeHtml(d.name)}</strong></div></td>
@@ -634,7 +635,7 @@ async function loadDepartments() {
   }
 }
 
-function toggleDeptView() { alert('已展开显示，可按部门名称前的 ▾/· 标识层级'); }
+function toggleDeptView() { alert('已展开显示，可按部门名称查看层级'); }
 
 function showDeptModal(id) {
   document.getElementById('deptForm').reset();
@@ -922,17 +923,17 @@ async function loadPersonnel() {
       const roleColor = p.work_role_color || '#3498db';
       const di = p.department_info || null;
       const isMgr = !!p.is_department_manager;
-      const star = isMgr ? '<span title="本人为该部门负责人" style="color:#f39c12;margin-left:4px;">★</span>' : '';
+      const star = isMgr ? '<span title="本人为该部门负责人" style="color:#f39c12;margin-left:4px;"></span>' : '';
       const exemptBadge = p.sync_exempt
-        ? '<span title="已免同步：外部同步不会覆盖手工修改" style="display:inline-block;margin-left:4px;padding:1px 6px;border-radius:8px;font-size:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;">🔒 免同步</span>'
+        ? '<span title="已免同步：外部同步不会覆盖手工修改" style="display:inline-block;margin-left:4px;padding:1px 6px;border-radius:8px;font-size:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;"> 免同步</span>'
         : '';
       const deptHtml = di ? `
         <div><strong>${escapeHtml(di.name || '-')}</strong> <code style="background:#eef;color:#556;font-size:10px;padding:1px 5px;border-radius:3px;">${escapeHtml(di.code || '')}</code>${star}</div>
         <div style="font-size:11px;color:#888;line-height:1.5;">
-          ${di.parent_name ? `↑ ${escapeHtml(di.parent_name)}（${escapeHtml(di.parent_code || '')}）<br/>` : '<span style="color:#bbb;">一级部门</span><br/>'}
-          👤 ${escapeHtml(di.manager_name || '（未设置）')}${di.manager_emp_code ? ' <span style="color:#aaa;">·' + escapeHtml(di.manager_emp_code) + '</span>' : ''}
+          ${di.parent_name ? ` ${escapeHtml(di.parent_name)}（${escapeHtml(di.parent_code || '')}）<br/>` : '<span style="color:#bbb;">一级部门</span><br/>'}
+           ${escapeHtml(di.manager_name || '（未设置）')}${di.manager_emp_code ? ' <span style="color:#aaa;">' + escapeHtml(di.manager_emp_code) + '</span>' : ''}
         </div>
-        <div style="font-size:10px;color:#aaa;margin-top:2px;">${di.active_personnel_count} 人 / ${di.position_count} 岗位${di.child_count ? ' · ' + di.child_count + ' 子部门' : ''}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">${di.active_personnel_count} 人 / ${di.position_count} 岗位${di.child_count ? '  ' + di.child_count + ' 子部门' : ''}</div>
       ` : '<span style="color:#bbb;">（未分配）</span>';
       html += `<tr>
         <td style="text-align:center;"><input type="checkbox" class="per-check" data-id="${p.id}" onchange="onPerCheckChange()"></td>
@@ -1010,7 +1011,7 @@ function flashSyncHint(msg) {
     hint.style.cssText = 'position:fixed;top:20px;right:20px;background:#27ae60;color:#fff;padding:10px 18px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:2000;font-size:13px;transition:opacity .3s;';
     document.body.appendChild(hint);
   }
-  hint.textContent = '✓ ' + msg;
+  hint.textContent = ' ' + msg;
   hint.style.opacity = '1';
   clearTimeout(hint._t);
   hint._t = setTimeout(() => { hint.style.opacity = '0'; }, 1800);
@@ -1099,7 +1100,7 @@ function renderBatchPreview() {
     const deptName = p.department_name || '（无部门）';
     const posName = p.position_name || '（无岗位）';
     const wrName = p.work_role_name || '操作员';
-    return `<div>· ${escapeHtml(p.name)}（${escapeHtml(p.emp_code || '-')}） · 部门：${escapeHtml(deptName)} · 岗位：${escapeHtml(posName)} · 角色：${escapeHtml(wrName)}</div>`;
+    return `<div> ${escapeHtml(p.name)}（${escapeHtml(p.emp_code || '-')}）  部门：${escapeHtml(deptName)}  岗位：${escapeHtml(posName)}  角色：${escapeHtml(wrName)}</div>`;
   }).join('');
   preview.innerHTML = `
     <div style="color:#666;font-size:12px;margin-bottom:6px;">已选 <b>${people.length}</b> 人${people.length > 50 ? '（仅展示前 50 人）' : ''}</div>
@@ -1157,7 +1158,7 @@ document.getElementById('perBatchForm').addEventListener('submit', async functio
     alert('请至少勾选一个修改字段');
     return;
   }
-  if (!confirm(`确认批量修改 ${ids.length} 名人员？\n\n修改项：\n· ${labels.join('\n· ')}`)) return;
+  if (!confirm(`确认批量修改 ${ids.length} 名人员？\n\n修改项：\n ${labels.join('\n ')}`)) return;
 
   try {
     const res = await fetch(`${API_BASE}/personnel/batch-update`, {
@@ -1231,7 +1232,7 @@ function renderPerDeptInfoPanel(deptId, personnelId) {
     <div><b>${escapeHtml(dept.name)}</b> <code style="background:#eef;color:#556;font-size:10px;padding:1px 5px;border-radius:3px;">${escapeHtml(dept.code || '')}</code></div>
     <div>上级部门：${parent ? escapeHtml(parent.name) + '（' + escapeHtml(parent.code || '') + '）' : '<span style="color:#888;">一级部门</span>'}</div>
     <div>部门负责人：${manager ? '<b style="' + (isMgr ? 'color:#f39c12;' : '') + '">' + escapeHtml(manager.name) + '</b>（工号 ' + escapeHtml(manager.emp_code || '-') + '）' + (isMgr ? ' ⭐ 当前编辑人' : '') : '<span style="color:#bbb;">未设置</span>'}</div>
-    <div>实时统计：在职 ${perCount} 人 · ${posCount} 个岗位${childCount ? ' · ' + childCount + ' 个子部门' : ''} · 状态 ${dept.status === 'inactive' ? '<span style="color:#e74c3c;">停用</span>' : '<span style="color:#27ae60;">启用</span>'}</div>
+    <div>实时统计：在职 ${perCount} 人  ${posCount} 个岗位${childCount ? '  ' + childCount + ' 个子部门' : ''}  状态 ${dept.status === 'inactive' ? '<span style="color:#e74c3c;">停用</span>' : '<span style="color:#27ae60;">启用</span>'}</div>
   `;
 }
 
@@ -1380,7 +1381,7 @@ async function editPersonnelPerms(id) {
   const editor = document.getElementById('permEditor');
   const person = allPersonnel.find(x => x.id === Number(id));
   editor.innerHTML = `<h3 style="margin-bottom:12px;">人员权限个性化调整 - ${escapeHtml(person ? person.name : '')}</h3>
-    <div class="help-text" style="margin-bottom:12px;">⚪ 默认（来自岗位）　　🟢 额外授予（叠加）　　🔴 撤销（取消岗位默认）</div>
+    <div class="help-text" style="margin-bottom:12px;"> 默认（来自岗位）　　 额外授予（叠加）　　 撤销（取消岗位默认）</div>
     <div id="editorPicker"></div>`;
   const res = await fetch(`${API_BASE}/personnel/${id}/permissions`);
   const data = await res.json();
@@ -1437,7 +1438,7 @@ function renderPersonnelPicker(elId, defaultSet, grantSet, denySet) {
 }
 
 function stateLabel(s) {
-  return { grant: '🟢+', deny: '🔴-', default: '⚪默认', none: '⚪无' }[s] || '⚪无';
+  return { grant: '+', deny: '-', default: '默认', none: '无' }[s] || '无';
 }
 
 function cyclePosPerm(label, ev) {
@@ -1556,7 +1557,7 @@ async function loadRoleMatrix() {
 
     // 底部说明
     html += `<div style="margin-top:12px;font-size:12px;color:#999;display:flex;gap:16px;align-items:center;">
-      <span>🖱 点击数字查看该中心该角色下的人员明细</span>
+      <span> 点击数字查看该中心该角色下的人员明细</span>
       <span>• 可在此直接调整人员工作角色</span>
     </div>`;
 
@@ -1578,7 +1579,7 @@ async function showRolePersonnel(deptId, roleCode, centerName, roleName) {
 
     const wrNames = { leader:'负责人', admin:'管理员', operator:'操作员' };
     let bodyHtml = `<div style="margin-bottom:10px;font-size:13px;color:#666;">
-      <b>${escapeHtml(centerName)}</b> · <b>${escapeHtml(roleName)}</b> · 共 ${list.length} 人
+      <b>${escapeHtml(centerName)}</b>  <b>${escapeHtml(roleName)}</b>  共 ${list.length} 人
     </div>`;
 
     if (list.length === 0) {
@@ -1653,5 +1654,6 @@ async function changeWorkRoleInMatrix(personnelId, newRole) {
 <script src="common.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 </body>
 </html>

@@ -38,15 +38,15 @@
 
 // 一级导航：固定 9 个分组
 const TOP_LEVEL_GROUPS = [
-  { key: 'home',       label: '首页',         icon: '\u{1F3E0}' },
-  { key: 'business',   label: '经营中心',     icon: '\u{1F4CA}' },
-  { key: 'sales',      label: '销售中心',     icon: '\u{1F4B0}' },
-  { key: 'rd',         label: '研发中心',     icon: '\u{1F4A1}' },
-  { key: 'supply',     label: '供应链中心',   icon: '\u{1F69A}' },
-  { key: 'production', label: '生产中心',     icon: '\u{1F3ED}' },
-  { key: 'quality',    label: '品质中心',     icon: '\u2714\uFE0F' },
-  { key: 'report',     label: '报表中心',     icon: '\u{1F4C8}' },
-  { key: 'system',     label: '系统管理',     icon: '\u2699\uFE0F' }
+  { key: 'home',       label: '首页',         icon: 'home' },
+  { key: 'business',   label: '经营中心',     icon: 'business' },
+  { key: 'sales',      label: '销售中心',     icon: 'sales' },
+  { key: 'rd',         label: '研发中心',     icon: 'rd' },
+  { key: 'supply',     label: '供应链中心',   icon: 'supply' },
+  { key: 'production', label: '生产中心',     icon: 'production' },
+  { key: 'quality',    label: '品质中心',     icon: 'quality' },
+  { key: 'report',     label: '报表中心',     icon: 'report' },
+  { key: 'system',     label: '系统管理',     icon: 'system' }
 ];
 
 // 二级菜单：每条带 group 字段
@@ -129,6 +129,8 @@ const PermissionCheck = {
     await this.loadPermissions();
     // 1. 渲染侧边栏（品牌栏含当前登录账号）
     this.renderSidebar();
+    // 1.5 统一顶部工作区工具栏
+    this.renderTopbar();
     // 2. 应用页面 / 区段 / 元素级守卫
     this.applyToPage();
     // 3. 启动 DOM 变化监听，自动过滤动态插入的元素
@@ -262,7 +264,7 @@ const PermissionCheck = {
       const cls = 'lms-group-item' + (isActive ? ' active' : '');
       html += '<button type="button" class="' + cls + '" data-group="' + _escHtml(g.key) + '"' +
               ' aria-current="' + (isActive ? 'true' : 'false') + '">' +
-              '<span class="lms-group-icon">' + g.icon + '</span>' +
+              '<span class="lms-group-icon">' + EBMSIcons.render(g.icon, { size: 'md', decorative: true }) + '</span>' +
               '<span class="lms-group-label">' + _escHtml(g.label) + '</span>' +
               '</button>';
     });
@@ -301,6 +303,50 @@ const PermissionCheck = {
     }
 
     localStorage.setItem('lms_active_group', activeGroup);
+  },
+
+  // 统一注入顶部工作区：企业/组织、全局搜索、消息、AI 助手与当前用户。
+  // 仅负责 UI Shell，不改变现有页面路由、接口或权限逻辑。
+  renderTopbar() {
+    const main = document.querySelector('.main-content');
+    if (!main || main.querySelector('.ebms-topbar')) return;
+    const fullUser = (() => {
+      try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch (_) { return {}; }
+    })();
+    const displayName = fullUser.name || this.displayName || this.username || '当前用户';
+    const initial = String(displayName).trim().slice(0, 1) || 'U';
+    const brandName = (window.EBMS && typeof window.EBMS.shortName === 'function')
+      ? window.EBMS.shortName() : 'EBMS企业经营管理系统';
+    const pageLabel = document.body.getAttribute('data-page-title') || '经营工作台';
+    const bar = document.createElement('div');
+    bar.className = 'ebms-topbar';
+    bar.setAttribute('role', 'banner');
+    bar.innerHTML =
+      '<div class="ebms-topbar-context" aria-label="当前工作区">' +
+        '<strong>' + _escHtml(brandName) + '</strong>' +
+        '<span>' + _escHtml(pageLabel) + '</span>' +
+      '</div>' +
+      '<label class="ebms-global-search" aria-label="全局搜索">' +
+        '<input type="search" placeholder="搜索客户、订单、项目…" autocomplete="off" />' +
+      '</label>' +
+      '<div class="ebms-topbar-actions">' +
+        '<button type="button" class="ebms-icon-btn" data-badge="3" aria-label="查看通知" title="通知">' + EBMSIcons.render('notification', { size: 'sm', decorative: true }) + '</button>' +
+        '<button type="button" class="ebms-ai-btn" aria-label="打开 AI 经营助手"><span class="ebms-icon-text">' + EBMSIcons.render('ai', { size: 'sm', decorative: true }) + '<span>AI 助手</span></span></button>' +
+        '<div class="ebms-topbar-user" title="当前登录用户">' +
+          '<span class="ebms-topbar-avatar" aria-hidden="true">' + _escHtml(initial) + '</span>' +
+          '<span>' + _escHtml(displayName) + '</span>' +
+        '</div>' +
+      '</div>';
+    main.prepend(bar);
+    const aiButton = bar.querySelector('.ebms-ai-btn');
+    if (aiButton) aiButton.addEventListener('click', () => { window.location.href = 'ai-assistant.html'; });
+    const search = bar.querySelector('input[type="search"]');
+    if (search) search.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && search.value.trim()) {
+        const query = encodeURIComponent(search.value.trim());
+        window.location.href = 'order-analysis.html?q=' + query;
+      }
+    });
   },
 
   switchGroup(groupKey) {
@@ -360,7 +406,7 @@ const PermissionCheck = {
         '</div>' +
       '</div>' +
       '<button type="button" class="lms-brand-logout" onclick="window.globalLogout && window.globalLogout()" title="退出登录" aria-label="退出登录">' +
-        '<span class="lms-brand-logout-icon">⏻</span>' +
+        EBMSIcons.render('logout', { size: 'sm', decorative: true }) +
       '</button>' +
     '</div>';
   },
@@ -400,7 +446,7 @@ const PermissionCheck = {
       overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:inherit;';
       overlay.innerHTML = `
         <div style="text-align:center;max-width:480px;padding:30px;border:2px dashed #e74c3c;border-radius:14px;background:#fff;">
-          <div style="font-size:56px;color:#e74c3c;line-height:1;">🔒</div>
+          <div class="ebms-empty-icon" style="color:#e74c3c;">${EBMSIcons.render('lock', { size: 'xl', decorative: true })}</div>
           <h2 style="margin:14px 0 6px;color:#c0392b;font-size:20px;">无权访问此页面</h2>
           <p style="margin:0 0 6px;color:#555;font-size:13px;">当前账号没有 <code style="background:#fee;color:#c0392b;padding:2px 6px;border-radius:3px;">${_escHtml(code)}</code> 权限</p>
           <p style="margin:0 0 16px;color:#999;font-size:12px;">如需访问，请联系系统管理员分配权限</p>

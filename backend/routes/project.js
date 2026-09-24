@@ -3,6 +3,7 @@ const router = express.Router();
 const { getTable, now } = require('../db');
 const { requirePerm, getUserPermissions } = require('../auth-middleware');
 const { logDataPermission } = require('../data-scope-v2');
+const { responseCache } = require('../lib/response-cache');
 
 // ==================== 研发项目主数据库 ====================
 // 基于供22模版：1.研发项目数据库 + 7.研发项目数据库 + 3.研发数据库-24年
@@ -682,7 +683,7 @@ router.get('/analysis/by-category', requirePerm('project:view'), (req, res) => {
 });
 
 // 交付周期与变更分析
-router.get('/analysis/delivery', requirePerm('project:view'), (req, res) => {
+router.get('/analysis/delivery', requirePerm('project:view'), responseCache({ ttlMs: 5000, maxEntries: 8 }), (req, res) => {
   const table = getTable('projects');
   table._invalidate();
   const all = table.all();

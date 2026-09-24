@@ -4,10 +4,12 @@ const router = express.Router();
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
 const outbox = require('../lib/material-outbox');
+const { responseCache } = require('../lib/response-cache');
 
 function migrateMaterialDataOnce() {
   const table = getTable('materials');
-  table._invalidate();
+  // initData already loads the table and writes update the in-process snapshot.
+  // Avoid reparsing the 18MB JSON file on the first dashboard read.
   const materials = table.all();
   let certFixed = 0, statFixed = 0;
   materials.forEach(m => {
@@ -169,12 +171,10 @@ router.get('/recover-status', requirePerm('material:view'), (req, res) => {
   res.json(recovery.check());
 });
 
-router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
+router.get('/dashboard/stats', requirePerm('material:view'), responseCache({ ttlMs: 5000, maxEntries: 24 }), (req, res) => {
   ensureMigration();
   const matTable = getTable('materials');
   const bomTable = getTable('product_bom');
-  matTable._invalidate();
-  bomTable._invalidate();
 
   const { filter: matFilter, meta: filterMeta } = parseDashboardFilters(req.query);
   const materials = matTable.all().filter(matFilter);
@@ -182,7 +182,6 @@ router.get('/dashboard/stats', requirePerm('material:view'), (req, res) => {
 
   // ===== 已接未交付订单所需物料统计（2026-07-01 之后创建）=====
   const orderTable = getTable('orders');
-  orderTable._invalidate();
   const allOrders = orderTable.all();
   const UNDELIVERED_CUTOFF = '2026-07-01';
   // 已接订单：created_at >= 2026-07-01；未交付：completed_qty < quantity

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 订单分析库</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 订单分析库</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -50,8 +51,17 @@ tr:hover td{background:#f8f9ff}
 .timeline .ev:before{content:'';position:absolute;left:-19px;top:13px;width:8px;height:8px;border-radius:50%;background:#667eea}
 .sim-row:hover{background:#f0f3ff;cursor:pointer}
 .sort-arrow{font-size:11px;color:#bbb;margin-left:3px}
-th .sort-arrow.asc{color:#667eea;content:'↑'}
-th .sort-arrow.desc{color:#667eea;content:'↓'}
+th .sort-arrow.asc{color:#667eea;content:''}
+th .sort-arrow.desc{color:#667eea;content:''}
+.header-filter-row th{position:sticky;top:39px;z-index:9;padding:4px 5px;background:#fff;border-bottom:1px solid #e5e8f0}
+.header-filter-row input,.header-filter-row select{width:100%;box-sizing:border-box;padding:4px 5px;border:1px solid #dfe3ec;border-radius:4px;font-size:11px;color:#555;background:#fff}
+.header-filter-row input:focus,.header-filter-row select:focus{outline:2px solid rgba(102,126,234,.18);border-color:#667eea}
+.void-policy-note{padding:8px 12px;margin-bottom:8px;border:1px solid #f4d79a;border-radius:6px;background:#fff9e8;color:#8a6414;font-size:12px}
+.gm-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.gm-summary>div{padding:9px;border-radius:6px;background:#f7f8fc;text-align:center}.gm-summary b{display:block;font-size:16px}.gm-summary span{font-size:11px;color:#777}
+.gm-list{margin:8px 0 0;padding-left:18px;font-size:12px;color:#555}.gm-list li{margin:5px 0}
+.pg .page-buttons{display:flex;gap:4px;align-items:center;flex-wrap:wrap}.pg .page-buttons .active{background:#667eea!important;color:#fff!important;font-weight:700}
+@media(max-width:700px){.gm-summary{grid-template-columns:repeat(2,1fr)}.header-filter-row th{top:39px}}
 </style></head><body data-page-title="订单分析库" data-page-perm="order-analysis:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content" data-module="order-analysis">
@@ -95,14 +105,17 @@ th .sort-arrow.desc{color:#667eea;content:'↓'}
 <select id="f_product" onchange="loadList(1);loadStatCards()"><option value="">全部产品</option></select>
 <select id="f_risk" onchange="loadList(1);loadStatCards()"><option value="">全部风险</option></select>
 <select id="f_overrun" onchange="loadList(1);loadStatCards()"><option value="">全部</option><option value="1">仅超支</option><option value="0">仅未超支</option></select>
+<select id="f_void_status" onchange="loadList(1);loadStatCards()"><option value="active">未作废订单</option><option value="void">仅作废订单</option><option value="all">全部订单</option></select>
 <input type="number" id="f_pmin" placeholder="毛利率≥%" style="width:100px" onchange="loadList(1);loadStatCards()">
 <input type="number" id="f_pmax" placeholder="毛利率≤%" style="width:100px" onchange="loadList(1);loadStatCards()">
 <button class="btn b1" onclick="loadList(1);loadStatCards()">查询</button>
+<button class="btn b3" onclick="setNegativeProfitFilter()" title="只显示计划毛利率小于 0 的订单">仅负毛利</button>
 <button class="btn bs" style="background:#eee;color:#555" onclick="resetFilter()">重置</button>
-<button class="btn b4" style="background:#e74c3c;color:#fff" onclick="runAuditCheck()" data-perm="order-analysis:view">🔍 一键检查</button>
+<button class="btn b4" style="background:#e74c3c;color:#fff" onclick="runAuditCheck()" data-perm="order-analysis:view"> 一键检查</button>
 </div>
 </div>
 <div class="tbl-wrap">
+<div class="void-policy-note"><b>作废订单规则：</b>作废订单仅允许人工调整；外部 ERP 同步、批量自动同步和自动回写都会跳过作废订单。请切换“仅作废订单”查看并处理。</div>
 <div id="batchBar" style="background:#f5f6fa;padding:8px 12px;border-radius:6px;margin-bottom:8px;display:none;align-items:center;gap:10px;flex-wrap:wrap">
 <b id="batchCount" style="color:#667eea">已选 0 单</b>
 <button class="btn b2" onclick="openBatchAssign()" data-perm="order-analysis:edit">批量指定产品并同步明细</button>
@@ -120,15 +133,31 @@ th .sort-arrow.desc{color:#667eea;content:'↓'}
 <th onclick="sortBy('review_status')" style="cursor:pointer;user-select:none" id="sh-review_status">审核状态 <span class="sort-arrow"></span></th>
 <th class="r" onclick="sortBy('plan_total_cost')" style="cursor:pointer;user-select:none" id="sh-plan_total_cost">计划成本 <span class="sort-arrow"></span></th>
 <th class="r" onclick="sortBy('purchase_confirm_cost')" style="cursor:pointer;user-select:none" id="sh-purchase_confirm_cost">采购确认成本 <span class="sort-arrow"></span></th>
-<th class="r" onclick="sortBy('plan_total_cost')" style="cursor:pointer;user-select:none">计划毛利</th>
+<th class="r" onclick="sortBy('gross_profit')" style="cursor:pointer;user-select:none" id="sh-gross_profit">计划毛利 <span class="sort-arrow"></span></th>
 <th class="r" onclick="sortBy('gross_rate')" style="cursor:pointer;user-select:none" id="sh-gross_rate">毛利率 <span class="sort-arrow"></span></th>
 <th class="r" onclick="sortBy('actual_total_cost')" style="cursor:pointer;user-select:none" id="sh-actual_total_cost">实际成本 <span class="sort-arrow"></span></th>
-<th class="r" onclick="sortBy('actual_total_cost')" style="cursor:pointer;user-select:none">实际毛利</th>
-<th class="r" onclick="sortBy('plan_total_cost')" style="cursor:pointer;user-select:none">差异</th>
+<th class="r" onclick="sortBy('actual_gross_profit')" style="cursor:pointer;user-select:none" id="sh-actual_gross_profit">实际毛利 <span class="sort-arrow"></span></th>
+<th class="r" onclick="sortBy('cost_variance')" style="cursor:pointer;user-select:none" id="sh-cost_variance">差异 <span class="sort-arrow"></span></th>
 <th>操作</th>
+</tr><tr class="header-filter-row">
+<th></th><th></th>
+<th><input id="hf_order_no" data-column-filter="order_no" placeholder="筛订单号" oninput="onHeaderFilter(this)"></th>
+<th><input id="hf_customer" data-column-filter="customer" placeholder="筛客户" oninput="onHeaderFilter(this)"></th>
+<th><input id="hf_product" data-column-filter="product" placeholder="筛产品" oninput="onHeaderFilter(this)"></th>
+<th><input id="hf_quantity" data-column-filter="quantity" placeholder="筛数量" oninput="onHeaderFilter(this)"></th>
+<th><input id="hf_order_amount" data-column-filter="order_amount" placeholder="筛金额" oninput="onHeaderFilter(this)"></th>
+<th><select id="hf_review_status" data-column-filter="review_status" onchange="onHeaderFilter(this)"><option value="">全部</option><option value="none">未提交</option><option value="pending">待审核</option><option value="reviewing">审核中</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select></th>
+<th colspan="8"></th>
 </tr></thead>
 <tbody id="tb"></tbody>
 </table>
+</div>
+
+<div class="mo" id="grossMarginModal" role="dialog" aria-modal="true" aria-labelledby="grossMarginTitle">
+<div class="mb">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 id="grossMarginTitle" style="margin:0">负毛利原因分析</h3><button type="button" class="btn bs" style="background:#eee;color:#555" onclick="closeGrossMarginAnalysis()" aria-label="关闭原因分析" title="关闭"><span data-icon="close" data-icon-size="sm"></span></button></div>
+<div id="grossMarginBody"></div>
+</div>
 </div>
 <div class="pg" id="pg"></div>
 </div>
@@ -166,7 +195,7 @@ th .sort-arrow.desc{color:#667eea;content:'↓'}
 <div class="sb">
 <h3 style="margin:0">订单自检待办</h3>
 <span style="flex:1"></span>
-<button class="btn b4" onclick="runOrderSelfCheck()" data-perm="order-analysis:edit">▶ 运行自检</button>
+<button class="btn b4" onclick="runOrderSelfCheck()" data-perm="order-analysis:edit"> 运行自检</button>
 <button class="btn bs" style="background:#eee;color:#555" onclick="loadIssues()">刷新</button>
 </div>
 <div class="sb" style="margin-top:8px">
@@ -251,11 +280,26 @@ th .sort-arrow.desc{color:#667eea;content:'↓'}
 <script src="fetch-auth.js"></script>
 <script>
 const API='/api/order-analysis';
-let meta={}, curPage=1, total=0, LIMIT=100, curOrderId=null, curRvStatusMap={'pending':'待审核','reviewing':'审核中','approved':'已通过','rejected':'已驳回','none':'未提交'};
+let meta={}, curPage=1, total=0, LIMIT=30, curOrderId=null, curRvStatusMap={'pending':'待审核','reviewing':'审核中','approved':'已通过','rejected':'已驳回','none':'未提交'};
 let curRows=[];
 let sortState={field:'plan_total_cost',order:'DESC'};
+let headerFilters={order_no:'',customer:'',product:'',quantity:'',order_amount:'',review_status:''};
 
 function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+// 树节点人工/小计单元格：自制父件显示"含全部下级"的滚动合计（父件合计≥子件合计），
+// 鼠标悬停可看自身口径值；叶子节点显示自身值
+function treeLabCell(n){
+  if(n.children&&n.children.length&&n.labor_rollup!=null&&Number(n.labor_rollup||0)!==Number(n.labor_amount||0)){
+    return '<td class="r" title="自身人工 '+yuan(n.labor_amount)+'，此处为含全部下级的合计"><b>'+yuan(n.labor_rollup)+'</b><small style="color:#999">含下级</small></td>';
+  }
+  return '<td class="r">'+yuan(n.labor_amount)+'</td>';
+}
+function treeTotalCell(n){
+  if(n.children&&n.children.length&&n.total_rollup!=null&&Number(n.total_rollup||0)!==Number(n.line_total||0)){
+    return '<td class="r" title="自身小计 '+yuan(n.line_total)+'，此处为物料+人工(含下级)+费用"><b>'+yuan(n.total_rollup)+'</b><small style="color:#999">含下级</small></td>';
+  }
+  return '<td class="r">'+yuan(n.line_total)+'</td>';
+}
 function yuan(n){if(n===null||n===undefined)return '-';return '¥'+(Math.round((Number(n)||0)*100)/100).toLocaleString()}
 let _refreshTimer=null;
 function debounceRefresh(){clearTimeout(_refreshTimer);_refreshTimer=setTimeout(()=>{loadList(1);loadStatCards()},300)}
@@ -264,8 +308,8 @@ function toNum(v){if(v===null||v===undefined||v==='')return 0;const n=typeof v==
 function toast(m){let d=document.createElement('div');d.textContent=m;d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:6px;z-index:9999;font-size:13px';document.body.appendChild(d);setTimeout(()=>d.remove(),2400)}
 function swTab(name,btn){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('ac'));document.getElementById('tab-'+name).classList.add('ac');document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));btn.classList.add('ac');if(name==='issues'){loadIssues();}}
 
-function qs(){const p=new URLSearchParams();['f_kw','f_date_from','f_date_to','f_status','f_rv','f_customer','f_product','f_risk','f_overrun','f_pmin','f_pmax','f_personnel'].forEach(id=>{const v=document.getElementById(id).value;if(v){const key={f_kw:'keyword',f_date_from:'date_from',f_date_to:'date_to',f_status:'status',f_rv:'review_status',f_customer:'customer',f_product:'product',f_risk:'risk_level',f_overrun:'has_overrun',f_pmin:'profit_min',f_pmax:'profit_max',f_personnel:'assigned_to_me'}[id];if(key)p.set(key,v==='me'?'1':v)}});p.set('exclude_sample','1');p.set('sort_by',sortState.field);p.set('sort_order',sortState.order);return p}
-function statsQs(){const p=new URLSearchParams();['f_kw','f_date_from','f_date_to','f_status','f_rv','f_customer','f_product','f_risk','f_overrun','f_pmin','f_pmax'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({f_kw:'keyword',f_date_from:'date_from',f_date_to:'date_to',f_status:'status',f_rv:'review_status',f_customer:'customer',f_product:'product',f_risk:'risk_level',f_overrun:'has_overrun',f_pmin:'profit_min',f_pmax:'profit_max'}[id],v)});p.set('exclude_sample','1');return p}
+function qs(){const p=new URLSearchParams();['f_kw','f_date_from','f_date_to','f_status','f_rv','f_customer','f_product','f_risk','f_overrun','f_void_status','f_pmin','f_pmax','f_personnel'].forEach(id=>{const v=document.getElementById(id).value;if(v){const key={f_kw:'keyword',f_date_from:'date_from',f_date_to:'date_to',f_status:'status',f_rv:'review_status',f_customer:'customer',f_product:'product',f_risk:'risk_level',f_overrun:'has_overrun',f_void_status:'void_status',f_pmin:'profit_min',f_pmax:'profit_max',f_personnel:'assigned_to_me'}[id];if(key)p.set(key,v==='me'?'1':v)}});Object.keys(headerFilters).forEach(k=>{if(headerFilters[k])p.set('column_'+k,headerFilters[k])});p.set('exclude_sample','1');p.set('sort_by',sortState.field);p.set('sort_order',sortState.order);return p}
+function statsQs(){const p=new URLSearchParams();['f_kw','f_date_from','f_date_to','f_status','f_rv','f_customer','f_product','f_risk','f_overrun','f_void_status','f_pmin','f_pmax'].forEach(id=>{const v=document.getElementById(id).value;if(v)p.set({f_kw:'keyword',f_date_from:'date_from',f_date_to:'date_to',f_status:'status',f_rv:'review_status',f_customer:'customer',f_product:'product',f_risk:'risk_level',f_overrun:'has_overrun',f_void_status:'void_status',f_pmin:'profit_min',f_pmax:'profit_max'}[id],v)});Object.keys(headerFilters).forEach(k=>{if(headerFilters[k])p.set('column_'+k,headerFilters[k])});p.set('exclude_sample','1');return p}
 
 async function loadFilterOpts(){
   try{
@@ -276,10 +320,12 @@ async function loadFilterOpts(){
   }catch(e){console.error(e)}
 }
 function fillSel(id,arr){const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;const first=sel.options[0]?sel.options[0].outerHTML:'';sel.innerHTML=first+(arr||[]).map(v=>'<option>'+esc(v)+'</option>').join('');sel.value=cur;}
+function onHeaderFilter(el){headerFilters[el.dataset.columnFilter]=el.value.trim();clearTimeout(window._headerFilterTimer);window._headerFilterTimer=setTimeout(()=>{loadList(1);loadStatCards()},260)}
+function setNegativeProfitFilter(){document.getElementById('f_pmin').value='';document.getElementById('f_pmax').value='-0.01';loadList(1);loadStatCards()}
 
 async function loadStatCards(){
   try{
-    const r=await fetch(API+'/dashboard/stats?'+statsQs().toString());const d=await r.json();
+    const r=await fetch(API+'/dashboard/stats?'+statsQs().toString()+'&fast=1');const d=await r.json();
     const cards=[
       {n:d.order_count,l:'订单总数',c:'#667eea'},
       {n:d.pending_count,l:'待审核',c:'#f39c12'},
@@ -308,11 +354,11 @@ async function loadList(p){
         const gpCls=r.gross_profit>=0?'profit-pos':'profit-neg';
         const overrun=r.has_overrun?'<span class="overrun">超支</span>':'';
         let diffCell='-';
-        if(r.actual_total_cost!=null&&r.plan_total_cost!=null){const diff=r.actual_total_cost-r.plan_total_cost;diffCell='<span class="'+(diff>0?'diff-pos':'diff-neg')+'">'+(diff>0?'+':'')+yuan(diff)+'</span> '+overrun}
-        const prodBadge=r.product_count>1?' <span class="badge" style="background:#eef;color:#667eea;font-size:10px" title="点击 ▶ 展开查看产品">'+r.product_count+'个产品</span>':(r.product_code?' <span style="color:#aaa;font-size:11px">▶展开查看</span>':' <span style="color:#e74c3c;font-size:11px">未指定</span>');
+        if(r.cost_variance!=null){const diff=r.cost_variance;diffCell='<span class="'+(diff>0?'diff-pos':'diff-neg')+'">'+(diff>0?'+':'')+yuan(diff)+'</span> '+overrun}
+        const prodBadge=r.product_count>1?' <span class="badge" style="background:#eef;color:#667eea;font-size:10px" title="点击  展开查看产品">'+r.product_count+'个产品</span>':(r.product_code?' <span style="color:#aaa;font-size:11px">展开查看</span>':' <span style="color:#e74c3c;font-size:11px">未指定</span>');
         return '<tr id="ord-'+r.id+'">'+
         '<td><input type="checkbox" class="ord-sel" data-id="'+r.id+'" onclick="onSelChange()"></td>'+
-        '<td><span id="tg-'+r.id+'" class="ord-toggle" onclick="toggleOrderExpand('+r.id+')">▶</span></td>'+
+        '<td><span id="tg-'+r.id+'" class="ord-toggle" onclick="toggleOrderExpand('+r.id+')" aria-label="展开订单明细" title="展开订单明细">'+EBMSIcons.render('expand',{size:'xs'})+'</span></td>'+
         '<td><a onclick="openDetail('+r.id+')" style="color:#667eea;cursor:pointer;font-weight:600">'+esc(r.order_no)+'</a></td>'+
         '<td>'+esc(r.customer_name)+'</td>'+
         '<td>'+prodBadge+'</td>'+
@@ -330,11 +376,12 @@ async function loadList(p){
           (r.review_status!=='approved'?'<button class="btn bs b4" onclick="submitAudit('+r.id+')" data-perm="order-analysis:audit">'+(r.analysis_id?'提交审核':'核算并提交')+'</button> ':'')+
           (r.plan_total_cost!=null?'<button class="btn bs b1" onclick="openRv('+r.id+')" data-perm="order-analysis:audit">审核</button> ':'')+
           '<button class="btn bs b2" onclick="collectActual('+r.id+')" data-perm="order-analysis:edit" title="归集实际成本">归实际</button> '+
-          '<button class="btn bs" style="background:#17a2b8;color:#fff" onclick="syncOrder('+r.id+')" data-perm="order-analysis:edit" title="从外部ERP同步该订单（锁定后跳过）">同步</button> '+
-          '<button class="btn bs" style="background:'+(r.is_locked?'#dc3545;color:#fff':'#e9ecef;color:#495057')+'" onclick="toggleLock('+r.id+')" data-perm="order-analysis:edit" title="'+(r.is_locked?'已锁定，点击解锁后下次核算会重算':'锁定后不被自动重算')+'">'+(r.is_locked?'🔒已锁':'🔓锁定')+'</button> '+
+          '<button class="btn bs" style="background:'+(r.is_void?'#e9ecef;color:#999':'#17a2b8;color:#fff')+'" onclick="syncOrder('+r.id+')" data-perm="order-analysis:edit" '+(r.is_void?'disabled ':'')+'title="'+(r.is_void?'作废订单仅允许人工调整，禁止外部ERP同步':'从外部ERP同步该订单（锁定后跳过）')+'">'+(r.is_void?'同步禁用':'同步')+'</button> '+
+          '<button class="btn bs" style="background:'+(r.is_locked?'#dc3545;color:#fff':'#e9ecef;color:#495057')+'" onclick="toggleLock('+r.id+')" data-perm="order-analysis:edit" title="'+(r.is_locked?'已锁定，点击解锁后下次核算会重算':'锁定后不被自动重算')+'">'+(r.is_locked?'已锁':'锁定')+'</button> '+
           (r.product_code?'<button class="btn bs" style="background:#fff3cd;color:#856404" onclick="clearProduct('+r.id+')" data-perm="order-analysis:edit">清除产品</button> ':'')+
           '<button class="btn bs" style="background:#f8d7da;color:#721c24" onclick="deleteOrderRecord('+r.id+')" data-perm="order-analysis:edit" title="删除分析记录（含明细/快照/日志）">删除</button> '+
-          '<button class="btn bs" style="background:'+(r.is_void?'#fff3cd;color:#856404':'#d4edda;color:#155724')+'" onclick="toggleVoid('+r.id+')" data-perm="order-analysis:edit" title="'+(r.is_void?'取消作废，计入统计':'作废，不计入统计')+'">'+(r.is_void?'取消作废':'作废')+'</button> '+
+          '<button class="btn bs" style="background:'+(r.is_void?'#fff3cd;color:#856404':'#d4edda;color:#155724')+'" onclick="toggleVoid('+r.id+')" data-perm="order-analysis:edit" title="'+(r.is_void?'人工取消作废，计入统计':'人工作废，不计入统计')+'">'+(r.is_void?'人工恢复':'人工作废')+'</button> '+
+          (r.gross_margin_analysis&&r.gross_margin_analysis.is_negative?'<button class="btn bs" style="background:#fdecec;color:#b42318" onclick="openGrossMarginAnalysis('+r.id+')" title="查看负毛利原因">原因分析</button> ':'')+
           '<button class="btn bs b5" onclick="openDetail('+r.id+')">详情</button>'+
         '</td>'+
         '</tr>'
@@ -346,17 +393,19 @@ async function loadList(p){
 function updateSortIndicators(){
   document.querySelectorAll('#tbl th .sort-arrow').forEach(el=>{el.textContent='';el.className='sort-arrow'});
   const th=document.getElementById('sh-'+sortState.field);
-  if(th){const arrow=th.querySelector('.sort-arrow');if(arrow){arrow.textContent=sortState.order==='ASC'?'↑':'↓';arrow.className='sort-arrow '+(sortState.order==='ASC'?'asc':'desc')}}
+  if(th){const arrow=th.querySelector('.sort-arrow');if(arrow){arrow.textContent=sortState.order==='ASC'?'':'';arrow.className='sort-arrow '+(sortState.order==='ASC'?'asc':'desc')}}
 }
 function rvBadge(s){if(!s||s==='null')s='none';const m={pending:'rv-pending',reviewing:'rv-reviewing',approved:'rv-approved',rejected:'rv-rejected',none:'rv-none'};return '<span class="badge '+(m[s]||'rv-none')+'">'+(curRvStatusMap[s]||s)+'</span>'}
+function openGrossMarginAnalysis(orderId){const row=curRows.find(r=>Number(r.id)===Number(orderId));const a=row&&row.gross_margin_analysis;if(!row||!a){toast('暂无可分析的计划成本数据');return}const reasons=(a.reasons||[]).map(x=>'<li><b>'+esc(x.label)+'</b>：'+esc(x.detail)+'</li>').join('')||'<li>未发现可归类的成本原因，请核对订单金额和成本数据。</li>';const suggestions=(a.suggestions||[]).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>检查订单金额、BOM、工价和费用归集数据。</li>';document.getElementById('grossMarginTitle').textContent='负毛利原因分析：'+(row.order_no||'订单');document.getElementById('grossMarginBody').innerHTML='<div class="gm-summary"><div><b>'+yuan(a.order_amount)+'</b><span>订单金额</span></div><div><b class="profit-neg">'+yuan(a.total_cost)+'</b><span>计划成本</span></div><div><b class="profit-neg">'+yuan(a.gross_profit)+'</b><span>计划毛利</span></div><div><b class="profit-neg">'+pct(a.gross_rate)+'</b><span>计划毛利率</span></div></div><h4>可能原因</h4><ul class="gm-list">'+reasons+'</ul><h4>建议动作</h4><ul class="gm-list">'+suggestions+'</ul>';document.getElementById('grossMarginModal').classList.add('ac');}
+function closeGrossMarginAnalysis(){document.getElementById('grossMarginModal').classList.remove('ac')}
 
 // ===== 审核台内联展开：订单产品列表 =====
 let _ordExpData={};
 async function toggleOrderExpand(orderId){
   const tg=document.getElementById('tg-'+orderId);
   const existing=document.getElementById('ordexp-'+orderId);
-  if(existing){ existing.remove(); if(tg)tg.textContent='▶'; delete _ordExpData[orderId]; return; }
-  if(tg)tg.textContent='▼';
+  if(existing){ existing.remove(); if(tg)tg.innerHTML=EBMSIcons.render('expand',{size:'xs'}); delete _ordExpData[orderId]; return; }
+  if(tg){tg.innerHTML=EBMSIcons.render('chevron',{size:'xs'});tg.firstElementChild.style.transform='rotate(180deg)';}
   const tr=document.getElementById('ord-'+orderId);
   if(!tr)return;
   const expTr=document.createElement('tr'); expTr.id='ordexp-'+orderId;
@@ -397,15 +446,15 @@ function renderOrderExpansion(orderId){
   }
   const srcLabel={external_order:'外单行',external_product:'外产品',local_order:'订单',local_manual:'手动',local_import:'导入',local_sibling:'同单',local:'本地'};
   const srcColor={external_order:'#1565c0',external_product:'#6b21a8',local_order:'#155724',local_manual:'#856404',local_import:'#1565c0',local_sibling:'#0c5460',local:'#888'};
-  var sourceTag=data.source==='external'?'<span class="badge" style="background:#e3f2fd;color:#1565c0;font-size:10px">⚡外部API</span>':(data.source==='local_fallback'?'<span class="badge" style="background:#fff3cd;color:#856404;font-size:10px">本地(外部不可用)</span>':'<span class="badge" style="background:#eee;color:#888;font-size:10px">本地</span>');
-  var errTag=(data.external_errors&&data.external_errors.length)?' <span style="color:#e74c3c;font-size:10px" title="'+esc(data.external_errors.join('；'))+'">⚠部分接口异常</span>':'';
+  var sourceTag=data.source==='external'?'<span class="badge" style="background:#e3f2fd;color:#1565c0;font-size:10px">外部API</span>':(data.source==='local_fallback'?'<span class="badge" style="background:#fff3cd;color:#856404;font-size:10px">本地(外部不可用)</span>':'<span class="badge" style="background:#eee;color:#888;font-size:10px">本地</span>');
+  var errTag=(data.external_errors&&data.external_errors.length)?' <span style="color:#e74c3c;font-size:10px" title="'+esc(data.external_errors.join('；'))+'">部分接口异常</span>':'';
   var html='<div class="ord-exp-box" style="padding:10px 14px">'+
     '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'+
-    '<b style="font-size:14px;color:#444">📋 订单明细</b>'+
+    '<b style="font-size:14px;color:#444"> 订单明细</b>'+
     (items.length?'<span class="badge" style="background:#eef;color:#667eea">'+items.length+' 行</span>':'')+
     sourceTag+errTag+
     '<button class="btn bs b1" style="font-size:12px" onclick="addProductToOrder('+orderId+')" data-perm="order-analysis:edit">＋添加明细</button>'+
-    '<button class="btn bs" style="background:#fff3cd;color:#856404;font-size:12px" onclick="runOrderCheck('+orderId+')">🔍 检查分析</button>'+
+    '<button class="btn bs" style="background:#fff3cd;color:#856404;font-size:12px" onclick="runOrderCheck('+orderId+')"> 检查分析</button>'+
     '<span style="flex:1"></span>'+
     '</div>'+
     '<div id="checkResult-'+orderId+'" style="display:none;margin-bottom:8px"></div>';
@@ -474,8 +523,8 @@ function renderOrderExpansion(orderId){
         '<td style="padding:5px 8px;text-align:right">'+expCell+'</td>'+
         '<td style="padding:5px 10px;text-align:center"><span class="badge" style="background:'+srcBg+'1f;color:'+srcBg+';font-size:10px">'+esc(srcLabel[srcKey]||p.source||'本地')+'</span></td>'+
         '<td style="padding:5px 10px;text-align:right;white-space:nowrap">'+
-          (canExpand?'<button id="opbom-btn-'+orderId+'-'+idx+'" class="btn bs" style="background:#eef;color:#667eea;font-size:11px;padding:2px 8px" onclick="toggleOrderBomRow('+orderId+','+idx+',\''+codeEsc+'\')" title="展开此型号的 BOM 物料明细">▶ 展开BOM</button> ':'')+
-          (editable?'<button class="btn bs" style="background:#f8d7da;color:#721c24;font-size:11px;padding:2px 8px" onclick="removeOrderProduct('+orderId+',\''+codeEsc+'\')" data-perm="order-analysis:edit" title="移除该明细">✕</button>':'')+
+          (canExpand?'<button id="opbom-btn-'+orderId+'-'+idx+'" class="btn bs" style="background:#eef;color:#667eea;font-size:11px;padding:2px 8px" onclick="toggleOrderBomRow('+orderId+','+idx+',\''+codeEsc+'\')" title="展开此型号的 BOM 物料明细"> 展开BOM</button> ':'')+
+          (editable?'<button class="btn bs" style="background:#f8d7da;color:#721c24;font-size:11px;padding:2px 8px" onclick="removeOrderProduct('+orderId+',\''+codeEsc+'\')" data-perm="order-analysis:edit" title="移除该明细"></button>':'')+
         '</td></tr>';
     });
     tbody.innerHTML=rowsHtml;
@@ -497,7 +546,7 @@ function renderOrderExpansion(orderId){
     var bomPerUnit = sumQty > 0 ? Math.round(sumCost / sumQty * 100) / 100 : 0;
     var profitTxt=orderAmt>0?' | 订单 ¥'+orderAmt.toLocaleString()+' | <span id="pc-profit-'+orderId+'" style="color:'+(grandTotal<orderAmt?'#27ae60':'#e74c3c')+'">'+(grandTotal<orderAmt?'毛利 ¥':'亏 ¥')+(orderAmt-grandTotal>=0?(orderAmt-grandTotal).toLocaleString():(grandTotal-orderAmt).toLocaleString())+'</span>':'';
     tbody.innerHTML+= '<tr style="background:#edf0f7;font-weight:600;border-top:2px solid #667eea">'+
-      '<td colspan="4" style="padding:6px 8px;text-align:left;color:#555">📋 单灯成本（每盏灯）</td>'+
+      '<td colspan="4" style="padding:6px 8px;text-align:left;color:#555"> 单灯成本（每盏灯）</td>'+
       '<td class="r" style="padding:6px 8px;color:#888">—</td>'+
       '<td colspan="1"></td>'+
       '<td class="r" style="padding:6px 8px;color:#764ba2">¥'+bomPerUnit.toLocaleString()+'</td>'+
@@ -506,7 +555,7 @@ function renderOrderExpansion(orderId){
       '<td class="r" style="padding:6px 8px;color:#888">¥'+(sumQty>0?Math.round(grandTotal/sumQty*100)/100:0).toLocaleString()+' /盏</td>'+
       '</tr>';
     tbody.innerHTML+= '<tr style="background:#f5f6fa;font-weight:700">'+
-      '<td colspan="4" style="padding:8px;text-align:left;color:#667eea">📊 合计（'+items.length+' 行，'+sumQty+' 盏） <button class="btn bs" style="font-size:10px;padding:1px 6px;background:#e8f4fd;color:#276b8e;margin-left:6px" onclick="openRateImport('+orderId+')">📥 导入工价</button> <span style="font-size:11px;color:#888">'+profitTxt+'</span></td>'+
+      '<td colspan="4" style="padding:8px;text-align:left;color:#667eea"> 合计（'+items.length+' 行，'+sumQty+' 盏） <button class="btn bs" style="font-size:10px;padding:1px 6px;background:#e8f4fd;color:#276b8e;margin-left:6px" onclick="openRateImport('+orderId+')"> 导入工价</button> <span style="font-size:11px;color:#888">'+profitTxt+'</span></td>'+
       '<td class="r" style="padding:8px;color:#888">'+sumQty+'</td>'+
       '<td colspan="1"></td>'+
       '<td class="r" style="padding:8px;color:#764ba2">¥'+sumCost.toLocaleString()+'</td>'+
@@ -516,7 +565,7 @@ function renderOrderExpansion(orderId){
       '<td class="r" style="padding:8px;color:#667eea;font-weight:700" id="pc-grand-'+orderId+'">¥'+grandTotal.toLocaleString()+'</td>'+
       '</tr>';
   }else{
-    html+='<div class="em" style="padding:10px;color:#e74c3c">⚠ 该订单无明细行 — <a onclick="assignOne('+orderId+')" style="color:#667eea;cursor:pointer;font-weight:600">点击添加明细</a></div>';
+    html+='<div class="em" style="padding:10px;color:#e74c3c"> 该订单无明细行 — <a onclick="assignOne('+orderId+')" style="color:#667eea;cursor:pointer;font-weight:600">点击添加明细</a></div>';
     html+='</div>';
     expTr.innerHTML='<td colspan="17">'+html+'</td>';
   }
@@ -716,11 +765,11 @@ async function applyRateImport(){
   // 刷新展开行
   renderOrderExpansion(oid);
   recalcOrderSummary(oid);
-  document.getElementById('rateImportResult').innerHTML='<span style="color:#27ae60">✓ 已导入 '+applied+' 个产品工价，费用自动按 ×0.25 计算</span>';
+  document.getElementById('rateImportResult').innerHTML='<span style="color:#27ae60"> 已导入 '+applied+' 个产品工价，费用自动按 ×0.25 计算</span>';
   setTimeout(function(){closeRateImport();},800);
 }
 
-// ===== 订单产品行点击「▶ 展开BOM」加载并展示该产品 BOM 明细（首次加载，之后切换）=====
+// ===== 订单产品行点击「 展开BOM」加载并展示该产品 BOM 明细（首次加载，之后切换）=====
 async function toggleOrderBomRow(orderId,idx,productCode){
   var btnId='opbom-btn-'+orderId+'-'+idx;
   var expandRowId='opbom-row-'+orderId+'-'+idx;
@@ -728,7 +777,7 @@ async function toggleOrderBomRow(orderId,idx,productCode){
   if(existing){
     // 已展开 → 折叠
     existing.remove();
-    var btn=document.getElementById(btnId);if(btn){btn.textContent='▶ 展开BOM';btn.style.background='#eef';btn.style.color='#667eea';}
+    var btn=document.getElementById(btnId);if(btn){btn.textContent=' 展开BOM';btn.style.background='#eef';btn.style.color='#667eea';}
     return;
   }
   var prodRow=document.getElementById('oprow-'+orderId+'-'+idx);if(!prodRow)return;
@@ -737,7 +786,7 @@ async function toggleOrderBomRow(orderId,idx,productCode){
   bomTr.innerHTML='<td colspan="8" style="padding:0;background:#fafbff"><div class="ord-exp-box" style="margin:0;border-radius:0;padding:8px 10px">加载 '+esc(productCode)+' 的 BOM 明细中...</div></td>';
   prodRow.parentNode.insertBefore(bomTr,prodRow.nextSibling);
   // 切换按钮文案
-  var btn=document.getElementById(btnId);if(btn){btn.textContent='▼ 收起BOM';btn.style.background='#667eea';btn.style.color='#fff';}
+  var btn=document.getElementById(btnId);if(btn){btn.textContent=' 收起BOM';btn.style.background='#667eea';btn.style.color='#fff';}
   try{
     // 优先用 line-items 已带的 tree 数据；如缺则拉 /tree
     var data=_ordExpData[orderId];
@@ -783,7 +832,7 @@ function renderOrderProductBom(bomTr,prod,orderId,idx){
   });
   var html='<div class="ord-exp-box" style="margin:0;border-radius:0;padding:6px 10px">'+
     '<div style="font-size:11px;color:#888;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-    '<b style="color:#444">🌳 '+esc(prod.product_code||'')+'</b> '+
+    '<b style="color:#444"> '+esc(prod.product_code||'')+'</b> '+
     '<span style="font-size:11px;color:#888">'+esc(prod.product_name||'')+'</span>'+
     '<span class="badge" style="background:#eef;color:#667eea;font-size:10px">'+nodeCnt+' 行 BOM</span>'+
     '<span style="color:#667eea">物料 '+yuan(totMat)+' / 人工 '+yuan(totLab)+' / 费用 '+yuan(totExp)+' = <b>'+yuan(totMat+totLab+totExp)+'</b></span>'+
@@ -814,7 +863,7 @@ function renderOrderProductBom(bomTr,prod,orderId,idx){
       var vis=nodeVis(n);
       var disp=vis?'':' display:none';
       var isSelf=(n.material_attr==='自制');
-      var tog=hasCh?'<span class="mtree-toggle" onclick="toggleBomNode(\''+bomId+'\',\''+n._path+'\')" style="cursor:pointer;color:#667eea;font-weight:700">'+(exp[n._path]===false?'▶':'▼')+'</span>':'<span style="display:inline-block;width:14px"></span>';
+      var tog=hasCh?('<span class="mtree-toggle" onclick="toggleBomNode(\''+bomId+'\',\''+n._path+'\')" style="cursor:pointer;color:#667eea;font-weight:700;display:inline-block;width:14px">'+(exp[n._path]===false?'\u25B6':'\u25BC')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
       html+='<tr data-path="'+n._path+'" data-bom="'+bomId+'" style="'+disp+'">'+
         '<td style="padding:2px 6px;text-align:center;color:#999;font-family:monospace;font-size:10px">'+lineNo+'</td>'+
         '<td style="padding:2px 4px;padding-left:'+(4+pad)+'px">'+tog+'</td>'+
@@ -825,9 +874,9 @@ function renderOrderProductBom(bomTr,prod,orderId,idx){
         '<td style="padding:2px 6px;text-align:right">'+esc(n.total_qty!=null?n.total_qty:'')+'</td>'+
         '<td style="padding:2px 6px;text-align:right">'+yuan(n.unit_price)+'</td>'+
         '<td style="padding:2px 6px;text-align:right">'+yuan(n.material_amount)+'</td>'+
-        '<td style="padding:2px 6px;text-align:right">'+yuan(n.labor_amount)+'</td>'+
+        treeLabCell(n)+
         '<td style="padding:2px 6px;text-align:right">'+yuan(n.expense_amount)+'</td>'+
-        '<td style="padding:2px 6px;text-align:right">'+yuan(n.line_total)+'</td></tr>';
+        treeTotalCell(n)+'</tr>';
       if(hasCh)renderNodes(n.children,(depth||0)+1);
     });
   })(nodes,0);
@@ -841,7 +890,7 @@ async function runOrderCheck(orderId){
   var box=document.getElementById('checkResult-'+orderId);
   if(!box)return;
   box.style.display='block';
-  box.innerHTML='<div style="padding:8px;color:#667eea">🔍 正在执行检查分析...</div>';
+  box.innerHTML='<div style="padding:8px;color:#667eea"> 正在执行检查分析...</div>';
   try{
     var r=await fetch(API+'/'+orderId+'/check');
     var d=await r.json();
@@ -858,11 +907,11 @@ function renderCheckResult(orderId,data){
   var sevLabels={critical:'严重',high:'高',medium:'中',low:'低'};
   var html='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px">';
   html+='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px">';
-  html+='<div style="padding:6px 10px;background:#e8f5e9;color:#155724;border-radius:4px;font-size:12px">✅ 通过 '+s.passed_checks+'/'+s.total_checks+'</div>';
-  html+='<div style="padding:6px 10px;background:#fff3cd;color:#856404;border-radius:4px;font-size:12px">⚠ 问题 '+s.total_issues+' 个</div>';
+  html+='<div style="padding:6px 10px;background:#e8f5e9;color:#155724;border-radius:4px;font-size:12px"> 通过 '+s.passed_checks+'/'+s.total_checks+'</div>';
+  html+='<div style="padding:6px 10px;background:#fff3cd;color:#856404;border-radius:4px;font-size:12px"> 问题 '+s.total_issues+' 个</div>';
   if(s.order_amount){
-    html+='<div style="padding:6px 10px;background:#e3f2fd;color:#1565c0;border-radius:4px;font-size:12px">💰 订单金额 ¥'+s.order_amount.toLocaleString()+'</div>';
-    html+='<div style="padding:6px 10px;background:#f3e8ff;color:#6b21a8;border-radius:4px;font-size:12px">📦 物料成本 ¥'+s.material_cost.toLocaleString()+'</div>';
+    html+='<div style="padding:6px 10px;background:#e3f2fd;color:#1565c0;border-radius:4px;font-size:12px"> 订单金额 ¥'+s.order_amount.toLocaleString()+'</div>';
+    html+='<div style="padding:6px 10px;background:#f3e8ff;color:#6b21a8;border-radius:4px;font-size:12px"> 物料成本 ¥'+s.material_cost.toLocaleString()+'</div>';
   }
   html+='</div>';
   if(s.by_severity){
@@ -886,7 +935,7 @@ function renderCheckResult(orderId,data){
     html+='<div style="margin-top:10px;border-top:1px dashed #ddd;padding-top:8px">';
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
     html+='<div style="font-size:12px;color:#666"><b>发现问题（'+data.issues.length+' 个）：</b><span style="color:#aaa;font-size:11px">（责任人按分类自动分配，可手动修改）</span></div>';
-    html+='<div><button class="btn bs" style="font-size:10px;padding:2px 8px;background:#27ae60;color:#fff" onclick="exportCheckResult('+orderId+')">📥 导出清单</button></div>';
+    html+='<div><button class="btn bs" style="font-size:10px;padding:2px 8px;background:#27ae60;color:#fff" onclick="exportCheckResult('+orderId+')"> 导出清单</button></div>';
     html+='</div>';
     html+='<div style="max-height:300px;overflow:auto">';
     html+='<table style="width:100%;font-size:11px;border-collapse:collapse">';
@@ -973,11 +1022,11 @@ function _bomTreeRefresh(bomId,changedPath){
     for(var i=1;i<parts.length;i++)parents.push(parts.slice(0,i).join('.'));
     var vis=parents.every(function(pp){return exp[pp]!==false;});
     tr.style.display=vis?'':'none';
-    // 更新 toggle 图标
+    // 更新 toggle 状态（折叠 / 展开）
     var tog=tr.querySelector('.mtree-toggle');
     if(tog){
       var hasCh=tog.getAttribute('onclick'); // 存在 onclick 说明有子件
-      tog.textContent=exp[p]===false?'▶':'▼';
+      tog.textContent=exp[p]===false?'\u25B6':'\u25BC';
     }
   });
 }
@@ -992,11 +1041,11 @@ async function toggleProductBom(orderId, productCode, idx){
   if(existing){
     // 折叠/再展开切换
     existing.remove();
-    var tg1=document.getElementById(togId); if(tg1)tg1.textContent='▶';
+    var tg1=document.getElementById(togId); if(tg1)tg1.textContent='';
     return;
   }
   var row=document.getElementById(rowId);if(!row)return;
-  var tg=document.getElementById(togId); if(tg)tg.textContent='▼';
+  var tg=document.getElementById(togId); if(tg)tg.textContent='';
   // 插入 BOM 展开行
   var bomTr=document.createElement('tr'); bomTr.id=expandRowId;
   bomTr.innerHTML='<td colspan="7" style="padding:0;background:#fafbff"><div class="ord-exp-box" style="margin:0;border-radius:0">加载 '+esc(productCode)+' 的 BOM 树...</div></td>';
@@ -1035,7 +1084,7 @@ function renderInlineBomTree(bomTr, data, productCode, orderId, idx){
   function nodeVisible(n){return n._parents.every(function(p){return _inlineBomCache[orderId+'::'+productCode].expanded[p]!==false;});}
   var html='<div class="ord-exp-box" style="margin:0;border-radius:0;padding:8px 10px">'+
     '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap">'+
-    '<b style="color:#444">🌳 '+esc(prod.product_code)+'</b> '+
+    '<b style="color:#444"> '+esc(prod.product_code)+'</b> '+
     '<span style="font-size:11px;color:#888">'+esc(prod.product_name||'')+'</span>'+
     '<span class="badge" style="background:#f3e8ff;color:#6b21a8;font-size:10px">一级物料 '+(function(){var c=0;nodes.forEach(function(n){c++;});return c;})()+'</span>'+
     '<span style="font-size:11px;color:#667eea">物料 '+yuan(prod.material)+' / 人工 '+yuan(prod.labor)+' / 费用 '+yuan(prod.expense)+' = <b>'+yuan(prod.total)+'</b></span>'+
@@ -1044,14 +1093,14 @@ function renderInlineBomTree(bomTr, data, productCode, orderId, idx){
     '<button class="btn bs" style="background:#eee;color:#555;font-size:11px;padding:2px 8px" onclick="treeInlineAll('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\','+idx+',0)">全展开</button>'+
     '<button class="btn bs" style="background:#fff3cd;color:#856404;font-size:11px;padding:2px 8px" onclick="syncOrderDetailsByCode('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\')">同步明细</button>'+
     '</div>';
-  (warns||[]).forEach(function(w){html+='<div style="color:#f39c12;font-size:11px;padding:1px 0">⚠ '+esc(w)+'</div>';});
+  (warns||[]).forEach(function(w){html+='<div style="color:#f39c12;font-size:11px;padding:1px 0"> '+esc(w)+'</div>';});
   if(!nodes.length){
     html+='<div class="em" style="padding:8px">该产品在 BOM 中无明细</div></div>';
     bomTr.innerHTML='<td colspan="7" style="padding:0">'+html+'</td>';
     return;
   }
   html+='<div style="max-height:50vh;overflow:auto"><table style="width:100%;font-size:11px;border-collapse:collapse"><thead><tr style="background:#f0f3ff">'+
-    '<th style="padding:4px 6px;text-align:left;position:sticky;top:0">物料（按层级缩进，点 ▼/▶）</th>'+
+    '<th style="padding:4px 6px;text-align:left;position:sticky;top:0">物料（按层级缩进，点 /）</th>'+
     '<th style="padding:4px 6px">属性</th>'+
     '<th style="padding:4px 6px;text-align:right">BOM用量</th>'+
     '<th style="padding:4px 6px;text-align:right">总量</th>'+
@@ -1067,7 +1116,7 @@ function renderInlineBomTree(bomTr, data, productCode, orderId, idx){
     var vis=nodeVisible(n);
     var disp=vis?'':' style="display:none"';
     var pad='padding-left:'+(6+(n.depth||1)*16)+'px';
-    var tog=(n.children&&n.children.length)?('<span onclick="toggleInlineNode('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\','+idx+',\''+n._path+'\')" style="cursor:pointer;margin-right:3px;color:#667eea;font-weight:700">'+(expanded[n._path]===false?'▶':'▼')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
+    var tog=(n.children&&n.children.length)?('<span onclick="toggleInlineNode('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\','+idx+',\''+n._path+'\')" style="cursor:pointer;margin-right:3px;color:#667eea;font-weight:700">'+(expanded[n._path]===false?'\u25B6':'\u25BC')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
     var isSelf=(n.material_attr==='自制');
     return '<tr data-path="'+n._path+'"'+disp+'>'+
       '<td style="'+pad+';white-space:normal;line-height:1.45">'+tog+'<b '+(isSelf?'style="color:#8e44ad"':'')+'>'+esc(n.material_code)+'</b> '+esc(n.material_name)+(n.spec?'<br><small style="color:#bbb;margin-left:17px">'+esc(n.spec)+'</small>':'')+'</td>'+
@@ -1076,9 +1125,9 @@ function renderInlineBomTree(bomTr, data, productCode, orderId, idx){
       '<td style="padding:4px 6px;text-align:right">'+esc(n.total_qty)+'</td>'+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.unit_price)+'</td>'+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.material_amount)+'</td>'+
-      '<td style="padding:4px 6px;text-align:right">'+yuan(n.labor_amount)+'</td>'+
+      treeLabCell(n)+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.expense_amount)+'</td>'+
-      '<td style="padding:4px 6px;text-align:right">'+yuan(n.line_total)+'</td></tr>';
+      treeTotalCell(n)+'</tr>';
   }
   var rows=[];
   (function push(arr){arr.forEach(function(n){rows.push(renderNodeRow(n));if(n.children&&n.children.length)push(n.children);})})(nodes);
@@ -1097,7 +1146,7 @@ function toggleInlineNode(orderId, productCode, idx, path){
     var vis=nodeVisible(n);
     var disp=vis?'':' style="display:none"';
     var pad='padding-left:'+(6+(n.depth||1)*16)+'px';
-    var tog=(n.children&&n.children.length)?('<span onclick="toggleInlineNode('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\','+idx+',\''+n._path+'\')" style="cursor:pointer;margin-right:3px;color:#667eea;font-weight:700">'+(cache.expanded[n._path]===false?'▶':'▼')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
+    var tog=(n.children&&n.children.length)?('<span onclick="toggleInlineNode('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\','+idx+',\''+n._path+'\')" style="cursor:pointer;margin-right:3px;color:#667eea;font-weight:700">'+(cache.expanded[n._path]===false?'':'')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
     var isSelf=(n.material_attr==='自制');
     return '<tr data-path="'+n._path+'"'+disp+'>'+
       '<td style="'+pad+';white-space:normal;line-height:1.45">'+tog+'<b '+(isSelf?'style="color:#8e44ad"':'')+'>'+esc(n.material_code)+'</b> '+esc(n.material_name)+(n.spec?'<br><small style="color:#bbb;margin-left:17px">'+esc(n.spec)+'</small>':'')+'</td>'+
@@ -1106,9 +1155,9 @@ function toggleInlineNode(orderId, productCode, idx, path){
       '<td style="padding:4px 6px;text-align:right">'+esc(n.total_qty)+'</td>'+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.unit_price)+'</td>'+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.material_amount)+'</td>'+
-      '<td style="padding:4px 6px;text-align:right">'+yuan(n.labor_amount)+'</td>'+
+      treeLabCell(n)+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.expense_amount)+'</td>'+
-      '<td style="padding:4px 6px;text-align:right">'+yuan(n.line_total)+'</td></tr>';
+      treeTotalCell(n)+'</tr>';
   }
   (function push(arr){arr.forEach(function(n){rows.push(renderNodeRow(n));if(n.children&&n.children.length)push(n.children);})})(cache.nodes);
   tbody.innerHTML=rows.join('');
@@ -1131,7 +1180,7 @@ function treeInlineAll(orderId, productCode, idx, collapse){
     var vis=nodeVisible(n);
     var disp=vis?'':' style="display:none"';
     var pad='padding-left:'+(6+(n.depth||1)*16)+'px';
-    var tog=(n.children&&n.children.length)?('<span onclick="toggleInlineNode('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\','+idx+',\''+n._path+'\')" style="cursor:pointer;margin-right:3px;color:#667eea;font-weight:700">'+(cache.expanded[n._path]===false?'▶':'▼')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
+    var tog=(n.children&&n.children.length)?('<span onclick="toggleInlineNode('+orderId+',\''+productCode.replace(/'/g,"\\'")+'\','+idx+',\''+n._path+'\')" style="cursor:pointer;margin-right:3px;color:#667eea;font-weight:700">'+(cache.expanded[n._path]===false?'':'')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
     var isSelf=(n.material_attr==='自制');
     return '<tr data-path="'+n._path+'"'+disp+'>'+
       '<td style="'+pad+';white-space:normal;line-height:1.45">'+tog+'<b '+(isSelf?'style="color:#8e44ad"':'')+'>'+esc(n.material_code)+'</b> '+esc(n.material_name)+(n.spec?'<br><small style="color:#bbb;margin-left:17px">'+esc(n.spec)+'</small>':'')+'</td>'+
@@ -1140,9 +1189,9 @@ function treeInlineAll(orderId, productCode, idx, collapse){
       '<td style="padding:4px 6px;text-align:right">'+esc(n.total_qty)+'</td>'+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.unit_price)+'</td>'+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.material_amount)+'</td>'+
-      '<td style="padding:4px 6px;text-align:right">'+yuan(n.labor_amount)+'</td>'+
+      treeLabCell(n)+
       '<td style="padding:4px 6px;text-align:right">'+yuan(n.expense_amount)+'</td>'+
-      '<td style="padding:4px 6px;text-align:right">'+yuan(n.line_total)+'</td></tr>';
+      treeTotalCell(n)+'</tr>';
   }
   (function push(arr){arr.forEach(function(n){rows.push(renderNodeRow(n));if(n.children&&n.children.length)push(n.children);})})(cache.nodes);
   tbody.innerHTML=rows.join('');
@@ -1166,9 +1215,9 @@ async function syncOrderDetails(orderId){
     else{toast('已同步 '+d.synced+' 行');}
   }catch(e){toast('同步失败: '+e.message)}
 }
-function renderPg(){const pages=Math.ceil(total/LIMIT)||1;const el=document.getElementById('pg');const opts=[15,30,50,100,200].map(n=>'<option value="'+n+'"'+(n===LIMIT?' selected':'')+'>'+n+' 条/页</option>').join('');el.innerHTML='<span>共 '+total+' 条，第 '+curPage+'/'+pages+' 页</span>'+'<select onchange="setLimit(this.value)" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px" title="每页显示行数">'+opts+'</select>'+'<div>'+(curPage>1?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage-1)+')">上一页</button>':'')+(curPage<pages?'<button class="btn bs" style="background:#eee;margin-left:6px" onclick="loadList('+(curPage+1)+')">下一页</button>':'')+'</div>'}
+function renderPg(){const pages=Math.max(1,Math.ceil(total/LIMIT));const el=document.getElementById('pg');const opts=[15,30,50,100,200].map(n=>'<option value="'+n+'"'+(n===LIMIT?' selected':'')+'>'+n+' 条/页</option>').join('');if(pages<=1){el.innerHTML='<span>共 '+total+' 条，第 1/1 页</span><select onchange="setLimit(this.value)" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px" title="每页显示行数">'+opts+'</select>';return}const WINDOW=2;const pageStart=Math.max(1,curPage-WINDOW);const pageEnd=Math.min(pages,curPage+WINDOW);const button=(p,active)=>'<button class="btn bs '+(active?'active':'')+'" onclick="loadList('+p+')" aria-label="第 '+p+' 页">'+p+'</button>';let html='<span>共 '+total+' 条，第 '+curPage+'/'+pages+' 页</span><select onchange="setLimit(this.value)" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px" title="每页显示行数">'+opts+'</select><div class="page-buttons">';html+='<button class="btn bs" style="background:#eee;color:'+(curPage===1?'#ccc':'#555')+'" onclick="loadList(1)" '+(curPage===1?'disabled':'')+'>首页</button>';html+='<button class="btn bs" style="background:#eee;color:'+(curPage===1?'#ccc':'#555')+'" onclick="loadList('+(curPage-1)+')" '+(curPage===1?'disabled':'')+'>上一页</button>';if(pageStart>1){html+=button(1,false);if(pageStart>2)html+='<span>…</span>'}for(let p=pageStart;p<=pageEnd;p++)html+=button(p,p===curPage);if(pageEnd<pages){if(pageEnd<pages-1)html+='<span>…</span>';html+=button(pages,false)}html+='<button class="btn bs" style="background:#eee;color:'+(curPage===pages?'#ccc':'#555')+'" onclick="loadList('+(curPage+1)+')" '+(curPage===pages?'disabled':'')+'>下一页</button><button class="btn bs" style="background:#eee;color:'+(curPage===pages?'#ccc':'#555')+'" onclick="loadList('+pages+')" '+(curPage===pages?'disabled':'')+'>末页</button></div>';el.innerHTML=html}
 function setLimit(n){LIMIT=parseInt(n)||LIMIT;curPage=1;loadList(1);}
-function resetFilter(){['f_kw','f_date_from','f_date_to','f_status','f_rv','f_customer','f_product','f_risk','f_overrun','f_pmin','f_pmax','f_personnel'].forEach(id=>document.getElementById(id).value='');loadList(1);loadStatCards()}
+function resetFilter(){['f_kw','f_date_from','f_date_to','f_status','f_rv','f_customer','f_product','f_risk','f_overrun','f_pmin','f_pmax','f_personnel'].forEach(id=>document.getElementById(id).value='');document.getElementById('f_void_status').value='active';Object.keys(headerFilters).forEach(k=>{headerFilters[k]='';const el=document.querySelector('[data-column-filter="'+k+'"]');if(el)el.value=''});loadList(1);loadStatCards()}
 function sortBy(field){
   if(sortState.field===field)sortState.order=sortState.order==='ASC'?'DESC':'ASC';
   else{sortState.field=field;sortState.order='DESC';}
@@ -1276,6 +1325,17 @@ async function savePersonnelAssign(){
 }
 
 // 归集实际成本
+// 把本订单的工价同步到工价库（product_labor_rate）：成品工价 + BOM 自制/外加工/人工行，来源=订单分析，状态=待审核
+async function syncOrderLaborRate(id){
+  if(!confirm('把本订单的工价同步到工价库？\n\n将把本订单的成品工价 + BOM 明细中的自制/外加工/人工行写入成品工价库。\n• 来源标记：订单分析；状态：待审核\n• 自制/外加工件含无工价物料一并导入（工价¥0，标记"无工价，待补录"）\n• 工价库中同 BOM 的记录会被更新（若工价不同）；已审核工价锁定不动'))return;
+  try{
+    toast('同步中...');
+    const r=await fetch(API+'/'+id+'/sync-rates-to-library',{method:'POST',headers:{'Content-Type':'application/json'}});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'同步失败');return}
+    toast(d.message);
+  }catch(e){toast('同步失败: '+e.message)}
+}
 async function collectActual(id){
   if(!confirm('将从领料单/人工库/费用库按订单号归集实际成本并生成快照，确认？'))return;
   try{
@@ -1344,9 +1404,9 @@ async function openDetail(id){
     const productMismatch = o.product_code && realProdCodes.length && !realProdCodes.includes(o.product_code);
     document.getElementById('dtTitle').textContent=esc(o.order_no)+' / '+esc(o.customer_name);
     const planLines=(plan&&plan.lines||[]).map(l=>'<tr><td>'+esc(l.material_code)+'</td><td>'+esc(l.material_name)+'</td><td>'+esc(l.spec)+'</td><td class="r">'+esc(l.bom_qty)+'</td><td class="r">'+esc(l.total_qty)+'</td><td class="r">'+yuan(l.unit_price)+'</td><td style="font-size:10px;color:#888">'+esc(l.price_source)+'</td><td class="r">'+yuan(l.material_amount)+'</td><td class="r">'+yuan(l.labor_amount)+'</td><td class="r">'+yuan(l.expense_amount)+'</td><td class="r"><b>'+yuan(l.line_total)+'</b></td></tr>').join('');
-    const warnings=(plan&&plan.warnings||[]).map(w=>'<div style="color:#f39c12;font-size:12px;padding:2px 0">⚠ '+esc(w)+'</div>').join('');
+    const warnings=(plan&&plan.warnings||[]).map(w=>'<div style="color:#f39c12;font-size:12px;padding:2px 0"> '+esc(w)+'</div>').join('');
     const ACT_LABEL={submit:'提交',approve:'通过',reject:'驳回',reset:'重置'};
-    const reviewLogs=(d.review_logs||[]).map(l=>{const lbl=ACT_LABEL[l.action]||l.action;const extra=l.comment?(' · '+esc(l.comment)+' '):' ';return '<div class="ev"><b>'+lbl+'</b> '+esc(l.from_status||'')+'→'+esc(l.to_status)+extra+'<span style="color:#999">'+esc(l.at)+'</span></div>';}).join('');
+    const reviewLogs=(d.review_logs||[]).map(l=>{const lbl=ACT_LABEL[l.action]||l.action;const extra=l.comment?('  '+esc(l.comment)+' '):' ';return '<div class="ev"><b>'+lbl+'</b> '+esc(l.from_status||'')+'→'+esc(l.to_status)+extra+'<span style="color:#999">'+esc(l.at)+'</span></div>';}).join('');
     // 计划/实际差异
     var varianceHtml='';
     var effPlanMat=a.plan_material_cost!=null?a.plan_material_cost:(planCost?Number(planCost.material)||0:null);
@@ -1356,9 +1416,9 @@ async function openDetail(id){
     if(effPlanTot!=null&&a.actual_total_cost!=null){
       const vMat=a.actual_material_cost-effPlanMat,vLab=a.actual_labor_cost-effPlanLab,vExp=a.actual_expense_cost-effPlanExp,vTot=a.actual_total_cost-effPlanTot;
       const row=(n,p,a1,v)=>'<tr><td>'+n+'</td><td class="r">'+yuan(p)+'</td><td class="r">'+yuan(a1)+'</td><td class="r '+((v||0)>0?'diff-pos':'diff-neg')+'">'+((v||0)>=0?'+':'')+yuan(v)+'</td><td class="r">'+(p>0?pct(v/p*100):'-')+'</td></tr>';
-      varianceHtml='<div class="panel"><h3>📊 计划 vs 实际 成本差异</h3><table><thead><tr><th>成本层</th><th class="r">计划</th><th class="r">实际</th><th class="r">差异</th><th class="r">差异率</th></tr></thead><tbody>'+
+      varianceHtml='<div class="panel"><h3> 计划 vs 实际 成本差异</h3><table><thead><tr><th>成本层</th><th class="r">计划</th><th class="r">实际</th><th class="r">差异</th><th class="r">差异率</th></tr></thead><tbody>'+
         row('物料',effPlanMat,a.actual_material_cost,vMat)+row('人工',effPlanLab,a.actual_labor_cost,vLab)+row('费用',effPlanExp,a.actual_expense_cost,vExp)+
-        '<tr style="background:#f5f6fa;font-weight:700">'+row('合计',effPlanTot,a.actual_total_cost,vTot)+'</tr></tbody></table>'+(vTot>0?'<div class="overrun" style="margin-top:8px">⚠ 实际成本超支 '+yuan(vTot)+'</div>':'<div class="under" style="margin-top:8px">✓ 实际成本节约 '+yuan(-vTot)+'</div>')+'</div>';
+        '<tr style="background:#f5f6fa;font-weight:700">'+row('合计',effPlanTot,a.actual_total_cost,vTot)+'</tr></tbody></table>'+(vTot>0?'<div class="overrun" style="margin-top:8px"> 实际成本超支 '+yuan(vTot)+'</div>':'<div class="under" style="margin-top:8px"> 实际成本节约 '+yuan(-vTot)+'</div>')+'</div>';
     }
     let grossVarHtml='';
     if(a.plan_gross_profit!=null&&a.actual_gross_profit!=null){
@@ -1368,7 +1428,7 @@ async function openDetail(id){
       grossVarHtml='<div class="panel"><h3>计划 vs 实际 毛利对比</h3><table><thead><tr><th>项目</th><th class="r">计划</th><th class="r">实际</th><th class="r">变动</th></tr></thead><tbody>'+
         '<tr><td>毛利额</td><td class="r">'+yuan(pgp)+'</td><td class="r">'+yuan(agp)+'</td><td class="r '+((pDiff)<0?'diff-pos':'diff-neg')+'">'+((pDiff)>=0?'+':'')+yuan(pDiff)+'</td></tr>'+
         '<tr><td>毛利率</td><td class="r">'+pct(pgr)+'</td><td class="r">'+pct(agr)+'</td><td class="r '+(rDiff<0?'diff-pos':'diff-neg')+'">'+((rDiff)>=0?'+':'')+pct(rDiff)+'</td></tr>'+
-        '</tbody></table>'+(pDiff<0?'<div class="overrun" style="margin-top:8px">⚠ 实际毛利比计划少 '+yuan(-pDiff)+'</div>':'<div class="under" style="margin-top:8px">✓ 实际毛利比计划多 '+yuan(pDiff)+'</div>')+'</div>';
+        '</tbody></table>'+(pDiff<0?'<div class="overrun" style="margin-top:8px"> 实际毛利比计划少 '+yuan(-pDiff)+'</div>':'<div class="under" style="margin-top:8px"> 实际毛利比计划多 '+yuan(pDiff)+'</div>')+'</div>';
     }
     // 实际明细
     let actualHtml='';
@@ -1385,11 +1445,12 @@ async function openDetail(id){
     box.innerHTML=
     // 顶部订单信息 + 操作
     '<div class="panel"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">'+
-      '<div style="font-size:13px;color:#555;line-height:1.9">订单：<b>'+esc(o.order_no)+'</b> | 客户：'+esc(o.customer_name)+' | 产品：<b style="color:#667eea">'+productDisplay+'</b>'+(productMismatch?' <span class="badge" style="background:#fff3cd;color:#856404;font-size:10px" title="orders主表 product_code='+esc(o.product_code)+' 与订单明细产品不一致，已以明细为准">⚠主表不一致</span>':'')+' | 数量：'+esc(o.quantity)+' | 订单金额：<b>'+yuan(o.order_amount)+'</b> | 状态：'+esc(o.status)+' | 审核：'+rvBadge(a.review_status||'none')+'</div>'+
+      '<div style="font-size:13px;color:#555;line-height:1.9">订单：<b>'+esc(o.order_no)+'</b> | 客户：'+esc(o.customer_name)+' | 产品：<b style="color:#667eea">'+productDisplay+'</b>'+(productMismatch?' <span class="badge" style="background:#fff3cd;color:#856404;font-size:10px" title="orders主表 product_code='+esc(o.product_code)+' 与订单明细产品不一致，已以明细为准">主表不一致</span>':'')+' | 数量：'+esc(o.quantity)+' | 订单金额：<b>'+yuan(o.order_amount)+'</b> | 状态：'+esc(o.status)+' | 审核：'+rvBadge(a.review_status||'none')+'</div>'+
       '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
         (a.review_status!=='approved'?'<button class="btn bs b4" onclick="submitAudit('+o.id+')" data-perm="order-analysis:audit">核算计划成本并提交</button>':'')+
         '<button class="btn bs b1" onclick="openRv('+o.id+')" data-perm="order-analysis:audit">审核</button>'+
         '<button class="btn bs b2" onclick="collectActual('+o.id+')" data-perm="order-analysis:edit">归集实际成本</button>'+
+        '<button class="btn bs" style="background:#9b59b6;color:#fff" onclick="syncOrderLaborRate('+o.id+')" data-perm="order-analysis:edit" title="把本订单的成品工价同步到工价库(product_labor_rate)">同步工价库</button>'+
         '<button class="btn bs b5" onclick="loadSimilar('+o.id+')">同类订单比对</button>'+
       '</div></div></div>'+
     // 计划成本三层卡
@@ -1402,20 +1463,20 @@ async function openDetail(id){
       '<div class="layer-card"><div class="ln">含工费总成本</div><div class="lv" style="color:#8e44ad">'+yuan((planDisplay.total||0)+(planDisplay.workPrice||0)+(planDisplay.expFee||0))+'</div><div class="lp">成本+工价+费用</div></div>'+
     '</div>'+warnings:'<div class="panel"><div class="em">尚未核算计划成本，点击「核算计划成本并提交」生成</div></div>')+
 // 计划BOM明细 → 改为下钻树面板（订单→所有产品型号→每个产品的分级BOM物料）
-    '<div class="panel" id="treePanel"><h3>🌳 订单 → 产品型号 → 分级 BOM 物料 下钻（共 '+realProdCodes.length+' 个产品型号）</h3>'+
+    '<div class="panel" id="treePanel"><h3> 订单 → 产品型号 → 分级 BOM 物料 下钻（共 '+realProdCodes.length+' 个产品型号）</h3>'+
       '<div class="sb">'+
-        '<button class="btn b4" onclick="exportBomDetails()">📥 导出BOM明细</button>'+
+        '<button class="btn b4" onclick="exportBomDetails()"> 导出BOM明细</button>'+
         '<span style="flex:1"></span>'+
-        '<span style="font-size:12px;color:#888">各产品型号点 ▶ 展开 BOM 明细，默认折叠二级以上</span>'+
+        '<span style="font-size:12px;color:#888">各产品型号点  展开 BOM 明细，默认折叠二级以上</span>'+
       '</div>'+
       '<div id="treeBox"><div class="em">加载全部产品型号的 BOM 明细中...</div></div>'+
     '</div>'+
     // 差异 + 实际
     varianceHtml+grossVarHtml+actualHtml+
     // 同类占位
-    '<div class="panel" id="simPanel"><h3>🔁 同类订单差异比对</h3><div class="em">点击顶部「同类订单比对」生成</div></div>'+
+    '<div class="panel" id="simPanel"><h3> 同类订单差异比对</h3><div class="em">点击顶部「同类订单比对」生成</div></div>'+
     // 审核日志
-    (reviewLogs?'<div class="panel"><h3>📝 审核流转日志</h3><div class="timeline">'+reviewLogs+'</div></div>':'');
+    (reviewLogs?'<div class="panel"><h3> 审核流转日志</h3><div class="timeline">'+reviewLogs+'</div></div>':'');
     applyPerms();
     // 自动加载全部产品型号 BOM 树（传入分析卡的计划成本作为权威值，无则用实时BOM汇总）
     var refMat = a.plan_material_cost != null ? a.plan_material_cost : (planCost ? planCost.material : null);
@@ -1477,12 +1538,12 @@ async function loadDetailAllProductsBoms(orderId,productCodes,planMaterialCost){
     var sumDetTotal=sumBomCost+sumDetRate+sumDetExp;
     let html='<div class="panel" style="background:linear-gradient(135deg,#f0f4ff,#fff);border-left:4px solid #667eea">'+
       '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:4px 0">'+
-      '<b style="font-size:14px;color:#444">📊 合计</b>'+
+      '<b style="font-size:14px;color:#444"> 合计</b>'+
       '<span style="font-size:13px;color:#764ba2">成本 <b>¥'+sumBomCost.toLocaleString()+'</b></span>'+
       '<span style="font-size:13px;color:#16a085">工价 <b id="det-sum-rate-'+orderId+'">¥'+sumDetRate.toLocaleString()+'</b></span>'+
       '<span style="font-size:13px;color:#f39c12">费用 <b id="det-sum-exp-'+orderId+'">¥'+sumDetExp.toLocaleString()+'</b></span>'+
       '<span style="font-size:15px;color:#667eea">总计 <b id="det-sum-total-'+orderId+'">¥'+sumDetTotal.toLocaleString()+'</b></span>'+
-      '<button class="btn bs" style="font-size:11px;padding:2px 8px;background:#e8f4fd;color:#276b8e" onclick="openRateImport('+orderId+')">📥 导入工价</button>'+
+      '<button class="btn bs" style="font-size:11px;padding:2px 8px;background:#e8f4fd;color:#276b8e" onclick="openRateImport('+orderId+')"> 导入工价</button>'+
       '</div></div>';
     products.forEach(function(prod,pi){
       const prodBomId='dt-prod-'+orderId+'-'+pi;
@@ -1543,6 +1604,7 @@ async function loadDetailAllProductsBoms(orderId,productCodes,planMaterialCost){
         '<th style="padding:3px 6px;text-align:right">总量</th>'+
         '<th style="padding:3px 6px;text-align:right">单价</th>'+
         '<th style="padding:3px 6px;text-align:right">物料</th>'+
+        '<th style="padding:3px 6px;text-align:right">人工单价</th>'+
         '<th style="padding:3px 6px;text-align:right">人工</th>'+
         '<th style="padding:3px 6px;text-align:right">费用</th>'+
         '<th style="padding:3px 6px;text-align:right">行小计</th></tr></thead><tbody>';
@@ -1555,7 +1617,7 @@ async function loadDetailAllProductsBoms(orderId,productCodes,planMaterialCost){
           var vis=nodeVis(n);
           var disp=vis?'':' display:none';
           var isSelf=(n.material_attr==='自制');
-          var tog=hasCh?'<span class="mtree-toggle" onclick="toggleBomNode(\''+prodBomId+'\',\''+n._path+'\')" style="cursor:pointer;color:#667eea;font-weight:700">'+(exp[n._path]===false?'▶':'▼')+'</span>':'<span style="display:inline-block;width:14px"></span>';
+    var tog=hasCh?('<span class="mtree-toggle" onclick="toggleBomNode(\''+prodBomId+'\',\''+n._path+'\')" style="cursor:pointer;color:#667eea;font-weight:700;display:inline-block;width:14px">'+(exp[n._path]===false?'\u25B6':'\u25BC')+'</span>'):'<span style="display:inline-block;width:14px"></span>';
           html+='<tr data-path="'+n._path+'" data-bom="'+prodBomId+'" style="'+disp+'">'+
             '<td style="padding:2px 6px;text-align:center;color:#999;font-family:monospace;font-size:10px">'+lineNo+'</td>'+
             '<td style="padding:2px 4px;padding-left:'+(4+pad)+'px">'+tog+'</td>'+
@@ -1566,9 +1628,10 @@ async function loadDetailAllProductsBoms(orderId,productCodes,planMaterialCost){
             '<td style="padding:2px 6px;text-align:right">'+esc(n.total_qty!=null?n.total_qty:'')+'</td>'+
             '<td style="padding:2px 6px;text-align:right">'+yuan(n.unit_price)+'</td>'+
             '<td style="padding:2px 6px;text-align:right">'+yuan(n.material_amount)+'</td>'+
-            '<td style="padding:2px 6px;text-align:right">'+yuan(n.labor_amount)+'</td>'+
+            '<td style="padding:2px 6px;text-align:right">'+yuan(n.labor_unit_price)+'</td>'+
+            treeLabCell(n)+
             '<td style="padding:2px 6px;text-align:right">'+yuan(n.expense_amount)+'</td>'+
-            '<td style="padding:2px 6px;text-align:right">'+yuan(n.line_total)+'</td></tr>';
+            treeTotalCell(n)+'</tr>';
           if(hasCh)renderNodes(n.children,(depth||0)+1);
         });
       })(prod.tree,0);
@@ -1617,14 +1680,14 @@ function renderTreeView(){
     '<div class="layer-card"><div class="ln">费用层</div><div class="lv" style="color:#f39c12;font-size:16px">'+yuan(t.expense)+'</div><div class="lp">制造费用</div></div>'+
     '<div class="layer-card"><div class="ln">计划总成本</div><div class="lv" style="color:#764ba2;font-size:16px">'+yuan(t.total)+'</div><div class="lp">毛利率 '+pct(t.gross_rate)+'</div></div>'+
     '</div>';
-  (d.warnings||[]).forEach(w=>html+='<div style="color:#f39c12;font-size:12px;padding:2px 0">⚠ '+esc(w)+'</div>');
+  (d.warnings||[]).forEach(w=>html+='<div style="color:#f39c12;font-size:12px;padding:2px 0"> '+esc(w)+'</div>');
   if(!prods.length){html+='<div class="em">无产品型号，无法展开 BOM</div>';box.innerHTML=html;return}
   prods.forEach((p,pi)=>{
     assignPaths(p.tree);
     const topCount=p.tree.length;
     let allCount=0;const flat=[];(function flatX(arr){arr.forEach(n=>{allCount++;flat.push(n);if(n.children&&n.children.length)flatX(n.children)})})(p.tree);
-    html+='<h4 style="margin:12px 0 6px;color:#444;font-size:13px">📦 ['+(pi+1)+'] '+esc(p.product_code)+' <small style="color:#888;font-weight:normal">'+esc(p.product_name||'')+'</small><span style="color:#888;font-weight:normal;font-size:12px"> ｜ 一级物料 '+topCount+' / 共 '+allCount+' 行 ｜ 物料 '+yuan(p.material)+' + 人工 '+yuan(p.labor)+' + 费用 '+yuan(p.expense)+' = <b style="color:#764ba2">'+yuan(p.total)+'</b></span></h4>';
-    html+='<div class="tbl-wrap" style="max-height:70vh"><table style="font-size:12px"><thead><tr><th>物料（按 BOM 层级缩进，点 ▼/▶ 展开）</th><th>属性</th><th class="r">BOM用量</th><th class="r">订单总量</th><th class="r">单价</th><th>来源</th><th class="r">物料成本</th><th class="r">采购确认成本</th><th class="r">实际成本</th><th class="r">人工成本</th><th class="r">费用成本</th><th class="r">行小计</th></tr></thead><tbody id="treeBody'+pi+'"></tbody></table></div>';
+    html+='<h4 style="margin:12px 0 6px;color:#444;font-size:13px"> ['+(pi+1)+'] '+esc(p.product_code)+' <small style="color:#888;font-weight:normal">'+esc(p.product_name||'')+'</small><span style="color:#888;font-weight:normal;font-size:12px"> ｜ 一级物料 '+topCount+' / 共 '+allCount+' 行 ｜ 物料 '+yuan(p.material)+' + 人工 '+yuan(p.labor)+' + 费用 '+yuan(p.expense)+' = <b style="color:#764ba2">'+yuan(p.total)+'</b></span></h4>';
+    html+='<div class="tbl-wrap" style="max-height:70vh"><table style="font-size:12px"><thead><tr><th>物料（按 BOM 层级缩进，点 / 展开）</th><th>属性</th><th class="r">BOM用量</th><th class="r">订单总量</th><th class="r">单价</th><th>来源</th><th class="r">物料成本</th><th class="r">采购确认成本</th><th class="r">实际成本</th><th class="r">人工成本</th><th class="r">费用成本</th><th class="r">行小计</th></tr></thead><tbody id="treeBody'+pi+'"></tbody></table></div>';
   });
   box.innerHTML=html;
   prods.forEach((p,pi)=>{
@@ -1638,7 +1701,7 @@ function renderNodeRow(n,pi){
   const visible=nodeVisible(n);
   const disp=visible?'':' style="display:none"';
   const pad='padding-left:'+(6+n.depth*20)+'px';
-  const tog=n.has_children?('<span onclick="toggleTreeNode(\''+n._path+'\')" style="cursor:pointer;margin-right:4px;color:#667eea;font-weight:700">'+(_treeExpanded[n._path]===false?'▶':'▼')+'</span>'):'<span style="display:inline-block;width:18px"></span>';
+  const tog=n.has_children?('<span onclick="toggleTreeNode(\''+n._path+'\')" style="cursor:pointer;margin-right:4px;color:#667eea;font-weight:700">'+(_treeExpanded[n._path]===false?'':'')+'</span>'):'<span style="display:inline-block;width:18px"></span>';
   const isSelf=(n.material_attr==='自制');
   const codeStyle=isSelf?'style="color:#8e44ad"':'';
   const bg=n.has_children?' style="background:#fafbff"':'';
@@ -1652,9 +1715,9 @@ function renderNodeRow(n,pi){
     '<td class="r">'+yuan(n.material_amount)+'</td>'+
     '<td class="r"><input type="number" step="0.01" value="'+(n.purchase_confirm_cost||n.material_amount)+'" onchange="updatePurchaseConfirmCost(this,\''+n._path+'\',this.value)" style="width:80px;text-align:right;border:1px solid #ddd;border-radius:3px;padding:2px 4px" title="采购确认成本（可修改）"></td>'+
     '<td class="r" style="color:#e74c3c">'+yuan(n.actual_cost||0)+'</td>'+
-    '<td class="r">'+yuan(n.labor_amount)+'</td>'+
+    treeLabCell(n)+
     '<td class="r">'+yuan(n.expense_amount)+'</td>'+
-    '<td class="r">'+yuan(n.line_total)+'</td>'+
+    treeTotalCell(n)+
     '</tr>';
 }
 function toggleTreeNode(path){
@@ -1670,7 +1733,7 @@ function toggleTreeNode(path){
       tr.style.display=vis?'':'none';
       if(n._path===path){
         const tog=tr.querySelector('span[onclick]');
-        if(tog)tog.textContent=(_treeExpanded[path]===false?'▶':'▼');
+        if(tog)tog.textContent=(_treeExpanded[path]===false?'':'');
       }
     });
   });
@@ -1703,7 +1766,7 @@ function refreshTreeDisplay(){
       if(!tr)return;
       tr.style.display=nodeVisible(n)?'':'none';
       const tog=tr.querySelector('span[onclick]');
-      if(tog&&n.has_children)tog.textContent=(_treeExpanded[n._path]===false?'▶':'▼');
+      if(tog&&n.has_children)tog.textContent=(_treeExpanded[n._path]===false?'':'');
     });
   });
 }
@@ -1820,7 +1883,7 @@ function pickTreeProd(code){
 // 同类订单比对
 async function loadSimilar(id){
   const panel=document.getElementById('simPanel');if(!panel){toast('请先打开详情');return}
-  panel.innerHTML='<h3>🔁 同类订单差异比对</h3><div class="em">比对中...</div>';
+  panel.innerHTML='<h3> 同类订单差异比对</h3><div class="em">比对中...</div>';
   try{
     const r=await fetch(API+'/similar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:id,min_score:20,limit:10})});
     const d=await r.json();const b=d.base_order;
@@ -1831,10 +1894,10 @@ async function loadSimilar(id){
       '<td class="r '+((m.diff.total||0)>0?'diff-pos':'diff-neg')+'">'+((m.diff.total||0)>=0?'+':'')+yuan(m.diff.total)+'</td>'+
       '<td class="r '+((m.diff.unit_total||0)>0?'diff-pos':'diff-neg')+'">'+((m.diff.unit_total||0)>=0?'+':'')+yuan(m.diff.unit_total)+'</td>'+
       '<td class="r"><b>'+esc(m.score)+'</b></td><td style="font-size:11px;color:#888">'+esc((m.reasons||[]).join('；'))+'</td></tr>').join('');
-    panel.innerHTML='<h3>🔁 同类订单差异比对（以当前订单为基准，命中 '+d.matched_count+' 单）</h3>'+
+    panel.innerHTML='<h3> 同类订单差异比对（以当前订单为基准，命中 '+d.matched_count+' 单）</h3>'+
       '<div style="font-size:12px;color:#666;margin-bottom:8px">基准：'+esc(b.order_no)+' 计划总成本 '+yuan(b.base_cost.total)+'，单件 '+yuan(b.base_cost.unit_total)+'，毛利率 '+pct(b.base_cost.gross_rate)+'</div>'+
       (rows?'<div class="tbl-wrap"><table><thead><tr><th>订单号</th><th>客户</th><th>产品</th><th class="r">数量</th><th class="r">计划成本</th><th class="r">毛利率</th><th class="r">总成本差异</th><th class="r">单件成本差异</th><th class="r">匹配分</th><th>命中原因</th></tr></thead><tbody>'+rows+'</tbody></table></div><div style="font-size:11px;color:#999;margin-top:6px">点击行可跳转到该订单详情</div>':'<div class="em">未找到同类订单（可降低匹配阈值或录入更多BOM）</div>');
-  }catch(e){panel.innerHTML='<h3>🔁 同类订单差异比对</h3><div class="em" style="color:#e74c3c">'+esc(e.message)+'</div>'}
+  }catch(e){panel.innerHTML='<h3> 同类订单差异比对</h3><div class="em" style="color:#e74c3c">'+esc(e.message)+'</div>'}
 }
 
 // 多维分析报表
@@ -1850,7 +1913,7 @@ async function loadReport(){
     const bars=(d.groups||[]).slice(0,12).map(x=>'<div class="hbar"><span class="lb" title="'+esc(x.name)+'">'+esc(x.name)+'</span><div class="track"><div class="fill" style="width:'+((x.order_amount/maxBar)*100)+'%;background:#667eea"></div></div><span class="val">'+yuan(x.order_amount)+'</span></div>').join('');
     box.innerHTML=
     '<div class="sg">'+card(t.order_count,'订单数','#667eea')+card(yuan(t.order_amount),'订单总额','#764ba2')+card(yuan(t.plan_cost),'计划成本合计','#2980b9')+card(yuan(t.actual_cost),'实际成本合计','#e67e22')+card(((t.variance||0)>=0?'+':'')+yuan(t.variance),'成本差异',(t.variance>0?'#e74c3c':'#27ae60'))+card(pct(t.gross_rate),'平均毛利率',(t.gross_rate>=0?'#16a085':'#e74c3c'))+'</div>'+
-    '<div class="panel"><h3>📈 '+esc(GLABEL)+'分布</h3>'+bars+'</div>'+
+    '<div class="panel"><h3> '+esc(GLABEL)+'分布</h3>'+bars+'</div>'+
     '<div class="panel"><h3>明细汇总</h3><div class="tbl-wrap"><table><thead><tr><th>'+esc(GLABEL)+'</th><th class="r">订单数</th><th class="r">订单金额</th><th class="r">计划成本</th><th class="r">实际成本</th><th class="r">差异</th><th class="r">毛利率</th><th class="r">超支单数</th><th class="r">单均金额</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr style="background:#f5f6fa;font-weight:700"><td>合计</td><td class="r">'+esc(t.order_count)+'</td><td class="r">'+yuan(t.order_amount)+'</td><td class="r">'+yuan(t.plan_cost)+'</td><td class="r">'+yuan(t.actual_cost)+'</td><td class="r '+((t.variance||0)>0?'diff-pos':'diff-neg')+'">'+((t.variance||0)>=0?'+':'')+yuan(t.variance)+'</td><td class="r">'+pct(t.gross_rate)+'</td><td class="r">-</td><td class="r">-</td></tr></tfoot></table></div></div>';
   }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
 }
@@ -1858,7 +1921,7 @@ function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+'">
 
 function exportCsv(){window.open(API+'/export/csv','_blank')}
 async function batchSyncDetails(){
-  if(!confirm('将对接外部 API（订单总控台）同步订单和明细：\n· 新订单行自动入库，已同步订单更新状态/数量/交期\n· 自动关联产品型号，并连分级 BOM 模版一起展开同步到订单明细\n确认执行？'))return;
+  if(!confirm('将对接外部 API（订单总控台）同步订单和明细：\n 新订单行自动入库，已同步订单更新状态/数量/交期\n 自动关联产品型号，并连分级 BOM 模版一起展开同步到订单明细\n确认执行？'))return;
   toast('正在对接外部 API 同步订单+明细及BOM模版（可能耗时数十秒）...');
   try{
     const r=await fetch('/api/external-api/sync-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply:true})});
@@ -1983,7 +2046,7 @@ function showAuditProgress(mode, count){
 function setAuditProgress(v){document.getElementById('auditProgressBar').style.width=v+'%';}
 function closeAuditCheck(){document.getElementById('auditModal').classList.remove('ac');}
 function _auditCard(n,l,c){return '<div style="background:#f5f6fa;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:'+c+'">'+(n==null?'-':n)+'</div><div style="font-size:11px;color:#888;margin-top:2px">'+l+'</div></div>'}
-function _auditLevel(level){const m={error:'<span style="color:#e74c3c">● 错误</span>',warning:'<span style="color:#f39c12">● 警告</span>',info:'<span style="color:#667eea">● 提示</span>'};return m[level]||esc(level)}
+function _auditLevel(level){const m={error:'<span style="color:#e74c3c"> 错误</span>',warning:'<span style="color:#f39c12"> 警告</span>',info:'<span style="color:#667eea"> 提示</span>'};return m[level]||esc(level)}
 function renderAuditCheck(d){
   _lastAuditData=d;
   var s=d.summary||{},ts=d.table_stats||{},ds=d.dashboard_sync||{};
@@ -2014,23 +2077,23 @@ function renderAuditCheck(d){
         '<td class="r" style="padding:7px">'+yuan(o.actual_total_cost)+'</td>'+
         '<td style="padding:7px">'+rvBadge(o.review_status)+'</td>'+
         '<td style="padding:7px">'+(o.error_count?'<span style="color:#e74c3c;font-weight:700">'+o.error_count+' 错</span> ':'')+(o.warning_count?'<span style="color:#f39c12">'+o.warning_count+' 警</span>':'')+'</td>'+
-        '<td style="padding:7px"><span id="auditrow-'+o.order_id+'" style="color:#667eea;font-size:12px">▼</span></td></tr>'+
+        '<td style="padding:7px"><span id="auditrow-'+o.order_id+'" style="color:#667eea;font-size:12px"></span></td></tr>'+
         '<tr id="auditdet-'+o.order_id+'" style="display:none"><td colspan="9" style="padding:8px 12px;background:#fafbfe">'+
         ckItems.map(function(c){return '<div style="padding:3px 0;font-size:12px">'+_auditLevel(c.level)+' <b>'+esc(c.name)+'：</b>'+esc(c.message)+'</div>'}).join('')+
         '</td></tr>';
     });
   }
-  var checkAllBtn = d.scope==='page' ? '<button class="btn b4" style="background:#e74c3c;color:#fff;margin-bottom:8px" onclick="closeAuditCheck();runAuditCheck(\'all\')">🔍 检查全部订单（耗时较长）</button>' : '';
+  var checkAllBtn = d.scope==='page' ? '<button class="btn b4" style="background:#e74c3c;color:#fff;margin-bottom:8px" onclick="closeAuditCheck();runAuditCheck(\'all\')"> 检查全部订单（耗时较长）</button>' : '';
   // 导出 + 通知按钮
-  var exportBtn = '<button class="btn bs" style="font-size:11px;padding:3px 10px;background:#27ae60;color:#fff;margin-bottom:8px;margin-left:6px" onclick="exportAuditResult()">📥 导出检查结果</button>';
-  var notifyBtn = '<button class="btn bs" style="font-size:11px;padding:3px 10px;background:#667eea;color:#fff;margin-bottom:8px;margin-left:6px" onclick="openAuditNotify()">📨 通知相关人员</button>';
+  var exportBtn = '<button class="btn bs" style="font-size:11px;padding:3px 10px;background:#27ae60;color:#fff;margin-bottom:8px;margin-left:6px" onclick="exportAuditResult()"> 导出检查结果</button>';
+  var notifyBtn = '<button class="btn bs" style="font-size:11px;padding:3px 10px;background:#667eea;color:#fff;margin-bottom:8px;margin-left:6px" onclick="openAuditNotify()"> 通知相关人员</button>';
   document.getElementById('auditBody').innerHTML=cards+checkAllBtn+exportBtn+notifyBtn+dashHtml+'<div style="font-size:13px;margin:10px 0 6px"><b>订单明细检查</b> <span style="color:#888;font-size:12px">（共 '+orders.length+' 单，有问题的 '+oRows.length+' 单）</span></div><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa"><th style="padding:6px;text-align:left">订单号</th><th style="padding:6px;text-align:left">客户</th><th style="padding:6px;text-align:left">产品</th><th class="r" style="padding:6px">订单金额</th><th class="r" style="padding:6px">计划成本</th><th class="r" style="padding:6px">实际成本</th><th style="padding:6px">审核状态</th><th style="padding:6px">问题</th><th style="padding:6px"></th></tr></thead><tbody>'+rowsHtml+'</tbody></table>';
   document.getElementById('auditMeta').textContent='检查时间：'+esc(d.generated_at||'');
 }
 function toggleAuditRow(orderId){
   var det=document.getElementById('auditdet-'+orderId);
   var tg=document.getElementById('auditrow-'+orderId);
-  if(det){det.style.display=det.style.display==='none'?'':'none';if(tg)tg.textContent=det.style.display==='none'?'▼':'▲';}
+  if(det){det.style.display=det.style.display==='none'?'':'none';if(tg)tg.innerHTML=det.style.display==='none'?'':EBMSIcons.render('chevron',{size:'xs',decorative:true});}
 }
 
 // 缓存检查结果供导出/通知使用
@@ -2087,7 +2150,7 @@ async function openAuditNotify(){
   var s=d.summary||{};
   var problemOrders=(d.orders||[]).filter(function(o){return o.error_count>0||o.warning_count>0;});
   // 生成通知摘要
-  var summary='📋 订单检查报告\n';
+  var summary=' 订单检查报告\n';
   summary+='时间：'+(d.generated_at||'')+'\n';
   summary+='范围：'+(d.scope==='page'?'当前页':'全部')+' '+s.total_orders+' 单\n';
   summary+='结果：'+s.error_orders+' 单有错误，'+s.warning_orders+' 单有警告\n';
@@ -2114,7 +2177,7 @@ async function openAuditNotify(){
     '<button class="btn bs" style="background:#eee;color:#555" onclick="closeAuditNotify()">取消</button>'+
     '<button class="btn b2" onclick="sendAuditNotify()">发送通知</button></div>';
   // 复制按钮
-  html+='<button class="btn bs" style="font-size:10px;padding:2px 8px;background:#e8f4fd;color:#276b8e;width:100%;margin-top:6px" onclick="var t=document.getElementById(\'auditNotifyText\');t.select();document.execCommand(\'copy\');toast(\'已复制到剪贴板\')">📋 复制到剪贴板</button>';
+  html+='<button class="btn bs" style="font-size:10px;padding:2px 8px;background:#e8f4fd;color:#276b8e;width:100%;margin-top:6px" onclick="var t=document.getElementById(\'auditNotifyText\');t.select();document.execCommand(\'copy\');toast(\'已复制到剪贴板\')"> 复制到剪贴板</button>';
   document.getElementById('auditNotifyBody').innerHTML=html;
   document.getElementById('auditNotifyModal').classList.add('ac');
   // 加载群聊列表
@@ -2149,7 +2212,7 @@ async function sendAuditNotify(){
       if(r.ok)sent++;else failed++;
     }catch(e){failed++;}
   }
-  document.getElementById('notifyResult').innerHTML='<span style="color:'+(failed?'#f39c12':'#27ae60')+'">✓ 已发送到 '+sent+' 个群聊'+(failed?'，'+failed+'个失败':'')+'</span>';
+  document.getElementById('notifyResult').innerHTML='<span style="color:'+(failed?'#f39c12':'#27ae60')+'"> 已发送到 '+sent+' 个群聊'+(failed?'，'+failed+'个失败':'')+'</span>';
   if(!failed)setTimeout(function(){closeAuditNotify();},1500);
 }
 
@@ -2204,7 +2267,7 @@ function applyCostImport(){
   if(labEl)labEl.value=Math.round(totalLab*100)/100;
   if(expEl)expEl.value=Math.round(totalExp*100)/100;
   onPlanCostEdit(oid);
-  document.getElementById('costImportResult').innerHTML='<span style="color:#27ae60">✓ 已导入 '+applied+' 行，物料 ¥'+Math.round(totalMat*100)/100+' / 人工 ¥'+Math.round(totalLab*100)/100+' / 费用 ¥'+Math.round(totalExp*100)/100+'</span>';
+  document.getElementById('costImportResult').innerHTML='<span style="color:#27ae60"> 已导入 '+applied+' 行，物料 ¥'+Math.round(totalMat*100)/100+' / 人工 ¥'+Math.round(totalLab*100)/100+' / 费用 ¥'+Math.round(totalExp*100)/100+'</span>';
   setTimeout(function(){closeCostImport();},800);
 }
 async function clearProduct(orderId){
@@ -2288,7 +2351,7 @@ async function clearOrderDetails(orderId){
     toast('已清除 '+d.deleted+' 行 BOM 明细');
     // 刷新展开
     const tg=document.getElementById('tg-'+orderId);
-    if(tg&&tg.textContent==='▼'){tg.textContent='▶';delete _ordExpData[orderId];}
+    if(tg&&tg.textContent===''){tg.textContent='';delete _ordExpData[orderId];}
     loadStatCards();loadList(curPage);
   }catch(e){toast('操作失败: '+e.message)}
 }
@@ -2313,7 +2376,7 @@ doAssign=async function(productCode){
       closeAssign();_addProductOrderId=null;
       // 刷新展开
       const tg=document.getElementById('tg-'+oid);
-      if(tg&&tg.textContent==='▼'){
+      if(tg&&tg.textContent===''){
         await toggleOrderExpand(oid); // 重新展开
       }
       loadStatCards();loadList(curPage);
@@ -2344,7 +2407,7 @@ async function removeOrderProduct(orderId,productCode){
     const dd=await dr.json();if(!dr.ok){toast(dd.error||'移除失败');return}
     toast('产品已移除');
     const tg=document.getElementById('tg-'+orderId);
-    if(tg&&tg.textContent==='▼'){tg.textContent='▶';delete _ordExpData[orderId];}
+    if(tg&&tg.textContent===''){tg.textContent='';delete _ordExpData[orderId];}
     loadStatCards();loadList(curPage);
   }catch(e){toast('移除失败: '+e.message)}
 }
@@ -2392,7 +2455,7 @@ async function loadIssues(){
 function renderIssues(){
   const tb=document.getElementById('issTb');
   const total=_issAll.length;
-  if(!total){tb.innerHTML='<tr><td colspan="8" class="em">暂无待办问题（在订单审核台点击「🔍 检查分析」或「运行自检」生成数据）</td></tr>';document.getElementById('issPg').innerHTML='';return;}
+  if(!total){tb.innerHTML='<tr><td colspan="8" class="em">暂无待办问题（在订单审核台点击「 检查分析」或「运行自检」生成数据）</td></tr>';document.getElementById('issPg').innerHTML='';return;}
   const start=(_issPage-1)*_issPs,end=Math.min(start+_issPs,total);
   const rows=_issAll.slice(start,end);
   tb.innerHTML=rows.map(i=>{
@@ -2481,8 +2544,8 @@ async function runOrderSelfCheck(){
 }
 
 // 初始化
-// 默认显示当年订单 + 排除样品单
-(function(){var d=new Date();document.getElementById('f_date_from').value=d.getFullYear()+'-01-01';})();
+// 默认显示最近 2 个月订单 + 排除样品单（减少首屏数据量，加快打开速度）
+(function(){var d=new Date();var f=new Date(d.getFullYear(),d.getMonth()-2,d.getDate());function pad(n){return n<10?'0'+n:''+n}document.getElementById('f_date_from').value=f.getFullYear()+'-'+pad(f.getMonth()+1)+'-'+pad(f.getDate());document.getElementById('f_date_to').value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());})();
 loadFilterOpts().then(()=>{loadStatCards();loadList(1)});
 ensurePersonnel();
 // URL hash 跳转
@@ -2503,7 +2566,7 @@ ensurePersonnel();
 <div class="mo" id="auditModal">
 <div class="mb" style="width:980px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<h3 style="margin:0">🔍 订单一键检查</h3>
+<h3 style="margin:0"> 订单一键检查</h3>
 <div style="display:flex;align-items:center;gap:10px">
 <span id="auditMeta" style="font-size:12px;color:#888"></span>
 <span style="cursor:pointer;font-size:20px;color:#999" onclick="closeAuditCheck()">×</span>
@@ -2515,7 +2578,7 @@ ensurePersonnel();
 
 <div class="mo" id="auditProgress">
 <div class="mb" style="width:440px;text-align:center">
-<h3 style="margin:0 0 16px">🔍 正在检查订单数据</h3>
+<h3 style="margin:0 0 16px"> 正在检查订单数据</h3>
 <p id="auditProgressText" style="color:#888;font-size:13px;margin-bottom:16px">请稍候...</p>
 <div style="background:#edf0f7;border-radius:8px;height:14px;overflow:hidden">
 <div id="auditProgressBar" style="background:linear-gradient(90deg,#667eea,#764ba2);height:100%;width:0%;border-radius:8px;transition:width 0.3s ease"></div>
@@ -2526,7 +2589,7 @@ ensurePersonnel();
 <div class="mo" id="costImportModal">
 <div class="mb" style="width:620px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<h3 style="margin:0">📥 导入计划成本</h3>
+<h3 style="margin:0"> 导入计划成本</h3>
 <span style="cursor:pointer;font-size:20px;color:#999" onclick="closeCostImport()">×</span>
 </div>
 <div id="costImportBody"></div>
@@ -2536,7 +2599,7 @@ ensurePersonnel();
 <div class="mo" id="rateImportModal">
 <div class="mb" style="width:620px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<h3 style="margin:0">📥 导入产品工价</h3>
+<h3 style="margin:0"> 导入产品工价</h3>
 <span style="cursor:pointer;font-size:20px;color:#999" onclick="closeRateImport()">×</span>
 </div>
 <div id="rateImportBody"></div>
@@ -2546,7 +2609,7 @@ ensurePersonnel();
 <div class="mo" id="auditNotifyModal">
 <div class="mb" style="width:600px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<h3 style="margin:0">📨 通知相关人员</h3>
+<h3 style="margin:0"> 通知相关人员</h3>
 <span style="cursor:pointer;font-size:20px;color:#999" onclick="closeAuditNotify()">×</span>
 </div>
 <div id="auditNotifyBody"></div>
@@ -2554,5 +2617,6 @@ ensurePersonnel();
 </div>
 
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

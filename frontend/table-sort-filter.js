@@ -41,9 +41,12 @@ const TableSortFilter = {
     style.id = 'tsf-styles';
     style.textContent = `
       .tsf-sortable { cursor: pointer; user-select: none; position: relative; padding-right: 18px !important; }
-      .tsf-sortable::after { content: '⇅'; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #bbb; }
-      .tsf-sort-asc::after { content: '↑'; color: #667eea; font-weight: bold; }
-      .tsf-sort-desc::after { content: '↓'; color: #667eea; font-weight: bold; }
+      .tsf-sortable::after { content: ''; }
+      .ebms-sort-indicator { display:inline-flex; width:var(--icon-xs,14px); height:var(--icon-xs,14px); margin-left:4px; vertical-align:middle; color:#bbb; }
+      .tsf-sort-asc .ebms-sort-indicator { color:#667eea; transform:rotate(180deg); }
+      .tsf-sort-desc .ebms-sort-indicator { color:#667eea; transform:rotate(0deg); }
+      .tsf-sort-asc::after { content: ''; color: #667eea; font-weight: bold; }
+      .tsf-sort-desc::after { content: ''; color: #667eea; font-weight: bold; }
       .tsf-filter-row td { padding: 3px 4px !important; background: #f5f6fa !important; border-bottom: 2px solid #e0e3eb !important; }
       .tsf-filter-input { width: 100%; padding: 4px 6px; border: 1px solid #dcdfe6; border-radius: 3px; font-size: 12px; background: #fff; transition: border-color 0.2s; }
       .tsf-filter-input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 2px rgba(102,126,234,0.15); }
@@ -63,6 +66,12 @@ const TableSortFilter = {
       if (field) {
         th.classList.add('tsf-sortable');
         th.dataset.sortField = field;
+        if (!th.querySelector('.ebms-sort-indicator') && window.EBMSIcons) {
+          const indicator = document.createElement('span');
+          indicator.className = 'ebms-sort-indicator';
+          indicator.innerHTML = EBMSIcons.render('chevron', { size: 'xs', decorative: true });
+          th.appendChild(indicator);
+        }
         th.addEventListener('click', () => this._handleSort(instance, idx, field));
       }
     });

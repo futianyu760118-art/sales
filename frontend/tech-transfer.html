@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 项目技转管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 项目技转管理</title><link rel="stylesheet" href="common.css">
 <style>
 .sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
@@ -256,7 +257,7 @@ async function loadDocs(page){
       <td><span class="doc-link" onclick="viewDoc(${s.id})">${esc(s.title)}</span></td>
       <td>${catMap[s.category]||s.category||'-'}</td>
       <td><span class="badge lv${s.level}">${levelMap[s.level]||s.level}</span></td>
-      <td><span class="badge ${stageCls}">${stageLabel}</span>${stage==='approved'?'<div class="tip" style="margin-top:2px;color:#27ae60">☑ 已署名</div>':''}</td>
+      <td><span class="badge ${stageCls}">${stageLabel}</span>${stage==='approved'?'<div class="tip" style="margin-top:2px;color:#27ae60"> 已署名</div>':''}</td>
       <td>${esc(s.project_no||s.customer_name||'-')}</td>
       <td>${esc(s.version||'')}</td>
       <td>${esc(s.uploaded_by||'-')}</td>
@@ -361,10 +362,10 @@ async function viewDoc(id){
     <div class="detail-section"><h4>审批署名</h4>
       <div style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:12px">
         <div style="display:flex;gap:18px;flex-wrap:wrap">
-          <span><b>部门经理：</b>${d.dept_status==='approved'?'<span style="color:#27ae60">☑ '+esc(d.dept_by)+'</span>':d.dept_status==='rejected'?'<span style="color:#e74c3c">✗ 驳回</span>':'<span style="color:#999">待审核</span>'} ${d.dept_at?'('+esc(d.dept_at.substring(0,10))+')':''}</span>
-          <span><b>总经理：</b>${d.gm_status==='approved'?'<span style="color:#27ae60">☑ '+esc(d.gm_by)+'</span>':d.gm_status==='rejected'?'<span style="color:#e74c3c">✗ 驳回</span>':'<span style="color:#999">待批准</span>'} ${d.gm_at?'('+esc(d.gm_at.substring(0,10))+')':''}</span>
+          <span><b>部门经理：</b>${d.dept_status==='approved'?'<span style="color:#27ae60"> '+esc(d.dept_by)+'</span>':d.dept_status==='rejected'?'<span style="color:#e74c3c"> 驳回</span>':'<span style="color:#999">待审核</span>'} ${d.dept_at?'('+esc(d.dept_at.substring(0,10))+')':''}</span>
+          <span><b>总经理：</b>${d.gm_status==='approved'?'<span style="color:#27ae60"> '+esc(d.gm_by)+'</span>':d.gm_status==='rejected'?'<span style="color:#e74c3c"> 驳回</span>':'<span style="color:#999">待批准</span>'} ${d.gm_at?'('+esc(d.gm_at.substring(0,10))+')':''}</span>
         </div>
-        ${d.approval_stage==='approved'?'<div style="margin-top:8px;color:#155724">☑ 文件已批准署名'+(d.file_signed_path?'（PDF署名版已生成，下载/预览即为署名版）':'（非PDF文件，署名信息已记录）')+'</div>':''}
+        ${d.approval_stage==='approved'?'<div style="margin-top:8px;color:#155724"> 文件已批准署名'+(d.file_signed_path?'（PDF署名版已生成，下载/预览即为署名版）':'（非PDF文件，署名信息已记录）')+'</div>':''}
         ${d.dept_note?'<div style="margin-top:6px;color:#666">部门经理意见：'+esc(d.dept_note)+'</div>':''}
         ${d.gm_note?'<div style="margin-top:4px;color:#666">总经理意见：'+esc(d.gm_note)+'</div>':''}
       </div>
@@ -424,7 +425,7 @@ async function doApprove(id,level,action){
   const note=document.getElementById('apNote').value;
   const r=await fetch(API+'/documents/'+id+'/approve',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({level,action,note})});
   const d=await r.json();
-  if(r.ok){closeMo();loadDocs(1);loadDocStats();alert(d.message+(d.signed?'\n☑ PDF已生成署名版':''));}
+  if(r.ok){closeMo();loadDocs(1);loadDocStats();alert(d.message+(d.signed?'\n PDF已生成署名版':''));}
   else alert(d.error||'操作失败');
 }
 async function doAudit(id){
@@ -806,6 +807,7 @@ loadDocs(1);
 })();
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 </body></html>

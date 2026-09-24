@@ -1,151 +1,144 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EBMS企业经营管理系统</title>
+  <link rel="stylesheet" href="common.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    body.login-page { min-height: 100vh; background: #f5f7fb; }
+    .login-layout { min-height: 100vh; display: grid; grid-template-columns: minmax(420px, 1fr) minmax(440px, 520px); }
+    .login-visual { position: relative; display: flex; align-items: flex-end; padding: 8vw; overflow: hidden; background: #172033; color: #fff; }
+    .login-visual::before, .login-visual::after { content: ""; position: absolute; border: 1px solid rgba(147,197,253,.16); border-radius: 50%; }
+    .login-visual::before { width: 620px; height: 620px; right: -260px; top: -190px; }
+    .login-visual::after { width: 420px; height: 420px; right: -160px; top: -90px; }
+    .login-visual-content { position: relative; z-index: 1; max-width: 520px; }
+    .login-kicker { display: inline-flex; align-items: center; gap: 8px; color: #93c5fd; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    .login-kicker::before { content: ""; width: 24px; height: 2px; background: #60a5fa; }
+    .login-visual h1 { margin-top: 18px; font-size: clamp(34px, 4vw, 58px); line-height: 1.08; letter-spacing: -.04em; }
+    .login-visual p { margin-top: 18px; color: #b8c3d2; font-size: 15px; line-height: 1.8; }
+    .login-flow { display: flex; align-items: center; gap: 12px; margin-top: 34px; color: #dbeafe; font-size: 12px; }
+    .login-flow span { padding: 7px 10px; border: 1px solid rgba(147,197,253,.2); border-radius: 5px; background: rgba(255,255,255,.04); }
+    .login-flow i { color: #64748b; font-style: normal; }
+    .login-panel { display: flex; align-items: center; justify-content: center; padding: 40px; background: #fff; }
+    .login-box { width: 100%; max-width: 360px; }
+    .login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 42px; }
+    .login-logo { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 8px; background: #2563eb; color: #fff; font-size: 18px; font-weight: 800; letter-spacing: -.04em; }
+    .login-brand strong { display: block; color: var(--text-primary); font-size: 16px; }
+    .login-brand span { display: block; margin-top: 3px; color: var(--text-tertiary); font-size: 11px; }
+    .login-heading h2 { color: var(--text-primary); font-size: 24px; letter-spacing: -.03em; }
+    .login-heading p { margin-top: 7px; color: var(--text-secondary); font-size: 13px; }
+    .login-form { margin-top: 28px; }
+    .login-form .form-group { margin-bottom: 18px; }
+    .login-form label { display: block; margin-bottom: 7px; color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+    .login-input-wrap { position: relative; }
+    .login-form input { width: 100%; height: 42px; padding: 0 40px 0 12px; border: 1px solid var(--border-default); border-radius: 6px; background: #fff; color: var(--text-primary); font-size: 13px; }
+    .login-form input::placeholder { color: #aab4c2; }
+    .login-form input:focus { border-color: #93c5fd; outline: 0; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .password-toggle { position: absolute; top: 0; right: 0; width: 40px; height: 42px; border: 0; background: transparent; color: var(--text-tertiary); cursor: pointer; }
+    .password-toggle:hover { color: var(--color-primary); }
+    .login-submit { width: 100%; height: 42px; margin-top: 4px; border: 0; border-radius: 6px; background: var(--color-primary); color: #fff; cursor: pointer; font-size: 13px; font-weight: 650; transition: background .18s ease; }
+    .login-submit:hover { background: var(--color-primary-hover); }
+    .login-submit:disabled { background: #93c5fd; cursor: wait; }
+    .login-error { min-height: 20px; margin-top: 12px; color: var(--color-danger); font-size: 12px; line-height: 1.5; }
+    .login-help { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--border-default); color: var(--text-tertiary); font-size: 11px; line-height: 1.7; }
+    @media (max-width: 860px) {
+      .login-layout { display: block; }
+      .login-visual { min-height: 260px; padding: 40px 28px; }
+      .login-visual h1 { font-size: 34px; }
+      .login-flow { margin-top: 20px; }
+      .login-panel { min-height: calc(100vh - 260px); padding: 36px 24px; }
     }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-    }
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .login-box {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-      width: 100%;
-      max-width: 400px;
-    }
-    .login-box h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 30px;
-      font-size: 24px;
-    }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: #555;
-      font-weight: 500;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 12px 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s;
-    }
-    .form-group input:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.3s;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-    .btn:hover {
-      opacity: 0.9;
-    }
-    .error-message {
-      color: #e74c3c;
-      text-align: center;
-      margin-top: 15px;
-      font-size: 14px;
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .logo img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
+    @media (max-width: 480px) { .login-flow { display: none; } .login-visual { min-height: 220px; } .login-panel { min-height: calc(100vh - 220px); } }
   </style>
 </head>
-<body>
-  <div class="login-container">
-    <div class="login-box">
-      <div class="logo">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23667eea'/%3E%3Ctext x='50' y='58' text-anchor='middle' fill='white' font-size='30' font-weight='bold'%3E%E9%94%80%3C/text%3E%3C/svg%3E" alt="Logo">
+<body class="login-page">
+  <main class="login-layout">
+    <section class="login-visual" aria-label="平台介绍">
+      <div class="login-visual-content">
+        <div class="login-kicker">Enterprise Business Management System</div>
+        <h1>让经营<br>变得可见。</h1>
+        <p>从目标、数据与差距出发，连接决策、行动和结果。<br>为每一个管理岗位提供清晰的经营工作台。</p>
+        <div class="login-flow" aria-label="经营闭环">
+          <span>目标</span><i>→</i><span>数据</span><i>→</i><span>决策</span><i>→</i><span>行动</span>
+        </div>
       </div>
-      <h1 id="loginTitle">EBMS企业经营管理系统</h1>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="username">用户名</label>
-          <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+    </section>
+    <section class="login-panel">
+      <div class="login-box">
+        <div class="login-brand">
+          <div class="login-logo" aria-hidden="true">EB</div>
+          <div><strong id="loginBrandName">EBMS企业经营管理系统</strong><span>Enterprise Business Management System</span></div>
         </div>
-        <div class="form-group">
-          <label for="password">密码</label>
-          <input type="password" id="password" name="password" placeholder="请输入密码" required>
+        <div class="login-heading">
+          <h2>登录企业工作空间</h2>
+          <p>使用你的账号进入经营驾驶舱</p>
         </div>
-        <button type="submit" class="btn btn-primary">登录</button>
-      </form>
-      <div id="errorMessage" class="error-message"></div>
-    </div>
-  </div>
+        <form id="loginForm" class="login-form" novalidate>
+          <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" name="username" placeholder="请输入用户名" autocomplete="username" required>
+          </div>
+          <div class="form-group">
+            <label for="password">密码</label>
+            <div class="login-input-wrap">
+              <input type="password" id="password" name="password" placeholder="请输入密码" autocomplete="current-password" required>
+              <button type="button" class="password-toggle" id="passwordToggle" aria-label="显示密码" title="显示/隐藏密码"></button>
+            </div>
+          </div>
+          <button type="submit" class="login-submit" id="loginSubmit">登录</button>
+          <div id="errorMessage" class="login-error" role="alert" aria-live="polite"></div>
+        </form>
+        <div class="login-help">登录遇到问题？请联系系统管理员或检查网络连接。</div>
+      </div>
+    </section>
+  </main>
 
   <script src="brand.js"></script>
   <script>
-    window.EBMS && window.EBMS.load().then(function(b){
-      document.title = b.fullName();
-      var el = document.getElementById('loginTitle'); if (el) el.textContent = b.fullName();
+    window.EBMS && window.EBMS.load().then(function (brand) {
+      document.title = brand.fullName();
+      var el = document.getElementById('loginBrandName');
+      if (el) el.textContent = brand.fullName();
     });
-  </script>
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      
-      const response = await fetch(`${window.location.origin}/api/users/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
+
+    (function () {
+      var form = document.getElementById('loginForm');
+      var password = document.getElementById('password');
+      var toggle = document.getElementById('passwordToggle');
+      var submit = document.getElementById('loginSubmit');
+      var error = document.getElementById('errorMessage');
+      toggle.addEventListener('click', function () {
+        var visible = password.type === 'text';
+        password.type = visible ? 'password' : 'text';
+        toggle.setAttribute('aria-label', visible ? '显示密码' : '隐藏密码');
+        toggle.textContent = visible ? '' : '';
       });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('currentUserId', data.user.id);
-        localStorage.setItem('currentUser', data.user.username);
-        localStorage.setItem('authToken', data.token);
-        window.location.href = 'dashboard.html';
-      } else {
-        document.getElementById('errorMessage').textContent = data.error;
-      }
-    });
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        error.textContent = '';
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        submit.disabled = true;
+        submit.textContent = '正在登录…';
+        try {
+          var response = await fetch(window.location.origin + '/api/users/login', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: document.getElementById('username').value.trim(), password: password.value })
+          });
+          var data = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw new Error(data.error || '登录失败，请检查用户名和密码');
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('currentUserId', data.user.id);
+          localStorage.setItem('currentUser', data.user.username);
+          window.location.href = 'dashboard.html';
+        } catch (err) {
+          error.textContent = err && err.message ? err.message : '网络异常，请稍后重试';
+          submit.disabled = false;
+          submit.textContent = '登录';
+        }
+      });
+    })();
   </script>
 </body>
 </html>

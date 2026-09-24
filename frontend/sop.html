@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统- S&OP产销协调会</title><script src="fetch-auth.js"></script>
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统- S&OP产销协调会</title><script src="fetch-auth.js"></script>
 <link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
@@ -78,10 +79,10 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
 <h2>S&OP 产销协调会</h2>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-<span style="font-size:13px;color:#666">📅 周期：</span>
+<span style="font-size:13px;color:#666"> 周期：</span>
 <select id="gPeriod" onchange="setGlobalPeriod()" style="padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px"></select>
-<button class="btn b3" onclick="runAlertEngine()">▶ 运行预警引擎</button>
-<button class="btn b4" onclick="runSelfCheck()">▶ 每周自检</button>
+<button class="btn b3" onclick="runAlertEngine()"> 运行预警引擎</button>
+<button class="btn b4" onclick="runSelfCheck()"> 每周自检</button>
 </div>
 </div>
 
@@ -104,36 +105,36 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 <!-- ===== 驾驶舱：本月复盘 → 下月预测 → 规划调整 ===== -->
 <div class="tc ac" id="tab-dash">
 <div class="panel" style="background:#f0f4ff;border:1px solid #dbe4ff">
-<b>🔗 产销协调会相互关系：</b><span style="color:#555">本月实绩（EBMS订单/交付/KPI）</span> → <b style="color:#667eea">下月预测（订单管线+预测）</b> → <b style="color:#27ae60">规划调整（生产/采购/产能/行动）</b> → 会议决议/待办闭环。EBMS 真实数据同时喂给 PSI、预测、供应各表单。
+<b> 产销协调会相互关系：</b><span style="color:#555">本月实绩（EBMS订单/交付/KPI）</span> → <b style="color:#667eea">下月预测（订单管线+预测）</b> → <b style="color:#27ae60">规划调整（生产/采购/产能/行动）</b> → 会议决议/待办闭环。EBMS 真实数据同时喂给 PSI、预测、供应各表单。
 </div>
 
-<div class="panel"><h3>📋 本月复盘 · 公司这个月做得怎么样 <span id="rvPeriod" style="font-size:12px;color:#999;font-weight:400"></span></h3>
+<div class="panel"><h3> 本月复盘  公司这个月做得怎么样 <span id="rvPeriod" style="font-size:12px;color:#999;font-weight:400"></span></h3>
 <div class="sg" id="rvCards"></div>
 <div class="grid2">
 <div><h4 style="margin:6px 0">本月重点产品需求（BOM）</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>名称</th><th>数量</th><th>金额</th><th>单数</th></tr></thead><tbody id="rvProdBody"></tbody></table></div></div>
-<div><h4 style="margin:6px 0">⚠️ 逾期未交付订单</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>订单号</th><th>客户</th><th>逾期天</th><th>数量</th><th>已完成</th></tr></thead><tbody id="rvOverdueBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0">️ 逾期未交付订单</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>订单号</th><th>客户</th><th>逾期天</th><th>数量</th><th>已完成</th></tr></thead><tbody id="rvOverdueBody"></tbody></table></div></div>
 </div>
 </div>
 
-<div class="panel"><h3>🔮 下月预测 · 接下来一个月做什么 <span id="fcP" style="font-size:12px;color:#999;font-weight:400"></span></h3>
+<div class="panel"><h3> 下月预测  接下来一个月做什么 <span id="fcP" style="font-size:12px;color:#999;font-weight:400"></span></h3>
 <div class="sg" id="fcNextCards"></div>
 <div class="grid2">
 <div><h4 style="margin:6px 0">下月重点产品（订单管线）</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>名称</th><th>客户</th><th>数量</th><th>金额</th></tr></thead><tbody id="fcProdBody"></tbody></table></div></div>
 <div><h4 style="margin:6px 0">下月重点客户</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>客户</th><th>金额</th></tr></thead><tbody id="fcCustBody"></tbody></table></div></div>
 </div>
-<div class="panel" style="background:#f8f9fa"><h4 style="margin:4px 0">✅ 推荐预测量（锁定订单 + 已有预测合并，供 PSI/预测/供应共享）</h4>
+<div class="panel" style="background:#f8f9fa"><h4 style="margin:4px 0"> 推荐预测量（锁定订单 + 已有预测合并，供 PSI/预测/供应共享）</h4>
 <div class="tbl-wrap" style="max-height:20vh"><table><thead><tr><th>BOM编码</th><th>名称</th><th>锁定订单</th><th>已有预测</th><th>合计预测量</th><th>来源</th></tr></thead><tbody id="fcRecBody"></tbody></table></div></div>
 </div>
 
-<div class="panel"><h3>🔧 规划调整 · 根据下月预测调整计划</h3>
+<div class="panel"><h3> 规划调整  根据下月预测调整计划</h3>
 <div class="grid2">
-<div><h4 style="margin:6px 0">🏭 生产计划建议（PSI M+1：需求+安全库存-期初）</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>产品</th><th>期初</th><th>下月需求</th><th>安全库存</th><th>建议生产</th><th>期末</th></tr></thead><tbody id="planProdBody"></tbody></table></div></div>
+<div><h4 style="margin:6px 0"> 生产计划建议（PSI M+1：需求+安全库存-期初）</h4><div class="tbl-wrap" style="max-height:24vh"><table><thead><tr><th>产品</th><th>期初</th><th>下月需求</th><th>安全库存</th><th>建议生产</th><th>期末</th></tr></thead><tbody id="planProdBody"></tbody></table></div></div>
 <div>
-<h4 style="margin:6px 0">🛒 供应/采购（齐套风险）</h4><div id="planSupply" style="font-size:13px"></div>
-<h4 style="margin:8px 0 4px">🏭 产能负荷（下月，&gt;85% 标红）</h4><div class="tbl-wrap" style="max-height:16vh"><table><thead><tr><th>产线</th><th>月份</th><th>可用天</th><th>负荷率</th><th>瓶颈</th></tr></thead><tbody id="planCapBody"></tbody></table></div>
+<h4 style="margin:6px 0"> 供应/采购（齐套风险）</h4><div id="planSupply" style="font-size:13px"></div>
+<h4 style="margin:8px 0 4px"> 产能负荷（下月，&gt;85% 标红）</h4><div class="tbl-wrap" style="max-height:16vh"><table><thead><tr><th>产线</th><th>月份</th><th>可用天</th><th>负荷率</th><th>瓶颈</th></tr></thead><tbody id="planCapBody"></tbody></table></div>
 </div>
 </div>
-<div class="panel" style="background:#fff5f5;border:1px solid #ffcdd2;margin-top:10px"><h4 style="margin:0 0 6px">⛔ 本月红灯KPI → 下月需制定对策</h4><div id="planRedBody"></div></div>
+<div class="panel" style="background:#fff5f5;border:1px solid #ffcdd2;margin-top:10px"><h4 style="margin:0 0 6px"> 本月红灯KPI → 下月需制定对策</h4><div id="planRedBody"></div></div>
 </div>
 </div>
 
@@ -152,10 +153,10 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 <div class="tc" id="tab-psi">
 <div class="sb">
 <select id="psiHeader" onchange="loadPsi()"></select>
-<button class="btn b5 bs" onclick="rollForward()">⏩ 滚动刷新(M+2→M+1)</button>
-<button class="btn b2 bs" onclick="savePsi()">💾 保存修改</button>
+<button class="btn b5 bs" onclick="rollForward()"> 滚动刷新(M+2→M+1)</button>
+<button class="btn b2 bs" onclick="savePsi()"> 保存修改</button>
 <button class="btn b5 bs" onclick="addBomProductToPsi()">＋ 从BOM添加产品</button>
-<button class="btn b2 bs" onclick="prefillPsi()">📥 从EBMS订单预填销售计划</button>
+<button class="btn b2 bs" onclick="prefillPsi()"> 从EBMS订单预填销售计划</button>
 <span style="color:#999;font-size:12px">期末=期初+生产-销售，红黄绿自动计算；预填=本月实订单→M，下月实订单→M+1</span>
 </div>
 <div class="tbl-wrap"><table id="psiTbl"><thead><tr><th>产品</th><th>月</th><th>期初</th><th>销售</th><th>生产</th><th>期末</th><th>安全库存</th><th>灯</th></tr></thead><tbody id="psiBody"></tbody></table></div>
@@ -167,22 +168,22 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 <div class="panel"><h3>产能负荷（>85% 标红）</h3><div class="tbl-wrap"><table><thead><tr><th>产线</th><th>月份</th><th>可用天</th><th>实际UPPH</th><th>目标</th><th>负荷率</th><th>瓶颈</th></tr></thead><tbody id="capBody"></tbody></table></div></div>
 <div class="panel"><h3>MRP齐套短缺清单</h3><div class="tbl-wrap"><table><thead><tr><th>产品</th><th>物料</th><th>需求日</th><th>需求量</th><th>已到</th><th>短缺</th><th>供应商</th></tr></thead><tbody id="mrpBody"></tbody></table></div></div>
 </div>
-<div class="panel"><h3>⛔ 硬拦截检查（BOM/模具未归档）</h3><div id="blockBody"></div></div>
+<div class="panel"><h3> 硬拦截检查（BOM/模具未归档）</h3><div id="blockBody"></div></div>
 </div>
 
 <!-- ===== 需求预测 ===== -->
 <div class="tc" id="tab-forecast">
 <div class="sb">
 <button class="btn b1 bs" onclick="openForecastModal()">＋ 新增预测</button>
-<button class="btn b4 bs" onclick="autoCalc()">🤖 系统推荐</button>
-<button class="btn b2 bs" onclick="genForecast()">📥 从EBMS订单生成下月预测</button>
+<button class="btn b4 bs" onclick="autoCalc()"> 系统推荐</button>
+<button class="btn b2 bs" onclick="genForecast()"> 从EBMS订单生成下月预测</button>
 <input type="text" id="fcCust" placeholder="按客户筛选" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;width:140px" onkeyup="if(event.key==='Enter')loadForecast()">
 <button class="btn bs" style="background:#eee" onclick="loadForecast()">查询</button>
 <span style="color:#999;font-size:12px">周期：上月16日~当月15日 ｜ 当前周期 <b id="fcCurPeriod">-</b></span>
 </div>
-<div class="panel"><h3 style="color:#27ae60">📅 未来预测（计划）</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcFuture"></tbody></table></div></div>
-<div class="panel"><h3 style="color:#f39c12">📌 当前周期（执行中）</h3><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcCurrent"></tbody></table></div></div>
-<div class="panel"><h3 style="color:#999">📊 过去实绩（历史）</h3><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcPast"></tbody></table></div></div>
+<div class="panel"><h3 style="color:#27ae60"> 未来预测（计划）</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcFuture"></tbody></table></div></div>
+<div class="panel"><h3 style="color:#f39c12"> 当前周期（执行中）</h3><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcCurrent"></tbody></table></div></div>
+<div class="panel"><h3 style="color:#999"> 过去实绩（历史）</h3><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>周期</th><th>客户</th><th>产品</th><th>M偏移</th><th>预测量</th><th>类型</th><th>方法</th><th>MAPE%</th><th>金额</th><th>备注</th></tr></thead><tbody id="fcPast"></tbody></table></div></div>
 </div>
 
 <!-- ===== 会议管理 ===== -->
@@ -210,13 +211,13 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 <div class="tc" id="tab-alert">
 <div class="grid2">
 <div class="panel"><h3>预警规则（11条）</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>编码</th><th>名称</th><th>级别</th><th>条件</th></tr></thead><tbody id="ruleBody"></tbody></table></div></div>
-<div class="panel"><h3>预警日志 <button class="btn b3 bs" onclick="runAlertEngine()">▶ 运行引擎</button></h3><div class="tbl-wrap" style="max-height:40vh"><table><thead><tr><th>时间</th><th>规则</th><th>级别</th><th>内容</th><th>状态</th></tr></thead><tbody id="alertLogBody"></tbody></table></div></div>
+<div class="panel"><h3>预警日志 <button class="btn b3 bs" onclick="runAlertEngine()"> 运行引擎</button></h3><div class="tbl-wrap" style="max-height:40vh"><table><thead><tr><th>时间</th><th>规则</th><th>级别</th><th>内容</th><th>状态</th></tr></thead><tbody id="alertLogBody"></tbody></table></div></div>
 </div>
 </div>
 
 <!-- ===== 每周自检 ===== -->
 <div class="tc" id="tab-selfchk">
-<div class="sb"><button class="btn b4 bs" onclick="runSelfCheck()">▶ 立即运行自检</button></div>
+<div class="sb"><button class="btn b4 bs" onclick="runSelfCheck()"> 立即运行自检</button></div>
 <div id="selfchkResult"></div>
 <div class="panel"><h3>历史自检记录</h3><div class="tbl-wrap"><table><thead><tr><th>周次</th><th>评分</th><th>等级</th><th>通过项</th><th>问题</th></tr></thead><tbody id="selfchkBody"></tbody></table></div></div>
 </div>
@@ -231,26 +232,26 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 <div class="tc" id="tab-ebms">
 <div class="sg" id="ebmsCards"></div>
 <div class="grid2">
-<div class="panel"><h3>📦 外购物料 → 采购单 → 供应商（齐套关联）</h3>
-<div style="margin-bottom:8px;font-size:12px;color:#666">采购单确认率（齐套率）：<b id="ebmsKitRate">-</b> · 外购物料 <b id="ebmsPurMat">-</b> 种 · 采购单 <b id="ebmsPo">-</b> 单</div>
+<div class="panel"><h3> 外购物料 → 采购单 → 供应商（齐套关联）</h3>
+<div style="margin-bottom:8px;font-size:12px;color:#666">采购单确认率（齐套率）：<b id="ebmsKitRate">-</b>  外购物料 <b id="ebmsPurMat">-</b> 种  采购单 <b id="ebmsPo">-</b> 单</div>
 <div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>物料编码</th><th>物料名称</th><th>单价</th><th>需求量</th><th>状态</th></tr></thead><tbody id="ebmsMatBody"></tbody></table></div></div>
-<div class="panel"><h3>🏭 供应商采购表现（按采购单汇总）</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>供应商</th><th>等级</th><th>采购单数</th><th>总数量</th><th>总金额</th><th>已确认</th></tr></thead><tbody id="ebmsSupBody"></tbody></table></div></div>
+<div class="panel"><h3> 供应商采购表现（按采购单汇总）</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>供应商</th><th>等级</th><th>采购单数</th><th>总数量</th><th>总金额</th><th>已确认</th></tr></thead><tbody id="ebmsSupBody"></tbody></table></div></div>
 </div>
-<div class="panel"><h3>📈 销售需求/OTD（真实订单汇总） <select id="ebmsYear" onchange="loadEbmsDemand()" style="float:right;padding:3px 6px;font-size:12px"></select></h3>
-<div style="margin-bottom:8px;font-size:12px;color:#666"><span id="ebmsYearLbl"></span> 订单 <b id="ebmsOrd">-</b> · 已交付 <b id="ebmsShip">-</b> · OTD <b id="ebmsOtd">-</b> · 逾期 <b id="ebmsOverdue">-</b> · 总需求量 <b id="ebmsDemandQty">-</b></div>
+<div class="panel"><h3> 销售需求/OTD（真实订单汇总） <select id="ebmsYear" onchange="loadEbmsDemand()" style="float:right;padding:3px 6px;font-size:12px"></select></h3>
+<div style="margin-bottom:8px;font-size:12px;color:#666"><span id="ebmsYearLbl"></span> 订单 <b id="ebmsOrd">-</b>  已交付 <b id="ebmsShip">-</b>  OTD <b id="ebmsOtd">-</b>  逾期 <b id="ebmsOverdue">-</b>  总需求量 <b id="ebmsDemandQty">-</b></div>
 <div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>产品名称</th><th>订单数</th><th>需求量</th><th>已完成</th><th>完成率</th><th>金额</th></tr></thead><tbody id="ebmsDemandBody"></tbody></table></div></div>
-<div class="panel"><h3>⚠️ 逾期未交付订单 Top20</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>订单号</th><th>BOM编码</th><th>BOM号</th><th>客户</th><th>承诺日期</th><th>逾期天数</th><th>数量</th><th>已完成</th></tr></thead><tbody id="ebmsOverdueBody"></tbody></table></div></div>
-<div class="panel"><h3>📊 周期对比分析（上月 vs 当月 vs 下月，聚焦下月做计划）<span id="cmpPeriodLbl" style="font-size:12px;color:#666;font-weight:400"></span></h3>
+<div class="panel"><h3>️ 逾期未交付订单 Top20</h3><div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>订单号</th><th>BOM编码</th><th>BOM号</th><th>客户</th><th>承诺日期</th><th>逾期天数</th><th>数量</th><th>已完成</th></tr></thead><tbody id="ebmsOverdueBody"></tbody></table></div></div>
+<div class="panel"><h3> 周期对比分析（上月 vs 当月 vs 下月，聚焦下月做计划）<span id="cmpPeriodLbl" style="font-size:12px;color:#666;font-weight:400"></span></h3>
 <div class="grid2">
 <div><div id="cmpChart" style="padding:6px 0"></div></div>
-<div><h4 style="margin:4px 0">🎯 下月里程碑计划</h4><div id="cmpMilestone" style="display:flex;flex-wrap:wrap;gap:6px;padding:6px 0"></div>
+<div><h4 style="margin:4px 0"> 下月里程碑计划</h4><div id="cmpMilestone" style="display:flex;flex-wrap:wrap;gap:6px;padding:6px 0"></div>
 <h4 style="margin:8px 0 4px">下月重点产品需求</h4><div class="tbl-wrap" style="max-height:18vh"><table><thead><tr><th>BOM编码</th><th>BOM号</th><th>产品名称</th><th>数量</th><th>金额</th><th>单数</th></tr></thead><tbody id="cmpNextProd"></tbody></table></div>
 <h4 style="margin:8px 0 4px">下月重点客户</h4><div class="tbl-wrap" style="max-height:14vh"><table><thead><tr><th>客户</th><th>金额</th></tr></thead><tbody id="cmpNextCust"></tbody></table></div></div>
 </div></div>
-<div class="panel"><h3>📋 项目进度节点（上月节点 + 下月节点）<span id="projSummary" style="font-size:12px;color:#666;font-weight:400"></span></h3>
+<div class="panel"><h3> 项目进度节点（上月节点 + 下月节点）<span id="projSummary" style="font-size:12px;color:#666;font-weight:400"></span></h3>
 <div class="grid2">
 <div><h4 style="color:#999;margin:6px 0">⬅ 上月进度节点（<b id="lastPeriodLbl">-</b>）</h4><div class="tbl-wrap" style="max-height:28vh"><table><thead><tr><th>项目号</th><th>项目名</th><th>客户</th><th>上月节点</th><th>负责人</th></tr></thead><tbody id="projLastNode"></tbody></table></div></div>
-<div><h4 style="color:#27ae60;margin:6px 0">➡ 下月进度节点（<b id="nextPeriodLbl">-</b>）</h4><div class="tbl-wrap" style="max-height:28vh"><table><thead><tr><th>项目号</th><th>项目名</th><th>客户</th><th>当前阶段</th><th>下月节点</th><th>负责人</th></tr></thead><tbody id="projNextNode"></tbody></table></div></div>
+<div><h4 style="color:#27ae60;margin:6px 0"> 下月进度节点（<b id="nextPeriodLbl">-</b>）</h4><div class="tbl-wrap" style="max-height:28vh"><table><thead><tr><th>项目号</th><th>项目名</th><th>客户</th><th>当前阶段</th><th>下月节点</th><th>负责人</th></tr></thead><tbody id="projNextNode"></tbody></table></div></div>
 </div></div>
 </div>
 
@@ -263,13 +264,13 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 <button class="btn b1 bs" onclick="loadAudit()">刷新</button>
 </div>
 <div class="sg" id="auditCards"></div>
-<div class="panel"><h3>📊 事项达成率</h3>
+<div class="panel"><h3> 事项达成率</h3>
 <div class="tbl-wrap"><table><thead><tr><th>到期数</th><th>达成数</th><th>达成率</th><th>上月达成率</th><th>环比变化</th></tr></thead><tbody id="auditSummaryBody"></tbody></table></div></div>
 <div class="grid2">
-<div class="panel"><h3>❌ 未完成项检讨</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>编号</th><th>描述</th><th>责任人</th><th>截止日</th><th>逾期天</th><th>优先级</th><th>状态</th></tr></thead><tbody id="auditUncompBody"></tbody></table></div></div>
-<div class="panel"><h3>🔄 持续项及未回复项</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>编号</th><th>描述</th><th>责任人</th><th>截止日</th><th>状态</th><th>最后更新</th></tr></thead><tbody id="auditOngoingBody"></tbody></table></div></div>
+<div class="panel"><h3> 未完成项检讨</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>编号</th><th>描述</th><th>责任人</th><th>截止日</th><th>逾期天</th><th>优先级</th><th>状态</th></tr></thead><tbody id="auditUncompBody"></tbody></table></div></div>
+<div class="panel"><h3> 持续项及未回复项</h3><div class="tbl-wrap" style="max-height:35vh"><table><thead><tr><th>编号</th><th>描述</th><th>责任人</th><th>截止日</th><th>状态</th><th>最后更新</th></tr></thead><tbody id="auditOngoingBody"></tbody></table></div></div>
 </div>
-<div class="panel"><h3>📋 取数标准总览</h3>
+<div class="panel"><h3> 取数标准总览</h3>
 <div class="tbl-wrap"><table><thead><tr><th>序号</th><th>部门</th><th>取数标准</th><th>数据来源</th></tr></thead><tbody id="auditStdBody"></tbody></table></div></div>
 </div>
 
@@ -281,7 +282,7 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 </div>
 
 <!-- 销售中心 -->
-<div class="panel"><h3 style="color:#667eea">📈 销售中心报告</h3>
+<div class="panel"><h3 style="color:#667eea"> 销售中心报告</h3>
 <div class="sg" id="salesCards"></div>
 <div class="grid2">
 <div><h4 style="margin:6px 0;color:#27ae60">常规类预测达成</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>计划数量</th><th>实际数量</th><th>数量达成率</th><th>客户预测达成率</th></tr></thead><tbody id="salesRegularBody"></tbody></table></div></div>
@@ -293,14 +294,14 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 </div>
 
 <!-- 研发中心 -->
-<div class="panel"><h3 style="color:#9b59b6">🔬 研发中心报告</h3>
+<div class="panel"><h3 style="color:#9b59b6"> 研发中心报告</h3>
 <div class="sg" id="rdCards"></div>
 <div class="tbl-wrap" style="max-height:30vh"><table><thead><tr><th>项目号</th><th>项目名</th><th>客户</th><th>当前阶段</th><th>负责人</th><th>立项日</th><th>状态</th></tr></thead><tbody id="rdProjBody"></tbody></table></div>
 <div style="font-size:11px;color:#999;margin-top:4px" id="rdSource"></div>
 </div>
 
 <!-- 计划部 -->
-<div class="panel"><h3 style="color:#e67e22">📋 计划部报告</h3>
+<div class="panel"><h3 style="color:#e67e22"> 计划部报告</h3>
 <div class="sg" id="planCards"></div>
 <div class="grid2">
 <div><h4 style="margin:6px 0">销售出货分析</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>订单号</th><th>产品</th><th>客户</th><th>数量</th><th>已完成</th><th>承诺日</th><th>未发原因</th></tr></thead><tbody id="planShipBody"></tbody></table></div></div>
@@ -314,7 +315,7 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 </div>
 
 <!-- 采购部 -->
-<div class="panel"><h3 style="color:#16a085">🛒 采购部报告</h3>
+<div class="panel"><h3 style="color:#16a085"> 采购部报告</h3>
 <div class="sg" id="purCards"></div>
 <div style="margin-bottom:8px;font-size:12px;color:#666">齐套标准：<b id="purStandard">-</b></div>
 <div class="grid2">
@@ -325,7 +326,7 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 </div>
 
 <!-- 品质部 -->
-<div class="panel"><h3 style="color:#c0392b">✅ 品质部报告</h3>
+<div class="panel"><h3 style="color:#c0392b"> 品质部报告</h3>
 <div class="sg" id="qtyCards"></div>
 <div class="grid2">
 <div><h4 style="margin:6px 0">检验合格率</h4><div class="tbl-wrap" style="max-height:25vh"><table><thead><tr><th>检验类型</th><th>总批次</th><th>合格批次</th><th>合格率</th><th>公式</th><th>来源</th></tr></thead><tbody id="qtyInspectBody"></tbody></table></div></div>
@@ -340,7 +341,7 @@ select:disabled,input:disabled{background:#f5f5f5;color:#999}
 </div>
 
 <!-- 工程/仓库 -->
-<div class="panel"><h3 style="color:#7f8c8d">🔧 工程/仓库报告</h3>
+<div class="panel"><h3 style="color:#7f8c8d"> 工程/仓库报告</h3>
 <div class="grid2">
 <div><h4 style="margin:6px 0">工程数据</h4><div class="tbl-wrap"><table><thead><tr><th>指标</th><th>描述</th><th>数值</th><th>来源</th></tr></thead><tbody id="engBody"></tbody></table></div></div>
 <div><h4 style="margin:6px 0">仓库/供应链</h4><div class="tbl-wrap"><table><thead><tr><th>指标</th><th>描述</th><th>来源</th></tr></thead><tbody id="whBody"></tbody></table></div></div>
@@ -375,7 +376,7 @@ function enhanceTable(tbodyId){
   if(panel&&!panel.querySelector('.tbl-tools')){
     const h3=panel.querySelector('h3');
     if(h3){const t=document.createElement('span');t.className='tbl-tools';
-      t.innerHTML='<input type="text" class="tbl-search" placeholder="🔍 输入模糊搜索…" oninput="tblSearch(this,\''+tid+'\')" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:150px"><button class="btn bs" style="background:#eee;color:#555" onclick="tblCollapse(this)">收起</button><button class="btn bs" style="background:#eee;color:#555" onclick="tblFullscreen(this)">⤢ 全屏</button>';
+      t.innerHTML='<input type="text" class="tbl-search" placeholder=" 输入模糊搜索…" oninput="tblSearch(this,\''+tid+'\')" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:150px"><button class="btn bs" style="background:#eee;color:#555" onclick="tblCollapse(this)">收起</button><button class="btn bs" style="background:#eee;color:#555" onclick="tblFullscreen(this)">⤢ 全屏</button>';
       h3.appendChild(t);}
   }
   // 仅排序（表头点击），筛选用全局搜索框
@@ -397,12 +398,12 @@ function tblSearch(input,tid){
 function tblCollapse(btn){
   const panel=btn.closest('.panel');
   if(panel.classList.contains('collapsed')){panel.classList.remove('collapsed');btn.textContent='收起';}
-  else{panel.classList.add('collapsed');btn.textContent='展开 ▼';}
+  else{panel.classList.add('collapsed');btn.textContent='展开 ';}
 }
 function tblFullscreen(btn){
   const panel=btn.closest('.panel');
   if(panel.classList.contains('fs')){panel.classList.remove('fs');btn.textContent='⤢ 全屏';}
-  else{panel.classList.add('fs');btn.textContent='✕ 退出全屏';}
+  else{panel.classList.add('fs');btn.textContent=' 退出全屏';}
 }
 
 // ===== 表格合计：每个表格底部自动追加"合计"行 =====
@@ -479,7 +480,7 @@ function renderAnalysis(table,cfg,R){
     if(cfg.distCol!=null){
       const dist=catDist(R,cfg.distCol).slice(0,6);
       const max=Math.max(...dist.map(d=>d[1]),1);
-      chartHtml='<div class="ta-chart"><div style="font-size:12px;font-weight:600;color:#444;margin-bottom:4px">📊 '+(cfg.distName||'分布')+'</div>'+dist.map((d,i)=>{
+      chartHtml='<div class="ta-chart"><div style="font-size:12px;font-weight:600;color:#444;margin-bottom:4px"> '+(cfg.distName||'分布')+'</div>'+dist.map((d,i)=>{
         const col=cfg.distColor?cfg.distColor(d[0]):PAL[i%PAL.length];
         const w=Math.round(d[1]/max*100);
         return '<div class="ta-cat-row"><span class="dot" style="background:'+col+'"></span><span style="flex:1">'+esc(d[0])+'</span><div class="bar-track" style="max-width:160px"><div class="bar-fill" style="width:'+Math.max(4,w)+'%;background:'+col+'"></div></div><b style="width:34px;text-align:right">'+d[1]+'</b></div>';
@@ -487,7 +488,7 @@ function renderAnalysis(table,cfg,R){
     }else if(cfg.metricCol!=null){
       const sorted=[...R].sort((a,b)=>(b.n[cfg.metricCol]||0)-(a.n[cfg.metricCol]||0)).slice(0,cfg.maxBars||6);
       const max=Math.max(...sorted.map(r=>r.n[cfg.metricCol]||0),1);
-      chartHtml='<div class="ta-chart"><div style="font-size:12px;font-weight:600;color:#444;margin-bottom:4px">📊 '+(cfg.chartTitle||'Top 分布')+'</div>'+sorted.map(r=>{
+      chartHtml='<div class="ta-chart"><div style="font-size:12px;font-weight:600;color:#444;margin-bottom:4px"> '+(cfg.chartTitle||'Top 分布')+'</div>'+sorted.map(r=>{
         const v=r.n[cfg.metricCol]||0;const w=Math.max(2,Math.round(v/max*100));
         const lbl=cfg.labelCol!=null?(r.c[cfg.labelCol]||'-'):'';
         return '<div class="bar-row"><span class="bar-lbl">'+esc(lbl)+'</span><div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+(cfg.color||'#667eea')+'"></div></div><span class="bar-val">'+_fmtVal(v,cfg.fmt,cfg.unit)+'</span></div>';
@@ -497,10 +498,10 @@ function renderAnalysis(table,cfg,R){
   // 问题展示
   const rN=issues.filter(i=>i.level==='R').length;
   let probHtml;
-  if(!issues.length){probHtml='<div style="font-size:12px;color:'+(R.length?'#2e7d32':'#999')+';padding:4px 0">'+(R.length?'✅ 未发现明显问题':'— 暂无数据待分析')+'</div>';}
-  else{probHtml='<div style="font-size:12px;font-weight:600;color:#444;margin:6px 0 2px">⚠️ 问题与对策</div>'+issues.map(i=>'<div class="ta-iss"><span class="badge '+(i.level==='R'?'st-R':'st-Y')+'">'+(i.level==='R'?'问题':'关注')+'</span><div style="flex:1"><div style="color:#444;line-height:1.5">'+esc(i.problem)+'</div><div class="act">✅ '+esc(i.action)+'</div></div></div>').join('');}
+  if(!issues.length){probHtml='<div style="font-size:12px;color:'+(R.length?'#2e7d32':'#999')+';padding:4px 0">'+(R.length?' 未发现明显问题':'— 暂无数据待分析')+'</div>';}
+  else{probHtml='<div style="font-size:12px;font-weight:600;color:#444;margin:6px 0 2px">️ 问题与对策</div>'+issues.map(i=>'<div class="ta-iss"><span class="badge '+(i.level==='R'?'st-R':'st-Y')+'">'+(i.level==='R'?'问题':'关注')+'</span><div style="flex:1"><div style="color:#444;line-height:1.5">'+esc(i.problem)+'</div><div class="act"> '+esc(i.action)+'</div></div></div>').join('');}
   const badge=rN?'<span class="ta-badge">'+rN+' 红灯</span>':(issues.length?'<span class="ta-badge" style="background:#fff9c4;color:#f57f17">'+issues.length+' 关注</span>':'<span class="ta-badge good">正常</span>');
-  box.innerHTML='<div class="ta-head" onclick="this.parentNode.classList.toggle(\'open\')"><span>📊 自动分析：'+esc(cfg.title||'')+'</span>'+badge+'<span class="ta-arrow">▼</span></div><div class="ta-body">'+chartHtml+probHtml+'</div>';
+  box.innerHTML='<div class="ta-head" onclick="this.parentNode.classList.toggle(\'open\')"><span> 自动分析：'+esc(cfg.title||'')+'</span>'+badge+'<span class="ta-arrow"></span></div><div class="ta-body">'+chartHtml+probHtml+'</div>';
 }
 
 // 各表格分析规则配置（列索引对应 thead 顺序）
@@ -686,9 +687,9 @@ const money=n=>n>=10000?(n/10000).toFixed(1)+'万':n;
 async function loadDash(){
 const d=await api('/sop/plan?period_month='+GLOBAL_PERIOD);
 const rv=d.review,fc=d.forecast_next,pl=d.plan;
-document.getElementById('rvPeriod').textContent='（'+d.period_desc+' · 当前周期 '+d.current_period+'）';
+document.getElementById('rvPeriod').textContent='（'+d.period_desc+'  当前周期 '+d.current_period+'）';
 document.getElementById('fcP').textContent='（'+fc.period+'）';
-// ① 本月复盘
+// 1.  本月复盘
 const rvO=rv.orders;
 document.getElementById('rvCards').innerHTML=[
 {c:'#667eea',n:rvO.total,l:'本月订单'},
@@ -704,7 +705,7 @@ document.getElementById('rvCards').innerHTML=[
 document.getElementById('rvProdBody').innerHTML=rv.product_list&&rv.product_list.length?rv.product_list.map(p=>`<tr><td style="font-size:11px">${esc(p.product_code)}</td><td style="font-size:11px;color:#667eea">${esc(p.bom_no||'-')}</td><td style="font-size:11px">${esc(p.product_name||'-').slice(0,16)}</td><td>${p.qty}</td><td>${p.amount.toFixed(0)}</td><td>${p.order_count}</td></tr>`).join(''):'<tr><td colspan=6 class="em">无</td></tr>';
 document.getElementById('rvOverdueBody').innerHTML=rv.overdue_orders.length?rv.overdue_orders.map(o=>`<tr style="background:#fff5f5"><td>${esc(o.order_no)}</td><td>${esc(o.customer)}</td><td><b class="ov">${o.overdue_days}天</b></td><td>${o.qty}</td><td>${o.completed}</td></tr>`).join(''):'<tr><td colspan=5 class="em">本月无逾期</td></tr>';
 enhanceTable('rvProdBody');enhanceTable('rvOverdueBody');
-// ② 下月预测
+// 2.  下月预测
 const pp=fc.pipeline;
 document.getElementById('fcNextCards').innerHTML=[
 {c:'#667eea',n:pp.orders,l:'下月订单'},
@@ -718,13 +719,13 @@ document.getElementById('fcProdBody').innerHTML=fc.product_top.length?fc.product
 document.getElementById('fcCustBody').innerHTML=fc.customer_top.length?fc.customer_top.map(c=>`<tr><td>${esc(c.customer)}</td><td>${c.amount.toFixed(0)}</td></tr>`).join(''):'<tr><td colspan=2 class="em">无</td></tr>';
 document.getElementById('fcRecBody').innerHTML=fc.recommended.length?fc.recommended.map(r=>`<tr><td style="font-size:11px">${esc(r.product_code)}</td><td style="font-size:11px">${esc(r.product_name||'').slice(0,16)}</td><td>${r.locked_qty}</td><td>${r.forecast_qty-r.locked_qty}</td><td style="font-weight:600;color:#27ae60">${r.forecast_qty}</td><td><span class="badge ${r.source==='订单管线'?'st-G':'st-Y'}">${esc(r.source)}</span></td></tr>`).join(''):'<tr><td colspan=6 class="em">无推荐</td></tr>';
 enhanceTable('fcProdBody');enhanceTable('fcCustBody');enhanceTable('fcRecBody');
-// ③ 规划调整
+// 3.  规划调整
 document.getElementById('planProdBody').innerHTML=pl.production.length?pl.production.map(p=>`<tr><td style="font-size:11px">${esc(p.product_code)}</td><td>${p.begin}</td><td>${p.next_demand}</td><td>${p.safety}</td><td style="font-weight:600;color:#1565c0">${p.suggest_production}</td><td>${p.end}</td></tr>`).join(''):'<tr><td colspan=6 class="em">无PSI计划（请先在PSI页从EBMS预填销售计划）</td></tr>';
 const su=pl.supply;
 const kitCol=su.kit_rate>=80?'#27ae60':su.kit_rate>=50?'#f39c12':'#e74c3c';
-document.getElementById('planSupply').innerHTML=`外购物料 <b>${su.purchased_material_count}</b> 种 · 采购单 <b>${su.po_total}</b> 单（draft <b class="${su.po_draft>0?'ov':''}">${su.po_draft}</b>）· 齐套率 <b style="color:${kitCol}">${su.kit_rate}%</b><div style="color:#999;font-size:11px;margin-top:3px">${esc(su.note)}</div>`;
+document.getElementById('planSupply').innerHTML=`外购物料 <b>${su.purchased_material_count}</b> 种  采购单 <b>${su.po_total}</b> 单（draft <b class="${su.po_draft>0?'ov':''}">${su.po_draft}</b>） 齐套率 <b style="color:${kitCol}">${su.kit_rate}%</b><div style="color:#999;font-size:11px;margin-top:3px">${esc(su.note)}</div>`;
 document.getElementById('planCapBody').innerHTML=pl.capacity.length?pl.capacity.map(c=>`<tr style="${c.overload?'background:#fff5f5':''}"><td>${esc(c.line_code)}</td><td>${c.period}</td><td>${c.available_days}</td><td style="font-weight:600;color:${c.overload?'#c62828':'#2e7d32'}">${c.load_rate}%</td><td style="font-size:11px">${esc(c.bottleneck||'-')}</td></tr>`).join(''):'<tr><td colspan=5 class="em">无产能数据</td></tr>';
-document.getElementById('planRedBody').innerHTML=pl.red_actions.length?pl.red_actions.map(r=>`<div style="padding:6px 0;border-bottom:1px dashed #ffcdd2;font-size:13px">🔴 <b>${esc(r.kpi_name)}</b>（${esc(r.kpi_code)}）实际 ${r.actual} vs 目标 ${r.target} ${r.has_action?'<span class="badge st-G">已有Action</span>':'<span class="badge st-R">未制定对策</span>'}</div>`).join(''):'<div style="color:#2e7d32;padding:4px">✅ 本月无红灯KPI</div>';
+document.getElementById('planRedBody').innerHTML=pl.red_actions.length?pl.red_actions.map(r=>`<div style="padding:6px 0;border-bottom:1px dashed #ffcdd2;font-size:13px"> <b>${esc(r.kpi_name)}</b>（${esc(r.kpi_code)}）实际 ${r.actual} vs 目标 ${r.target} ${r.has_action?'<span class="badge st-G">已有Action</span>':'<span class="badge st-R">未制定对策</span>'}</div>`).join(''):'<div style="color:#2e7d32;padding:4px"> 本月无红灯KPI</div>';
 enhanceTable('planProdBody');enhanceTable('planCapBody');
 }
 
@@ -792,7 +793,7 @@ document.getElementById('capBody').innerHTML=cap.data.length?cap.data.map(c=>`<t
 const mrp=await api('/supply/mrp-check');
 document.getElementById('mrpBody').innerHTML=mrp.data.length?mrp.data.map(r=>`<tr style="${r.shortage_qty>0?'background:#fff5f5':''}"><td>${esc(r.product_code)}</td><td>${esc(r.material_code)}</td><td>${r.demand_date}</td><td>${r.required_qty}</td><td>${r.arrived_qty}</td><td style="color:${r.shortage_qty>0?'#c62828':'#999'};font-weight:600">${r.shortage_qty}</td><td>${esc(r.supplier_code||'-')}</td></tr>`).join(''):'<tr><td colspan=7 class="em">无数据</td></tr>';
 const blk=await api('/supply/block-check');
-document.getElementById('blockBody').innerHTML=blk.is_blocked?blk.blocks.map(b=>`<div style="padding:8px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:6px;margin-bottom:6px"><b>⛔ ${esc(b.block_type)}</b> - ${esc(b.product_code)}：${esc(b.reason)}</div>`).join(''):'<div style="color:#2e7d32;padding:8px">✅ 无硬拦截，所有BOM已归档</div>';
+document.getElementById('blockBody').innerHTML=blk.is_blocked?blk.blocks.map(b=>`<div style="padding:8px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:6px;margin-bottom:6px"><b> ${esc(b.block_type)}</b> - ${esc(b.product_code)}：${esc(b.reason)}</div>`).join(''):'<div style="color:#2e7d32;padding:8px"> 无硬拦截，所有BOM已归档</div>';
 }
 
 // ===== 预测 =====
@@ -812,7 +813,7 @@ document.getElementById('fcPast').innerHTML=d.past.length?d.past.map(row).join('
 function openForecastModal(){
 openModal(`<h3>新增需求预测</h3>
 <div class="fg"><label>客户名称</label><input id="fc_cust" placeholder="如 HJ006.10-187-1"></div>
-<div class="fg"><label>产品编码（取自系统 BOM）</label><div style="display:flex;gap:4px"><input id="fc_pc" placeholder="点击右侧从BOM选择" style="flex:1"><button type="button" class="btn bs" style="background:#eee" onclick="openBomPicker(c=>{document.getElementById('fc_pc').value=c;})">🔍 BOM</button></div></div>
+<div class="fg"><label>产品编码（取自系统 BOM）</label><div style="display:flex;gap:4px"><input id="fc_pc" placeholder="点击右侧从BOM选择" style="flex:1"><button type="button" class="btn bs" style="background:#eee" onclick="openBomPicker(c=>{document.getElementById('fc_pc').value=c;})"> BOM</button></div></div>
 <div class="fg"><label>周期(YYYY-MM，上月16~当月15)</label><input id="fc_pm" value="2026-08"></div>
 <div class="fg"><label>月份偏移</label><select id="fc_off"><option value=1>M+1(弹性)</option><option value=2>M+2(参考)</option><option value=0>M(锁定)</option></select></div>
 <div class="fg"><label>预测数量</label><input id="fc_qty" type="number"></div>
@@ -902,7 +903,7 @@ async function runAlertEngine(){const r=await api('/alerts/engine/run',{method:'
 async function runSelfCheck(){
 const r=await api('/self-check/auto-run',{method:'POST'});
 const color=r.grade==='A'?'#2e7d32':r.grade==='B'?'#27ae60':r.grade==='C'?'#f39c12':'#c62828';
-document.getElementById('selfchkResult').innerHTML=`<div class="panel" style="border-left:4px solid ${color}"><h3>本周自检结果：${r.score}分 / 等级 ${r.grade}（通过 ${r.passed}/${r.total}）</h3>${r.results.map(x=>`<div style="padding:5px 0;border-bottom:1px dashed #eee;font-size:13px">${x.pass?'✅':'❌'} <b>${x.no}.${esc(x.item)}</b> <span style="color:#999">${esc(x.detail)}</span></div>`).join('')}</div>`;
+document.getElementById('selfchkResult').innerHTML=`<div class="panel" style="border-left:4px solid ${color}"><h3>本周自检结果：${r.score}分 / 等级 ${r.grade}（通过 ${r.passed}/${r.total}）</h3>${r.results.map(x=>`<div style="padding:5px 0;border-bottom:1px dashed #eee;font-size:13px">${x.pass?'':''} <b>${x.no}.${esc(x.item)}</b> <span style="color:#999">${esc(x.detail)}</span></div>`).join('')}</div>`;
 loadSelfChk();
 }
 async function loadSelfChk(){
@@ -983,7 +984,7 @@ metrics.forEach(m=>{
   });
   chartHtml+='</div>';
 });
-chartHtml+='</div><div style="font-size:11px;color:#999;margin-top:6px">📊 绿色加粗为<b>下月</b>（计划重点关注），可据此安排产能/物料/人员</div>';
+chartHtml+='</div><div style="font-size:11px;color:#999;margin-top:6px"> 绿色加粗为<b>下月</b>（计划重点关注），可据此安排产能/物料/人员</div>';
 document.getElementById('cmpChart').innerHTML=chartHtml;
 // 下月里程碑
 const ms=cmp; // 里程碑在 project-nodes 里，下面加载
@@ -1129,6 +1130,7 @@ document.getElementById('mo').addEventListener('click',e=>{if(e.target.id==='mo'
 (async()=>{await loadGlobalPeriods();reloadAll();})();
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="feature-gate.js"></script><script>FeatureGate.init();</script>

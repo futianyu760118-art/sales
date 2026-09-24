@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EBMS企业经营管理系统 - 系统设置</title>
@@ -16,7 +17,7 @@
     .module-card { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; transition: all 0.3s; }
     .module-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
     .module-card h3 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .module-card h3 .icon { font-size: 20px; }
+    .module-card h3 .ebms-icon { width:var(--icon-md); height:var(--icon-md); }
     .module-card .desc { font-size: 12px; color: #888; margin-bottom: 12px; }
     .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
     .toggle-row:last-child { border-bottom: none; }
@@ -182,9 +183,9 @@
             <select id="extPresetSel" onchange="onPresetSelect()" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px"></select></div>
           <div class="form-group" style="flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-success btn-sm" onclick="activatePreset()" title="把当前下拉选中的环境设为同步使用的激活环境">⬆ 设为激活</button>
-            <button class="btn btn-info btn-sm" onclick="newPreset()">➕ 新建环境</button>
-            <button class="btn btn-warning btn-sm" onclick="saveAsPreset()">💾 另存为新环境</button>
-            <button class="btn btn-danger btn-sm" onclick="deletePreset()">🗑 删除</button>
+            <button class="btn btn-info btn-sm" onclick="newPreset()"> 新建环境</button>
+            <button class="btn btn-warning btn-sm" onclick="saveAsPreset()"> 另存为新环境</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePreset()"> 删除</button>
           </div>
         </div>
         <div id="extActiveTag" style="font-size:12px;margin-bottom:8px"></div>
@@ -315,14 +316,14 @@ function switchTab(name) {
 
 // ===== 模块管理 =====
 const modules = [
-  { key: 'inquiry', name: '询价管理', icon: '📋', desc: '询价单创建、核价、报价全流程管理', features: ['批量导入', '台账视图', '快速报价', '报价单导出'] },
-  { key: 'customer', name: '客户管理', icon: '👥', desc: '客户信息管理、来源跟踪、关联查询', features: ['批量导入', '询价关联', '核价关联'] },
-  { key: 'product', name: '产品管理', icon: '📦', desc: '产品型号、参数、配置、核价状态管理', features: ['批量导入', '核价关联', '排序筛选'] },
-  { key: 'material', name: '物料库', icon: '🔧', desc: '物料BOM管理、成本核算、供应商管理', features: ['批量导入', '成本核算', '模板导出'] },
-  { key: 'pricing', name: '核价表', icon: '💰', desc: 'BOM核价、成本明细、报价管理', features: ['批量导入', '产品关联', '客户同步'] },
-  { key: 'report', name: '数据报表', icon: '📊', desc: '数据分析、趋势图表、台账汇总', features: ['月度趋势', '状态分布', '穿透下钻'] },
-  { key: 'permission', name: '权限管理', icon: '🔐', desc: '用户角色权限管理、访问控制', features: ['用户管理', '角色管理', '权限分配'] },
-  { key: 'feedback', name: '问题反馈', icon: '💬', desc: '问题反馈、处理跟踪、指派管理', features: ['反馈提交', '状态跟踪', '处理指派'] },
+  { key: 'inquiry', name: '询价管理', icon: 'file', desc: '询价单创建、核价、报价全流程管理', features: ['批量导入', '台账视图', '快速报价', '报价单导出'] },
+  { key: 'customer', name: '客户管理', icon: 'user', desc: '客户信息管理、来源跟踪、关联查询', features: ['批量导入', '询价关联', '核价关联'] },
+  { key: 'product', name: '产品管理', icon: 'package', desc: '产品型号、参数、配置、核价状态管理', features: ['批量导入', '核价关联', '排序筛选'] },
+  { key: 'material', name: '物料库', icon: 'supply', desc: '物料BOM管理、成本核算、供应商管理', features: ['批量导入', '成本核算', '模板导出'] },
+  { key: 'pricing', name: '核价表', icon: 'money', desc: 'BOM核价、成本明细、报价管理', features: ['批量导入', '产品关联', '客户同步'] },
+  { key: 'report', name: '数据报表', icon: 'report', desc: '数据分析、趋势图表、台账汇总', features: ['月度趋势', '状态分布', '穿透下钻'] },
+  { key: 'permission', name: '权限管理', icon: 'lock', desc: '用户角色权限管理、访问控制', features: ['用户管理', '角色管理', '权限分配'] },
+  { key: 'feedback', name: '问题反馈', icon: 'chat', desc: '问题反馈、处理跟踪、指派管理', features: ['反馈提交', '状态跟踪', '处理指派'] },
 ];
 
 async function loadModules() {
@@ -334,7 +335,7 @@ async function loadModules() {
     const enabled = moduleConfig[m.key] !== false;
     grid.innerHTML += `
       <div class="module-card">
-        <h3><span class="icon">${m.icon}</span>${m.name}
+      <h3>${EBMSIcons.render(m.icon, { size: 'md', decorative: true })}${m.name}
           <label class="toggle" style="margin-left:auto;"><input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleModule('${m.key}', this.checked)"><span class="slider"></span></label>
         </h3>
         <div class="desc">${m.desc}</div>
@@ -425,12 +426,12 @@ async function testAiConnection() {
     });
     const data = await res.json();
     if (data.model === 'local' || data.model === 'fallback') {
-      resultDiv.innerHTML = '<span style="color:#f39c12;">⚠️ 未配置API Key，使用本地模式</span>';
+      resultDiv.innerHTML = '<span style="color:#f39c12;">️ 未配置API Key，使用本地模式</span>';
     } else {
-      resultDiv.innerHTML = `<span style="color:#27ae60;">✅ 连接成功，模型: ${data.model}</span>`;
+      resultDiv.innerHTML = `<span style="color:#27ae60;"> 连接成功，模型: ${data.model}</span>`;
     }
   } catch(e) {
-    resultDiv.innerHTML = '<span style="color:#e74c3c;">❌ 连接失败: ' + e.message + '</span>';
+    resultDiv.innerHTML = '<span style="color:#e74c3c;"> 连接失败: ' + e.message + '</span>';
   }
 }
 
@@ -594,10 +595,10 @@ async function loadExternalConfig() {
 }
 function renderPresetSel(){
   const sel=document.getElementById('extPresetSel');if(!sel)return;
-  sel.innerHTML=_extPresets.map(p=>`<option value="${p.id}" ${p.id===_extSelectedId?'selected':''}>${p.name}${p.baseUrl?' ('+p.baseUrl+')':''}${p.id===_extActiveId?' ✅激活':''}</option>`).join('');
+  sel.innerHTML=_extPresets.map(p=>`<option value="${p.id}" ${p.id===_extSelectedId?'selected':''}>${p.name}${p.baseUrl?' ('+p.baseUrl+')':''}${p.id===_extActiveId?' 激活':''}</option>`).join('');
   const tag=document.getElementById('extActiveTag');
   const a=extPresetById(_extActiveId);
-  if(tag)tag.innerHTML=a?`当前同步激活环境：<b style="color:#2e7d32">${a.name}</b> · ${a.baseUrl}`:'<span style="color:#c62828">未设置激活环境</span>';
+  if(tag)tag.innerHTML=a?`当前同步激活环境：<b style="color:#2e7d32">${a.name}</b>  ${a.baseUrl}`:'<span style="color:#c62828">未设置激活环境</span>';
 }
 function onPresetSelect(){
   _extSelectedId=document.getElementById('extPresetSel').value;
@@ -681,7 +682,7 @@ async function testExternalConnection() {
   try {
     const data = await apiCall(`${API}/external-sync/test-connection`, { method: 'POST' });
     const rows = Object.entries(data.results || {}).map(([k, v]) =>
-      `<div style="color:${v.ok ? '#2e7d32' : '#c62828'};">${v.ok ? '✓' : '✗'} ${k}${v.ok ? ' (' + (v.total || 0) + ')' : ' ' + (v.error || '')}</div>`
+      `<div style="color:${v.ok ? '#2e7d32' : '#c62828'};">${v.ok ? '' : ''} ${k}${v.ok ? ' (' + (v.total || 0) + ')' : ' ' + (v.error || '')}</div>`
     ).join('');
     box.innerHTML = `<div style="font-weight:600;margin-bottom:4px;">${data.message}</div>${rows}`;
   } catch (e) { box.innerHTML = '<span style="color:#c62828;">测试失败: ' + e.message + '</span>'; }
@@ -772,8 +773,8 @@ async function execWriteback(){
   try{
     const d=await apiCall(`${API}/external-api/write-back`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module,code,op})});
     const color=d.ok?'#2e7d32':'#c62828';
-    box.innerHTML=`<div style="color:${color};font-weight:600">${d.ok?'✓':'✗'} ${d.message}</div>
-      <div style="font-size:12px;color:#666;margin-top:4px">接口：${d.endpoint} · 操作：${d.op}</div>
+    box.innerHTML=`<div style="color:${color};font-weight:600">${d.ok?'':''} ${d.message}</div>
+      <div style="font-size:12px;color:#666;margin-top:4px">接口：${d.endpoint}  操作：${d.op}</div>
       <pre style="background:#f5f5f5;padding:8px;border-radius:4px;font-size:11px;max-height:180px;overflow:auto;margin-top:6px">${esc(d.external_response?JSON.stringify(d.external_response,null,2):'')}</pre>`;
     loadWritebackLog();
   }catch(e){box.innerHTML='<span style="color:#c62828">回写失败: '+e.message+'</span>';}
@@ -890,5 +891,6 @@ async function validateData() {
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 </body>
 </html>

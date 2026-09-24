@@ -1069,7 +1069,7 @@ router.get('/generate-code', requirePerm('customer:view'), (req, res) => {
 });
 
 // 创建客户
-router.post('/', requirePerm('customer:create'), (req, res) => {
+router.post('/', requirePerm('customer:create'), async (req, res) => {
   const { name, customer_code } = req.body;
   if (!name) return res.status(400).json({ error: '客户名称为必填项' });
 
@@ -1105,7 +1105,7 @@ router.post('/', requirePerm('customer:create'), (req, res) => {
     }
   }
 
-  const result = table.insert(record);
+  const result = await table.insert(record);
   const created = table.findById(result.lastID);
 
   logDataPermission(req, 'customer.create', { table: 'customers', record_id: created.id, scope_mode: 'self' });

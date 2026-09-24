@@ -728,7 +728,7 @@ function showInlinePopup(e,pid,field,curVal,cfg){
   html+='<div style="padding:4px 6px">';
   if(cfg.type==='select'){
     html+='<select id="inlineInput" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px">';
-    cfg.opts.forEach(function(o){var sv=S(o);html+='<option value="'+sv+'" '+(sv===curVal?'selected':'')+'>'+(o||'--')+'</option>';});
+    cfg.opts.forEach(function(o){var sv=S(o);html+='<option value="'+sv+'" '+(sv===curVal?'selected':'')+'>'+(statusMap[o]||o||'--')+'</option>';});
     html+='</select>';
   }else{
     html+='<input type="'+cfg.type+'" id="inlineInput" value="'+curVal.replace(/"/g,'&quot;')+'" style="width:100%;padding:5px 8px;border:1px solid #667eea;border-radius:4px;font-size:12px" onkeydown="if(event.key===\'Enter\'){saveInlineEdit('+pid+',\''+field+'\');closeInlinePopup()}">';
@@ -2480,7 +2480,7 @@ function renderField([key,label,type],data){
   }
   if(type.startsWith('select:')){
     const opts=type.substring(7).split(',');
-    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+    return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${statusMap[o]||o}</option>`).join('')}</select></div>`;
   }
   return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}"></div>`;
 }

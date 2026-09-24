@@ -78,7 +78,10 @@ function setupIMWebSocket(wss, app) {
   wss.on('connection', (ws, req) => {
     ws._imUserId = null;
     ws._convSubscriptions = new Set();
-    
+
+    // 连接级错误兜底：断网/重置时 ws 会 emit 'error'，无监听会抛异常终止整个进程
+    ws.on('error', (e) => { try { console.error('[IM ws-error]', e && e.message); } catch (_) {} });
+
     ws.on('message', (data) => {
       try {
         const msg = JSON.parse(data);

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 成品工价库</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 成品工价库</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -63,6 +64,14 @@ tr:hover td{background:#f8f9ff}
 .audit-actions{display:flex;gap:4px}
 .audit-actions .btn{font-size:11px;padding:3px 8px}
 .muted{color:#999;font-size:11px}
+.hfilter{cursor:pointer;user-select:none}
+.hfilter:hover,.hfilter.on{color:#667eea}
+.hfopt{padding:6px 10px;font-size:12px;cursor:pointer;border-radius:4px}
+.hfopt:hover{background:#f5f6fa}
+.hfopt.cur{background:#eef1ff;color:#667eea;font-weight:600}
+.src-order_analysis{background:#e8f4fd;color:#2471a3}
+.src-bom_sync{background:#f4ecf7;color:#7d3c98}
+.src-adjust{background:#fdebd0;color:#b9770e}
 </style></head><body data-page-title="成品工价库" data-page-perm="labor-rate:view">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content" data-module="product-labor-rate">
@@ -70,7 +79,7 @@ tr:hover td{background:#f8f9ff}
 <h2>成品工价库</h2>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
 <button class="btn b1" onclick="openAdd()" data-perm="labor-rate:create">新增工价</button>
-<button class="btn b2" onclick="ImportDropzone.open()" data-perm="labor-rate:create">批量导入</button>
+<button class="btn b2" onclick="openBatchImport()" data-perm="labor-rate:create">批量导入</button>
 <button class="btn" style="background:#9b59b6;color:#fff" onclick="openOrderImport()" data-perm="labor-rate:create">从订单导入</button>
 <a class="btn bs" href="#" onclick="dlTpl();return false" style="background:#eee;color:#555;text-decoration:none">下载导入模板</a>
 <button class="btn b4" onclick="exportCsv()" data-perm="labor-rate:view">导出CSV</button>
@@ -95,11 +104,14 @@ tr:hover td{background:#f8f9ff}
 <input type="text" id="f_kw" placeholder="关键字(BOM编号/产品/备注)" style="width:200px">
 <select id="f_bom"><option value="">全部BOM</option></select>
 <select id="f_pcode"><option value="">全部产品编码</option></select>
+<select id="f_level"><option value="">全部层级</option></select>
 <select id="f_rtype"><option value="">全部计价方式</option></select>
-<select id="f_audit"><option value="">全部审核状态</option>
+<select id="f_audit"><option value="">全部(不含停用)</option>
+  <option value="all">全部(含停用)</option>
   <option value="pending">待审核</option><option value="approved">已审核</option><option value="disabled">已停用</option></select>
-<select id="f_src"><option value="">全部来源</option>
-  <option value="manual">手工录入</option><option value="erp_sync">外部API</option><option value="pricing_import">核价导入</option><option value="order_analysis">订单分析</option><option value="bom_sync">BOM同步</option></select>
+<select id="f_src"><option value="">默认来源（不含询价单）</option><option value="all">全部来源（含询价单）</option>
+  <option value="manual">手工录入</option><option value="erp_sync">外部API</option><option value="pricing_import">核价导入</option><option value="order_analysis">订单分析</option><option value="bom_sync">BOM同步</option><option value="adjust">调整</option></select>
+<select id="f_hasrate"><option value="">全部工价状态</option><option value="1">有工价</option><option value="0">无工价待补</option></select>
 <input type="number" step="0.01" id="f_rmin" placeholder="工价≥" style="width:90px">
 <input type="number" step="0.01" id="f_rmax" placeholder="工价≤" style="width:90px">
 <button class="btn b1" onclick="loadList(1)">查询</button>
@@ -107,7 +119,7 @@ tr:hover td{background:#f8f9ff}
 </div>
 </div>
 <div class="panel" style="border-left:4px solid #667eea">
-<h3 style="margin-bottom:8px">🌳 按成品 BOM 层级筛选 <small style="font-weight:normal;color:#888">（选择成品后自动展开所有下级子件的工价）</small></h3>
+<h3 style="margin-bottom:8px"> 按成品 BOM 层级筛选 <small style="font-weight:normal;color:#888">（选择成品后自动展开所有下级子件的工价）</small></h3>
 <div class="sb">
 <input type="text" id="product_search" list="productList" placeholder="输入或选择成品编码/名称（如 HJ-8110-709-01）" style="width:320px" oninput="onProductSearchChange()">
 <datalist id="productList"></datalist>
@@ -120,8 +132,8 @@ tr:hover td{background:#f8f9ff}
 <table id="tbl">
 <thead><tr>
 <th style="width:30px"><input type="checkbox" onclick="toggleAll(this)"></th>
-<th>层级</th>
-<th>BOM编号</th><th>产品编码</th><th>产品名称</th>
+<th class="hfilter" data-key="level" onclick="openHeaderFilter('level',this,event)" title="点击按层级筛选">层级 ▾</th>
+<th>BOM编号</th><th class="hfilter" data-key="pcode" onclick="openHeaderFilter('pcode',this,event)" title="点击按产品编码筛选">产品编码 ▾</th><th>产品名称</th>
 <th class="r">工价(元/台)</th><th>计价方式</th>
 <th class="r">工艺成本</th>
 <th>生效日</th><th>失效日</th>
@@ -182,7 +194,7 @@ tr:hover td{background:#f8f9ff}
 <div class="gr2">
 <div class="fg"><label>是否启用</label><select id="ext_enabled"><option value="false">未启用</option><option value="true">启用</option></select></div>
 <div class="fg"><label>接口地址 Base URL</label><input id="ext_base_url" placeholder="http://127.0.0.1:5000/api/external"></div>
-<div class="fg"><label>X-API-Key（鉴权头）</label><input id="ext_api_key" placeholder="请输入 X-API-Key"></div>
+<div class="fg"><label>X-API-Key（鉴权头）</label><input id="ext_api_key" placeholder="HJ-EBMS-KEY-2026-SECRET"></div>
 <div class="fg"><label>工价数据表</label><input id="ext_data_table" value="t_BOSAssemblyPriceEntry"></div>
 </div>
 <div class="gr2">
@@ -191,7 +203,7 @@ tr:hover td{background:#f8f9ff}
 <div class="fg"></div>
 </div>
 <div style="text-align:right;margin-top:8px">
-<button class="btn b4" onclick="testConn()" data-perm="labor-rate:view">🔌 测试连接</button>
+<button class="btn b4" onclick="testConn()" data-perm="labor-rate:view"> 测试连接</button>
 <button class="btn b2" onclick="saveExt()" data-perm="labor-rate:edit">保存配置</button>
 <button class="btn b1" onclick="syncExt()" data-perm="labor-rate:create">立即同步</button>
 </div>
@@ -201,7 +213,7 @@ tr:hover td{background:#f8f9ff}
 <div class="panel">
 <h3>使用说明（HJ 基础数据库-对外接口）</h3>
 <ul style="font-size:12px;color:#555;line-height:1.8;padding-left:18px">
-<li><b>接口约定</b>：所有请求走 <code>GET</code>，需携带 <code>X-API-Key</code> 头（由环境变量 <code>EBMS_EXTERNAL_API_KEY</code> 注入，或在配置中填写）</li>
+<li><b>接口约定</b>：所有请求走 <code>GET</code>，需携带 <code>X-API-Key</code> 头（如 <code>HJ-EBMS-KEY-2026-SECRET</code>）</li>
 <li><b>默认数据源</b>：
   <ul>
     <li>工价明细：<code>t_BOSAssemblyPriceEntry</code>（含 <code>FItemID, FPrice, WProcedure, FNOTE</code>）</li>
@@ -213,7 +225,7 @@ tr:hover td{background:#f8f9ff}
 <li><b>upsert 策略</b>：按 bom_no 匹配；ERP 有值且与本地不同 → 更新；ERP 无值/为 0 → 保留本地人工录入值（不覆盖）</li>
 <li><b>同步后状态</b>：默认 <code>pending</code>（待审核），需在「工价明细」中审批 <code>approved</code> 后才会被订单分析 <code>calcPlanCost</code> 注入</li>
 <li><b>如需换其他表</b>：修改「工价数据表」字段名（如 <code>StdCost_ItemStdPriceEntry</code>、<code>t_Price</code> 等），保存后重新测试连接</li>
-<li><b>排查工具</b>：点击「🔌 测试连接」分 3 步诊断（连通性 / 鉴权 / 数据可达）；同步返回的 <code>sample</code> 字段展示前 3 条原始数据</li>
+<li><b>排查工具</b>：点击「 测试连接」分 3 步诊断（连通性 / 鉴权 / 数据可达）；同步返回的 <code>sample</code> 字段展示前 3 条原始数据</li>
 </ul>
 </div>
 </div>
@@ -229,7 +241,7 @@ tr:hover td{background:#f8f9ff}
 </div>
 <form id="rateForm" onsubmit="saveForm();return false">
 <div class="rules" id="formRules">
-  <div class="rules-h" onclick="togRules()"><span>📋 填写规则（点击展开/收起）</span><span class="rules-arrow">▶</span></div>
+  <div class="rules-h" onclick="togRules()"><span> 填写规则（点击展开/收起）</span><span class="rules-arrow"></span></div>
   <div class="rules-b"><ul>
     <li><b>BOM编号</b> <span class="req">*</span>：主匹配键（与订单多产品 order_products.bom_no 对齐），如 <code>JFS22-B1WB10S27-46-01</code></li>
     <li><b>产品编码/名称</b>：冗余字段，便于检索与兜底匹配</li>
@@ -281,6 +293,31 @@ tr:hover td{background:#f8f9ff}
 <!-- ===== 工价调整弹窗 ===== -->
 <div class="mo" id="adjustModal"><div class="mb" style="width:500px"></div></div>
 
+<!-- ===== 批量导入（BOM编号→工价，预览确认）弹窗 ===== -->
+<div class="mo" id="batchImportModal">
+<div class="mb" style="width:880px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 style="margin:0">批量导入工价（按 BOM编号）</h3>
+<span onclick="closeBatchImport()" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
+</div>
+<div id="bi_step1">
+  <div style="background:#eef4ff;padding:10px 12px;border-radius:6px;margin-bottom:12px;font-size:12px;color:#3a5a9c;line-height:1.8">
+    上传含 <b>BOM编号</b> 和 <b>工价</b> 两列的文件（可另带<b>产品编码 / 产品名称</b>等列一并写入，支持 Excel/CSV/TSV）：<br>
+    • 库里<b>没有</b>该编号 → 自动<b>新增</b>（待审核）<br>
+    • 库里该编号<b>无价待补</b> → 自动<b>补价</b><br>
+    • 库里该编号<b>已有价格</b> → 列出冲突，<b>勾选确认后才覆盖</b>，不勾选则跳过
+  </div>
+  <div style="border:2px dashed #d0d5dd;border-radius:10px;padding:28px;text-align:center;background:#fafbff">
+    <input type="file" id="bi_file" accept=".xlsx,.xls,.csv,.tsv,.ods" style="display:none" onchange="biFileChange(this)">
+    <button class="btn b1" onclick="document.getElementById('bi_file').click()">选择文件</button>
+    <div style="font-size:12px;color:#98a2b3;margin-top:8px">支持 Excel(.xlsx/.xls)、CSV(.csv)、TSV(.tsv)、ODS(.ods)，最大 50MB</div>
+  </div>
+  <div id="bi_parse" style="margin-top:10px;font-size:13px"></div>
+</div>
+<div id="bi_step2" style="display:none"></div>
+</div>
+</div>
+
 <!-- ===== 从订单分析库导入弹窗 ===== -->
 <div class="mo" id="orderImportModal">
 <div class="mb" style="width:840px">
@@ -289,11 +326,12 @@ tr:hover td{background:#f8f9ff}
 <span onclick="closeOrderImport()" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
 </div>
 <div style="background:#eef4ff;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:12px;color:#3a5a9c">
-选择订单后点击「导入」，系统将把该订单的 <b>成品工价</b>（product_rates）、<b>自制</b> 与 <b>外加工</b> 物料人工费 写入成品工价库（来源标记为 <code>order_analysis</code>，待审核，生效日为当年1月1日）。
+ 选择订单后点击「导入」，系统将把该订单的 <b>成品工价</b>（product_rates）、<b>自制</b> 与 <b>外加工</b> 物料人工费 写入成品工价库（来源标记为 <code>order_analysis</code>，待审核，生效日为当天）。自制/外加工件<b>含无工价物料</b>一并导入（工价 ¥0，待补价后审核）。
 </div>
 <div style="display:flex;gap:8px;margin-bottom:10px">
 <input type="text" id="oi_kw" placeholder="搜索：订单号 / 客户 / 产品编码 / 产品名称" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" onkeydown="if(event.key==='Enter')searchOrders(1)">
 <button class="btn b1" onclick="searchOrders(1)">搜索</button>
+<button class="btn b1" style="background:#e67e22" onclick="importAllBomRates()" title="扫描全部订单 BOM 明细，把自制/外加工物料（按编码去重，含无工价）导入工价库">全量导入自制/外加工件</button>
 </div>
 <div id="oiList" style="max-height:360px;overflow:auto;border:1px solid #e8ebf7;border-radius:6px;background:#fff">
 <div class="em" style="padding:20px">输入关键字后点击「搜索」，或直接点搜索查看最近订单</div>
@@ -313,7 +351,7 @@ function toast(m){let d=document.createElement('div');d.textContent=m;d.style.cs
 function num(id){return Number(document.getElementById(id).value)||0}
 function qs(){const p=new URLSearchParams();
   [['f_kw','keyword'],['f_bom','bom_no'],['f_pcode','product_code'],['f_rtype','labor_rate_type'],
-   ['f_audit','audit_status'],['f_src','source']].forEach(([id,k])=>{const v=document.getElementById(id).value;if(v)p.set(k,v)});
+   ['f_audit','audit_status'],['f_src','source'],['f_hasrate','has_rate'],['f_level','bom_level']].forEach(([id,k])=>{const v=document.getElementById(id).value;if(v)p.set(k,v)});
   if(document.getElementById('f_rmin').value)p.set('rate_min',document.getElementById('f_rmin').value);
   if(document.getElementById('f_rmax').value)p.set('rate_max',document.getElementById('f_rmax').value);
   return p;
@@ -336,6 +374,7 @@ async function loadFilterOpts(){
     meta=await r.json();
     fillSel('f_bom',meta.bom_nos);
     fillSel('f_pcode',meta.product_codes);
+    fillLevelSel(meta.bom_levels);
     fillSel('f_rtype',meta.rate_types);
     fillSel('f_src',meta.sources);
     fillSel('a_rtype',meta.rate_types);
@@ -343,6 +382,9 @@ async function loadFilterOpts(){
   }catch(e){console.error(e)}
 }
 function fillSel(id,arr){const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;const first=sel.options[0]?sel.options[0].outerHTML:'';sel.innerHTML=first+(arr||[]).map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');sel.value=cur;}
+// 层级下拉：0=成品，n=Ln，none=不在 BOM 结构中
+function levelOptionLabel(v){return v==='none'?'未匹配BOM':(Number(v)===0?'成品(0级)':'L'+v)}
+function fillLevelSel(arr){const sel=document.getElementById('f_level');if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">全部层级</option>'+(arr||[]).map(v=>'<option value="'+esc(v)+'">'+esc(levelOptionLabel(v))+'</option>').join('');sel.value=cur;}
 function togRules(){document.getElementById('formRules').classList.toggle('open');}
 
 async function loadStatCards(){
@@ -353,11 +395,12 @@ async function loadStatCards(){
       {n:d.total,l:'工价记录数',c:'#667eea'},
       {n:d.approved,l:'已审核',c:'#27ae60'},
       {n:d.pending,l:'待审核',c:'#f39c12'},
+      {n:(d.no_price||0),l:'无工价待补',c:'#e74c3c',click:'filterNoPrice()'},
       {n:d.disabled,l:'已停用',c:'#95a5a6'},
       {n:yuan(d.avg_rate),l:'平均工价',c:'#2980b9'},
       {n:yuan(d.max_rate),l:'最高工价',c:'#e74c3c'}
     ];
-    document.getElementById('statCards').innerHTML=cards.map(c=>'<div class="sc"><div class="n" style="color:'+c.c+';font-size:'+(String(c.n).length>10?'15px':'22px')+'">'+esc(c.n)+'</div><div class="l">'+c.l+'</div></div>').join('');
+    document.getElementById('statCards').innerHTML=cards.map(c=>'<div class="sc"'+(c.click?' style="cursor:pointer" onclick="'+c.click+'" title="点击筛选"':'')+'><div class="n" style="color:'+c.c+';font-size:'+(String(c.n).length>10?'15px':'22px')+'">'+esc(c.n)+'</div><div class="l">'+c.l+'</div></div>').join('');
   }catch(e){}
 }
 
@@ -367,34 +410,99 @@ async function loadList(p){
     const r=await fetch(API+'?'+qs().toString()+'&page='+curPage+'&limit='+LIMIT);
     const d=await r.json();total=d.total;
     const tb=document.getElementById('tb');
-    if(!d.data.length){tb.innerHTML='<tr><td colspan="12" class="em">暂无工价记录，点击「新增工价」或「批量导入」</td></tr>'}
+    if(!d.data.length){tb.innerHTML='<tr><td colspan="13" class="em">暂无工价记录，点击「新增工价」或「批量导入」</td></tr>'}
     else{
-      tb.innerHTML=d.data.map(r=>'<tr>'+
+      tb.innerHTML=d.data.map(r=>{
+        const noRate=!(Number(r.labor_rate)>0); // 无工价待补
+        return '<tr'+(noRate?' style="background:#fff8f5"':'')+'>'+
         '<td><input type="checkbox" class="row-sel" data-id="'+r.id+'"'+(selected.has(r.id)?' checked':'')+'></td>'+
+        '<td style="white-space:nowrap">'+levelLabel(r._bom_level)+'</td>'+ // 层级：由 BOM 结构自动推导（0=成品，1=L1…）
         '<td><code>'+esc(r.bom_no)+'</code></td>'+
         '<td>'+esc(r.product_code)+'</td>'+
-        '<td>'+esc(r.product_name)+'</td>'+
-        '<td class="r"><b>'+yuan(r.labor_rate)+'</b></td>'+
+        '<td>'+esc(r.product_name)+(noRate&&r.remarks?'<div class="muted">'+esc(String(r.remarks).substring(0,40))+'</div>':'')+'</td>'+
+        '<td class="r">'+(noRate?'<span style="display:inline-block;background:#fdecea;color:#e74c3c;border-radius:4px;padding:2px 8px;font-size:12px" title="'+esc(r.remarks||'')+'">无工价：待补录</span>':'<b>'+yuan(r.labor_rate)+'</b>')+'</td>'+
         '<td><span class="rate-tag rt-'+esc(r.labor_rate_type)+'">'+esc(r.labor_rate_type)+'</span></td>'+
         '<td class="r">'+yuan(r.process_cost)+'</td>'+
         '<td>'+esc(r.effective_date)+'</td>'+
         '<td>'+esc(r.expire_date||'—')+'</td>'+
-        '<td><span class="src-tag src-'+esc(r.source)+'">'+esc(r.source)+'</span></td>'+
-        '<td><span class="status-tag st-'+esc(r.audit_status)+'">'+auditLabel(r.audit_status)+'</span><div class="muted">'+esc(r.approved_by||'')+'</div></td>'+
+         '<td><span class="src-tag src-'+esc(r.source)+'">'+esc(srcLabel(r.source))+'</span></td>'+
+         '<td><span class="status-tag st-'+esc(r.audit_status)+'">'+auditLabel(r.audit_status)+'</span><div class="muted">'+esc(r.approved_by||'')+'</div></td>'+
         '<td class="audit-actions">'+
           (r.audit_status!=='approved'?'<button class="btn b2" onclick="setAudit('+r.id+',\'approved\')" data-perm="labor-rate:edit" title="审核通过">通过</button>':'')+
           (r.audit_status!=='disabled'?'<button class="btn bs" style="background:#95a5a6;color:#fff" onclick="setAudit('+r.id+',\'disabled\')" data-perm="labor-rate:edit" title="停用">停</button>':'')+
-          '<button class="btn bs" style="background:#e67e22;color:#fff" onclick="openAdjust('+r.id+','+r.labor_rate+',\''+esc(r.bom_no)+'\')" data-perm="labor-rate:edit" title="调整工价（保留历史版本）">调整</button>'+
-          '<button class="btn bs b4" onclick="openBomTree(\''+esc(r.bom_no)+'\')" title="查看该 BOM 的多级树">🌳</button>'+
+          '<button class="btn bs" style="background:#e67e22;color:#fff" onclick="openAdjust('+r.id+','+r.labor_rate+',\''+esc(r.bom_no)+'\')" data-perm="labor-rate:edit" title="'+(noRate?'补录工价':'调整工价（保留历史版本）')+'">'+(noRate?'补价':'调整')+'</button>'+
+          '<button class="btn bs b4" onclick="openBomTree(\''+esc(r.bom_no)+'\')" title="查看该 BOM 的多级树"></button>'+
           '<button class="btn bs b4" onclick="openEdit('+r.id+')" data-perm="labor-rate:edit">编辑</button>'+
           '<button class="btn bs b3" onclick="del('+r.id+')" data-perm="labor-rate:delete">删</button>'+
         '</td>'+
-        '</tr>').join('');
+        '</tr>';
+      }).join('');
     }
-    renderPg();applyPerms();
+    renderPg();applyPerms();updateHFilterState();
   }catch(e){toast('加载失败: '+e.message)}
 }
 function auditLabel(s){return s==='approved'?'已审核':s==='disabled'?'已停用':'待审核';}
+// 来源中文标签
+function srcLabel(s){return {manual:'手工录入',erp_sync:'外部API',pricing_import:'核价导入',order_analysis:'订单分析',bom_sync:'BOM同步',adjust:'调整'}[s]||s||'—';}
+// ===== 表头筛选弹层（层级 / 产品编码）=====
+let _hfEl=null;
+function hfSelId(key){return key==='level'?'f_level':'f_pcode'}
+function hfOptions(key){
+  if(key==='level')return (meta.bom_levels||[]).map(v=>({v:String(v),l:levelOptionLabel(v)}));
+  return (meta.product_codes||[]).map(v=>({v:String(v),l:String(v)}));
+}
+function closeHeaderFilter(){
+  if(_hfEl){_hfEl.remove();_hfEl=null;}
+  document.querySelectorAll('.hfilter').forEach(t=>t.classList.remove('on'));
+}
+function openHeaderFilter(key,th,e){
+  if(e)e.stopPropagation();
+  if(_hfEl&&_hfEl.dataset.key===key){closeHeaderFilter();return}
+  closeHeaderFilter();
+  const rect=th.getBoundingClientRect();
+  const div=document.createElement('div');
+  div.dataset.key=key;
+  div.style.cssText='position:fixed;top:'+(rect.bottom+4)+'px;left:'+Math.min(rect.left,window.innerWidth-280)+'px;z-index:2000;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);width:260px;max-height:320px;display:flex;flex-direction:column;overflow:hidden';
+  div.innerHTML='<div style="padding:8px;border-bottom:1px solid #eee"><input id="hf_kw" placeholder="搜索…" style="width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px" oninput="renderHeaderFilterList(\''+key+'\')"></div>'+
+    '<div id="hf_list" style="overflow:auto;padding:4px"></div>';
+  document.body.appendChild(div);
+  _hfEl=div;th.classList.add('on');
+  renderHeaderFilterList(key);
+  const kwEl=document.getElementById('hf_kw');if(kwEl)kwEl.focus();
+}
+function renderHeaderFilterList(key){
+  const listEl=document.getElementById('hf_list');if(!listEl)return;
+  const kw=(document.getElementById('hf_kw').value||'').toLowerCase();
+  const cur=document.getElementById(hfSelId(key)).value;
+  const allLabel=key==='level'?'全部层级':'全部产品编码';
+  const opts=[{v:'',l:allLabel}].concat(hfOptions(key).filter(o=>!kw||o.l.toLowerCase().includes(kw)||o.v.toLowerCase().includes(kw)));
+  listEl.innerHTML=opts.map(o=>{
+    const val=o.v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div class="hfopt'+(o.v===cur?' cur':'')+'" onclick="applyHeaderFilter(\''+key+'\',\''+esc(val)+'\')">'+esc(o.l)+'</div>';
+  }).join('')||'<div style="padding:10px;color:#999;font-size:12px;text-align:center">无匹配选项</div>';
+}
+function applyHeaderFilter(key,v){
+  document.getElementById(hfSelId(key)).value=v;
+  closeHeaderFilter();
+  loadList(1);
+}
+function updateHFilterState(){
+  var lv=document.getElementById('f_level').value,pc=document.getElementById('f_pcode').value;
+  document.querySelectorAll('.hfilter').forEach(function(th){
+    th.classList.toggle('on',th.dataset.key==='level'?!!lv:!!pc);
+  });
+}
+document.addEventListener('click',e=>{if(_hfEl&&!_hfEl.contains(e.target)&&!(e.target.closest&&e.target.closest('.hfilter')))closeHeaderFilter()});
+window.addEventListener('scroll',()=>{if(_hfEl)closeHeaderFilter()},true);
+// BOM 层级标签：0=成品（蓝），1=L1（绿），2=L2（橙），≥3=L3…（灰）；null=不在 BOM 结构中
+function levelLabel(lv){
+  if(lv===null||lv===undefined)return '<span class="muted">—</span>';
+  if(lv===0)return '<span style="color:#667eea;font-weight:700">成品</span>';
+  var c=lv===1?'#27ae60':(lv===2?'#f39c12':'#95a5a6');
+  return '<span style="color:'+c+';font-weight:600">L'+lv+'</span>';
+}
+// 一键筛选无工价待补记录（配合统计卡片点击）
+function filterNoPrice(){document.getElementById('f_hasrate').value='0';document.getElementById('f_audit').value='';loadList(1);}
 function renderPg(){
   const pages=Math.ceil(total/LIMIT)||1;
   const el=document.getElementById('pg');
@@ -415,7 +523,7 @@ function renderPg(){
 }
 function setLimit(n){LIMIT=Number(n)||20;curPage=1;loadList(1)}
 function toggleAll(el){document.querySelectorAll('.row-sel').forEach(c=>{c.checked=el.checked;if(el.checked)selected.add(Number(c.dataset.id));else selected.clear()})}
-function resetFilter(){['f_kw','f_bom','f_pcode','f_rtype','f_audit','f_src','f_rmin','f_rmax'].forEach(id=>document.getElementById(id).value='');loadList(1)}
+function resetFilter(){['f_kw','f_bom','f_pcode','f_rtype','f_audit','f_src','f_hasrate','f_rmin','f_rmax','f_level'].forEach(id=>document.getElementById(id).value='');loadList(1)}
 
 // ===== 新增/编辑 =====
 function openAdd(){
@@ -461,7 +569,7 @@ function closeForm(){document.getElementById('formModal').classList.remove('ac')
 function openAdjust(id, oldRate, bomNo){
   const html = '<div style="margin-bottom:12px">'+
     '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px;color:#856404">'+
-    '<b>工价版本管理</b><br>调整后旧工价保留（设过期日），新工价即时生效。<br>已提交的订单快照不变，新订单自动采用新工价。'+
+    '<b>工价版本管理</b><br>调整后旧工价自动停用归档（默认列表隐藏，可在「全部(含停用)」查看），新工价即时生效。<br>已提交的订单快照不变，新订单自动采用新工价。'+
     '</div>'+
     '<div class="fg"><label>BOM编号</label><input id="adj_bom_no" value="'+esc(bomNo)+'" readonly style="background:#f5f6fa"></div>'+
     '<div class="gr2">'+
@@ -575,7 +683,7 @@ async function searchOrders(p){
   _oiPage=p||1;
   const kw=document.getElementById('oi_kw').value.trim();
   const box=document.getElementById('oiList');
-  box.innerHTML='<div class="em" style="padding:20px">⏳ 加载订单...</div>';
+  box.innerHTML='<div class="em" style="padding:20px"> 加载订单...</div>';
   try{
     const params=new URLSearchParams();
     if(kw)params.set('keyword',kw);
@@ -584,7 +692,7 @@ async function searchOrders(p){
     const r=await fetch(ORDER_ANALYSIS_API+'?'+params.toString());
     const d=await r.json();
     if(!r.ok){
-      box.innerHTML='<div class="em" style="padding:20px;color:#e74c3c">✗ '+esc(d.error||'加载失败')+'<div style="margin-top:6px;color:#999">提示：需订单分析库查看权限（order-analysis:view），如无请联系管理员</div></div>';
+      box.innerHTML='<div class="em" style="padding:20px;color:#e74c3c"> '+esc(d.error||'加载失败')+'<div style="margin-top:6px;color:#999">提示：需订单分析库查看权限（order-analysis:view），如无请联系管理员</div></div>';
       return;
     }
     if(!d.data.length){
@@ -618,30 +726,136 @@ async function searchOrders(p){
       (_oiPage<pages?'<button class="btn bs" style="background:#eee" onclick="searchOrders('+(_oiPage+1)+')">下一页›</button>':'')+
       '</span></div>';
   }catch(e){
-    box.innerHTML='<div class="em" style="padding:20px;color:#e74c3c">✗ '+esc(e.message)+'</div>';
+    box.innerHTML='<div class="em" style="padding:20px;color:#e74c3c"> '+esc(e.message)+'</div>';
+  }
+}
+
+// 全量导入：扫描全部订单 BOM 明细，自制/外加工件（按编码去重，含无工价）写入工价库
+async function importAllBomRates(){
+  if(!confirm('全量导入自制/外加工件到成品工价库？\n\n将扫描全部订单 BOM 明细，把自制/外加工物料按编码去重后写入工价库。\n• 含无工价物料（工价 ¥0，标记"无工价，待补录"，待审核）\n• 已审核工价保持锁定不动；工价库已有价格不会被 0 覆盖\n• 数据量大时可能需要数十秒，确认继续？'))return;
+  const res=document.getElementById('oiResult');
+  res.innerHTML='<span style="color:#888"> 正在全量导入（扫描订单 BOM 明细，请稍候）...</span>';
+  try{
+    const r=await fetch(ORDER_ANALYSIS_API+'/sync-rates-to-library',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    const d=await r.json();
+    if(!r.ok){
+      res.innerHTML='<span style="color:#e74c3c"> '+esc(d.error||'导入失败')+'<div style="margin-top:4px;color:#999;font-size:12px">提示：需订单分析库核算权限（order-analysis:edit），如无请联系管理员</div></span>';
+      return;
+    }
+    const b=d.bom_breakdown||{};
+    res.innerHTML='<div style="background:#eafaf1;padding:10px 12px;border-radius:6px;color:#1e7d45">'+
+      '<b> '+esc(d.message||'导入完成')+'</b>'+
+      '<div style="margin-top:6px;font-size:12px;color:#555">自制/外加工件去重 <b>'+esc(d.bom_unique_materials)+'</b> 种：自制 <b>'+b.self_made+'</b> 条、外加工 <b>'+b.outsourced+'</b> 条、人工行 <b>'+b.labor_line+'</b> 条、无工价待补 <b>'+b.no_price+'</b> 条</div>'+
+      '<div style="margin-top:6px;font-size:12px;color:#888">无工价记录可在「工价明细」中筛选来源=订单分析、工价=0 补价后审核生效</div>'+
+      '</div>';
+    loadList(curPage);loadStatCards();
+  }catch(e){
+    res.innerHTML='<span style="color:#e74c3c"> '+esc(e.message)+'</span>';
   }
 }
 
 async function importOrder(id, orderNo){
   const res=document.getElementById('oiResult');
-  res.innerHTML='<span style="color:#888">⏳ 正在导入订单 '+esc(orderNo||id)+'...</span>';
+  res.innerHTML='<span style="color:#888"> 正在导入订单 '+esc(orderNo||id)+'...</span>';
   try{
     const r=await fetch(ORDER_ANALYSIS_API+'/'+id+'/sync-rates-to-library',{method:'POST'});
     const d=await r.json();
     if(!r.ok){
-      res.innerHTML='<span style="color:#e74c3c">✗ '+esc(d.error||'导入失败')+'<div style="margin-top:4px;color:#999;font-size:12px">提示：需订单分析库核算权限（order-analysis:edit），如无请联系管理员</div></span>';
+      res.innerHTML='<span style="color:#e74c3c"> '+esc(d.error||'导入失败')+'<div style="margin-top:4px;color:#999;font-size:12px">提示：需订单分析库核算权限（order-analysis:edit），如无请联系管理员</div></span>';
       return;
     }
     const b=d.breakdown||{};
     res.innerHTML='<div style="background:#eafaf1;padding:10px 12px;border-radius:6px;color:#1e7d45">'+
-      '<b>✓ '+esc(d.message||'导入完成')+'</b>'+
-      '<div style="margin-top:6px;font-size:12px;color:#555">其中：成品工价 <b>'+b.product_rate+'</b> 条、自制 <b>'+b.self_made+'</b> 条、外加工 <b>'+b.outsourced+'</b> 条、人工行 <b>'+b.labor_line+'</b> 条</div>'+
-      '<div style="margin-top:6px;font-size:12px;color:#888">来源标记为 order_analysis（待审核），可在「工价明细」中审核通过后生效</div>'+
+      '<b> '+esc(d.message||'导入完成')+'</b>'+
+      '<div style="margin-top:6px;font-size:12px;color:#555">其中：成品工价 <b>'+b.product_rate+'</b> 条、自制 <b>'+b.self_made+'</b> 条、外加工 <b>'+b.outsourced+'</b> 条、人工行 <b>'+b.labor_line+'</b> 条、无工价待补 <b>'+(b.no_price||0)+'</b> 条</div>'+
+      '<div style="margin-top:6px;font-size:12px;color:#888">来源标记为 order_analysis（待审核），可在「工价明细」中审核通过后生效；无工价记录补价后审核</div>'+
       '</div>';
     loadList(curPage);loadStatCards();
   }catch(e){
-    res.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>';
+    res.innerHTML='<span style="color:#e74c3c"> '+esc(e.message)+'</span>';
   }
+}
+
+// ===== 批量导入（BOM编号→工价，预览+确认）=====
+let _biData = null;
+function openBatchImport(){
+  _biData = null;
+  document.getElementById('bi_file').value='';
+  document.getElementById('bi_parse').innerHTML='';
+  document.getElementById('bi_step1').style.display='block';
+  document.getElementById('bi_step2').style.display='none';
+  document.getElementById('batchImportModal').classList.add('ac');
+}
+function closeBatchImport(){document.getElementById('batchImportModal').classList.remove('ac')}
+async function biFileChange(el){
+  const f = el.files && el.files[0];
+  if(!f) return;
+  const info = document.getElementById('bi_parse');
+  info.innerHTML = '<span style="color:#888"> 正在解析并比对工价库…</span>';
+  try{
+    const fd = new FormData();
+    fd.append('file', f);
+    const r = await fetch(API+'/import/preview', {method:'POST', body:fd});
+    const d = await r.json();
+    if(!r.ok){ info.innerHTML='<span style="color:#e74c3c"> '+esc(d.error||'解析失败')+'</span>'; return }
+    _biData = d;
+    renderBiPreview();
+  }catch(e){
+    info.innerHTML='<span style="color:#e74c3c"> '+esc(e.message)+'</span>';
+  }
+}
+function biSection(title, color, inner, count){
+  return '<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:600;color:'+color+';margin-bottom:6px">'+title+'（'+count+'）</div>'+inner+'</div>';
+}
+function biTable(head, rowsHtml){
+  return '<div style="max-height:180px;overflow:auto;border:1px solid #eee;border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f7ff;color:#555">'+head+'</tr></thead><tbody>'+rowsHtml+'</tbody></table></div>';
+}
+function renderBiPreview(){
+  const d = _biData;
+  document.getElementById('bi_step1').style.display='none';
+  const box = document.getElementById('bi_step2');
+  const nf = d.fresh.length, nfp = d.fill_price.length, nc = d.conflicts.length, niv = d.invalid.length;
+  const td='<td style="padding:5px 8px;border-bottom:1px solid #f0f0f0">';
+  let h = '<div style="background:#f5f6fa;padding:10px 12px;border-radius:6px;margin-bottom:12px;font-size:13px">共解析 <b>'+d.total+'</b> 行：新增 <b style="color:#27ae60">'+nf+'</b>，补价 <b style="color:#f39c12">'+nfp+'</b>，已存在需确认 <b style="color:#e74c3c">'+nc+'</b>'+(niv?'，无效 <b style="color:#999">'+niv+'</b>':'')+'</div>';
+  if (nf) h += biSection('新增（自动导入，待审核）', '#27ae60',
+    biTable('<th style="padding:6px 8px;text-align:left">BOM编号</th><th style="padding:6px 8px;text-align:left">产品编码</th><th style="padding:6px 8px;text-align:left">产品名称</th><th style="padding:6px 8px;text-align:right">工价</th>',
+      d.fresh.slice(0,200).map(r=>'<tr>'+td+'<code>'+esc(r.bom_no)+'</code></td>'+td+esc(r.product_code||'')+'</td>'+td+esc(r.product_name||'')+'</td>'+td+' class="r">'+yuan(r.labor_rate)+'</td></tr>').join('')+(nf>200?'<tr><td colspan="4" class="em">…仅显示前 200 行，全部会导入</td></tr>':'')), nf);
+  if (nfp) h += biSection('补价（库里无价待补，自动填充）', '#f39c12',
+    biTable('<th style="padding:6px 8px;text-align:left">BOM编号</th><th style="padding:6px 8px;text-align:left">产品编码</th><th style="padding:6px 8px;text-align:left">产品名称</th><th style="padding:6px 8px;text-align:right">新工价</th>',
+      d.fill_price.slice(0,200).map(r=>'<tr>'+td+'<code>'+esc(r.bom_no)+'</code></td>'+td+esc(r.product_code||'')+'</td>'+td+esc(r.product_name||'')+'</td>'+td+' class="r">'+yuan(r.labor_rate)+'</td></tr>').join('')+(nfp>200?'<tr><td colspan="4" class="em">…仅显示前 200 行，全部会导入</td></tr>':'')), nfp);
+  if (nc) h += biSection('已存在（勾选确认后覆盖现价，不勾选则跳过）', '#e74c3c',
+    '<label style="display:inline-block;font-size:12px;margin-bottom:4px"><input type="checkbox" onclick="biToggleAll(this)"> 全选覆盖</label>'+
+    biTable('<th style="padding:6px 8px;width:30px"></th><th style="padding:6px 8px;text-align:left">BOM编号</th><th style="padding:6px 8px;text-align:left">产品名称</th><th style="padding:6px 8px;text-align:right">现价</th><th style="padding:6px 8px;text-align:right">新价</th><th style="padding:6px 8px">状态</th>',
+      d.conflicts.slice(0,500).map(c=>'<tr>'+td+'<input type="checkbox" class="bi-ow" data-id="'+c.id+'"></td>'+td+'<code>'+esc(c.bom_no)+'</code></td>'+td+esc(c.product_name||'')+'</td>'+td+' class="r">'+yuan(c.current_rate)+'</td>'+td+' class="r"><b style="color:#e74c3c">'+yuan(c.new_rate)+'</b></td>'+td+auditLabel(c.audit_status)+'</td></tr>').join('')+(nc>500?'<tr><td colspan="6" class="em">…仅显示前 500 行</td></tr>':'')), nc);
+  if (niv) h += biSection('无效行（不会导入）', '#95a5a6',
+    biTable('<th style="padding:6px 8px;width:50px">行号</th><th style="padding:6px 8px;text-align:left">BOM编号</th><th style="padding:6px 8px;text-align:left">原因</th>',
+      d.invalid.slice(0,100).map(v=>'<tr>'+td+v.line+'</td>'+td+'<code>'+esc(v.bom_no||'')+'</code></td>'+td+esc(v.reason)+'</td></tr>').join('')), niv);
+  if (!nf && !nfp && !nc) h += '<div class="em">没有可导入的数据</div>';
+  h += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">'+
+    '<button class="btn bs" style="background:#eee;color:#555" onclick="openBatchImport()">重新选择文件</button>'+
+    ((nf||nfp||nc)?'<button class="btn b2" onclick="biApply()">确认导入（新增 '+nf+' / 补价 '+nfp+' / 覆盖 <span id="bi_owcnt">0</span>）</button>':'')+
+    '</div>';
+  box.innerHTML = h;
+  box.style.display='block';
+  box.querySelectorAll('.bi-ow').forEach(c=>c.addEventListener('change',biUpdateCnt));
+}
+function biToggleAll(el){document.querySelectorAll('.bi-ow').forEach(c=>c.checked=el.checked);biUpdateCnt()}
+function biUpdateCnt(){const n=document.querySelectorAll('.bi-ow:checked').length;const el=document.getElementById('bi_owcnt');if(el)el.textContent=n}
+async function biApply(){
+  if(!_biData)return;
+  const owIds=[...document.querySelectorAll('.bi-ow:checked')].map(c=>Number(c.dataset.id));
+  const records=[].concat(_biData.fresh,_biData.fill_price,_biData.conflicts.filter(c=>owIds.includes(c.id)).map(c=>c.incoming));
+  if(!records.length){toast('没有可导入的数据');return}
+  if(owIds.length && !confirm('确认覆盖选中的 '+owIds.length+' 条已有工价？\n（直接改价不保留历史版本，如需保留历史请用行内「调整」按钮）'))return;
+  const box=document.getElementById('bi_step2');
+  box.innerHTML='<div class="em"> 正在导入…</div>';
+  try{
+    const r=await fetch(API+'/import/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({records,overwrite_ids:owIds})});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'导入失败');return}
+    box.innerHTML='<div style="background:#eafaf1;padding:14px;border-radius:8px;color:#1e7d45;font-size:14px"><b>'+esc(d.message)+'</b></div>'+
+      '<div style="text-align:center;margin-top:12px"><button class="btn b1" onclick="closeBatchImport();loadList(1);loadStatCards();loadFilterOpts()">完成并刷新</button></div>';
+  }catch(e){toast('导入失败: '+e.message)}
 }
 
 // ===== 成本分析 =====
@@ -657,10 +871,10 @@ async function loadStats(){
         card(d.approved,'已审核','#27ae60')+card(d.pending,'待审核','#f39c12')+card(d.disabled,'已停用','#95a5a6')+
       '</div>'+
       '<div class="grid2">'+
-        '<div class="panel"><h3>🏷️ 按计价方式</h3>'+bars(d.by_rate_type,'#667eea')+'</div>'+
-        '<div class="panel"><h3>📥 按数据来源</h3>'+bars(d.by_source,'#2980b9')+'</div>'+
+        '<div class="panel"><h3>️ 按计价方式</h3>'+bars(d.by_rate_type,'#667eea')+'</div>'+
+        '<div class="panel"><h3> 按数据来源</h3>'+bars(d.by_source.map(x=>({name:srcLabel(x.name),value:x.value})),'#2980b9')+'</div>'+
       '</div>'+
-      '<div class="panel"><h3>✅ 按审核状态</h3>'+bars(d.by_audit.map(x=>({name:x.label,value:x.value})),'#27ae60')+'</div>';
+      '<div class="panel"><h3> 按审核状态</h3>'+bars(d.by_audit.map(x=>({name:x.label,value:x.value})),'#27ae60')+'</div>';
   }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
 }
 function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+';font-size:'+(String(n).length>10?'15px':'22px')+'">'+esc(n)+'</div><div class="l">'+l+'</div></div>'}
@@ -715,7 +929,7 @@ async function syncExt(){
     const r=await fetch(API+'/sync-from-external',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({config:gatherExtCfg()})});
     const d=await r.json();
     if(!r.ok){
-      el.innerHTML='<div style="color:#e74c3c"><b>✗ 同步失败</b><div style="margin-top:4px">'+esc(d.error||'')+'</div>'+(d.hint?'<div style="margin-top:4px;color:#f39c12"><b>💡 '+esc(d.hint)+'</b></div>':'')+'<div style="margin-top:4px">→ 请先点「🔌 测试连接」验证 base_url / api_key</div></div>';
+      el.innerHTML='<div style="color:#e74c3c"><b> 同步失败</b><div style="margin-top:4px">'+esc(d.error||'')+'</div>'+(d.hint?'<div style="margin-top:4px;color:#f39c12"><b> '+esc(d.hint)+'</b></div>':'')+'<div style="margin-top:4px">→ 请先点「 测试连接」验证 base_url / api_key</div></div>';
       return;
     }
     let h='<span style="color:#27ae60">'+esc(d.message)+'（新增 '+d.added+' / 更新 '+d.updated+' / 保留 '+d.kept+' / 跳过 '+d.skipped+'）</span>';
@@ -740,8 +954,8 @@ function gatherExtCfg(){
 async function testConn(){
   const el=document.getElementById('testResult');
   const cfg=gatherExtCfg();
-  if(!cfg.base_url){el.innerHTML='<span style="color:#e74c3c">✗ 请先填写「接口地址 Base URL」</span>';return}
-  el.innerHTML='<span style="color:#888">⏳ 探测中（最长15s）...</span>';
+  if(!cfg.base_url){el.innerHTML='<span style="color:#e74c3c"> 请先填写「接口地址 Base URL」</span>';return}
+  el.innerHTML='<span style="color:#888"> 探测中（最长15s）...</span>';
   try{
     const r=await fetch(API+'/external/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});
     const d=await r.json();
@@ -750,27 +964,27 @@ async function testConn(){
     const parse = steps.parse || null;
     const shape = steps.shape || null;
     let h='';
-    h+='<div><b>1. 网络/服务可达：</b>'+(ping.ok?'<span style="color:#27ae60">✓ '+(ping.status||'')+' '+esc(ping.content_type||'')+'</span>':'<span style="color:#e74c3c">✗ '+esc(ping.error||'未知错误')+'</span>')+'</div>';
+    h+='<div><b>1. 网络/服务可达：</b>'+(ping.ok?'<span style="color:#27ae60"> '+(ping.status||'')+' '+esc(ping.content_type||'')+'</span>':'<span style="color:#e74c3c"> '+esc(ping.error||'未知错误')+'</span>')+'</div>';
     if(ping.ok){
-      h+='<div><b>2. 响应是 JSON：</b>'+(parse&&parse.ok?'<span style="color:#27ae60">✓</span>':'<span style="color:#e74c3c">✗ '+esc((parse&&parse.error)||'')+'</span>')+'</div>';
+      h+='<div><b>2. 响应是 JSON：</b>'+(parse&&parse.ok?'<span style="color:#27ae60"></span>':'<span style="color:#e74c3c"> '+esc((parse&&parse.error)||'')+'</span>')+'</div>';
       if(shape){
-        h+='<div><b>3. 数据形态：</b>'+(shape.ok?'<span style="color:#27ae60">✓ '+(shape.count||0)+' 条记录</span>':'<span style="color:#f39c12">⚠ 数据为空或字段缺失</span>')+'</div>';
+        h+='<div><b>3. 数据形态：</b>'+(shape.ok?'<span style="color:#27ae60"> '+(shape.count||0)+' 条记录</span>':'<span style="color:#f39c12"> 数据为空或字段缺失</span>')+'</div>';
         if(shape.top_keys&&shape.top_keys.length) h+='<div style="font-size:11px;color:#888;margin-top:2px">顶层字段：'+esc(shape.top_keys.join(', '))+'</div>';
         if(shape.sample_item_keys&&shape.sample_item_keys.length) h+='<div style="font-size:11px;color:#888;margin-top:2px">样例字段：'+esc(shape.sample_item_keys.join(', '))+'</div>';
       }
     }
-    if(d.hint)h+='<div style="margin-top:6px;padding:6px 10px;background:#fff7e0;border-radius:4px;color:#a0690e"><b>💡 '+esc(d.hint)+'</b></div>';
+    if(d.hint)h+='<div style="margin-top:6px;padding:6px 10px;background:#fff7e0;border-radius:4px;color:#a0690e"><b> '+esc(d.hint)+'</b></div>';
     if(d.suggestions&&d.suggestions.length){
-      h+='<div style="margin-top:6px;padding:8px 10px;background:#e8f5e9;border-radius:4px;color:#2e7d32"><b>🔍 自动扫到可能的 ERP 地址（点击复制）:</b><div style="margin-top:4px">';
+      h+='<div style="margin-top:6px;padding:8px 10px;background:#e8f5e9;border-radius:4px;color:#2e7d32"><b> 自动扫到可能的 ERP 地址（点击复制）:</b><div style="margin-top:4px">';
       for(const s of d.suggestions){
         h+='<div style="cursor:pointer;padding:3px 6px;background:#fff;border:1px solid #c8e6c9;border-radius:3px;margin-top:3px" onclick="document.getElementById(\'ext_base_url\').value=\''+esc(s.url)+'\';toast(\'已填入 '+esc(s.url)+'，记得保存配置\')">'+esc(s.url)+' <span style="color:#999;font-size:11px">['+esc(s.sample||'')+']</span></div>';
       }
       h+='</div></div>';
     }
-    if(d.ok)h='<div style="color:#27ae60"><b>✓ 全部通过，可点击「立即同步」</b></div>'+h;
-    else h='<div style="color:#e74c3c;margin-bottom:4px"><b>✗ 健康检查未通过</b></div>'+h;
+    if(d.ok)h='<div style="color:#27ae60"><b> 全部通过，可点击「立即同步」</b></div>'+h;
+    else h='<div style="color:#e74c3c;margin-bottom:4px"><b> 健康检查未通过</b></div>'+h;
     el.innerHTML=h;
-  }catch(e){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>'}
+  }catch(e){el.innerHTML='<span style="color:#e74c3c"> '+esc(e.message)+'</span>'}
 }
 
 // 跳转到 BOM 树 Tab，并预填 bom_id
@@ -792,15 +1006,15 @@ async function loadBomTree(){
   const statsEl = document.getElementById('bomTreeStats');
   const boxEl = document.getElementById('bomTreeBox');
   const rawEl = document.getElementById('bomTreeRaw');
-  statsEl.innerHTML = '<div class="em" style="padding:6px">⏳ 加载中…</div>';
-  boxEl.innerHTML = '<div class="em" style="padding:6px">⏳ 加载中…</div>';
+  statsEl.innerHTML = '<div class="em" style="padding:6px"> 加载中…</div>';
+  boxEl.innerHTML = '<div class="em" style="padding:6px"> 加载中…</div>';
   rawEl.textContent = '';
   try{
     const r = await fetch(API+'/external/bom-tree?bom_id='+encodeURIComponent(bomId));
     const d = await r.json();
     rawEl.textContent = JSON.stringify(d.raw || d, null, 2);
     if(!r.ok){
-      statsEl.innerHTML = '<div class="em" style="color:#e74c3c;padding:6px">✗ '+esc(d.error||'加载失败')+(d.hint?(' · '+esc(d.hint)):'')+'</div>';
+      statsEl.innerHTML = '<div class="em" style="color:#e74c3c;padding:6px"> '+esc(d.error||'加载失败')+(d.hint?('  '+esc(d.hint)):'')+'</div>';
       boxEl.innerHTML = '<div class="em">'+esc(d.error||'加载失败')+'</div>';
       return;
     }
@@ -816,7 +1030,7 @@ async function loadBomTree(){
       (s.materials&&s.materials.length?'<div style="margin-bottom:8px;font-size:12px;color:#555"><b>根节点（前 10）：</b> '+s.materials.map(m=>esc(m.code||m.name||m.id)).join(' / ')+'</div>':'');
     boxEl.innerHTML = renderBomTree(d.nodes, d.tree);
   }catch(e){
-    statsEl.innerHTML = '<div class="em" style="color:#e74c3c;padding:6px">✗ '+esc(e.message)+'</div>';
+    statsEl.innerHTML = '<div class="em" style="color:#e74c3c;padding:6px"> '+esc(e.message)+'</div>';
     boxEl.innerHTML = '<div class="em">'+esc(e.message)+'</div>';
   }
 }
@@ -921,7 +1135,7 @@ async function loadByProductTree(){
     total = d.data.length;
     const tb = document.getElementById('tb');
     if(!d.data.length){
-      tb.innerHTML = '<tr><td colspan="14" class="em">该成品及其下级 BOM 在工价库中无匹配记录</td></tr>';
+      tb.innerHTML = '<tr><td colspan="13" class="em">该成品及其下级 BOM 在工价库中无匹配记录</td></tr>';
       el.textContent = '';
     } else {
       tb.innerHTML = d.data.map(function(r){
@@ -939,7 +1153,7 @@ async function loadByProductTree(){
           '<td class="r">'+yuan(r.process_cost)+'</td>'+
           '<td>'+esc(r.effective_date)+'</td>'+
           '<td>'+esc(r.expire_date||'\u2014')+'</td>'+
-          '<td><span class="src-tag src-'+esc(r.source)+'">'+esc(r.source)+'</span></td>'+
+          '<td><span class="src-tag src-'+esc(r.source)+'">'+esc(srcLabel(r.source))+'</span></td>'+
           '<td><span class="status-tag st-'+esc(r.audit_status)+'">'+auditLabel(r.audit_status)+'</span></td>'+
           '<td class="audit-actions">'+
             (r.audit_status!=='approved'?'<button class="btn b2" onclick="setAudit('+r.id+',\'approved\')" data-perm="labor-rate:edit">通过</button>':'')+
@@ -969,5 +1183,6 @@ loadFilterOpts().then(()=>{loadStatCards();loadList(1);loadProductList()});
 ImportDropzone.init('','product_labor_rate',function(){loadList(curPage);loadStatCards()});
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

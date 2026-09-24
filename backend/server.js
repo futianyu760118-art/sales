@@ -12,6 +12,21 @@ const { verifyToken } = require('./lib/auth-token');
 // ===== 密钥自检：外部对接密钥必须通过环境变量注入，代码中不硬编码 =====
 require('./lib/secrets').warnMissing();
 
+// ===== 进程级异常兜底（必须最先注册） =====
+// Node 15+ 默认把「未处理的 Promise rejection」升级为异常并终止进程。
+// 本项目大量 async 路由未包裹 try/catch，任何一次请求异常（如外部接口超时、
+// 数据库异常、WebSocket 报错）都可能让整个服务进程直接消失。
+// 这里统一兜底：记录日志并保持进程存活，避免"单个请求搞挂整个服务"。
+function logProcessError(tag, err) {
+  try {
+    const e = err || {};
+    console.error('[' + tag + '] ' + new Date().toISOString() + ' ' + (e.stack || e.message || String(e)));
+  } catch (_) {}
+}
+process.on('unhandledRejection', (reason) => logProcessError('unhandledRejection', reason));
+process.on('uncaughtException', (err) => logProcessError('uncaughtException', err));
+process.on('exit', (code) => console.log('[process-exit] code=' + code + ' at ' + new Date().toISOString()));
+
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
@@ -113,14 +128,35 @@ try {
 const routes = require('./routes');
 app.use('/api', routes);
 
+// ===== Express 统一错误处理 =====
+// 捕获同步异常与 next(err)（如 express.json 解析失败、multer 体积超限），
+// 返回结构化错误而非默认 HTML 堆栈，避免请求悬挂与信息泄露。
+app.use((err, req, res, next) => {
+  logProcessError('express-error', err);
+  if (res.headersSent) return next(err);
+  const status = (err && (err.status || err.statusCode)) || 500;
+  res.status(status).json({
+    error: status === 400 ? '请求参数错误' : '服务器内部错误',
+    message: err && err.message ? String(err.message) : ''
+  });
+});
+
 // favicon：返回 204，避免浏览器请求 /favicon.ico 时 404 刷控制台
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 app.use((req, res, next) => {
   if (req.path.endsWith('.html') || req.path === '/' || req.path.endsWith('.js') || req.path.endsWith('.css')) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+    // HTML remains revalidated so deployments take effect immediately. Static
+    // JS/CSS can be reused briefly in production, avoiding a full asset RTT on
+    // every page navigation while still limiting staleness to five minutes.
+    const isAsset = req.path.endsWith('.js') || req.path.endsWith('.css');
+    if (process.env.NODE_ENV === 'production' && isAsset) {
+      res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=30');
+    } else {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
   }
   next();
 });
@@ -144,11 +180,12 @@ const recovery = require('./lib/materials-recovery');
 
 function ensureMaterialsHealth(){
   const h = recovery.check();
+  const desc = h.desc || ('size=' + h.size);
   if(!h.ok || h.tooSmall){
-    logger.info('[startup] materials.json 异常（size=' + h.size + '），启动自动恢复...');
+    logger.info('[startup] materials 数据异常（' + desc + '），启动自动恢复...');
     recovery.recover('startup', { log: (m) => logger.info('[recovery] ' + m) });
   } else {
-    logger.info('[startup] materials.json 大小正常 (' + (h.size/1024/1024).toFixed(1) + ' MB)');
+    logger.info('[startup] materials 数据正常 (' + desc + ')');
   }
 }
 // 暴露给路由的惰性触发
@@ -187,8 +224,21 @@ if (fs.existsSync(certPfxPath)) {
   }
 }
 const server = http.createServer(app);
+
+// HTTP 服务级错误兜底：端口占用等 listen 错误若无监听会直接抛出并终止进程
+server.on('error', (err) => {
+  logProcessError('server-error', err);
+  if (err && err.code === 'EADDRINUSE') process.exit(1); // 交给 Docker/PM2 重启，避免僵死
+});
+server.on('clientError', (err, socket) => {
+  try { if (socket && socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\n\r\n'); } catch (_) {}
+});
+
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ server, path: '/ws' });
+
+// WebSocket 服务级错误：EventEmitter 的 'error' 无监听时会抛出导致进程退出
+wss.on('error', (err) => logProcessError('wss-error', err));
 
 const wsClients = new Map();
 
@@ -226,6 +276,7 @@ wss.on('connection', (ws) => {
     ws.close(4401, reason || '未认证');
   }
 
+  ws.on('error', (err) => logProcessError('ws-error', err));
   ws.on('message', (data) => {
     try {
       const msg = JSON.parse(data);
@@ -271,6 +322,28 @@ server.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on http://localhost:${PORT}`);
   logger.info(`局域网访问: http://${LOCAL_IP}:${PORT}`);
   logger.info(`WebSocket: ws://localhost:${PORT}/ws`);
+
+  // 内存监控：每 30 分钟打印一次 RSS/heap，便于定位 OOM/内存泄漏
+  // （此前数据库缓存膨胀 + WSL 内存上限叠加，容器可能被 OOM 杀掉）
+  setInterval(() => {
+    const m = process.memoryUsage();
+    console.log('[mem] rss=' + Math.round(m.rss / 1048576) + 'MB heapUsed=' + Math.round(m.heapUsed / 1048576) + 'MB external=' + Math.round(m.external / 1048576) + 'MB');
+  }, 30 * 60 * 1000).unref();
+
+  // 后台预热订单分析库大表与索引（order_bom_details 240MB 等），
+  // 避免首次打开页面时由用户请求承担冷加载（不阻塞端口监听）
+  try { require('./routes/order-analysis').warmupCaches(); } catch (e) {
+    console.warn('[warmup] 订单分析预热失败:', e.message);
+  }
+
+  // 启动兜底：订单核价库成品型号 → 工价库自动补同步（已存在跳过，不重复；延迟30秒避开启动高峰）
+  setTimeout(() => {
+    try {
+      require('./routes/product-labor-rate').syncFromPricingLib()
+        .then(r => { if (r && r.added > 0) console.log('[startup] 核价库→工价库补同步：新增 ' + r.added + ' 个型号'); })
+        .catch(e => console.warn('[startup] 核价库→工价库补同步失败:', e.message));
+    } catch (e) {}
+  }, 30000);
 
   if (httpsServer) {
     const HTTPS_PORT = PORT + 1;

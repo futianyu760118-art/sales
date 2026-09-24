@@ -12,11 +12,20 @@ let _running = false;
 let _lastAt = 0;
 
 function check() {
+  // [PERF] SQLite 引擎：按表行数判定健康度（原 materials.json 已迁移改名，文件检查会误报）
+  try {
+    const db = require('../db');
+    if (db.engine === 'sqlite') {
+      const { getTable } = db;
+      const count = getTable('materials').count();
+      return { ok: true, size: count, tooSmall: count < 500, desc: count + ' 行' };
+    }
+  } catch (_) { /* 引擎探测失败则回退文件检查 */ }
   try {
     const stat = fs.statSync(MATERIALS_FILE);
-    return { ok: true, size: stat.size, tooSmall: stat.size < THRESHOLD_BYTES };
+    return { ok: true, size: stat.size, tooSmall: stat.size < THRESHOLD_BYTES, desc: (stat.size / 1024 / 1024).toFixed(1) + ' MB' };
   } catch (e) {
-    return { ok: false, size: 0, tooSmall: true };
+    return { ok: false, size: 0, tooSmall: true, desc: '文件缺失' };
   }
 }
 

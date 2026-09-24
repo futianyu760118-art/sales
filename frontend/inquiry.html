@@ -1,13 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EBMS企业经营管理系统 - 询价管理</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .table-container th:hover { background: #eef0f5; }
-    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .table-container th .sort-icon { display:inline-flex; width:var(--icon-xs); height:var(--icon-xs); color:#bbb; margin-left:2px; }
     .table-container th.sorted-asc .sort-icon, .table-container th.sorted-desc .sort-icon { color: #667eea; }
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
     .expand-col { width: 30px; text-align: center; cursor: pointer; }
@@ -108,12 +109,12 @@
     </div>
     <div class="batch-bar" id="batchBar" data-feature="batch"><span id="batchCount">已选 0 条</span><button onclick="batchUpdateStatus()">批量改状态</button><button onclick="batchUpdateSales()">批量改销售</button><button onclick="batchDelete()">批量删除</button><button onclick="clearSelection()">取消选择</button></div>
     <div id="listView">
-      <div class="table-container"><table id="inquiryTableEl"><thead><tr><th class="checkbox-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th><th class="seq-col">#</th><th data-sort="serial_number">询价单号<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="customer_name">客户<span class="sort-icon">&#8593;&#8595;</span></th><th>客户代码</th><th data-sort="external_model">产品型号<span class="sort-icon">&#8593;&#8595;</span></th><th>产品名称</th><th data-sort="power">功率<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="quantity">数量<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="target_price">目标价<span class="sort-icon">&#8593;&#8595;</span></th><th>状态</th><th data-sort="final_price">单价<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="sales_person">销售<span class="sort-icon">&#8593;&#8595;</span></th><th>操作</th></tr></thead><tbody id="inquiryTable"></tbody></table></div>
+      <div class="table-container"><table id="inquiryTableEl"><thead><tr><th class="checkbox-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th><th class="seq-col">#</th><th data-sort="serial_number">询价单号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="customer_name">客户<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>客户代码</th><th data-sort="external_model">产品型号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>产品名称</th><th data-sort="power">功率<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="quantity">数量<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="target_price">目标价<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>状态</th><th data-sort="final_price">单价<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="sales_person">销售<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>操作</th></tr></thead><tbody id="inquiryTable"></tbody></table></div>
       <div class="pagination" id="pagination"></div>
     </div>
     <div id="ledgerView" class="ledger-view">
       <div class="ledger-stats" id="ledgerStats"></div>
-      <div class="table-container"><table id="ledgerTableEl"><thead><tr><th class="seq-col">#</th><th data-sort="serial_number">询价单号<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="customer_name">客户<span class="sort-icon">&#8593;&#8595;</span></th><th>客户代码</th><th data-sort="external_model">产品型号<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="quantity">数量<span class="sort-icon">&#8593;&#8595;</span></th><th>状态</th><th>物料成本</th><th>加工费</th><th>配件费</th><th>损耗</th><th data-sort="base_cost">成本合计<span class="sort-icon">&#8593;&#8595;</span></th><th>利润率</th><th>优惠率</th><th data-sort="final_price">最终报价<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="sales_person">销售<span class="sort-icon">&#8593;&#8595;</span></th><th data-sort="created_at">创建时间<span class="sort-icon">&#8593;&#8595;</span></th><th>报价时间</th><th>流失原因</th></tr></thead><tbody id="ledgerTable"></tbody></table></div>
+      <div class="table-container"><table id="ledgerTableEl"><thead><tr><th class="seq-col">#</th><th data-sort="serial_number">询价单号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="customer_name">客户<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>客户代码</th><th data-sort="external_model">产品型号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="quantity">数量<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>状态</th><th>物料成本</th><th>加工费</th><th>配件费</th><th>损耗</th><th data-sort="base_cost">成本合计<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>利润率</th><th>优惠率</th><th data-sort="final_price">最终报价<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="sales_person">销售<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th data-sort="created_at">创建时间<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th><th>报价时间</th><th>流失原因</th></tr></thead><tbody id="ledgerTable"></tbody></table></div>
     </div>
   </div>
 
@@ -141,7 +142,7 @@
     <div style="text-align:center;margin:15px 0;">
       <div id="ocrPreviewArea" style="display:none;margin-bottom:10px;"><img id="ocrPreviewImg" style="max-width:100%;max-height:200px;border-radius:6px;border:1px solid #ddd;"></div>
       <div id="ocrDropZone" style="border:2px dashed #3498db;border-radius:8px;padding:30px;cursor:pointer;transition:all 0.3s;" onclick="document.getElementById('ocrFileInput').click()" onmouseover="this.style.background='#eaf4fc'" onmouseout="this.style.background=''">
-        <div style="font-size:32px;color:#3498db;">&#128247;</div>
+        <div style="font-size:32px;color:#3498db;"></div>
         <div style="color:#666;margin-top:8px;">点击上传名片/照片 或 拖拽到此处</div>
         <div style="color:#999;font-size:12px;margin-top:4px;">支持 JPG/PNG，建议拍摄清晰正面照</div>
       </div>
@@ -173,7 +174,7 @@
       <div style="text-align:center;flex:1;" class="flow-step" data-step="6"><span style="width:28px;height:28px;border-radius:50%;background:#e0e0e0;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">6</span><span style="display:block;font-size:11px;color:#888;margin-top:4px;">生成报价单</span></div>
       <div style="text-align:center;flex:1;" class="flow-step" data-step="7"><span style="width:28px;height:28px;border-radius:50%;background:#e0e0e0;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">7</span><span style="display:block;font-size:11px;color:#888;margin-top:4px;">业务闭环</span></div>
     </div>
-    <div class="tab-nav" data-feature="batch"><button class="active" onclick="switchDetailTab('basic')">基本信息</button><button onclick="switchDetailTab('config')">规格书/配置表</button><button onclick="switchDetailTab('pricing')">核价报价</button><button onclick="switchDetailTab('quotation')">报价单</button><button onclick="switchDetailTab('history')">状态历史</button><button onclick="switchDetailTab('comments')">跟进记录</button><button onclick="switchDetailTab('discussion')">💬 讨论</button></div>
+    <div class="tab-nav" data-feature="batch"><button class="active" onclick="switchDetailTab('basic')">基本信息</button><button onclick="switchDetailTab('config')">规格书/配置表</button><button onclick="switchDetailTab('pricing')">核价报价</button><button onclick="switchDetailTab('quotation')">报价单</button><button onclick="switchDetailTab('history')">状态历史</button><button onclick="switchDetailTab('comments')">跟进记录</button><button onclick="switchDetailTab('discussion')"> 讨论</button></div>
     <div id="tab-basic" class="tab-content active"></div>
     <div id="tab-config" class="tab-content"></div>
     <div id="tab-pricing" class="tab-content"></div>
@@ -184,7 +185,7 @@
   </div></div>
 
   <!-- 快速报价 -->
-  <div class="modal" id="priceModal"><div class="modal-content" style="max-width:700px;"><span class="close-btn" onclick="closeModal('priceModal')">&times;</span><h3>快速报价</h3><div id="priceBomInfo" style="margin-bottom:12px;"></div><div id="priceDisplay"></div><div class="form-row" style="margin-top:12px;"><div class="form-group"><label>利润率 (%)</label><input type="number" id="profitRate" value="20" step="1" onchange="previewPrice()"></div><div class="form-group"><label>折扣率 (%)</label><input type="number" id="discountRate" value="100" step="1" min="0" max="200" onchange="onDiscountChange()"></div></div><div id="discountHint" style="display:none;margin:8px 0;padding:8px 12px;border-radius:6px;font-size:13px;"></div><div id="discountApplyForm" style="display:none;margin:10px 0;padding:12px;border:1px solid #ffcc80;border-radius:8px;background:#fff8e1;"><div style="font-weight:600;color:#e65100;margin-bottom:8px;">📋 折扣申请信息</div><div class="form-row"><div class="form-group"><label>申请人</label><input type="text" id="discountApplicant" placeholder="请输入申请人姓名"></div><div class="form-group"><label>折扣原因</label><input type="text" id="discountReason" placeholder="请输入折扣原因"></div></div></div><div style="margin-top:10px;"><button class="btn btn-primary" onclick="submitPrice()">生成报价</button> <button class="btn btn-info" onclick="previewQuote()">预览报价单</button></div></div></div>
+  <div class="modal" id="priceModal"><div class="modal-content" style="max-width:700px;"><span class="close-btn" onclick="closeModal('priceModal')">&times;</span><h3>快速报价</h3><div id="priceBomInfo" style="margin-bottom:12px;"></div><div id="priceDisplay"></div><div class="form-row" style="margin-top:12px;"><div class="form-group"><label>利润率 (%)</label><input type="number" id="profitRate" value="20" step="1" onchange="previewPrice()"></div><div class="form-group"><label>折扣率 (%)</label><input type="number" id="discountRate" value="100" step="1" min="0" max="200" onchange="onDiscountChange()"></div></div><div id="discountHint" style="display:none;margin:8px 0;padding:8px 12px;border-radius:6px;font-size:13px;"></div><div id="discountApplyForm" style="display:none;margin:10px 0;padding:12px;border:1px solid #ffcc80;border-radius:8px;background:#fff8e1;"><div style="font-weight:600;color:#e65100;margin-bottom:8px;"> 折扣申请信息</div><div class="form-row"><div class="form-group"><label>申请人</label><input type="text" id="discountApplicant" placeholder="请输入申请人姓名"></div><div class="form-group"><label>折扣原因</label><input type="text" id="discountReason" placeholder="请输入折扣原因"></div></div></div><div style="margin-top:10px;"><button class="btn btn-primary" onclick="submitPrice()">生成报价</button> <button class="btn btn-info" onclick="previewQuote()">预览报价单</button></div></div></div>
 
   <!-- 状态变更 -->
   <div class="modal" id="statusModal"><div class="modal-content" style="max-width:400px;"><span class="close-btn" onclick="closeModal('statusModal')">&times;</span><h3>变更状态</h3><div class="form-group"><label>新状态</label><select id="newStatusSelect"></select></div><div class="form-group" id="lostReasonGroup" style="display:none;"><label>流失原因</label><input type="text" id="lostReasonInput" placeholder="请输入流失原因"></div><div class="form-group"><label>变更原因</label><input type="text" id="statusReasonInput" placeholder="请输入变更原因"></div><button class="btn btn-primary" onclick="submitStatusChange()">确认变更</button></div></div>
@@ -418,7 +419,7 @@ async function loadInquiries(page=1) {
         seqNum++;
         tbody.innerHTML += `<tr class="group-row" data-group="${groupKey}" style="background:#f0f4ff;">
           <td class="checkbox-col"><input type="checkbox" ${allChecked?'checked':''} onchange="toggleGroupSelect('${groupKey}',this)"></td>
-          <td class="seq-col"><span class="expand-btn" onclick="toggleInquiryGroup('${groupKey}')">&#9654;</span></td>
+          <td class="seq-col"><span class="expand-btn" data-icon="expand" data-icon-size="xs" aria-hidden="true" onclick="toggleInquiryGroup('${groupKey}')"></span></td>
           <td><a href="javascript:void(0)" onclick="showDetail(${firstItem.id})" style="color:#667eea;">${firstItem.serial_number.replace(/-\d{2,}$/, '')}</a><span class="sub-count" style="background:#667eea;color:white;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;">${groupItems.length}</span></td>
           <td>${firstItem.customer_name||''}</td><td style="font-size:12px;color:#888;">${firstItem.customer_code||''}</td>
           <td colspan="3" style="font-size:12px;color:#667eea;">${models.length > 40 ? models.substring(0,40)+'...' : models}</td>
@@ -455,7 +456,7 @@ async function loadInquiries(page=1) {
         const item = firstItem;
         const checked = selectedIds.has(item.id) ? 'checked' : '';
         const hasSub = (item.config_count > 0 || item.quotation_count > 0);
-        const expandBtn = hasSub ? `<span class="expand-btn" onclick="toggleExpand(this,${item.id})">&#9654;</span>` : '';
+        const expandBtn = hasSub ? `<span class="expand-btn" data-icon="expand" data-icon-size="xs" aria-hidden="true" onclick="toggleExpand(this,${item.id})"></span>` : '';
         seqNum++;
         tbody.innerHTML += `<tr>
           <td class="checkbox-col"><input type="checkbox" ${checked} onchange="toggleSelect(${item.id})"></td>
@@ -544,12 +545,12 @@ async function toggleExpand(btn, inqId) {
       const c = configs[0];
       let params = '';
       try { const adj = JSON.parse(c.adjustable_params || '{}'); params = Object.entries(adj).map(([k,v])=>`${k}:${v}`).join(', '); } catch(e){}
-      subHtml += `<tr class="sub-row"><td></td><td></td><td colspan="11" style="color:#667eea;font-weight:500;">📋 产品配置: ${params || '已配置'} | 证书: ${c.certificate_compliant||'-'} / ${c.certificate_level||'-'} | 状态: ${c.status||'-'}</td></tr>`;
+      subHtml += `<tr class="sub-row"><td></td><td></td><td colspan="11" style="color:#667eea;font-weight:500;"> 产品配置: ${params || '已配置'} | 证书: ${c.certificate_compliant||'-'} / ${c.certificate_level||'-'} | 状态: ${c.status||'-'}</td></tr>`;
     }
     // 报价单信息
     quotations.forEach(q => {
       const unitPrice = q.quantity > 0 ? (q.final_price / q.quantity).toFixed(2) : 0;
-      subHtml += `<tr class="sub-row"><td></td><td></td><td colspan="11" style="color:#27ae60;">💰 报价单 ${q.quote_no}: 总价 ¥${(q.final_price||0).toLocaleString()} | 单价 ¥${unitPrice} | 有效期 ${q.quote_validity||'30天'} | 状态 ${q.status}</td></tr>`;
+      subHtml += `<tr class="sub-row"><td></td><td></td><td colspan="11" style="color:#27ae60;"> 报价单 ${q.quote_no}: 总价 ¥${(q.final_price||0).toLocaleString()} | 单价 ¥${unitPrice} | 有效期 ${q.quote_validity||'30天'} | 状态 ${q.status}</td></tr>`;
     });
     if (!subHtml) {
       subHtml = `<tr class="sub-row"><td></td><td></td><td colspan="11" style="color:#999;">暂无配置和报价信息</td></tr>`;
@@ -812,10 +813,10 @@ function checkVariantNeeded(el) {
     if (diffFields.length > 0 && !isVariantModel) {
       const fieldNames = { input_voltage:'电压', battery:'电池', color_temp:'色温', luminous_flux:'光通量', light_source:'光源', waterproof:'防水', main_body:'主体', lampshade:'灯罩', reflector:'反光罩', cable:'电缆', switch_type:'开关', usb:'USB', sensor:'感应器' };
       const names = diffFields.map(f => fieldNames[f] || f);
-      matchHint.innerHTML = `<span style="color:#f57f17;">⚠️ 参数与基础型号 ${baseModel} 不同（${names.join('、')}），提交时将自动创建变体型号并重新核价</span>`;
+      matchHint.innerHTML = `<span style="color:#f57f17;">️ 参数与基础型号 ${baseModel} 不同（${names.join('、')}），提交时将自动创建变体型号并重新核价</span>`;
       matchHint.style.display = 'block';
     } else if (diffFields.length === 0 && !isVariantModel) {
-      matchHint.innerHTML = `<span style="color:#2e7d32;">✅ 参数与基础型号 ${baseModel} 完全匹配</span>`;
+      matchHint.innerHTML = `<span style="color:#2e7d32;"> 参数与基础型号 ${baseModel} 完全匹配</span>`;
       matchHint.style.display = 'block';
     }
   }, 500);
@@ -1175,7 +1176,7 @@ async function onRowProductSelected(selectEl) {
   });
 
   if (matchHint) {
-    matchHint.innerHTML = `<span style="color:#27ae60;font-weight:600;">✅ 已自动填充</span> 型号 ${model} 的参数`;
+    matchHint.innerHTML = `<span style="color:#27ae60;font-weight:600;"> 已自动填充</span> 型号 ${model} 的参数`;
     matchHint.style.display = 'block';
   }
 
@@ -1242,7 +1243,7 @@ async function loadConfigParamsForRow(row, model) {
         if (levelSel && !levelSel.value) levelSel.value = c.certificate_level;
       }
       if (matchHint) {
-        matchHint.innerHTML = `<span style="color:#27ae60;font-weight:600;">✅ 已自动填充</span> 型号 ${model} 的参数 <span style="color:#667eea;">（含配置表: ${c.model||model}）</span>`;
+        matchHint.innerHTML = `<span style="color:#27ae60;font-weight:600;"> 已自动填充</span> 型号 ${model} 的参数 <span style="color:#667eea;">（含配置表: ${c.model||model}）</span>`;
         matchHint.style.display = 'block';
       }
     }
@@ -1755,7 +1756,7 @@ document.getElementById('addForm').addEventListener('submit',async function(e){
 
           if (matchResult.matched && matchResult.action === 'use_existing') {
             if (matchHint) {
-              matchHint.innerHTML = `<span style="color:#2e7d32;">✅ 参数完全匹配已有产品 <strong>${matchResult.product.external_model}</strong></span>`;
+              matchHint.innerHTML = `<span style="color:#2e7d32;"> 参数完全匹配已有产品 <strong>${matchResult.product.external_model}</strong></span>`;
               matchHint.style.display = 'block';
             }
           } else if (matchResult.action === 'create_variant') {
@@ -1763,7 +1764,7 @@ document.getElementById('addForm').addEventListener('submit',async function(e){
               `产品 #${i+1} 的参数与基础型号 ${matchResult.base_model} 不同\n` +
               `差异字段：${matchResult.diff_fields.join('、')}\n\n` +
               `将自动创建变体型号：${matchResult.suggested_model}\n` +
-              `⚠️ 变体型号需要重新核价，将自动提交核价库\n\n` +
+              `️ 变体型号需要重新核价，将自动提交核价库\n\n` +
               `点击"确定"使用变体型号，点击"取消"保持原型号`
             );
             if (confirmed) {
@@ -1771,14 +1772,14 @@ document.getElementById('addForm').addEventListener('submit',async function(e){
               if (row) {
                 row.querySelector('.ext-model').value = matchResult.suggested_model;
                 if (matchHint) {
-                  matchHint.innerHTML = `<span style="color:#f57f17;">🔄 变体型号 <strong>${matchResult.suggested_model}</strong>（参数不同，需重新核价）</span>`;
+                  matchHint.innerHTML = `<span style="color:#f57f17;"> 变体型号 <strong>${matchResult.suggested_model}</strong>（参数不同，需重新核价）</span>`;
                   matchHint.style.display = 'block';
                 }
               }
             }
           } else if (matchResult.action === 'create_new') {
             if (matchHint) {
-              matchHint.innerHTML = `<span style="color:#1976d2;">🆕 新产品型号，将在提交时自动创建</span>`;
+              matchHint.innerHTML = `<span style="color:#1976d2;"> 新产品型号，将在提交时自动创建</span>`;
               matchHint.style.display = 'block';
             }
           }
@@ -1807,8 +1808,8 @@ document.getElementById('addForm').addEventListener('submit',async function(e){
         const aq = result.auto_quoted || 0;
         const pp = result.pending_pricing || 0;
         let msg = `询价单创建成功，共 ${result.created || products.length} 个产品\n\n`;
-        if (aq > 0) msg += `✅ ${aq}个产品报价库有价格，已自动完成报价（含报价单、配置表）\n`;
-        if (pp > 0) msg += `⏳ ${pp}个产品报价库无价格，已提交核价库等待核价\n`;
+        if (aq > 0) msg += ` ${aq}个产品报价库有价格，已自动完成报价（含报价单、配置表）\n`;
+        if (pp > 0) msg += ` ${pp}个产品报价库无价格，已提交核价库等待核价\n`;
         alert(msg);
         closeModal('addModal'); loadInquiries();
       } else { alert(result.error || '创建失败'); }
@@ -2058,7 +2059,7 @@ async function loadDiscussion() {
     }
     let msgs = [];
     try { const mRes = await fetch(`${API}/chat/messages?channel_id=${ch.id}&limit=50`); msgs = await mRes.json(); } catch(e) {}
-    let html = `<div style="padding:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h4 style="font-size:14px;color:#333;">💬 询价讨论 - ${inq.serial_number}</h4><button class="btn btn-sm btn-info" onclick="ChatWidget.setContext('inquiry',${inq.id});ChatWidget.open();ChatWidget.switchTab('ai');" style="font-size:11px;">🤖 AI分析此询价</button></div>`;
+    let html = `<div style="padding:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h4 style="font-size:14px;color:#333;"> 询价讨论 - ${inq.serial_number}</h4><button class="btn btn-sm btn-info" onclick="ChatWidget.setContext('inquiry',${inq.id});ChatWidget.open();ChatWidget.switchTab('ai');" style="font-size:11px;"> AI分析此询价</button></div>`;
     html += `<div id="discussionMessages" style="max-height:300px;overflow-y:auto;padding:8px;background:#fafafa;border-radius:8px;margin-bottom:10px;">`;
     if (msgs.length === 0) {
       html += `<div style="text-align:center;padding:20px;color:#999;font-size:12px;">暂无讨论，输入消息开始讨论</div>`;
@@ -2648,14 +2649,14 @@ function _renderConfigTabContent(inq){
       </div>
       ${currentEditMode==='edit'?`<button class="btn btn-success btn-sm" onclick="${currentSubTab==='spec'?'saveSpecSheet':'saveConfigSheet'}(${inqId})">保存</button>`:''}
       <div style="position:relative;display:inline-block;">
-        <button class="btn btn-success btn-sm" onclick="toggleDropdown('configDrop')">导出配置表 ▾</button>
+        <button class="btn btn-success btn-sm" onclick="toggleDropdown('configDrop')">导出配置表 </button>
         <div id="configDrop" style="display:none;position:absolute;top:100%;left:0;background:white;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;min-width:120px;">
           <a href="javascript:void(0)" onclick="exportFile(${inqId},'config','xlsx')" style="display:block;padding:8px 16px;color:#333;text-decoration:none;font-size:13px;white-space:nowrap;">Excel (.xlsx)</a>
           <a href="javascript:void(0)" onclick="exportFile(${inqId},'config','pdf')" style="display:block;padding:8px 16px;color:#333;text-decoration:none;font-size:13px;white-space:nowrap;">PDF (.pdf)</a>
         </div>
       </div>
       <div style="position:relative;display:inline-block;">
-        <button class="btn btn-info btn-sm" onclick="toggleDropdown('specDrop')">导出规格书 ▾</button>
+        <button class="btn btn-info btn-sm" onclick="toggleDropdown('specDrop')">导出规格书 </button>
         <div id="specDrop" style="display:none;position:absolute;top:100%;left:0;background:white;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:100;min-width:120px;">
           <a href="javascript:void(0)" onclick="exportFile(${inqId},'spec','xlsx')" style="display:block;padding:8px 16px;color:#333;text-decoration:none;font-size:13px;white-space:nowrap;">Excel (.xlsx)</a>
           <a href="javascript:void(0)" onclick="exportFile(${inqId},'spec','pdf')" style="display:block;padding:8px 16px;color:#333;text-decoration:none;font-size:13px;white-space:nowrap;">PDF (.pdf)</a>
@@ -2748,17 +2749,17 @@ function showSendEmailModal(id){
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;">
             <input type="checkbox" name="attach" value="quotation" ${hasQuotation?'checked':'disabled'} style="width:18px;height:18px;">
             <span style="font-weight:500;">报价单</span>
-            ${hasQuotation?'<span style="color:#27ae60;font-size:11px;">✓ 可用</span>':'<span style="color:#999;font-size:11px;">暂无报价单</span>'}
+            ${hasQuotation?'<span style="color:#27ae60;font-size:11px;"> 可用</span>':'<span style="color:#999;font-size:11px;">暂无报价单</span>'}
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;">
             <input type="checkbox" name="attach" value="config" checked style="width:18px;height:18px;">
             <span style="font-weight:500;">配置表</span>
-            <span style="color:#27ae60;font-size:11px;">✓ 可用</span>
+            <span style="color:#27ae60;font-size:11px;"> 可用</span>
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;">
             <input type="checkbox" name="attach" value="spec" checked style="width:18px;height:18px;">
             <span style="font-weight:500;">规格书</span>
-            <span style="color:#27ae60;font-size:11px;">✓ 可用</span>
+            <span style="color:#27ae60;font-size:11px;"> 可用</span>
           </label>
         </div>
       </div>
@@ -2938,13 +2939,13 @@ function renderQuotationTab(inq){
         const levelName=qDiscount<0.95?'总监':'经理';
         discountSection=`<div style="margin-top:12px;padding:10px;border:1px solid #ffcc80;border-radius:6px;background:#fff8e1;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:#e65100;font-weight:600;">⚠️ 折扣率 ${(qDiscount*100).toFixed(0)}%，需${levelName}审批</span>
+            <span style="color:#e65100;font-weight:600;">️ 折扣率 ${(qDiscount*100).toFixed(0)}%，需${levelName}审批</span>
             <button class="btn btn-sm btn-warning" onclick="showDiscountApprovalPanel(${inq.id})">审批管理</button>
           </div>
         </div>`;
       } else {
         discountSection=`<div style="margin-top:12px;padding:10px;border:1px dashed #bdbdbd;border-radius:6px;background:#fafafa;">
-          <div style="font-size:12px;color:#666;margin-bottom:8px;">💡 如需调整最终报价，可在此申请折扣</div>
+          <div style="font-size:12px;color:#666;margin-bottom:8px;"> 如需调整最终报价，可在此申请折扣</div>
           <div class="form-row" style="margin-bottom:6px;">
             <div class="form-group"><label>折扣率 (%)</label><input type="number" id="qDiscountRate_${q.id}" value="100" step="1" min="0" max="100" onchange="calcDiscountedPrice(${q.id},${originalPrice})"></div>
             <div class="form-group"><label>折后价</label><input type="text" id="qDiscountedPrice_${q.id}" value="¥${discountedPrice.toLocaleString()}" readonly style="background:#f5f5f5;"></div>
@@ -3111,8 +3112,8 @@ async function applyFromQuoteLibrary(id){
     }
     let options=quotes.map((q,i)=>{
       let marker='';
-      if(i===bestIdx) marker=' ★推荐(配置匹配)';
-      else if(certLevel&&q.certificate_level===certLevel) marker=' ✓证书匹配';
+      if(i===bestIdx) marker=' 推荐(配置匹配)';
+      else if(certLevel&&q.certificate_level===certLevel) marker=' 证书匹配';
       return `${i+1}. 型号: ${q.external_model} | 证书: ${q.certificate_level||'-'} | 配置: ${q.configuration||'-'} | 报价: ¥${q.price_rmb||'-'} / $${q.price_usd||'-'}${marker}`;
     }).join('\n');
     const choice=prompt(`找到 ${quotes.length} 条匹配报价${bestIdx>=0?'（第'+(bestIdx+1)+'条为最佳匹配）':''}，请输入序号选择：\n\n${options}`);
@@ -3240,14 +3241,14 @@ function onDiscountChange(){
     hint.style.background='#fff3e0';
     hint.style.border='1px solid #ffcc80';
     hint.style.color='#e65100';
-    hint.innerHTML='⚠️ 折扣率 < 100%，需要<strong>经理审批</strong>后才能生效';
+    hint.innerHTML='️ 折扣率 < 100%，需要<strong>经理审批</strong>后才能生效';
     form.style.display='block';
   }else{
     hint.style.display='block';
     hint.style.background='#ffebee';
     hint.style.border='1px solid #ef9a9a';
     hint.style.color='#c62828';
-    hint.innerHTML='🚫 折扣率 < 95%，需要<strong>总监审批</strong>后才能生效';
+    hint.innerHTML=' 折扣率 < 95%，需要<strong>总监审批</strong>后才能生效';
     form.style.display='block';
   }
   previewPrice();
@@ -3264,7 +3265,7 @@ async function showDiscountApprovalPanel(inquiryId){
       html+='<div style="text-align:center;padding:30px;color:#999;">暂无审批记录<br><br><button class="btn btn-primary" onclick="closeDiscountPanel();showPriceModal('+inquiryId+')">去申请折扣</button></div>';
     }else{
       approvals.reverse().forEach(a=>{
-        const statusMap={'pending':'⏳ 待审批','approved':'✅ 已通过','rejected':'❌ 已驳回'};
+        const statusMap={'pending':' 待审批','approved':' 已通过','rejected':' 已驳回'};
         const levelMap={'manager':'经理审批','director':'总监审批'};
         const statusColor=a.status==='pending'?'#e65100':a.status==='approved'?'#2e7d32':'#c62828';
         html+=`<div style="border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:10px;">
@@ -3280,11 +3281,11 @@ async function showDiscountApprovalPanel(inquiryId){
             <div style="grid-column:1/-1;">折扣原因: ${a.reason||'-'}</div>
           </div>
           ${a.status==='pending'?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
-            <div style="font-size:12px;color:#e65100;margin-bottom:6px;">👇 审批操作</div>
+            <div style="font-size:12px;color:#e65100;margin-bottom:6px;"> 审批操作</div>
             <div style="display:flex;gap:8px;align-items:center;">
               <input type="text" id="approver_${a.id}" placeholder="审批人姓名" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;">
-              <button class="btn btn-sm btn-success" onclick="handleDiscountApproval(${inquiryId},${a.id},'approve')">✅ 通过</button>
-              <button class="btn btn-sm btn-danger" onclick="handleDiscountApproval(${inquiryId},${a.id},'reject')">❌ 驳回</button>
+              <button class="btn btn-sm btn-success" onclick="handleDiscountApproval(${inquiryId},${a.id},'approve')"> 通过</button>
+              <button class="btn btn-sm btn-danger" onclick="handleDiscountApproval(${inquiryId},${a.id},'reject')"> 驳回</button>
             </div>
           </div>`:''}
           ${a.approver?`<div style="margin-top:8px;font-size:12px;color:#2e7d32;border-top:1px solid #eee;padding-top:6px;">审批人: ${a.approver} | 审批时间: ${a.approved_at||'-'}</div>`:''}
@@ -3432,6 +3433,7 @@ async function initPricingPerm() {
 initPricingPerm();
 DictLoader.fillAll([{select:'customerSource',group:'customer_source',placeholder:'请选择'},{select:'quickCustSource',group:'customer_source',placeholder:'请选择'}]); DictLoader.fillDatalist('countryRegion_dl','country_region'); loadInquiryStatusDict(); async function loadInquiryStatusDict(){const items=await DictLoader.load('inquiry_status');const el=document.getElementById('statusFilter');items.filter(i=>i.enabled).forEach(i=>{const o=document.createElement('option');const codeMap={'新建':'new','证书已选型':'cert_configured','配置表已生成':'config_generated','待核价':'pending_pricing','待报价':'pending_quote','已报价':'quoted','洽谈中':'negotiating','转样品':'sample','转项目':'project','已流失':'lost','已成交':'closed'};o.value=codeMap[i.value]||i.value;o.textContent=i.value;el.appendChild(o);});}</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
   <script src="feature-gate.js"></script>
   <script>FeatureGate.init();</script>
 </body>

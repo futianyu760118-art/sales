@@ -26,16 +26,16 @@ const DrawingPreview = {
         <div class="dp-header">
           <div class="dp-title" id="dpTitle">图纸预览</div>
           <div class="dp-header-actions">
-            <button class="dp-btn" onclick="DrawingPreview.zoomIn()" title="放大">🔍+</button>
-            <button class="dp-btn" onclick="DrawingPreview.zoomOut()" title="缩小">🔍-</button>
-            <button class="dp-btn" onclick="DrawingPreview.resetView()" title="重置视图">⟲</button>
-            <button class="dp-btn" onclick="DrawingPreview.rotateLeft()" title="左旋90°">↺</button>
-            <button class="dp-btn" onclick="DrawingPreview.rotateRight()" title="右旋90°">↻</button>
-            <button class="dp-btn" onclick="DrawingPreview.fitToWindow()" title="适应窗口">⊞</button>
-            <button class="dp-btn dp-btn-compare" onclick="DrawingPreview.toggleCompare()" title="版本对比">⇔</button>
-            <button class="dp-btn dp-btn-approve" onclick="DrawingPreview.showApproveDialog()" title="审批" data-perm="drawing:approve">✓</button>
-            <button class="dp-btn dp-btn-log" onclick="DrawingPreview.showAuditLog()" title="操作日志">📋</button>
-            <span class="dp-close" onclick="DrawingPreview.close()">✕</span>
+            <button class="dp-btn" onclick="DrawingPreview.zoomIn()" title="放大" aria-label="放大">${EBMSIcons.render('plus', { size: 'sm', decorative: true })}</button>
+            <button class="dp-btn" onclick="DrawingPreview.zoomOut()" title="缩小" aria-label="缩小">${EBMSIcons.render('minus', { size: 'sm', decorative: true })}</button>
+            <button class="dp-btn" onclick="DrawingPreview.resetView()" title="重置视图" aria-label="重置视图">${EBMSIcons.render('refresh', { size: 'sm', decorative: true })}</button>
+            <button class="dp-btn" onclick="DrawingPreview.rotateLeft()" title="左旋90°" aria-label="左旋90°">${EBMSIcons.render('refresh', { size: 'sm', className: 'dp-rotate-left', decorative: true })}</button>
+            <button class="dp-btn" onclick="DrawingPreview.rotateRight()" title="右旋90°" aria-label="右旋90°">${EBMSIcons.render('refresh', { size: 'sm', className: 'dp-rotate-right', decorative: true })}</button>
+            <button class="dp-btn" onclick="DrawingPreview.fitToWindow()" title="适应窗口" aria-label="适应窗口">${EBMSIcons.render('expand', { size: 'sm', decorative: true })}</button>
+            <button class="dp-btn dp-btn-compare" onclick="DrawingPreview.toggleCompare()" title="版本对比" aria-label="版本对比">${EBMSIcons.render('analytics', { size: 'sm', decorative: true })}</button>
+            <button class="dp-btn dp-btn-approve" onclick="DrawingPreview.showApproveDialog()" title="审批" aria-label="审批" data-perm="drawing:approve">${EBMSIcons.render('success', { size: 'sm', decorative: true })}</button>
+            <button class="dp-btn dp-btn-log" onclick="DrawingPreview.showAuditLog()" title="操作日志" aria-label="操作日志">${EBMSIcons.render('file', { size: 'sm', decorative: true })}</button>
+            <button type="button" class="dp-close" onclick="DrawingPreview.close()" aria-label="关闭预览" title="关闭预览">${EBMSIcons.render('close', { size: 'sm', decorative: true })}</button>
           </div>
         </div>
         <div class="dp-body" id="dpBody">
@@ -45,7 +45,7 @@ const DrawingPreview = {
               <img id="dpImage" style="display:none;cursor:grab;" />
               <iframe id="dpPdfFrame" style="display:none;width:100%;height:100%;border:none;"></iframe>
               <div id="dpUnsupported" style="display:none;" class="dp-unsupported">
-                <div class="dp-unsupported-icon">📐</div>
+                <div class="dp-unsupported-icon">${EBMSIcons.render('empty', { size: 'xl', decorative: true })}</div>
                 <div>该格式暂不支持在线预览</div>
                 <div style="font-size:12px;color:#999;margin-top:4px;">支持预览格式: PDF, JPG, PNG, GIF, BMP, SVG</div>
                 <a id="dpDownloadLink" class="dp-btn" style="margin-top:12px;display:inline-block;text-decoration:none;" download>下载文件查看</a>
@@ -80,7 +80,7 @@ const DrawingPreview = {
         <div class="dp-log-content">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
             <h4 style="margin:0;">操作日志</h4>
-            <span class="dp-close" onclick="DrawingPreview.hideLogDialog()">✕</span>
+            <button type="button" class="dp-close" onclick="DrawingPreview.hideLogDialog()" aria-label="关闭日志" title="关闭日志">${EBMSIcons.render('close', { size: 'sm', decorative: true })}</button>
           </div>
           <div id="dpLogList" style="max-height:400px;overflow:auto;"></div>
         </div>
@@ -133,7 +133,7 @@ const DrawingPreview = {
       .dp-btn-success:hover { background:#2a8a4e; }
       .dp-btn-danger { background:#5a1a1a; border-color:#8a2a2a; color:#ff4a4a; }
       .dp-btn-danger:hover { background:#8a2a2a; }
-      .dp-close { cursor:pointer; font-size:18px; color:#999; padding:0 4px; }
+      .dp-close { cursor:pointer; font-size:18px; color:#999; padding:2px 4px; background:none; border:0; display:inline-flex; align-items:center; }
       .dp-close:hover { color:#fff; }
       .dp-body { flex:1; display:flex; overflow:hidden; position:relative; }
       .dp-viewer { flex:1; overflow:hidden; position:relative; background:#0f0f1a; display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; touch-action:none; }
@@ -141,7 +141,7 @@ const DrawingPreview = {
       #dpImage { max-width:none; max-height:none; transition:transform 0.1s ease-out; pointer-events:none; }
       #dpPdfFrame { background:white; }
       .dp-unsupported { text-align:center; color:#aaa; padding:40px; }
-      .dp-unsupported-icon { font-size:48px; margin-bottom:12px; }
+      .dp-unsupported-icon { display:inline-flex; width:var(--icon-xl); height:var(--icon-xl); margin-bottom:12px; }
       .dp-sidebar { width:300px; background:#16213e; border-left:1px solid #2a3a5e; display:flex; flex-direction:column; }
       .dp-sidebar-header { padding:10px 14px; font-size:13px; font-weight:600; color:#e0e0e0; border-bottom:1px solid #2a3a5e; }
       .dp-sidebar-content { flex:1; overflow:auto; padding:10px; }

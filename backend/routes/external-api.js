@@ -13,6 +13,7 @@ const fs = require('fs');
 const { getTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
 const { APP_KEY, APP_SECRET } = require('../lib/secrets');
+const { responseCache } = require('../lib/response-cache');
 
 // ===== 配置 =====
 const CONFIG = {
@@ -559,6 +560,7 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
 
     // 2.3 从 order-details.list 补充全部已有订单的产品编码/名称/BOM 信息
     let enrichedCount = 0;
+    const detByOrder = {}; // order_no -> [ERP 明细行]（供 2.4 逐产品写入 order_products）
     if (doApply) {
       try {
         orderTable._invalidate();
@@ -587,6 +589,7 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
           let pageMatched = 0, pageEnriched = 0;
           for (const d of batch) {
             const oNo = (d.order_no || '').trim();
+            if (oNo) (detByOrder[oNo] = detByOrder[oNo] || []).push(d); // 收集明细行，供 2.4 逐产品落库
             const ex = allOrd[oNo];
             if (!ex) { if (dp === 1 && pageMatched === 0 && pageEnriched === 0) logger.info('[enrich] first unmatched:', oNo); continue; }
             pageMatched++;
@@ -648,13 +651,72 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
       } catch (e) { logger.error('[sync-orders] product enrichment error:', e.message); }
     }
 
+    // 2.4 订单明细行 → order_products（对账式重建：以 ERP 明细为权威镜像）
+    //     有 ERP 明细的订单：非手动(source!=manual)行整体重建为 ERP 镜像（一行一产品，
+    //     含 line_no/bom_no/数量/金额，含 P- 样件行）；手动添加的行保留不动。
+    //     解决：多产品订单只显示 1 个、旧订单 bom_no/数量与 ERP 不一致、样件行缺失等问题。
+    let detailProductsCreated = 0, detailProductsRemoved = 0;
+    if (doApply) {
+      try {
+        if (!Object.keys(detByOrder).length) {
+          // 2.3 未执行或未命中时补拉一次明细（全量分页）
+          let dp2 = 1;
+          while (dp2 <= 100) {
+            const dd = await callExternalAPI('order_details.list', { page: dp2, page_size: 200 });
+            const batch = dd.items || dd.data || [];
+            if (!batch.length) break;
+            batch.forEach(d => { const no = (d.order_no || '').trim(); if (no) (detByOrder[no] = detByOrder[no] || []).push(d); });
+            if (batch.length < 200) break;
+            dp2++;
+          }
+        }
+        const op = getTable('order_products');
+        op._invalidate();
+        orderTable._invalidate();
+        const ordByNo = {};
+        orderTable.all().forEach(o => { ordByNo[o.order_no] = o; });
+        const ts = now();
+        for (const [no, lines] of Object.entries(detByOrder)) {
+          if (!no.toUpperCase().startsWith('HJ2')) continue; // 样品单（HJY）不处理
+          const ord = ordByNo[no];
+          if (!ord) continue;
+          // 删除该订单的非手动行（仅内存，随 saveNow 一次落盘）
+          const delRes = await op.deleteWhereNoSave(r => r.order_id === ord.id && r.source !== 'manual');
+          detailProductsRemoved += (delRes && delRes.changes) || 0;
+          // 按 ERP 明细重建（同键多行合并数量）
+          const lineMap = {};
+          lines.forEach(d => {
+            const code = (d.product_code || '').trim();
+            if (!code) return;
+            const k = code + '||' + ((d.bom_no || '').trim());
+            if (!lineMap[k]) lineMap[k] = { code, bom: (d.bom_no || '').trim(), name: (d.product_name || '').trim(), qty: 0, amt: 0, lineNo: (d.line_no || '').trim() };
+            lineMap[k].qty += Number(d.order_qty || 0);
+            lineMap[k].amt += Number(d.order_amount || 0);
+          });
+          for (const l of Object.values(lineMap)) {
+            await op.insertNoSave({
+              order_id: ord.id, order_no: no, line_no: l.lineNo,
+              product_code: l.code, product_name: l.name,
+              bom_no: l.bom, quantity: l.qty, amount: l.amt,
+              source: 'external_order', created_at: ts, updated_at: ts
+            });
+            detailProductsCreated++;
+          }
+        }
+        await op.saveNow();
+        if (detailProductsCreated + detailProductsRemoved > 0) console.log('[sync-orders] 明细行对账重建: 落库' + detailProductsCreated + ' 行，清理旧行' + detailProductsRemoved + ' 行');
+      } catch (e) { console.error('[sync-orders] 明细行落库失败:', e.message); }
+    }
+
     // 2.5 将产品写入 order_products（确保展开后能看到产品列表）
-    let orderProductsCreated = 0;
+    //     同时回填早期同步写入的缺字段行（bom_no/quantity 缺失会导致订单分析实时计划成本核算为 0）
+    let orderProductsCreated = 0, orderProductsBackfilled = 0;
     if (doApply) {
       try {
         const op = getTable('order_products');
         op._invalidate();
-        const existingKeys = new Set(op.all().map(r => r.order_id + '::' + r.product_code));
+        const rowsByKey = {};
+        op.all().forEach(r => { rowsByKey[r.order_id + '::' + r.product_code] = r; });
         orderTable._invalidate();
         const seen = new Set();
         for (const id of syncedIds) {
@@ -663,12 +725,27 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
           const key = o.order_no + '::' + o.product_code;
           if (seen.has(key)) continue;
           seen.add(key);
-          if (!existingKeys.has(o.id + '::' + o.product_code)) {
+          const existing = rowsByKey[o.id + '::' + o.product_code];
+          if (!existing) {
             try {
-              await op.insert({ order_id: o.id, order_no: o.order_no, product_code: o.product_code, product_name: o.product_name || '', created_at: now(), updated_at: now() });
+              await op.insert({ order_id: o.id, order_no: o.order_no, product_code: o.product_code, product_name: o.product_name || '', bom_no: (o.bom_no || '').trim(), quantity: Number(o.quantity) || 0, created_at: now(), updated_at: now() });
               orderProductsCreated++;
             } catch(_) {}
+          } else {
+            // 回填：早期版本写入的行缺 bom_no / quantity，用订单表字段补齐
+            const patch = {};
+            if (!(existing.bom_no || '').trim() && (o.bom_no || '').trim()) patch.bom_no = (o.bom_no || '').trim();
+            if (existing.quantity == null && o.quantity != null) patch.quantity = Number(o.quantity) || 0;
+            if (Object.keys(patch).length) {
+              patch.updated_at = now();
+              await op.update(existing.id, patch);
+              orderProductsBackfilled++;
+            }
           }
+        }
+        if (orderProductsBackfilled) {
+          // 回填改变了核算输入，清空订单分析的计划成本缓存
+          try { require('./order-analysis').invalidateOrderPlanCostCache(); } catch(_) {}
         }
       } catch(_) {}
     }
@@ -772,11 +849,11 @@ router.post('/sync-orders', requirePerm('order:create'), async (req, res) => {
 
     res.json({
       message: doApply
-          ? ('同步完成：订单新增' + created + '条、更新' + updated + '条、未变化' + unchanged + '条（过滤非大货单' + skipped + '条）；补充产品信息' + enrichedCount + '条，关联客户' + customersCreated + '家、产品' + productsCreated + '个，写入产品库' + orderProductsCreated + '条，自动关联产品' + mapped + '个，连BOM模版展开' + bomExpanded + '单（明细' + bomDetails + '行）' + (expandFailed ? '，展开失败' + expandFailed + '单' : ''))
+          ? ('同步完成：订单新增' + created + '条、更新' + updated + '条、未变化' + unchanged + '条（过滤非大货单' + skipped + '条）；补充产品信息' + enrichedCount + '条，明细行对账重建' + detailProductsCreated + '条（清理旧行' + detailProductsRemoved + '条），关联客户' + customersCreated + '家、产品' + productsCreated + '个，写入产品库' + orderProductsCreated + '条（回填缺字段' + orderProductsBackfilled + '条），自动关联产品' + mapped + '个，连BOM模版展开' + bomExpanded + '单（明细' + bomDetails + '行）' + (expandFailed ? '，展开失败' + expandFailed + '单' : ''))
           : ('预览：可新增' + created + '条，可更新' + updated + '条，未变化' + unchanged + '条，过滤' + skipped + '条'),
       imported: created, updated, unchanged, skipped, total_fetched: items.length,
       applied: doApply, enriched: enrichedCount, customers_created: customersCreated, products_created: productsCreated,
-      order_products_created: orderProductsCreated, mapped, bom_expanded: bomExpanded, bom_details: bomDetails, expand_failed: expandFailed, details
+      order_products_created: orderProductsCreated, order_products_backfilled: orderProductsBackfilled, detail_products_created: detailProductsCreated, detail_products_removed: detailProductsRemoved, mapped, bom_expanded: bomExpanded, bom_details: bomDetails, expand_failed: expandFailed, details
     });
   } catch (e) {
     res.status(500).json({ error: '订单同步失败: ' + e.message });
@@ -1214,12 +1291,19 @@ function buildPOIndex(pos) {
 }
 
 // 列表：外部 API 订单 + 4 个完成时间（不含 BOM 明细）
+// year：4 位年份 → 透传外部 API promised_date_start/end（按合同交期过滤当年订单）
 router.get('/orders-with-progress', requirePerm('order:view'), async (req, res) => {
-  const { page = 1, page_size = 50, keyword, status, risk_level } = req.query;
+  const { page = 1, page_size = 50, keyword, status, risk_level, year } = req.query;
   const ps = Math.min(Math.max(parseInt(page_size) || 50, 1), 500);
   const pg = Math.max(parseInt(page) || 1, 1);
+  const yr = String(year || '').trim();
   try {
-    const data = await callExternalAPI('orders.list', { page: pg, page_size: ps });
+    const extParams = { page: pg, page_size: ps };
+    if (/^\d{4}$/.test(yr)) {
+      extParams.promised_date_start = yr + '-01-01';
+      extParams.promised_date_end = yr + '-12-31';
+    }
+    const data = await callExternalAPI('orders.list', extParams);
     const items = data.items || data.data || [];
     const total = data.total || items.length;
     const pos = await fetchAllPOs();
@@ -1281,12 +1365,57 @@ router.get('/orders-with-progress', requirePerm('order:view'), async (req, res) 
       total: rows.length,   // 服务端过滤后的数量
       page: pg,
       page_size: ps,
+      year: /^\d{4}$/.test(yr) ? Number(yr) : null,  // 本次应用的年份过滤（null=全部）
       ext_total: total,     // 外部 API 返回的总记录数（过滤前）
       has_more: items.length >= ps,
       source: 'external-api'
     });
   } catch (e) {
     res.status(500).json({ error: '订单拉取失败: ' + e.message });
+  }
+});
+
+// 仪表盘/订单管理统计：外部 ERP 实时聚合（total + by_status + total_amount）
+// year：4 位年份 → 按承诺交期过滤（与 orders-with-progress 口径一致），缺省=全部年份
+// 外部状态映射到本地词汇：completed→shipped（发货完成）、closed→completed（已完成）
+// 60s 短缓存：统计每次要翻全量页（约 16 页 × 200 条），避免仪表盘频繁刷新打爆外部 API
+const _ordersStatsCache = responseCache({ ttlMs: 60 * 1000, maxEntries: 8 });
+router.get('/orders-stats', _ordersStatsCache, requirePerm('order:view'), async (req, res) => {
+  const yr = String(req.query.year || '').trim();
+  const extParams = {};
+  if (/^\d{4}$/.test(yr)) {
+    extParams.promised_date_start = yr + '-01-01';
+    extParams.promised_date_end = yr + '-12-31';
+  }
+  try {
+    const items = [];
+    let page = 1;
+    while (page <= 40) {
+      const data = await callExternalAPI('orders.list', Object.assign({ page, page_size: 200 }, extParams));
+      const batch = data.items || data.data || [];
+      if (!batch.length) break;
+      items.push(...batch);
+      if (batch.length < 200) break;
+      page++;
+    }
+    const statusAlias = { completed: 'shipped', closed: 'completed' };
+    const byStatus = {};
+    let totalAmount = 0;
+    items.forEach(o => {
+      const s = String(o.status || 'open').toLowerCase();
+      const key = statusAlias[s] || s;
+      byStatus[key] = (byStatus[key] || 0) + 1;
+      totalAmount += Number(o.order_amount) || 0;
+    });
+    res.json({
+      total: items.length,
+      by_status: byStatus,
+      total_amount: totalAmount,
+      year: /^\d{4}$/.test(yr) ? Number(yr) : null,
+      source: 'external-api'
+    });
+  } catch (e) {
+    res.status(500).json({ error: '订单统计拉取失败: ' + e.message });
   }
 });
 

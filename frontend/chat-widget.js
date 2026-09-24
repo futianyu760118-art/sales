@@ -15,7 +15,7 @@
       ws = new WebSocket(`${proto}//${location.host}/ws`);
       ws.onopen = () => {
         isConnected = true;
-        ws.send(JSON.stringify({ type: 'auth', user: currentUser, token: localStorage.getItem('authToken') || '' }));
+        ws.send(JSON.stringify({ type: 'auth', user: currentUser }));
       };
       ws.onmessage = (e) => {
         try {
@@ -38,7 +38,8 @@
     div.innerHTML = `
 <style>
 #chatWidget { position:fixed; bottom:20px; right:20px; z-index:99999; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
-#chatFab { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); border:none; color:white; font-size:24px; cursor:pointer; box-shadow:0 4px 15px rgba(102,126,234,0.4); display:flex; align-items:center; justify-content:center; transition:transform 0.2s; position:relative; }
+#chatFab { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); border:none; color:white; cursor:pointer; box-shadow:0 4px 15px rgba(102,126,234,0.4); display:flex; align-items:center; justify-content:center; transition:transform 0.2s; position:relative; }
+#chatFab .ebms-icon { width:var(--icon-lg,24px); height:var(--icon-lg,24px); }
 #chatFab:hover { transform:scale(1.1); }
 #chatFab .badge { position:absolute; top:-2px; right:-2px; background:#e74c3c; color:white; font-size:10px; min-width:18px; height:18px; border-radius:9px; display:none; align-items:center; justify-content:center; padding:0 4px; }
 #chatPanel { display:none; position:absolute; bottom:70px; right:0; width:420px; height:560px; background:white; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.15); flex-direction:column; overflow:hidden; }
@@ -53,7 +54,7 @@
 .chat-input-area { padding:10px 12px; border-top:1px solid #eee; background:white; display:flex; gap:8px; align-items:flex-end; }
 .chat-input-area textarea { flex:1; border:1px solid #ddd; border-radius:8px; padding:8px 10px; font-size:13px; resize:none; max-height:80px; outline:none; font-family:inherit; }
 .chat-input-area textarea:focus { border-color:#667eea; }
-.chat-send-btn { width:36px; height:36px; border-radius:50%; background:#667eea; color:white; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.chat-send-btn { width:36px; height:36px; border-radius:50%; background:#667eea; color:white; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .chat-send-btn:hover { background:#5a6fd6; }
 .chat-send-btn:disabled { background:#ccc; cursor:not-allowed; }
 .msg-bubble { margin-bottom:10px; max-width:85%; }
@@ -78,7 +79,7 @@
 .channel-item .ch-name { font-size:13px; font-weight:500; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .channel-item .ch-last { font-size:11px; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .channel-item .ch-time { font-size:10px; color:#bbb; flex-shrink:0; }
-.chat-close { background:none; border:none; color:white; font-size:20px; cursor:pointer; padding:0 4px; }
+.chat-close { background:none; border:none; color:white; cursor:pointer; padding:0 4px; display:inline-flex; align-items:center; justify-content:center; }
 .chat-close:hover { opacity:0.8; }
 .chat-toolbar { display:flex; gap:4px; padding:4px 12px; background:#f8f9fa; border-top:1px solid #eee; }
 .chat-toolbar button { background:none; border:1px solid #ddd; border-radius:4px; padding:3px 8px; font-size:11px; cursor:pointer; color:#666; }
@@ -86,7 +87,7 @@
 .typing-indicator { font-size:11px; color:#999; padding:4px 12px; display:none; }
 .typing-indicator.show { display:block; }
 .channel-header { padding:8px 12px; background:#f8f9fa; border-bottom:1px solid #eee; display:flex; align-items:center; gap:8px; }
-.channel-header .back-btn { background:none; border:none; cursor:pointer; font-size:16px; color:#667eea; padding:2px 6px; }
+.channel-header .back-btn { background:none; border:none; cursor:pointer; color:#667eea; padding:2px 6px; display:inline-flex; align-items:center; }
 .channel-header .ch-title { font-size:13px; font-weight:600; color:#333; }
 .new-channel-btn { width:100%; padding:8px; background:none; border:1px dashed #667eea; border-radius:8px; color:#667eea; font-size:12px; cursor:pointer; margin-top:4px; }
 .new-channel-btn:hover { background:#f0f4ff; }
@@ -94,29 +95,30 @@
 .todo-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:6px; margin-bottom:4px; background:white; border:1px solid #eee; font-size:12px; }
 .todo-item .todo-check { width:16px; height:16px; border-radius:50%; border:2px solid #ccc; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
 .todo-item .todo-check.done { background:#27ae60; border-color:#27ae60; color:white; }
+.todo-item .todo-check .ebms-icon { width:var(--icon-xs,14px); height:var(--icon-xs,14px); }
 .todo-item .todo-text { flex:1; }
 .todo-item .todo-text.done { text-decoration:line-through; color:#999; }
 .todo-item .todo-priority { font-size:10px; padding:1px 6px; border-radius:3px; }
 </style>
 <button id="chatFab" onclick="ChatWidget.toggle()">
-  <span>💬</span>
+  <span class="chat-fab-icon">${EBMSIcons.render('chat', { size: 'lg', decorative: true })}</span>
   <span class="badge" id="chatBadge"></span>
 </button>
 <div id="chatPanel">
   <div class="chat-header">
     <h3>智能助手 & 团队沟通</h3>
-    <button class="chat-close" onclick="ChatWidget.close()">✕</button>
+    <button class="chat-close" onclick="ChatWidget.close()" aria-label="关闭聊天" title="关闭聊天">${EBMSIcons.render('close', { size: 'sm', decorative: true })}</button>
   </div>
   <div class="chat-tabs">
-    <div class="chat-tab active" data-tab="ai" onclick="ChatWidget.switchTab('ai')">🤖 AI助手</div>
-    <div class="chat-tab" data-tab="team" onclick="ChatWidget.switchTab('team')">👥 团队</div>
-    <div class="chat-tab" data-tab="todo" onclick="ChatWidget.switchTab('todo')">📋 待办</div>
+    <div class="chat-tab active" data-tab="ai" onclick="ChatWidget.switchTab('ai')"><span class="ebms-icon-text">${EBMSIcons.render('ai', { size: 'xs', decorative: true })}<span>AI助手</span></span></div>
+    <div class="chat-tab" data-tab="team" onclick="ChatWidget.switchTab('team')"><span class="ebms-icon-text">${EBMSIcons.render('user', { size: 'xs', decorative: true })}<span>团队</span></span></div>
+    <div class="chat-tab" data-tab="todo" onclick="ChatWidget.switchTab('todo')"><span class="ebms-icon-text">${EBMSIcons.render('file', { size: 'xs', decorative: true })}<span>待办</span></span></div>
   </div>
   <div class="chat-body" id="chatBody"></div>
   <div class="typing-indicator" id="typingIndicator">AI正在思考...</div>
   <div class="chat-input-area" id="chatInputArea">
     <textarea id="chatInput" rows="1" placeholder="输入消息，Enter发送，Shift+Enter换行..." onkeydown="ChatWidget.handleKeydown(event)" oninput="ChatWidget.autoResize(this)"></textarea>
-    <button class="chat-send-btn" id="chatSendBtn" onclick="ChatWidget.send()">➤</button>
+    <button class="chat-send-btn" id="chatSendBtn" onclick="ChatWidget.send()" aria-label="发送消息" title="发送消息">${EBMSIcons.render('send', { size: 'sm', decorative: true })}</button>
   </div>
 </div>`;
     document.body.appendChild(div);
@@ -130,18 +132,18 @@
     body.innerHTML = `
 <div class="msg-bubble ai">
   <div class="msg-content">
-👋 你好！我是EBMS企业经营管理系统 AI助手
+你好！我是EBMS企业经营管理系统AI助手
 
 我可以帮你：
-📊 <b>数据分析</b> - 查询询价、核价、客户等业务数据
-💡 <b>策略建议</b> - 提供报价策略、客户跟进建议
-⚠️ <b>风险预警</b> - 识别逾期、滞留等问题
-📝 <b>待办生成</b> - 自动提取行动项
+数据分析 - 查询询价、核价、客户等业务数据
+策略建议 - 提供报价策略、客户跟进建议
+风险预警 - 识别逾期、滞留等问题
+待办生成 - 自动提取行动项
 
 试试问我：
-• "当前询价状态如何？"
-• "有哪些待核价的项目？"
-• "帮我分析客户情况"
+“当前询价状态如何？”
+“有哪些待核价的项目？”
+“帮我分析客户情况”
   </div>
 </div>`;
   }
@@ -233,11 +235,6 @@ ${!isSelf ? `<div class="msg-sender">${sender}</div>` : ''}
     return escapeHtml(text)
       .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
       .replace(/【行动】/g, '<span style="color:#e67e22;font-weight:600;">【行动】</span>')
-      .replace(/⚠️/g, '<span style="color:#e74c3c;">⚠️</span>')
-      .replace(/📊/g, '<span>📊</span>')
-      .replace(/🏆/g, '<span>🏆</span>')
-      .replace(/📝/g, '<span>📝</span>')
-      .replace(/💡/g, '<span>💡</span>')
       .replace(/\n/g, '<br>');
   }
 
@@ -329,12 +326,12 @@ ${!isSelf ? `<div class="msg-sender">${sender}</div>` : ''}
       let html = '<div class="channel-list">';
       html += `<div class="channel-item" onclick="ChatWidget.createDirectChannel()" style="justify-content:center;border:1px dashed #667eea;color:#667eea;font-size:12px;">+ 新建私聊</div>`;
       channels.forEach(ch => {
-        const icon = ch.type === 'direct' ? '💬' : ch.type === 'business' ? '📋' : '📢';
+        const icon = ch.type === 'direct' ? 'chat' : ch.type === 'business' ? 'file' : 'notification';
         const bgColor = ch.type === 'direct' ? '#3498db' : ch.type === 'business' ? '#e67e22' : '#27ae60';
         const name = ch.type === 'direct' ? ch.members.split(',').filter(m => m !== currentUser).join(', ') || ch.name : ch.name || (ch.type === 'business' ? ch.business_title : '频道');
         const lastTime = ch.updated_at ? ch.updated_at.substring(11, 16) : '';
         html += `<div class="channel-item" onclick="ChatWidget.openChannel(${ch.id})">
-          <div class="ch-icon" style="background:${bgColor}">${icon}</div>
+          <div class="ch-icon" style="background:${bgColor}">${EBMSIcons.render(icon, { size: 'sm', decorative: true })}</div>
           <div class="ch-info"><div class="ch-name">${escapeHtml(name)}</div></div>
           <div class="ch-time">${lastTime}</div>
         </div>`;
@@ -356,7 +353,7 @@ ${!isSelf ? `<div class="msg-sender">${sender}</div>` : ''}
     const name = ch?.type === 'direct' ? ch.members.split(',').filter(m => m !== currentUser).join(', ') : ch?.name || '频道';
 
     body.innerHTML = `<div class="channel-header">
-      <button class="back-btn" onclick="ChatWidget.switchTab('team')">←</button>
+      <button class="back-btn" onclick="ChatWidget.switchTab('team')" aria-label="返回团队列表" title="返回团队列表">${EBMSIcons.render('arrowRight', { size: 'sm', className: 'back-icon', decorative: true })}</button>
       <span class="ch-title">${escapeHtml(name)}</span>
     </div>`;
 
@@ -412,7 +409,7 @@ ${!isSelf ? `<div class="msg-sender">${escapeHtml(msg.sender)}</div>` : ''}
       const res = await fetch(`${API}/api/chat/action-items?assignee=${encodeURIComponent(currentUser)}&created_by=${encodeURIComponent(currentUser)}`);
       const items = await res.json();
       if (items.length === 0) {
-        body.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#999;font-size:13px;">📋 暂无待办事项\n\n通过AI助手对话自动生成待办</div>';
+        body.innerHTML = '<div class="ebms-empty-icon" style="text-align:center;padding:40px 20px;color:#999;font-size:13px;">' + EBMSIcons.render('empty', { size: 'lg', decorative: true }) + '<br>暂无待办事项<br><br>通过AI助手对话自动生成待办</div>';
         return;
       }
       let html = '<div class="todo-panel">';
@@ -420,7 +417,7 @@ ${!isSelf ? `<div class="msg-sender">${escapeHtml(msg.sender)}</div>` : ''}
         const isDone = item.status === 'done';
         const pColor = item.priority === '高' ? '#e74c3c' : item.priority === '低' ? '#27ae60' : '#f39c12';
         html += `<div class="todo-item">
-          <div class="todo-check ${isDone ? 'done' : ''}" onclick="ChatWidget.toggleTodo(${item.id}, this)">${isDone ? '✓' : ''}</div>
+          <div class="todo-check ${isDone ? 'done' : ''}" onclick="ChatWidget.toggleTodo(${item.id}, this)">${isDone ? EBMSIcons.render('check', { size: 'xs', decorative: true }) : ''}</div>
           <div class="todo-text ${isDone ? 'done' : ''}">${escapeHtml(item.content)}</div>
           <span class="todo-priority" style="background:${pColor}20;color:${pColor}">${item.priority || '中'}</span>
         </div>`;
@@ -442,7 +439,7 @@ ${!isSelf ? `<div class="msg-sender">${escapeHtml(msg.sender)}</div>` : ''}
         body: JSON.stringify({ status: newStatus })
       });
       el.classList.toggle('done');
-      el.textContent = isDone ? '' : '✓';
+      el.innerHTML = isDone ? '' : EBMSIcons.render('check', { size: 'xs', decorative: true });
       const textEl = el.nextElementSibling;
       if (textEl) textEl.classList.toggle('done');
     } catch(err) {}

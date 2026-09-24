@@ -1,6 +1,6 @@
 # EBMS企业经营管理系统
 
-企业经营管理平台（Enterprise Business Management System），涵盖客户、询价、报价、核价、订单、采购、BOM、研发项目、阿米巴经营、年度经营计划等全流程管理。
+EBMS企业经营管理系统（Enterprise Business Management System），涵盖客户、询价、报价、核价、订单、采购、BOM、研发项目、阿米巴经营、年度经营计划等全流程管理。
 
 ## 快速开始
 

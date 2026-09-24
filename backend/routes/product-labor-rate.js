@@ -44,11 +44,23 @@ const logger = require('../lib/logger');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
 const { EXTERNAL_API_KEY } = require('../lib/secrets');
 
 ensureTable('product_labor_rate');
+
+// 批量导入文件上传（内存存储，与通用导入一致的格式限制）
+const importUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (['.xlsx', '.xls', '.csv', '.tsv', '.ods'].includes(ext)) cb(null, true);
+    else cb(new Error('不支持的文件格式，请上传 Excel(.xlsx/.xls)、CSV(.csv)、TSV(.tsv) 或 ODS(.ods) 文件'));
+  }
+});
 
 // ===== 常量 =====
 const RATE_TYPES = ['标准工价', '实测工价', '暂估工价'];
@@ -106,33 +118,135 @@ router.get('/meta/filter-options', requirePerm('labor-rate:view'), (req, res) =>
   const productCodes = [...new Set(records.map(r => r.product_code).filter(Boolean))].sort();
   const rateTypes = [...new Set(records.map(r => r.labor_rate_type).filter(Boolean))].sort();
   const sources = [...new Set(records.map(r => r.source).filter(Boolean))].sort();
+  // BOM 层级选项：根据当前记录的 bom_no 从 BOM 结构动态推导（'none'=不在 BOM 结构中）
+  const levelMap = getBomLevelMap();
+  const levelSet = new Set();
+  records.forEach(r => {
+    const lv = resolveBomLevel(r, levelMap);
+    levelSet.add(lv === null ? 'none' : String(lv));
+  });
+  const bomLevels = [...levelSet].sort((a, b) => {
+    if (a === 'none') return 1;
+    if (b === 'none') return -1;
+    return Number(a) - Number(b);
+  });
   res.json({
     bom_nos: bomNos,
     product_codes: productCodes,
     rate_types: rateTypes.length ? rateTypes : RATE_TYPES,
     sources: sources.length ? sources : SOURCES,
     audit_statuses: AUDIT_STATUS,
+    bom_levels: bomLevels,
     constants: { RATE_TYPES, SOURCES, AUDIT_STATUS }
   });
 });
+
+// ===== BOM 层级映射（bom_no → 层级数字）：根据 bom_items 结构自动推导 =====
+// 根节点（作为父件但从不作为任何 BOM 子件出现的编码）= 0（成品/顶层）；
+// 其余按最小深度 1=L1、2=L2…（多源 BFS，防环）。5 分钟缓存，复用 order-analysis 的 BOM 索引。
+let _bomLevelCache = null, _bomLevelTs = 0;
+function getBomLevelMap() {
+  if (_bomLevelCache && Date.now() - _bomLevelTs < 5 * 60 * 1000) return _bomLevelCache;
+  let bomIndex = {};
+  try { bomIndex = require('./order-analysis').getBomIndex() || {}; } catch (e) {}
+  if (!Object.keys(bomIndex).length) {
+    getTable('bom_items').all().forEach(b => {
+      const pc = (b.product_code || '').trim();
+      if (!pc || String(b.is_disabled || '0') === '1') return;
+      (bomIndex[pc] = bomIndex[pc] || []).push(b);
+    });
+  }
+  const isChild = new Set();
+  const childrenOf = {};
+  for (const [pc, rows] of Object.entries(bomIndex)) {
+    rows.forEach(r => {
+      const mc = (r.material_code || '').trim();
+      if (!mc || mc === pc) return;
+      isChild.add(mc);
+      (childrenOf[pc] = childrenOf[pc] || new Set()).add(mc);
+    });
+  }
+  const level = {};
+  const queue = [];
+  for (const pc of Object.keys(childrenOf)) {
+    if (!isChild.has(pc)) { level[pc] = 0; queue.push(pc); } // 根 = 成品/顶层
+  }
+  for (let qi = 0; qi < queue.length; qi++) {
+    const cur = queue[qi];
+    const kids = childrenOf[cur] || [];
+    for (const k of kids) {
+      if (level[k] === undefined) { level[k] = level[cur] + 1; queue.push(k); } // 已访问跳过，天然防环
+    }
+  }
+  _bomLevelCache = level; _bomLevelTs = Date.now();
+  return level;
+}
+
+// ===== 核价库成品型号集合 =====
+// 核价库(bom_pricing)的型号本身即成品：即使不在 bom_items 结构中，BOM 层级也应归为 0（成品），
+// 否则按"成品"筛选时看不到这些型号。5 分钟缓存。
+let _pricingModelCache = null, _pricingModelTs = 0;
+function getPricingModels() {
+  if (_pricingModelCache && Date.now() - _pricingModelTs < 5 * 60 * 1000) return _pricingModelCache;
+  const set = new Set();
+  try {
+    getTable('bom_pricing').all().forEach(r => {
+      const m = String(r.model || '').trim();
+      if (m && !m.startsWith('-')) set.add(m);
+    });
+  } catch (e) {}
+  _pricingModelCache = set; _pricingModelTs = Date.now();
+  return set;
+}
+
+// 记录级层级解析：先查 BOM 结构；查不到但属核价库成品型号（或 pricing_import 来源）→ 0（成品）
+function resolveBomLevel(rec, levelMap) {
+  const lv = levelMap[String(rec.bom_no || '').trim()];
+  if (lv !== undefined) return lv;
+  if (rec.source === 'pricing_import' || getPricingModels().has(String(rec.bom_no || '').trim())) return 0;
+  return null;
+}
 
 // ===== 列表（含分页/筛选/排序） =====
 router.get('/', requirePerm('labor-rate:view'), (req, res) => {
   const {
     page = 1, limit = 20, keyword, bom_no, product_code, labor_rate_type,
-    source, audit_status, rate_min, rate_max,
+    source, audit_status, rate_min, rate_max, has_rate, bom_level,
     sort_by = 'updated_at', sort_order = 'DESC'
   } = req.query;
   const table = getTable('product_labor_rate');
   const kw = (keyword || '').trim().toLowerCase();
-  const records = table.all().filter(r => {
+  // 先注入 BOM 层级（0=成品，1=L1…；不在 BOM 结构中的编码为 null），再过滤/分页
+  const levelMap = getBomLevelMap();
+  const records = table.all().map(r => {
+    const lv = resolveBomLevel(r, levelMap);
+    return Object.assign({}, r, { _bom_level: lv });
+  }).filter(r => {
     if (bom_no && r.bom_no !== bom_no) return false;
     if (product_code && r.product_code !== product_code) return false;
     if (labor_rate_type && r.labor_rate_type !== labor_rate_type) return false;
-    if (source && r.source !== source) return false;
-    if (audit_status && r.audit_status !== audit_status) return false;
+    if (source && source !== 'all' && r.source !== source) return false;
+    // 默认列表隐藏来自询价单的自动导入记录；传 source=all 或 pricing_import 时显示。
+    if (!source && r.source === 'pricing_import') return false;
+    // 审核状态：默认（不传）隐藏已停用；all=全部（含停用）；disabled=只看停用
+    if (audit_status) {
+      if (audit_status !== 'all' && r.audit_status !== audit_status) return false;
+    } else if (r.audit_status === 'disabled') {
+      return false;
+    }
     if (rate_min !== undefined && rate_min !== '' && Number(r.labor_rate) < Number(rate_min)) return false;
     if (rate_max !== undefined && rate_max !== '' && Number(r.labor_rate) > Number(rate_max)) return false;
+    // 工价状态快捷筛选：0=无工价待补（空/0），1=有工价
+    if (has_rate === '0' && Number(r.labor_rate) > 0) return false;
+    if (has_rate === '1' && !(Number(r.labor_rate) > 0)) return false;
+    // BOM 层级筛选：数字=精确层级（0=成品，1=L1…），none=不在 BOM 结构中
+    if (bom_level !== undefined && bom_level !== '') {
+      if (bom_level === 'none') {
+        if (r._bom_level !== null) return false;
+      } else if (String(r._bom_level) !== String(bom_level)) {
+        return false;
+      }
+    }
     if (kw) {
       const hay = [r.bom_no, r.product_code, r.product_name, r.remarks, r.approved_by]
         .map(v => String(v || '').toLowerCase()).join('|');
@@ -153,6 +267,7 @@ router.get('/', requirePerm('labor-rate:view'), (req, res) => {
   const total = records.length;
   const offset = (Number(page) - 1) * Number(limit);
   const data = records.slice(offset, offset + Number(limit));
+  // _bom_level 已在过滤前注入（见上），支持按层级筛选与 sort_by=_bom_level
   res.json({ data, total, page: Number(page), limit: Number(limit) });
 });
 
@@ -163,6 +278,8 @@ router.get('/dashboard/stats', requirePerm('labor-rate:view'), (req, res) => {
   const approved = records.filter(r => r.audit_status === 'approved').length;
   const pending = records.filter(r => r.audit_status === 'pending').length;
   const disabled = records.filter(r => r.audit_status === 'disabled').length;
+  // 无工价待补：未停用且工价为空/0（多为订单分析导入的自制/外加工件，补价审核后生效）
+  const noPrice = records.filter(r => r.audit_status !== 'disabled' && !(Number(r.labor_rate) > 0)).length;
   const rateValues = records.filter(r => r.audit_status === 'approved')
     .map(r => Number(r.labor_rate) || 0).filter(v => v > 0);
   const avgRate = rateValues.length ? rateValues.reduce((a, b) => a + b, 0) / rateValues.length : 0;
@@ -180,7 +297,7 @@ router.get('/dashboard/stats', requirePerm('labor-rate:view'), (req, res) => {
   });
 
   res.json({
-    total, approved, pending, disabled,
+    total, approved, pending, disabled, no_price: noPrice,
     avg_rate: r2(avgRate), max_rate: r2(maxRate), min_rate: r2(minRate),
     by_source: Object.entries(bySource).map(([k, v]) => ({ name: k, value: v })),
     by_rate_type: Object.entries(byRateType).map(([k, v]) => ({ name: k, value: v })),
@@ -866,8 +983,25 @@ router.post('/sync-from-external', requirePerm('labor-rate:create'), async (req,
       audit_status: 'pending',
       remarks: remarks
     });
-    const exist = table.all().find(r => r.bom_no === bom);
-    if (exist) {
+    const exist = table.all().find(r => r.bom_no === bom && r.audit_status !== 'disabled');
+    if (exist && exist.audit_status === 'approved') {
+      // 已审批工价在用：外部价相同 → 保持；不同 → 提交新版本待审批（在用工价不动，审批通过后生效）
+      if (Math.abs(Number(exist.labor_rate) - rate) < 0.0001 || !(rate > 0)) {
+        skipped++; skipReasons['approved_same'] = (skipReasons['approved_same'] || 0) + 1;
+      } else {
+        const dupPending = table.all().find(r => r.bom_no === bom && r.audit_status === 'pending'
+          && Math.abs(Number(r.labor_rate) - rate) < 0.0001 && r.source === 'erp_sync');
+        if (dupPending) {
+          kept++; skipReasons['pending_dup'] = (skipReasons['pending_dup'] || 0) + 1;
+        } else {
+          await table.insert(Object.assign({}, rec, {
+            remarks: ('外部工价 ¥' + rate + ' 与在用 ¥' + exist.labor_rate + ' 不同，待审批 | ' + remarks).substring(0, 200),
+            created_at: ts, updated_at: ts
+          }));
+          added++; skipReasons['approved_diff_submitted'] = (skipReasons['approved_diff_submitted'] || 0) + 1;
+        }
+      }
+    } else if (exist) {
       if (rate > 0 && Number(exist.labor_rate) !== rate) {
         await table.update(exist.id, Object.assign({}, rec, { updated_at: ts }));
         updated++;
@@ -977,6 +1111,149 @@ function analyzeBomTree(nodes, tree) {
   return out;
 }
 
+// ===== 批量导入（按 BOM编号 → 工价）：第一步 预览 =====
+// 库里没有的编号 → 新增（fresh）；库里无价(待补) → 自动补价（fill_price）；
+// 库里已有价格 → 冲突（conflicts），需前端勾选确认后才覆盖
+router.post('/import/preview', requirePerm('labor-rate:create'), importUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: '请上传文件' });
+  const importParser = require('./import');
+  let rows;
+  try {
+    rows = importParser.parseFile(req.file.buffer, req.file.originalname, 'product_labor_rate');
+  } catch (e) {
+    return res.status(500).json({ error: '文件解析失败: ' + e.message });
+  }
+  if (!rows.length) return res.status(400).json({ error: '文件中没有数据' });
+
+  const table = getTable('product_labor_rate');
+  table._invalidate();
+  const ts = now();
+  const invalid = [], fresh = [], fillPrice = [], conflicts = [];
+  const seen = {}; // 文件内去重：同 bom_no 以首行为准
+
+  rows.forEach((raw, i) => {
+    const line = i + 2; // 含表头的行号
+    const mapped = importParser.mapRow(raw, 'product_labor_rate');
+    const row = mapped; // 仅取字段，数值自行校验
+    const bomNo = String(row.bom_no || '').trim();
+    const rateRaw = row.labor_rate;
+    const rateNum = (rateRaw === '' || rateRaw === null || rateRaw === undefined)
+      ? null : Number(String(rateRaw).replace(/[^\d.\-eE]/g, ''));
+    if (!bomNo) { invalid.push({ line, bom_no: '', reason: 'BOM编号为空' }); return; }
+    if (rateNum === null || isNaN(rateNum) || rateNum < 0) { invalid.push({ line, bom_no: bomNo, reason: '工价缺失或不是有效数字' }); return; }
+    if (seen[bomNo] !== undefined) { invalid.push({ line, bom_no: bomNo, reason: '文件内重复（以第 ' + seen[bomNo] + ' 行为准）' }); return; }
+    seen[bomNo] = line;
+
+    const rec = {
+      bom_no: bomNo,
+      product_code: String(row.product_code || '').trim(),
+      product_name: String(row.product_name || '').trim(),
+      labor_rate: r2(rateNum),
+      labor_rate_type: row.labor_rate_type || '实测工价',
+      process_cost: r2(row.process_cost || 0),
+      effective_date: (String(row.effective_date || '').substring(0, 10)) || ts.substring(0, 10),
+      remarks: String(row.remarks || '').trim()
+    };
+    const existing = table.all().filter(r => String(r.bom_no || '').trim() === bomNo && r.audit_status !== 'disabled');
+    const priced = existing.filter(r => Number(r.labor_rate) > 0);
+    if (!existing.length) {
+      fresh.push(rec);
+    } else if (!priced.length) {
+      fillPrice.push(Object.assign({ id: existing[0].id, current_rate: Number(existing[0].labor_rate) || 0 }, rec));
+    } else {
+      const cur = priced[0];
+      conflicts.push({
+        id: cur.id, bom_no: bomNo,
+        product_name: cur.product_name || rec.product_name,
+        current_rate: Number(cur.labor_rate), new_rate: rec.labor_rate,
+        audit_status: cur.audit_status,
+        incoming: rec
+      });
+    }
+  });
+
+  res.json({ total: rows.length, fresh, fill_price: fillPrice, conflicts, invalid });
+});
+
+// ===== 批量导入：第二步 确认应用 =====
+// records = 预览返回的记录（fresh + fill_price + 勾选覆盖的 conflicts.incoming）
+// overwrite_ids = 用户勾选确认覆盖的已有记录 id
+// 应用时按当前库状态再校验：新增时若编号已出现则跳过；覆盖仅作用于勾选的 id
+router.post('/import/apply', requirePerm('labor-rate:create'), async (req, res) => {
+  const records = (req.body && req.body.records) || [];
+  const owIds = new Set(((req.body && req.body.overwrite_ids) || []).map(Number));
+  if (!records.length) return res.status(400).json({ error: 'records 不能为空' });
+
+  const table = getTable('product_labor_rate');
+  table._invalidate();
+  const ts = now();
+  let inserted = 0, filled = 0, overwritten = 0, skipped = 0;
+
+  for (const rec of records) {
+    const bomNo = String(rec.bom_no || '').trim();
+    const rate = r2(rec.labor_rate);
+    if (!bomNo || !(rate >= 0) || isNaN(rate)) { skipped++; continue; }
+    const existing = table.all().filter(r => String(r.bom_no || '').trim() === bomNo && r.audit_status !== 'disabled');
+    const priced = existing.filter(r => Number(r.labor_rate) > 0);
+    if (existing.length) {
+      const target = priced[0] || existing[0];
+      if (owIds.has(target.id)) {
+        // 用户已确认覆盖：更新价格与产品信息，保留原审核状态
+        await table.update(target.id, {
+          labor_rate: rate,
+          labor_rate_type: rec.labor_rate_type || target.labor_rate_type,
+          product_code: rec.product_code || target.product_code,
+          product_name: rec.product_name || target.product_name,
+          process_cost: rec.process_cost != null ? rec.process_cost : target.process_cost,
+          remarks: ((rec.remarks ? rec.remarks + ' / ' : '') + '批量导入覆盖 ¥' + target.labor_rate + ' → ¥' + rate).substring(0, 200),
+          updated_at: ts
+        });
+        overwritten++;
+      } else if (!priced.length && rate > 0) {
+        // 库里无价（待补）：自动补价
+        await table.update(target.id, {
+          labor_rate: rate,
+          labor_rate_type: rec.labor_rate_type || target.labor_rate_type,
+          product_code: rec.product_code || target.product_code,
+          product_name: rec.product_name || target.product_name,
+          process_cost: rec.process_cost != null ? rec.process_cost : target.process_cost,
+          remarks: (rec.remarks || '批量导入补价').substring(0, 200),
+          updated_at: ts
+        });
+        filled++;
+      } else {
+        skipped++;
+      }
+    } else {
+      await table.insert({
+        bom_no: bomNo,
+        product_code: rec.product_code || '',
+        product_name: rec.product_name || '',
+        labor_rate: rate,
+        labor_rate_type: rec.labor_rate_type || '实测工价',
+        process_cost: rec.process_cost != null ? r2(rec.process_cost) : 0,
+        effective_date: rec.effective_date || ts.substring(0, 10),
+        expire_date: '',
+        source: 'manual',
+        audit_status: 'pending',
+        approved_by: '',
+        remarks: (rec.remarks || '批量导入').substring(0, 200),
+        created_at: ts,
+        updated_at: ts
+      });
+      inserted++;
+    }
+  }
+
+  // 工价库变化，失效订单分析的工价索引缓存
+  try { require('./order-analysis').clearLaborRateCache(); } catch (e) {}
+
+  res.json({
+    message: `导入完成：新增 ${inserted} 条，补价 ${filled} 条，确认覆盖 ${overwritten} 条` + (skipped ? `，跳过 ${skipped} 条` : ''),
+    inserted, filled, overwritten, skipped
+  });
+});
+
 // ===== 新增 =====
 router.post('/', requirePerm('labor-rate:create'), async (req, res) => {
   const body = normalize(req.body || {});
@@ -1084,9 +1361,10 @@ router.post('/:id/adjust', requirePerm('labor-rate:edit'), async (req, res) => {
   const today = ts.substring(0, 10);
   const effDate = effective_date || today;
 
-  // 1. 旧记录设 expire_date = 生效日前一天（即生效日当天新记录的 updated_at 更新，自动优先）
+  // 1. 旧记录：设 expire_date + 自动停用归档（默认列表隐藏，可在"全部(含停用)"中查看历史）
   await table.update(id, {
     expire_date: effDate,
+    audit_status: 'disabled',
     remarks: (cur.remarks || '') + ' | 已调整',
     updated_at: ts
   });
@@ -1168,7 +1446,10 @@ router.post('/sync-from-bom', requirePerm('labor-rate:create'), async (req, res)
     const rate = Math.round(item.labor * 100) / 100;
     const rateType = item.attr === '自制' ? '标准工价' : '暂估工价';
     const remarks = 'BOM同步/' + item.attr + (item.spec ? '/规格:' + item.spec.substring(0, 30) : '');
-    if (existing) {
+    if (existing && existing.audit_status === 'approved') {
+      // 已审核工价锁定，禁止自动更新（需手动调整）
+      skipped++;
+    } else if (existing) {
       // 只在工价不同或来源不是 bom_sync 时更新；不覆盖 manual/order_analysis 的已审核值
       if (existing.source === 'bom_sync' || (existing.labor_rate === 0 && rate > 0)) {
         if (Number(existing.labor_rate) !== rate) {
@@ -1198,4 +1479,90 @@ router.post('/sync-from-bom', requirePerm('labor-rate:create'), async (req, res)
   });
 });
 
+// ===== 从订单核价库(bom_pricing)自动同步成品型号到工价库 =====
+// 规则：核价库出现过的成品型号，工价库中没有的（bom_no / product_code 均未出现过）
+//       自动建档（source=pricing_import，工价待补 labor_rate=0，pending 待审核）；
+//       已存在的一律跳过 → 幂等，重复执行不会产生重复记录。
+// 触发：核价记录新增（pricing.js POST /）、核价表导入（import.js POST /:table）后自动调用，
+//       服务启动时兜底补一次；也可手动 POST /api/product-labor-rate/sync-from-pricing。
+async function syncFromPricingLib() {
+  const bpTable = getTable('bom_pricing');
+  bpTable._invalidate();
+  const lrTable = getTable('product_labor_rate');
+  lrTable._invalidate();
+
+  // 1) 工价库已有键集合（bom_no + product_code，含 3.1. 前缀变体；含停用记录 → 只要出现过就不重复建）
+  const existingKeys = new Set();
+  lrTable.all().forEach(r => {
+    [r.bom_no, r.product_code].forEach(k => {
+      k = String(k || '').trim();
+      if (k) existingKeys.add(k);
+    });
+  });
+  const has = (m) => existingKeys.has(m) ||
+    existingKeys.has('3.1.' + m) ||
+    existingKeys.has(m.replace(/^3\.1\./, ''));
+
+  // 2) 核价库按型号去重（跳过空值/残缺型号如 "-ZJ2-013-001"；同型号取最新维护的一条）
+  const byModel = new Map();
+  let invalid = 0;
+  bpTable.all().forEach(r => {
+    const model = String(r.model || '').trim();
+    if (!model || model.startsWith('-')) { invalid++; return; }
+    const prev = byModel.get(model);
+    if (!prev || String(r.updated_at || '') > String(prev.updated_at || '')) byModel.set(model, r);
+  });
+
+  // 3) 缺失型号 → 新建待补工价记录（核价表有人工加工费则带入作暂估）
+  const ts = now();
+  const addedModels = [];
+  let existing = 0;
+  for (const [model, pr] of byModel) {
+    if (has(model)) { existing++; continue; }
+    const rate = toNum(pr.labor_cost) > 0 ? r2(toNum(pr.labor_cost)) : 0;
+    const rec = normalize({
+      bom_no: model,
+      product_code: model,
+      product_name: String(pr.product_name || '').trim(),
+      labor_rate: rate,
+      labor_rate_type: rate > 0 ? '暂估工价' : '标准工价',
+      process_cost: 0,
+      effective_date: String(pr.effective_date || ts).substring(0, 10),
+      expire_date: '',
+      source: 'pricing_import',
+      audit_status: 'pending',
+      approved_by: '',
+      remarks: '来自订单核价库自动导入' +
+        (pr.inquiry_no && pr.inquiry_no !== '/' ? '（询价单 ' + pr.inquiry_no + '）' : '') +
+        (rate > 0 ? '，工价取核价表人工加工费，待审核' : '，工价待补')
+    });
+    await lrTable.insert(Object.assign({}, rec, { created_at: ts, updated_at: ts }));
+    existingKeys.add(model);
+    addedModels.push(model);
+  }
+
+  // 4) 清缓存让 calcPlanCost 下次读取生效
+  try { require('./order-analysis').clearLaborRateCache(); } catch (e) {}
+
+  return {
+    pricing_models: byModel.size,
+    existing: existing,
+    added: addedModels.length,
+    added_models: addedModels,
+    invalid: invalid
+  };
+}
+
+router.post('/sync-from-pricing', requirePerm('labor-rate:create'), async (req, res) => {
+  try {
+    const r = await syncFromPricingLib();
+    res.json(Object.assign({
+      message: `核价库同步完成：成品型号 ${r.pricing_models} 个，工价库已有 ${r.existing} 个，新增 ${r.added} 个`
+    }, r));
+  } catch (e) {
+    res.status(500).json({ error: '同步失败: ' + e.message });
+  }
+});
+
 module.exports = router;
+module.exports.syncFromPricingLib = syncFromPricingLib;

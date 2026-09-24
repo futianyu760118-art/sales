@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EBMS企业经营管理系统 - 数据报表</title>
@@ -399,9 +400,9 @@
         const rate = totalInquiries > 0 ? Math.round((s.closed_count || 0) / totalInquiries * 100) : 0;
         const tr = document.createElement('tr');
         let rankHtml = idx + 1;
-        if (idx === 0) rankHtml = '🥇 1';
-        else if (idx === 1) rankHtml = '🥈 2';
-        else if (idx === 2) rankHtml = '🥉 3';
+        if (idx === 0) rankHtml = ' 1';
+        else if (idx === 1) rankHtml = ' 2';
+        else if (idx === 2) rankHtml = ' 3';
         tr.innerHTML = `
           <td style="font-weight:600;">${rankHtml}</td>
           <td>${s.sales_person || s.name || '-'}</td>
@@ -543,5 +544,6 @@
   <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 </body>
 </html>

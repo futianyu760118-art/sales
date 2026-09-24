@@ -70,6 +70,36 @@ function pickSheetName(workbook, tableName) {
 }
 
 // 解析上传文件为JSON数组
+// 表头行自动探测：Excel 顶部常见标题行（如"成品工价库"合并单元格）、说明文字、空行等
+// 会导致固定"第1行=表头"错位。这里扫描前若干行，取与目标表已知表头（中文别名+英文字段）
+// 匹配数最多的行作为表头行，表头以下才作为数据行，保证表头与内容对齐。
+function detectHeaderRow(matrix, tableName) {
+  const mapping = fieldMappings[tableName] || {};
+  const known = new Set();
+  for (const [k, v] of Object.entries(mapping)) {
+    known.add(normalizeHeader(k)); // 中文别名（归一化后）
+    known.add(normalizeHeader(v)); // 英文字段名
+  }
+  const scan = Math.min(matrix.length, 15);
+  let bestIdx = -1, bestScore = 0;
+  for (let i = 0; i < scan; i++) {
+    const cells = Array.isArray(matrix[i]) ? matrix[i] : [];
+    let score = 0;
+    cells.forEach(c => {
+      const nc = normalizeHeader(c);
+      if (nc && known.has(nc)) score++;
+    });
+    if (score > bestScore) { bestScore = score; bestIdx = i; }
+  }
+  // 至少命中2个已知表头才认为找到真实表头行；否则回退第一个非空行
+  if (bestIdx >= 0 && bestScore >= 2) return bestIdx;
+  for (let i = 0; i < matrix.length; i++) {
+    const cells = Array.isArray(matrix[i]) ? matrix[i] : [];
+    if (cells.some(c => normalizeHeader(c) !== '')) return i;
+  }
+  return 0;
+}
+
 function parseFile(buffer, originalname, tableName) {
   const ext = path.extname(originalname).toLowerCase();
   let workbook;
@@ -84,14 +114,97 @@ function parseFile(buffer, originalname, tableName) {
 
   const sheetName = pickSheetName(workbook, tableName);
   const sheet = workbook.Sheets[sheetName];
-  const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
-  // Date对象 → YYYY-MM-DD字符串
-  const fmtDate = (d) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  jsonData.forEach(row => {
-    Object.keys(row).forEach(k => {
-      if (row[k] instanceof Date) row[k] = fmtDate(row[k]);
-    });
+  // header:1 → 二维数组，自行定位表头行（标题行/空行不再吃掉真实表头）
+  const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false, blankrows: true });
+  if (!matrix.length) return [];
+  const headerIdx = detectHeaderRow(matrix, tableName);
+  const headerRow = (matrix[headerIdx] || []).map(c => {
+    const t = String(c == null ? '' : c).trim().replace(/^\uFEFF/, '').replace(/\u200B/g, '');
+    return t === '' ? '' : t;
   });
+  const fmtDate = (d) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const nonEmpty = c => String(c == null ? '' : c).trim() !== '';
+  const dataMatrix = [];
+  for (let i = headerIdx + 1; i < matrix.length; i++) {
+    const arr = matrix[i];
+    if (Array.isArray(arr) && arr.some(nonEmpty)) dataMatrix.push(arr);
+  }
+
+  // 对齐打分：行校验通过数（主导）+ 字段值类型契合度（数值字段必须是纯数字，文本乱入扣分；
+  // 枚举字段收到合法枚举值加分）+ 命中列非空数
+  // 注意：数值列判定用后缀锚定（labor_rate✓ / labor_rate_type✗ / price_source✗）
+  const NUMERIC_FIELD_RE = /(rate|cost|amount|price|qty|quantity|count)$|_id$|^id$|^num$/;
+  const ENUM_HINTS = {
+    labor_rate_type: ['标准工价', '实测工价', '暂估工价', '手工录入'],
+    audit_status: ['pending', 'approved', 'disabled', '待审核', '已审核', '已停用'],
+    source: ['manual', 'erp_sync', 'pricing_import', 'order_analysis', 'bom_sync', '手工录入', '外部API', '订单分析', '核价导入', 'BOM同步'],
+    status: ['open', 'shipped', 'completed', 'cancelled', 'normal', 'active']
+  };
+  const isCleanNumber = (v) => {
+    if (v === null || v === undefined || v === '') return false;
+    if (typeof v === 'number') return !isNaN(v);
+    const s = String(v).trim().replace(/,/g, '');
+    return /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(s);
+  };
+  const scoreRows = (rows) => {
+    let ok = 0, fitness = 0, filled = 0;
+    rows.forEach(r => {
+      const mapped = mapRow(r, tableName);
+      const snapshot = Object.assign({}, mapped); // validateRow 会原地转换数值字段，打分须用转换前原值
+      if (validateRow(mapped, tableName).errors.length === 0) ok++;
+      for (const [f, v] of Object.entries(snapshot)) {
+        if (!nonEmpty(v)) continue;
+        filled++;
+        if (NUMERIC_FIELD_RE.test(f)) fitness += (isCleanNumber(v) ? 1 : -2); // 数值字段塞了文本 → 负分
+        else fitness += 1;
+        const enums = ENUM_HINTS[f];
+        if (enums && enums.includes(String(v).trim())) fitness += 2; // 枚举字段收到合法值 → 加分
+      }
+    });
+    return ok * 10000 + fitness * 100 + filled;
+  };
+
+  // ===== 列对齐自动补偿 =====
+  // 表头与内容可能整体错一列：内容缺某列（如"产品层级"列没填，其后所有值左移一格），
+  // 或内容多某列（如多余的序号列）。枚举所有"空缺表头列k"（missHeader）与
+  // "丢弃内容列k"（extraContent）候选，与"原样"一起按 映射+校验+类型契合 打分，
+  // 严格更优才采用（正常文件保持原样不受影响）。
+  const usedHeaders = new Set(); // 同名列取第一个，避免后者覆盖前者
+  headerRow.forEach(h => { if (h && !usedHeaders.has(h)) usedHeaders.add(h); });
+  const maxContentCols = dataMatrix.reduce((m, a) => Math.max(m, a.length), 0);
+  const buildAligned = (mode, k) => dataMatrix.map(arr => {
+    const row = {};
+    for (let hi = 0; hi < headerRow.length; hi++) {
+      const h = headerRow[hi];
+      if (!h || !usedHeaders.has(h)) continue;
+      let ci;
+      if (mode === 'missHeader') ci = (hi < k) ? hi : (hi === k ? -1 : hi - 1);      // 内容缺第k个表头列：其后值左移一格
+      else if (mode === 'extraContent') ci = (hi < k) ? hi : hi + 1;                  // 内容多第k列：跳过该内容列
+      else ci = hi;                                                                    // 原样对齐
+      let v = (ci >= 0 && arr[ci] != null) ? arr[ci] : '';
+      if (v instanceof Date) v = fmtDate(v);
+      row[h] = v;
+    }
+    return row;
+  });
+  let jsonData = buildAligned('plain', 0);
+  if (dataMatrix.length) {
+    let bestScore = scoreRows(jsonData);
+    if (process.env.DEBUG_IMPORT_ALIGN) console.log('[align] plain score=' + bestScore);
+    for (let k = 0; k < headerRow.length; k++) {
+      if (!headerRow[k]) continue;
+      const rows = buildAligned('missHeader', k);
+      const s = scoreRows(rows);
+      if (process.env.DEBUG_IMPORT_ALIGN) console.log('[align] missHeader k=' + k + ' (' + headerRow[k] + ') score=' + s);
+      if (s > bestScore) { bestScore = s; jsonData = rows; }
+    }
+    for (let k = 0; k < maxContentCols; k++) {
+      const rows = buildAligned('extraContent', k);
+      const s = scoreRows(rows);
+      if (process.env.DEBUG_IMPORT_ALIGN) console.log('[align] extraContent k=' + k + ' score=' + s);
+      if (s > bestScore) { bestScore = s; jsonData = rows; }
+    }
+  }
   return jsonData;
 }
 
@@ -235,9 +348,9 @@ const fieldMappings = {
     '备注': 'remarks', '说明': 'remarks'
   },
   product_labor_rate: {
-    'bom编号': 'bom_no', 'bom_no': 'bom_no', 'BOM编号': 'bom_no', 'BOM': 'bom_no',
+    'bom编号': 'bom_no', 'bom_no': 'bom_no', 'BOM编号': 'bom_no', 'BOM': 'bom_no', '物料编码': 'bom_no',
     '产品编码': 'product_code', '产品编号': 'product_code', '编码': 'product_code',
-    '产品名称': 'product_name', '名称': 'product_name',
+    '产品名称': 'product_name', '名称': 'product_name', '产品': 'product_name', '产品名': 'product_name', '物料名称': 'product_name',
     '工价': 'labor_rate', '单台工价': 'labor_rate', '成品工价': 'labor_rate', '工价(元/台)': 'labor_rate',
     '计价方式': 'labor_rate_type', '工价类型': 'labor_rate_type', '类型': 'labor_rate_type',
     '工艺成本': 'process_cost', '单台工艺': 'process_cost',
@@ -806,7 +919,7 @@ router.post('/project_initiation_structured', upload.single('file'), requirePerm
   }
 });
 
-router.post('/:table', upload.single('file'), (req, res) => {
+router.post('/:table', upload.single('file'), async (req, res) => {
   const tableName = req.params.table;
   const supportedTables = ['inquiries', 'customers', 'products', 'materials', 'bom_pricing', 'projects', 'project_progress', 'project_supply_issues', 'project_sales_promotion', 'project_reviews', 'project_initiation', 'expenses', 'labor', 'product_labor_rate'];
 
@@ -873,6 +986,8 @@ router.post('/:table', upload.single('file'), (req, res) => {
       custExistingNames = new Set(table.all().map(c => c.name).filter(n => n));
       custExistingCodes = new Set(table.all().map(c => c.customer_code).filter(c => c));
     }
+    // 工价库：刷新缓存，循环内做 BOM 编号去重
+    if (tableName === 'product_labor_rate') table._invalidate();
 
     rows.forEach((rawRow, index) => {
       let mapped;
@@ -967,6 +1082,17 @@ router.post('/:table', upload.single('file'), (req, res) => {
         }
       }
 
+      // 工价库通用导入去重：BOM编号已存在则跳过（覆盖需走工价库页面「批量导入」预览确认流程）
+      if (tableName === 'product_labor_rate') {
+        const bn = String(row.bom_no || '').trim();
+        const exists = table.all().some(r => String(r.bom_no || '').trim() === bn && r.audit_status !== 'disabled');
+        if (exists) {
+          skipped++;
+          errors.push({ row: index + 2, errors: [`BOM编号已存在: ${bn}（请在工价库页面用「批量导入」预览确认覆盖）`] });
+          return;
+        }
+      }
+
       // 添加创建时间
       if (!row.created_at) {
         row.created_at = now();
@@ -1002,11 +1128,21 @@ router.post('/:table', upload.single('file'), (req, res) => {
     // 清除缓存确保数据一致
     table._invalidate();
 
+    // 核价库导入后：成品型号自动同步到工价库（已存在跳过，不重复）
+    let laborRateSync = null;
+    if (tableName === 'bom_pricing' && imported > 0) {
+      try { laborRateSync = await require('./product-labor-rate').syncFromPricingLib(); } catch (e) {
+        laborRateSync = { error: '工价库同步失败: ' + e.message };
+      }
+    }
+
     res.json({
-      message: `导入完成：成功 ${imported} 条，跳过 ${skipped} 条`,
+      message: `导入完成：成功 ${imported} 条，跳过 ${skipped} 条` +
+        (laborRateSync ? `；工价库自动同步新增 ${laborRateSync.added || 0} 个型号` : ''),
       imported,
       skipped,
       total: rows.length,
+      labor_rate_sync: laborRateSync,
       errors: errors.slice(0, 20) // 最多返回20条错误
     });
   } catch (e) {
@@ -1604,5 +1740,9 @@ router.use((err, req, res, next) => {
 });
 
 module.exports = router;
+// 供工价库批量导入（预览+确认）复用：文件解析 / 表头映射 / 行校验
+module.exports.parseFile = parseFile;
+module.exports.mapRow = mapRow;
+module.exports.validateRow = validateRow;
 
 
