@@ -68,7 +68,7 @@ build/
 # 备份目录
 database.bak.*
 uploads.bak.*
-sales-service-system.bak.*
+ebms.bak.*
 
 # 内部审计与临时报告
 PERM_AUDIT*.txt

@@ -1,8 +1,8 @@
 version: '3.8'
 services:
-  sales-service-system:
-    image: sales-service-system-fixed:latest
-    container_name: sales-service-system
+  ebms:
+    image: ebms:latest
+    container_name: ebms
     ports:
       - "3010:3010"
     volumes:

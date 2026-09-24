@@ -234,7 +234,7 @@ const PermissionCheck = {
 
     const brandName = (window.EBMS && typeof window.EBMS.fullName === 'function')
       ? window.EBMS.fullName()
-      : '企业经营管理平台（EBMS）-HJ';
+      : 'EBMS企业经营管理系统';
 
     // === 1. brand 栏：仅系统名 ===
     let html = '<div class="lms-brandbar">';

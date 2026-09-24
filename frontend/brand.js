@@ -1,10 +1,10 @@
 /**
  * 品牌配置模块 - 动态注入系统名称到标题栏和侧边栏
  * 系统名称格式：${system_name}${company_code ? '-' + company_code : ''}
- * 默认：企业经营管理平台（EBMS）-HJ，可通过系统设置修改 company_code 切换为不同公司
+ * 默认：EBMS企业经营管理系统，可通过系统设置修改 company_code 切换为不同公司
  */
 (function () {
-  const DEFAULT_SYSTEM_NAME = '企业经营管理平台（EBMS）';
+  const DEFAULT_SYSTEM_NAME = 'EBMS企业经营管理系统';
   const DEFAULT_COMPANY_CODE = 'HJ';
 
   const Brand = {

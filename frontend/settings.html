@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>企业经营管理平台（EBMS）-HJ - 系统设置</title>
+  <title>EBMS企业经营管理系统 - 系统设置</title>
   <link rel="stylesheet" href="common.css">
   <style>
     .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
@@ -101,7 +101,7 @@
       <div class="config-section">
         <h3>系统参数</h3>
         <div class="config-row">
-          <div class="config-item"><label>系统名称</label><input type="text" id="cfg_system_name" value="企业经营管理平台（EBMS）" placeholder="如：企业经营管理平台（EBMS）"></div>
+          <div class="config-item"><label>系统名称</label><input type="text" id="cfg_system_name" value="EBMS企业经营管理系统" placeholder="如：EBMS企业经营管理系统"></div>
           <div class="config-item"><label>公司简称（HJ占位）</label><input type="text" id="cfg_company_code" value="HJ" maxlength="20" placeholder="如：HJ（恒剑）"></div>
           <div class="config-item"><label>公司全称</label><input type="text" id="cfg_company_name" placeholder="公司名称"></div>
         </div>
@@ -109,7 +109,7 @@
           <div class="config-item"><label>每页显示条数</label><input type="number" id="cfg_page_size" value="15" min="5" max="100"></div>
           <div class="config-item" style="grid-column:span 2"><label>系统标题预览</label><div id="brandPreview" style="padding:8px 12px;border:1px dashed #ccc;border-radius:6px;color:#667eea;font-weight:500;background:#f8f9ff;">—</div></div>
         </div>
-        <p style="font-size:12px;color:#888;margin-top:6px;">系统名称将显示为「系统名称-公司简称」，例如：<code>企业经营管理平台（EBMS）-HJ</code>。切换公司时仅修改"公司简称"即可。</p>
+        <p style="font-size:12px;color:#888;margin-top:6px;">系统名称将显示为「系统名称-公司简称」，例如：<code>EBMS企业经营管理系统</code>。切换公司时仅修改"公司简称"即可。</p>
       </div>
       <div class="config-section">
         <h3>AI助手接口配置</h3>
@@ -365,7 +365,7 @@ async function loadConfig() {
 }
 
 function updateBrandPreview() {
-  const name = (document.getElementById('cfg_system_name') || {}).value || '企业经营管理平台（EBMS）';
+  const name = (document.getElementById('cfg_system_name') || {}).value || 'EBMS企业经营管理系统';
   const code = ((document.getElementById('cfg_company_code') || {}).value || '').trim();
   const preview = document.getElementById('brandPreview');
   if (preview) preview.textContent = code ? (name + '-' + code) : name;

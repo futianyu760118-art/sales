@@ -110,7 +110,7 @@ const PermissionCheck = {
 
     const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
 
-    let html = '<h1>销售快捷服务系统</h1><ul>';
+    let html = '<h1>EBMS企业经营管理系统</h1><ul>';
     for (const item of this.sidebarItems) {
       if (item.perm && !this.has(item.perm)) continue;
       const active = currentPage === item.href ? ' class="active"' : '';
