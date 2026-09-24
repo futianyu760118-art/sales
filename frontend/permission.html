@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 权限管理</title>
@@ -98,7 +99,7 @@
         </table>
       </div>
       <div style="margin-top:8px;font-size:11px;color:#888;display:flex;gap:16px;">
-        <span>🟢 完全权限</span><span>🔵 只读查看</span><span>⚪ 无权限</span><span style="margin-left:8px;">（点击单元格循环切换）</span>
+        <span> 完全权限</span><span> 只读查看</span><span> 无权限</span><span style="margin-left:8px;">（点击单元格循环切换）</span>
       </div>
     </div>
   </div>
@@ -469,7 +470,7 @@
       return 'none';
     }
 
-    function stateLabel(s){ return s==='full'?'✅':s==='view'?'👁️':'❌'; }
+    function stateLabel(s){ return s==='full'?'':s==='view'?'️':''; }
     function stateClass(s){ return 'perm-cell perm-'+s; }
 
     async function toggleModule(roleCode, permCodes){
@@ -494,7 +495,7 @@
       }
       pendingChanges.push({roleCode,toAdd,toRemove});
       hasPending=true;
-      document.querySelector('.header button.btn-primary').textContent='保存全部 ●';
+      document.querySelector('.header button.btn-primary').textContent='保存全部 ';
       renderMatrix();
     }
 
@@ -581,5 +582,6 @@
 <script src="permission-check.js"></script>
   <script>PermissionCheck.init();</script>
   <script src="chat-widget.js"></script>
+  <script src="feedback-widget.js"></script>
 </body>
 </html>

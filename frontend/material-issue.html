@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 领料单</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 领料单</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -346,11 +347,11 @@ async function loadStats(){
     const bars=(arr,color)=>{const m=maxBar(arr.map(x=>x.value));return arr.length?arr.map(x=>'<div class="hbar"><span class="lb" title="'+esc(x.name)+'">'+esc(x.name)+'</span><div class="track"><div class="fill" style="width:'+((x.value/m)*100)+'%;background:'+color+'"></div></div><span class="val">'+yuan(x.value)+'</span></div>').join(''):'<div class="em">无数据</div>'};
     box.innerHTML=
     '<div class="sg">'+card(d.total,'领料记录数','#667eea')+card(yuan(d.total_amount),'领料总额','#27ae60')+card(d.total_qty,'领料总数量','#764ba2')+card((d.by_order||[]).length,'关联订单数','#f39c12')+'</div>'+
-    '<div class="panel"><h3>🏷 按领料类型</h3>'+bars(d.by_type||[],'#667eea')+'</div>'+
-    '<div class="panel"><h3>🏢 按部门</h3>'+bars(d.by_department||[],'#27ae60')+'</div>'+
-    '<div class="panel"><h3>📦 按仓库</h3>'+bars(d.by_warehouse||[],'#2980b9')+'</div>'+
-    '<div class="panel"><h3>📈 按月份趋势</h3>'+bars((d.by_month||[]).slice().reverse(),'#f39c12')+'</div>'+
-    '<div class="panel"><h3>🏆 订单物料成本 TOP</h3>'+bars((d.by_order||[]).slice(0,15),'#8e44ad')+'</div>';
+    '<div class="panel"><h3> 按领料类型</h3>'+bars(d.by_type||[],'#667eea')+'</div>'+
+    '<div class="panel"><h3> 按部门</h3>'+bars(d.by_department||[],'#27ae60')+'</div>'+
+    '<div class="panel"><h3> 按仓库</h3>'+bars(d.by_warehouse||[],'#2980b9')+'</div>'+
+    '<div class="panel"><h3> 按月份趋势</h3>'+bars((d.by_month||[]).slice().reverse(),'#f39c12')+'</div>'+
+    '<div class="panel"><h3> 订单物料成本 TOP</h3>'+bars((d.by_order||[]).slice(0,15),'#8e44ad')+'</div>';
   }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
 }
 function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+'">'+esc(n)+'</div><div class="l">'+l+'</div></div>'}
@@ -399,5 +400,6 @@ loadExtConfig();
 (function(){const h=location.hash;if(h.startsWith('#order=')){const on=decodeURIComponent(h.substring(7));document.getElementById('bo_order').value=on;swTab('byorder',document.querySelectorAll('#tabNav button')[1]);loadByOrder()}})();
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

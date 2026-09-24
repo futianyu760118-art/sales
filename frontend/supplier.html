@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 供应商管理</title>
@@ -87,7 +88,7 @@
       </div>
 
       <div class="dash-panel" data-feature="dashboard">
-        <div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>📊 供应商统计与合作分析</span><span class="dash-arrow">▼</span></div>
+        <div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span> 供应商统计与合作分析</span><span class="dash-arrow"></span></div>
         <div class="dash-body">
           <div id="statsOverview" class="stats-row"></div>
           <div id="coopAnalysis" class="dash-grid"></div>
@@ -121,7 +122,7 @@
           <option value="">全部类别</option>
         </select>
         <button class="btn btn-primary" onclick="searchSuppliers()">查询</button>
-        <span class="ed-tip">提示：双击单元格可直接编辑 · 点击表头排序</span>
+        <span class="ed-tip">提示：双击单元格可直接编辑  点击表头排序</span>
       </div>
 
       <div class="table-container">
@@ -366,7 +367,7 @@
 
     function stars(n) {
       const v = Math.round((parseFloat(n) || 0) / 20);
-      return '★'.repeat(v) + '☆'.repeat(5 - v);
+      return ''.repeat(v) + ''.repeat(5 - v);
     }
 
     // ===== Tab切换 =====
@@ -451,7 +452,7 @@
 
       el.innerHTML = `
         <div class="dash-card">
-          <h4>🤝 合作概况</h4>
+          <h4> 合作概况</h4>
           <div class="mini-row"><span class="lbl">合作率</span><b style="color:#27ae60;">${coopRate}%</b></div>
           <div class="mini-row"><span class="lbl">合作中</span><b>${coopCount} / ${total}</b></div>
           <div class="mini-row"><span class="lbl">已评估供应商</span><b>${c.evaluated_count || 0}</b></div>
@@ -463,16 +464,16 @@
           ${lvlRows}
         </div>
         <div class="dash-card">
-          <h4>📈 平均评分（维度）</h4>
+          <h4> 平均评分（维度）</h4>
           ${dimGrid}
           <div class="mini-row" style="margin-top:8px;"><span class="lbl">综合均分</span><b class="${getScoreClass(stats.avg_score)}" style="font-size:15px;">${stats.avg_score ?? '-'}</b></div>
         </div>
         <div class="dash-card">
-          <h4>🏆 优秀供应商 TOP</h4>
+          <h4> 优秀供应商 TOP</h4>
           ${topSups}
         </div>
         <div class="dash-card">
-          <h4>📦 类别构成 TOP</h4>
+          <h4> 类别构成 TOP</h4>
           ${topCats}
         </div>`;
     }
@@ -644,7 +645,7 @@
       status.style.display = 'none';
       results.style.display = 'block';
       if (dups.length === 0) {
-        results.innerHTML = `<div style="text-align:center;padding:30px;color:#27ae60;">✓ 未发现重复供应商${applied ? '，数据已清理完毕' : ''}</div>`;
+        results.innerHTML = `<div style="text-align:center;padding:30px;color:#27ae60;"> 未发现重复供应商${applied ? '，数据已清理完毕' : ''}</div>`;
         applyBtn.style.display = 'none';
         return;
       }
@@ -672,7 +673,7 @@
         const data = await res.json();
         alert(data.message);
         renderDedupeResults({ duplicates: [] }, true);
-        document.getElementById('dedupeResults').innerHTML = `<div style="text-align:center;padding:30px;color:#27ae60;">✓ ${data.message}</div>`;
+        document.getElementById('dedupeResults').innerHTML = `<div style="text-align:center;padding:30px;color:#27ae60;"> ${data.message}</div>`;
         loadSuppliers(currentPage);
         loadStatsOverview();
       } catch (e) {
@@ -1060,6 +1061,7 @@
   <script>PermissionCheck.init();</script>
   <script src="table-sort-filter.js"></script>
   <script src="chat-widget.js"></script>
+  <script src="feedback-widget.js"></script>
   <script src="feature-gate.js"></script>
   <script>FeatureGate.init();</script>
 </body>

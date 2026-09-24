@@ -31,7 +31,7 @@ VOLUME ["/app/database", "/app/uploads"]
 
 # [H4] 容器健康检查：每 30s 探测一次，超时 5s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:3010/api/projects/stats || exit 1
+  CMD curl -fsS http://127.0.0.1:3010/index.html || exit 1
 
 WORKDIR /app/backend
 ENTRYPOINT ["/sbin/tini", "--"]

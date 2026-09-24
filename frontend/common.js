@@ -56,7 +56,7 @@
       var dropdown = document.createElement('div');
       dropdown.className = 'ss-dropdown';
       dropdown.style.display = 'none';
-      dropdown.innerHTML = '<input type="text" class="ss-search" placeholder="输入关键字过滤…"><ul class="ss-list"></ul><div class="ss-empty" style="display:none;">无匹配项</div><div class="ss-footer"><span class="ss-count">0 条</span><span><kbd>↑↓</kbd> 选择 <kbd>Enter</kbd> 确认 <kbd>Esc</kbd> 关闭</span></div>';
+      dropdown.innerHTML = '<input type="text" class="ss-search" placeholder="输入关键字过滤…"><ul class="ss-list"></ul><div class="ss-empty" style="display:none;">无匹配项</div><div class="ss-footer"><span class="ss-count">0 条</span><span><kbd></kbd> 选择 <kbd>Enter</kbd> 确认 <kbd>Esc</kbd> 关闭</span></div>';
       wrap.appendChild(display);
       wrap.appendChild(dropdown);
       selectEl.parentNode.insertBefore(wrap, selectEl);

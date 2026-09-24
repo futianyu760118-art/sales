@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 采购管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 采购管理</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -49,14 +50,14 @@ td.ed input{width:100%;padding:5px 7px;border:none;font-size:13px;background:#ff
 <h2>采购管理</h2>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
 <a class="btn bs" href="material.html" style="background:#eee;text-decoration:none">← 返回物料库</a>
-<button class="btn b1" onclick="runScan(false)">🔍 立即扫描到期</button>
-<button class="btn b2" onclick="generateOrders()">📦 生成采购单</button>
-<button class="btn b4" onclick="syncPurchaseOrdersFromExternal()">📥 从外部同步</button>
+<button class="btn b1" onclick="runScan(false)"> 立即扫描到期</button>
+<button class="btn b2" onclick="generateOrders()"> 生成采购单</button>
+<button class="btn b4" onclick="syncPurchaseOrdersFromExternal()"> 从外部同步</button>
 </div>
 </div>
 
 <div class="dash-panel">
-<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>📊 采购即时仪表盘</span><span class="dash-arrow">▼</span></div>
+<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span> 采购即时仪表盘</span><span class="dash-arrow"></span></div>
 <div class="dash-body">
 <div class="sg" id="pStats"></div>
 <div class="dash-grid" id="pInsight"></div>
@@ -78,7 +79,7 @@ td.ed input{width:100%;padding:5px 7px;border:none;font-size:13px;background:#ff
 <select id="rSupp"><option value="">全部供应商</option></select>
 <button class="btn b1" onclick="loadRequests()">搜索</button>
 <label style="font-size:12px;color:#666;display:flex;align-items:center;gap:4px"><input type="checkbox" id="rAll" onchange="toggleAllReq(this)"> 全选当页</label>
-<span style="margin-left:auto">已选 <b id="rSel">0</b> · 共 <b id="rTc">0</b> 条</span>
+<span style="margin-left:auto">已选 <b id="rSel">0</b>  共 <b id="rTc">0</b> 条</span>
 </div>
 <div class="tbl-wrap">
 <table id="reqTable"><thead><tr>
@@ -148,8 +149,8 @@ async function loadDashboard(){
     const groups=(d.supplier_groups||[]).slice(0,6).map(g=>
       `<div class="mini-row"><span>${esc(g.supplier)}</span><span style="color:#666">${g.items}项 / <b>¥${g.amount.toLocaleString()}</b></span></div>`).join('')||'<div class="mini-row" style="color:#999">暂无待处理需求</div>';
     document.getElementById('pInsight').innerHTML=`
-      <div class="dash-card"><h4>⏰ 到期采购（即时）</h4>${dueList}</div>
-      <div class="dash-card"><h4>🏭 供应商待处理汇总（可生成采购单）</h4>${groups}</div>`;
+      <div class="dash-card"><h4> 到期采购（即时）</h4>${dueList}</div>
+      <div class="dash-card"><h4> 供应商待处理汇总（可生成采购单）</h4>${groups}</div>`;
     // 同步供应商筛选下拉
     const ss=document.getElementById('rSupp');
     const cur=ss.value;
@@ -339,5 +340,6 @@ runScan(true).then(()=>{
 });
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

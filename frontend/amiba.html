@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>阿米巴经营管理 - 降本攻坚</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>阿米巴经营管理 - 降本攻坚</title><link rel="stylesheet" href="common.css">
 <style>
 .ap-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
 .ap-top h2{margin:0}
@@ -159,7 +160,7 @@ report:{flow:'点击「一键生成本月月报」→ 系统自动汇总各巴�
 function _infoPanel(name){
   const info=_TAB_INFO[name];if(!info)return'';
   return `<details class="tab-info" style="background:linear-gradient(135deg,#f0f4ff,#e8eeff);border-left:4px solid #667eea;padding:8px 14px;margin-bottom:10px;border-radius:0 6px 6px 0;font-size:13px;color:#444;animation:fadeIn .2s">
-    <summary style="cursor:pointer;font-weight:700;color:#667eea;user-select:none">📋 操作流程与核算标准 <span style="font-size:11px;color:#999;font-weight:400">（点击展开/收起）</span></summary>
+    <summary style="cursor:pointer;font-weight:700;color:#667eea;user-select:none"> 操作流程与核算标准 <span style="font-size:11px;color:#999;font-weight:400">（点击展开/收起）</span></summary>
     <div style="margin-top:8px;line-height:1.8">
       <div style="margin-bottom:4px"><span style="display:inline-block;background:#27ae60;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px;margin-right:6px">操作流程</span>${esc(info.flow)}</div>
       <div><span style="display:inline-block;background:#e67e22;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px;margin-right:6px">核算标准</span>${esc(info.std)}</div>
@@ -260,7 +261,7 @@ async function loadDashboard(){
     <div class="panel" style="grid-column:span 2"><h3>月度收入/成本/利润趋势</h3>${trendSvg(d.cost_trend||[])}</div>
     <div class="panel"><h3>降本改善成果累计</h3>${cumulSvg(d.improve_cumulative||[])}</div>
   </div>
-  <h3 style="margin:18px 0 8px;color:#333">📋 各阿米巴月度经营快照（${year()}年）<span style="font-size:12px;color:#888;font-weight:400">· 共 ${deptRows.length} 个巴</span></h3>
+  <h3 style="margin:18px 0 8px;color:#333"> 各阿米巴月度经营快照（${year()}年）<span style="font-size:12px;color:#888;font-weight:400"> 共 ${deptRows.length} 个巴</span></h3>
   ${renderTable(snapCols,deptRows.slice().sort((a,b)=>b.net_value-a.net_value),snapCols.length)}`;
   applyPerms();
 }
@@ -278,13 +279,13 @@ async function loadOrg(){
   caches.org=list.data||[];
   const flatCols=[['序号',(_,i)=>`<b style="color:#667eea">${i+1}</b>`],['巴名称',r=>`<b>${esc(r.amiba_name)}</b>`],['层级',r=>r.amiba_level===1?'<span class="badge green">一级巴</span>':'<span class="badge yellow">二级巴</span>'],['类型',r=>esc(r.amiba_type||'-')],['所属部门',r=>esc(r.department||'-')],['巴长',r=>esc(r.charge_user_name||'-')],['关联销售',r=>esc(r.sales_person||'-')],['产品类别',r=>esc(r.product_category||'-')],['状态',r=>badge(r.status)],['操作',r=>`<button class="btn bs b4" onclick="orgForm(${r.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b1" onclick="bindForm(${r.id})" data-perm="amiba:edit">绑定</button> <button class="btn bs b3" onclick="delOrg(${r.id})" data-perm="amiba:delete">删除</button>`]];
   document.getElementById('orgBox').innerHTML=`
-  <div class="sb"><button class="btn b2" onclick="orgForm()" data-perm="amiba:create">新增巴单元</button><button class="btn b1" onclick="syncOrg()" data-perm="amiba:edit">🔄 同步系统组织架构</button><button class="btn b5" onclick="exportExcel('${API}/org/export')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto;color:#999;font-size:12px">巴长与部门直接取自「系统组织模块」真实人员/架构；一级巴可设置关联销售员用于归集订单</span></div>
+  <div class="sb"><button class="btn b2" onclick="orgForm()" data-perm="amiba:create">新增巴单元</button><button class="btn b1" onclick="syncOrg()" data-perm="amiba:edit"> 同步系统组织架构</button><button class="btn b5" onclick="exportExcel('${API}/org/export')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto;color:#999;font-size:12px">巴长与部门直接取自「系统组织模块」真实人员/架构；一级巴可设置关联销售员用于归集订单</span></div>
   <div class="panel"><h3>组织架构树</h3>${renderTree(tree)}</div>
-  <h3 style="margin:14px 0 8px;color:#333">📋 巴单元列表（${(list.data||[]).length} 条）</h3>
+  <h3 style="margin:14px 0 8px;color:#333"> 巴单元列表（${(list.data||[]).length} 条）</h3>
   ${renderTable(flatCols,list.data||[],flatCols.length)}`;
   applyPerms();
 }
-function renderTree(nodes){if(!nodes||!nodes.length)return '<div style="color:#bbb;font-size:12px;padding:20px;text-align:center">暂无巴单元，请新增</div>';const cls=lv=>lv===1?'lv1':'lv2';const walk=arr=>`<ul class="tree">${arr.map(o=>`<li class="${cls(o.amiba_level)}">${o.amiba_level===1?'🏢':'🔹'}<b>${esc(o.amiba_name)}</b><span class="tag">${esc(o.amiba_type)}</span>${o.charge_user_name?`<span style="font-size:11px;color:#667eea">👤 巴长:${esc(o.charge_user_name)}</span>`:''}${o.department?`<span style="font-size:11px;color:#888">🏢 ${esc(o.department)}</span>`:''}${o.sales_person?`<span style="font-size:11px;color:#27ae60">销售:${esc(o.sales_person)}</span>`:''} ${badge(o.status)} <button class="btn bs b4" onclick="orgForm(${o.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b1" onclick="bindForm(${o.id})" data-perm="amiba:edit">绑定巴长</button> <button class="btn bs b3" onclick="delOrg(${o.id})" data-perm="amiba:delete">删除</button>${o.children&&o.children.length?walk(o.children):''}</li>`).join('')}</ul>`;return walk(nodes)}
+function renderTree(nodes){if(!nodes||!nodes.length)return '<div style="color:#bbb;font-size:12px;padding:20px;text-align:center">暂无巴单元，请新增</div>';const cls=lv=>lv===1?'lv1':'lv2';const walk=arr=>`<ul class="tree">${arr.map(o=>`<li class="${cls(o.amiba_level)}">${o.amiba_level===1?'':''}<b>${esc(o.amiba_name)}</b><span class="tag">${esc(o.amiba_type)}</span>${o.charge_user_name?`<span style="font-size:11px;color:#667eea"> 巴长:${esc(o.charge_user_name)}</span>`:''}${o.department?`<span style="font-size:11px;color:#888"> ${esc(o.department)}</span>`:''}${o.sales_person?`<span style="font-size:11px;color:#27ae60">销售:${esc(o.sales_person)}</span>`:''} ${badge(o.status)} <button class="btn bs b4" onclick="orgForm(${o.id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b1" onclick="bindForm(${o.id})" data-perm="amiba:edit">绑定巴长</button> <button class="btn bs b3" onclick="delOrg(${o.id})" data-perm="amiba:delete">删除</button>${o.children&&o.children.length?walk(o.children):''}</li>`).join('')}</ul>`;return walk(nodes)}
 const orgFields=[['parent_id','上级巴','number'],['amiba_level','巴层级','select',[{id:1,name:'一级巴'},{id:2,name:'二级巴'}]],['amiba_name','巴名称','text'],['amiba_type','巴类型','select'],['department_id','所属部门(系统架构)','select',[]],['charge_personnel_id','巴长(系统人员)','select',[]],['sales_person','关联销售员','text'],['product_category','产品类别','text'],['sort','排序','number'],['status','状态','select',[{id:'启用',name:'启用'},{id:'停用',name:'停用'}]]];
 function orgSelectOpts(){const depts=orgOpts.departments.map(d=>({id:d.id,name:d.name}));const pers=orgOpts.personnel.map(p=>({id:p.id,name:p.name+(p.department_name?'（'+p.department_name+'）':'')}));return{depts,pers}}
 async function orgForm(id){await ensureOrgOpts();let row={amiba_level:1,amiba_type:'生产',status:'启用'};if(id){const list=await getJson(`${API}/org/list?limit=999`);row=(list.data||[]).find(x=>x.id===id)||row}const {depts,pers}=orgSelectOpts();const fields=orgFields.map(f=>{if(f[0]==='amiba_type')return [f[0],f[1],f[2],meta.amiba_types];if(f[0]==='department_id')return ['department_id','所属部门(系统架构)','select',depts];if(f[0]==='charge_personnel_id')return ['charge_personnel_id','巴长(系统人员)','select',pers];return f});const box=document.getElementById('formBox');box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}巴单元</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(fields,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveOrg(${id||0})">保存</button></div>`;openForm();applyPerms()}
@@ -294,13 +295,13 @@ async function bindForm(id){await ensureOrgOpts();const list=await getJson(`${AP
 async function saveBind(id){const el=document.getElementById('ff_charge_personnel_id');const pid=el?Number(el.value)||0:0;await postJson(`${API}/org/${id}/bindUser`,{charge_personnel_id:pid});closeForm();loadOrg()}
 // 从系统组织架构同步：拉取 org_departments 活跃部门，智能匹配/补建巴单元
 async function syncOrg(){
-  if(!confirm('从系统组织架构同步部门到阿米巴？\n\n将执行：\n· 读取系统「组织管理」中所有活跃部门\n· 智能匹配已有巴（按 department_id 或名称）→ 补充关联\n· 未匹配的部门自动创建巴单元（含部门负责人→巴长）\n· 已有巴单元不会被删除，仅更新关联信息'))return;
+  if(!confirm('从系统组织架构同步部门到阿米巴？\n\n将执行：\n 读取系统「组织管理」中所有活跃部门\n 智能匹配已有巴（按 department_id 或名称）→ 补充关联\n 未匹配的部门自动创建巴单元（含部门负责人→巴长）\n 已有巴单元不会被删除，仅更新关联信息'))return;
   try{
     const j=await postJson(`${API}/org/sync`,{});
     if(j.error)return alert(j.error);
     // 展示同步详情
-    const newRows=(j.details||[]).filter(d=>d.action==='新建').map(d=>'· '+d.amiba+' ['+d.type+']').join('\n');
-    const updRows=(j.details||[]).filter(d=>d.action==='更新').map(d=>'· '+d.amiba+' ← '+d.dept+' ('+d.changes.join(',')+')').join('\n');
+    const newRows=(j.details||[]).filter(d=>d.action==='新建').map(d=>' '+d.amiba+' ['+d.type+']').join('\n');
+    const updRows=(j.details||[]).filter(d=>d.action==='更新').map(d=>' '+d.amiba+' ← '+d.dept+' ('+d.changes.join(',')+')').join('\n');
     alert(j.message+(newRows?'\n\n新建巴单元：\n'+newRows.slice(0,500):'')+(updRows?'\n\n更新关联：\n'+updRows.slice(0,500):''));
     loadOrg();
   }catch(e){alert('同步失败：'+e.message)}
@@ -318,7 +319,7 @@ async function loadTarget(){const c=await getJson(`${API}/target/company?year=${
     </div>
     <div style="margin-top:10px"><button class="btn b4" onclick="companyForm()" data-perm="amiba:edit">编辑公司目标</button></div>
   </div>
-  <div class="sb" style="margin-top:14px"><button class="btn b5" onclick="decompose()" data-perm="amiba:calc">一键拆解到一级巴</button><button class="btn b2" onclick="targetForm()" data-perm="amiba:create">新增巴目标</button><button class="btn b4" onclick="document.getElementById('targetFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/target/export?year=${year()}')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/target/template" target="_blank" data-perm="amiba:view">下载模板</a><input type="file" id="targetFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/target/import', 'targetFile', ()=>loadTarget())"><span style="margin-left:auto">未达标（&lt;80%）将标红预警 · 共 <b>${list.total||0}</b> 条</span></div>
+  <div class="sb" style="margin-top:14px"><button class="btn b5" onclick="decompose()" data-perm="amiba:calc">一键拆解到一级巴</button><button class="btn b2" onclick="targetForm()" data-perm="amiba:create">新增巴目标</button><button class="btn b4" onclick="document.getElementById('targetFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/target/export?year=${year()}')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/target/template" target="_blank" data-perm="amiba:view">下载模板</a><input type="file" id="targetFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/target/import', 'targetFile', ()=>loadTarget())"><span style="margin-left:auto">未达标（&lt;80%）将标红预警  共 <b>${list.total||0}</b> 条</span></div>
   ${renderTable(cols,(list.data||[]).map(r=>Object.assign({_warn:r.warn},r)),cols.length)}`;applyPerms()}
 async function companyForm(){const c=await getJson(`${API}/target/company?year=${year()}`);const f=[['total_cost_target','降本总目标','number'],['material_reduce_target','材料降本目标','number'],['energy_reduce_target','能耗降本目标','number'],['fee_reduce_target','费用降本目标','number'],['loss_reduce_target','损耗降本目标','number']];document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${year()}年度公司降本总目标</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(f,c)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveCompany()">保存</button></div>`;openForm()}
 async function saveCompany(){const f=['total_cost_target','material_reduce_target','energy_reduce_target','fee_reduce_target','loss_reduce_target'];const o={year:year()};f.forEach(k=>o[k]=Number(document.getElementById('ff_'+k).value)||0);await postJson(`${API}/target/company`,o);closeForm();loadTarget()}
@@ -343,16 +344,16 @@ async function loadAccount(){
   const apCols=[['单据号',r=>esc(r.document_no)],['巴单元',r=>esc(r.amiba_name)],['供应商',r=>esc(r.supplier_name)],['应付金额',r=>`<b style="color:#e67e22">¥${yuan2(r.amount)}</b>`],['已付',r=>yuan2(r.paid_amount)],['未付',r=>`<b style="color:${(Number(r.amount)||0)-(Number(r.paid_amount)||0)>0?'#e74c3c':'#27ae60'}">¥${yuan2((Number(r.amount)||0)-(Number(r.paid_amount)||0))}</b>`],['账期',r=>esc((r.trade_date||'').substring(0,10))+' ~ '+esc((r.due_date||'').substring(0,10))],['状态',r=>badge(r.status)],['来源',r=>esc(r.source||'')]];
   document.getElementById('accountBox').innerHTML=`
   <div class="grid">
-    <div class="cardx"><div class="n" style="color:#3498db">¥${yuan2(arSm.total_amount||0)}</div><div class="l">应收总额(AR) · 按应收确认收入</div></div>
+    <div class="cardx"><div class="n" style="color:#3498db">¥${yuan2(arSm.total_amount||0)}</div><div class="l">应收总额(AR)  按应收确认收入</div></div>
     <div class="cardx"><div class="n" style="color:#e67e22">¥${yuan2(arSm.outstanding||0)}</div><div class="l">未收回款</div></div>
-    <div class="cardx"><div class="n" style="color:#e67e22">¥${yuan2(apSm.total_amount||0)}</div><div class="l">应付总额(AP) · 按应付确认成本</div></div>
+    <div class="cardx"><div class="n" style="color:#e67e22">¥${yuan2(apSm.total_amount||0)}</div><div class="l">应付总额(AP)  按应付确认成本</div></div>
     <div class="cardx"><div class="n" style="color:#e74c3c">¥${yuan2(apSm.outstanding||0)}</div><div class="l">未付欠款</div></div>
   </div>
-  <div class="sb"><button class="btn b5" onclick="runCalc()" data-perm="amiba:calc">▶ ${year()}年${month()===''?'全年':month()+'月'}月度自动核算</button><button class="btn b2" onclick="accountForm()" data-perm="amiba:calc">手工录入</button><button class="btn b5" onclick="exportExcel('${API}/account/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto;color:#999;font-size:12px">收入=应收(AR)金额 · 材料成本=应付(AP)金额；无AR/AP时回退订单/询价推算</span></div>
+  <div class="sb"><button class="btn b5" onclick="runCalc()" data-perm="amiba:calc"> ${year()}年${month()===''?'全年':month()+'月'}月度自动核算</button><button class="btn b2" onclick="accountForm()" data-perm="amiba:calc">手工录入</button><button class="btn b5" onclick="exportExcel('${API}/account/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export">导出Excel</button><span style="margin-left:auto;color:#999;font-size:12px">收入=应收(AR)金额  材料成本=应付(AP)金额；无AR/AP时回退订单/询价推算</span></div>
   ${renderTable(cols,list.data||[],cols.length)}
-  <h3 style="margin:18px 0 8px">📥 应收单据（AR · 来源：外部API /api/external/receive → amiba_ar）</h3>
+  <h3 style="margin:18px 0 8px"> 应收单据（AR  来源：外部API /api/external/receive → amiba_ar）</h3>
   ${renderTable(arCols,arList.data||[],arCols.length)}
-  <h3 style="margin:18px 0 8px">📤 应付单据（AP · 来源：外部API /api/external/receive → amiba_ap）</h3>
+  <h3 style="margin:18px 0 8px"> 应付单据（AP  来源：外部API /api/external/receive → amiba_ap）</h3>
   ${renderTable(apCols,apList.data||[],apCols.length)}`;
   applyPerms();
 }
@@ -362,7 +363,7 @@ async function accountForm(id){let row={year:year(),month:month()===''?new Date(
 async function saveAccount(id){const data=readForm(accountFields);data.year=year();data.amiba_name=(meta.amibas.find(a=>a.id===Number(data.amiba_id))||{}).name||'';if(id)data.id=id;await postJson(`${API}/account`,data);closeForm();loadAccount()}
 
 // ===== 内部定价 =====
-async function loadPrice(){const list=await getJson(`${API}/price?limit=999`);caches.price=list.data||[];const cols=[['产品名称',r=>esc(r.product_name)],['编码',r=>esc(r.product_code)],['提供方',r=>esc(r.from_amiba_name)],['接收方',r=>esc(r.to_amiba_name)],['基数',r=>r.base_price?yuan2(r.base_price):'<span style="color:#ccc">-</span>'],['系数',r=>r.coefficient?`<b style="color:#667eea">${r.coefficient}</b>`:'<span style="color:#ccc">-</span>'],['内部单价',r=>yuan2(r.trade_price)+' '+esc(r.unit||'')],['状态',r=>badge(r.price_status)],['审批',r=>badge(r.audit_status)],['生效期',r=>esc((r.effect_time||'').substring(0,10))],['操作',r=>`<button class="btn bs b4" onclick="priceForm(${r.id})" data-perm="amiba:edit">编辑</button> ${r.price_status==='待审核'?`<button class="btn bs b5" onclick="auditPrice(${r.id},'通过')" data-perm="amiba:audit">通过</button> <button class="btn bs b3" onclick="auditPrice(${r.id},'驳回')" data-perm="amiba:audit">驳回</button>`:''} <button class="btn bs b3" onclick="delPrice(${r.id})" data-perm="amiba:delete">删除</button>`]];document.getElementById('priceBox').innerHTML=`<div class="sb"><input id="priceKw" placeholder="搜索产品/巴" onkeydown="if(event.key==='Enter')loadPrice()"> <button class="btn b1" onclick="loadPrice()">查询</button> <button class="btn b2" onclick="priceForm()" data-perm="amiba:create">新增定价</button><button class="btn b4" onclick="document.getElementById('priceFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/price/export')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/price/template" target="_blank">下载模板</a><input type="file" id="priceFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/price/import', 'priceFile', ()=>loadPrice())"><span style="margin-left:auto">💡 定价基数=物料库单价×系数 · 流程：财务提交 → 推行办审核 → 委员会审批 → 生效计入核算</span></div>${renderTable(cols,list.data||[],cols.length)}`;applyPerms()}
+async function loadPrice(){const list=await getJson(`${API}/price?limit=999`);caches.price=list.data||[];const cols=[['产品名称',r=>esc(r.product_name)],['编码',r=>esc(r.product_code)],['提供方',r=>esc(r.from_amiba_name)],['接收方',r=>esc(r.to_amiba_name)],['基数',r=>r.base_price?yuan2(r.base_price):'<span style="color:#ccc">-</span>'],['系数',r=>r.coefficient?`<b style="color:#667eea">${r.coefficient}</b>`:'<span style="color:#ccc">-</span>'],['内部单价',r=>yuan2(r.trade_price)+' '+esc(r.unit||'')],['状态',r=>badge(r.price_status)],['审批',r=>badge(r.audit_status)],['生效期',r=>esc((r.effect_time||'').substring(0,10))],['操作',r=>`<button class="btn bs b4" onclick="priceForm(${r.id})" data-perm="amiba:edit">编辑</button> ${r.price_status==='待审核'?`<button class="btn bs b5" onclick="auditPrice(${r.id},'通过')" data-perm="amiba:audit">通过</button> <button class="btn bs b3" onclick="auditPrice(${r.id},'驳回')" data-perm="amiba:audit">驳回</button>`:''} <button class="btn bs b3" onclick="delPrice(${r.id})" data-perm="amiba:delete">删除</button>`]];document.getElementById('priceBox').innerHTML=`<div class="sb"><input id="priceKw" placeholder="搜索产品/巴" onkeydown="if(event.key==='Enter')loadPrice()"> <button class="btn b1" onclick="loadPrice()">查询</button> <button class="btn b2" onclick="priceForm()" data-perm="amiba:create">新增定价</button><button class="btn b4" onclick="document.getElementById('priceFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/price/export')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/price/template" target="_blank">下载模板</a><input type="file" id="priceFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/price/import', 'priceFile', ()=>loadPrice())"><span style="margin-left:auto"> 定价基数=物料库单价×系数  流程：财务提交 → 推行办审核 → 委员会审批 → 生效计入核算</span></div>${renderTable(cols,list.data||[],cols.length)}`;applyPerms()}
 const priceFields=[['product_name','产品名称','text'],['product_code','产品编码','text'],['from_amiba_id','提供方巴','select',[]],['to_amiba_id','接收方巴','select',[]],['trade_price','内部单价','number'],['unit','单位','text'],['effect_time','生效日期','date'],['expire_time','失效日期','date']];
 function recalcPrice(){const b=Number(document.getElementById('ff_base_price')?.value)||0;const c=Number(document.getElementById('ff_coefficient')?.value);const tp=document.getElementById('ff_trade_price');const coef=document.getElementById('ff_coefficient');let price=0;if(b>0){const cc=c||(c===0?1:c);price=cc?b*cc:b;if(coef&&!coef.value)coef.value=1}if(tp){tp.value=(price||b).toFixed(4)}}
 async function priceForm(id){let row={unit:'元',coefficient:1,effect_time:new Date().toISOString().substring(0,10)};if(id)row=(caches.price||[]).find(x=>x.id===id)||row;
@@ -375,7 +376,7 @@ async function priceForm(id){let row={unit:'元',coefficient:1,effect_time:new D
   <div class="fr">${field(['base_price','基数(物料库单价)','number'],row)}${field(['coefficient','系数','number'],row)}</div>
   <div class="fr">${field(['trade_price','内部单价(=基数×系数)','number'],row)}${field(['unit','单位','text'],row)}</div>
   <div class="fr">${field(['effect_time','生效日期','date'],row)}${field(['expire_time','失效日期','date'],row)}</div>
-  <div style="background:#f0f4ff;padding:8px 12px;border-radius:6px;font-size:12px;color:#555;margin:6px 0">💡 定价基数取物料库单价，内部单价 = 基数 × 系数（系数缺省1）。改基数/系数自动重算。</div>
+  <div style="background:#f0f4ff;padding:8px 12px;border-radius:6px;font-size:12px;color:#555;margin:6px 0"> 定价基数取物料库单价，内部单价 = 基数 × 系数（系数缺省1）。改基数/系数自动重算。</div>
   <div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="savePrice(${id||0})">提交</button></div>`;
   ['base_price','coefficient'].forEach(k=>{const e=document.getElementById('ff_'+k);if(e)e.addEventListener('input',recalcPrice)});
   openForm();applyPerms()}
@@ -388,7 +389,7 @@ let _matSearchTimer=null;
 async function searchMaterials(kw,cb){try{const j=await getJson(`${API}/materials/search?keyword=${encodeURIComponent(kw)}&limit=20`);cb(j.data||[])}catch(e){cb([])}}
 // 物料选择器：输入框 + 结果下拉，选中后回调
 function materialPicker(prefix,val,extra){return `<div class="fg" style="position:relative"><label>物料库检索（取代码/名称/单位/单价）</label><input id="ff_${prefix}_kw" type="text" value="${esc(val||'')}" placeholder="输入物料代码/名称搜索，选中自动带出基数" autocomplete="off" oninput="onMatSearch('${prefix}')"><div id="ff_${prefix}_drop" style="display:none;position:absolute;top:62px;left:0;right:0;max-height:240px;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:6px;z-index:30;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>${extra||''}</div>`}
-function onMatSearch(prefix){const el=document.getElementById('ff_'+prefix+'_kw');clearTimeout(_matSearchTimer);_matSearchTimer=setTimeout(()=>{const kw=el.value.trim();if(!kw){document.getElementById('ff_'+prefix+'_drop').style.display='none';return}searchMaterials(kw,list=>{const drop=document.getElementById('ff_'+prefix+'_drop');if(!list.length){drop.innerHTML='<div style="padding:10px;color:#999;font-size:12px">无匹配物料</div>';drop.style.display='block';return}drop.innerHTML=list.map(m=>`<div style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px" onmouseenter="this.style.background='#f0f4ff'" onmouseleave="this.style.background=''" onclick="pickMat('${prefix}',${m.material_id})"><b>${esc(m.material_name)}</b> <span style="color:#888">${esc(m.material_code)}</span> · ${esc(m.unit)} · <span style="color:#27ae60">¥${yuan2(m.unit_price)}</span></div>`).join('');drop.style.display='block'})},280)}
+function onMatSearch(prefix){const el=document.getElementById('ff_'+prefix+'_kw');clearTimeout(_matSearchTimer);_matSearchTimer=setTimeout(()=>{const kw=el.value.trim();if(!kw){document.getElementById('ff_'+prefix+'_drop').style.display='none';return}searchMaterials(kw,list=>{const drop=document.getElementById('ff_'+prefix+'_drop');if(!list.length){drop.innerHTML='<div style="padding:10px;color:#999;font-size:12px">无匹配物料</div>';drop.style.display='block';return}drop.innerHTML=list.map(m=>`<div style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px" onmouseenter="this.style.background='#f0f4ff'" onmouseleave="this.style.background=''" onclick="pickMat('${prefix}',${m.material_id})"><b>${esc(m.material_name)}</b> <span style="color:#888">${esc(m.material_code)}</span>  ${esc(m.unit)}  <span style="color:#27ae60">¥${yuan2(m.unit_price)}</span></div>`).join('');drop.style.display='block'})},280)}
 async function pickMat(prefix,id){try{const m=await getJson(`${API}/materials/${id}`);const fill=['material_code','material_name','unit'];fill.forEach(k=>{const e=document.getElementById('ff_'+k);if(e){e.value=m[k]||''}});const bp=document.getElementById('ff_base_price');if(bp&&m.unit_price){bp.value=m.unit_price}document.getElementById('ff_material_id')&&(document.getElementById('ff_material_id').value=m.material_id);document.getElementById('ff_'+prefix+'_kw').value=m.material_name+' ('+m.material_code+')';document.getElementById('ff_'+prefix+'_drop').style.display='none';recalcStandard()}catch(e){alert('取物料失败: '+e.message)}}
 function recalcStandard(){const b=Number(document.getElementById('ff_base_price')?.value)||0;const c=Number(document.getElementById('ff_coefficient')?.value);const sp=document.getElementById('ff_standard_price');const coef=document.getElementById('ff_coefficient');let price=0;if(b>0){const cc=c||(c===0?1:c);price=cc?b*cc:b;if(coef&&!coef.value)coef.value=1}if(sp){sp.value=(price||b).toFixed(4)}const q=Number(document.getElementById('ff_quantity_std')?.value)||0;const amt=document.getElementById('ff_amount_std');if(amt&&price){amt.value=(price*q).toFixed(2)}}
 async function loadStandard(){
@@ -415,7 +416,7 @@ async function loadStandard(){
     <button class="btn b5" onclick="exportExcel('${API}/standard/export?year=${year()}')" data-perm="amiba:export">导出Excel</button>
     <a class="btn" style="background:#7f8c8d" href="${API}/standard/template" target="_blank">下载模板</a>
     <input type="file" id="stdFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/standard/import', 'stdFile', ()=>loadStandard())">
-    <span style="margin-left:auto;color:#667eea;font-size:12px">💡 内部定价基数 = 物料库单价 × 系数，标准价自动计算</span>
+    <span style="margin-left:auto;color:#667eea;font-size:12px"> 内部定价基数 = 物料库单价 × 系数，标准价自动计算</span>
   </div>
   ${renderTable(cols,list.data||[],cols.length)}`;
   applyPerms();
@@ -461,18 +462,18 @@ async function loadTrade(){
     <div class="cardx"><div class="n" style="color:#667eea">¥${yuan2(sm.settled_amount)}</div><div class="l">已结算金额</div></div>
     <div class="cardx"><div class="n" style="color:#e67e22">${sm.unsettled_count||0}</div><div class="l">未结算笔数</div></div>
   </div>
-  <div class="sb" style="background:#f8f9ff;padding:8px;border-radius:8px;margin-bottom:8px"><span style="font-size:12px;color:#667eea;font-weight:600">📋 子表切换：</span>${subBtns||'<span style="color:#999;font-size:12px">暂无数据</span>'}</div>
+  <div class="sb" style="background:#f8f9ff;padding:8px;border-radius:8px;margin-bottom:8px"><span style="font-size:12px;color:#667eea;font-weight:600"> 子表切换：</span>${subBtns||'<span style="color:#999;font-size:12px">暂无数据</span>'}</div>
   <div class="sb">
     <input id="tradeKw" placeholder="搜索编号/服务/巴/经办人" onkeydown="if(event.key==='Enter')searchTrade()">
     <button class="btn b1" onclick="searchTrade()">查询</button>
     <button class="btn b2" onclick="tradeForm()" data-perm="amiba:create">新增明细</button>
     <button class="btn b4" onclick="document.getElementById('tradeFile').click()" data-perm="amiba:create">导入Excel/CSV</button>
-    <button class="btn b1" onclick="document.getElementById('wbFile').click()" data-perm="amiba:create">📥 导入核算表工作簿</button>
+    <button class="btn b1" onclick="document.getElementById('wbFile').click()" data-perm="amiba:create"> 导入核算表工作簿</button>
     <button class="btn b5" onclick="exportTrade()" data-perm="amiba:export">导出${_tradeAmibaFilter?'当前子表':''}</button>
     <a class="btn" style="background:#7f8c8d" href="${API}/trade-detail/template" target="_blank">下载模板</a>
     <input type="file" id="tradeFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTrade(event)">
     <input type="file" id="wbFile" accept=".xlsx,.xls" style="display:none" onchange="importWorkbook(event)">
-    <span style="margin-left:auto;color:#667eea;font-size:12px">🔗 服务编号关联定价清单自动带价 · 经办人用于个人创造价值核算</span>
+    <span style="margin-left:auto;color:#667eea;font-size:12px"> 服务编号关联定价清单自动带价  经办人用于个人创造价值核算</span>
   </div>
   ${renderTable(tradeCols(),rows,tradeCols().length)}`;
   applyPerms();
@@ -480,19 +481,19 @@ async function loadTrade(){
 async function filterTradeByAmiba(){loadTrade()}
 async function searchTrade(){const kw=document.getElementById('tradeKw').value;const list=await getJson(`${API}/trade-detail?limit=999&keyword=${encodeURIComponent(kw)}`);caches.trade=list.data||[];document.querySelector('#tab-trade .tbl')?.remove();document.getElementById('tradeBox').insertAdjacentHTML('beforeend',renderTable(tradeCols(),list.data||[],tradeCols().length));applyPerms()}
 // 查询定价清单自动带价（关联定价主数据）
-async function lookupPrice(){const sn=(document.getElementById('ff_service_no')||{}).value||'';const fa=(document.getElementById('ff_from_amiba')||{}).value||'';const ta=(document.getElementById('ff_to_amiba')||{}).value||'';const fid=(meta.amibas.find(a=>a.name===fa)||{}).id||0;const tid=(meta.amibas.find(a=>a.name===ta)||{}).id||0;if(!sn&&!fid&&!tid)return alert('请先填写服务编号或提供方/接收方');try{const j=await getJson(`${API}/price/lookup?service_no=${encodeURIComponent(sn)}&from_amiba_id=${fid}&to_amiba_id=${tid}`);if(j.matched&&j.price){const fill=k=>{const e=document.getElementById('ff_'+k);if(e&&j.price[k]!==undefined)e.value=j.price[k]};fill('unit_price');fill('unit');fill('product_name');const ph=document.getElementById('ff_price_id');if(ph)ph.value=j.price.price_id;recalcTradeTotal();alert('✓ 已从定价清单带价：'+(j.price.product_name||sn)+' 单价 '+yuan2(j.price.unit_price)+' '+(j.price.unit||''))}else if(j.candidates&&j.candidates.length){const msg=j.candidates.map((p,i)=>(i+1)+'. '+p.product_code+' '+(p.product_name||'')+' ¥'+p.unit_price+' '+(p.from_amiba_name||'')+'→'+(p.to_amiba_name||'')).join('\n');const idx=prompt('定价清单匹配候选（输入序号选择，取消则不带价）：\n'+msg);if(idx){const c=j.candidates[Number(idx)-1];if(c){const e1=document.getElementById('ff_unit_price');if(e1)e1.value=c.unit_price;const e2=document.getElementById('ff_unit');if(e2)e2.value=c.unit||'';const e3=document.getElementById('ff_product_name');if(e3)e3.value=c.product_name||'';const e4=document.getElementById('ff_price_id');if(e4)e4.value=c.price_id;recalcTradeTotal()}}}else{alert('定价清单未匹配，请先在「内部定价」维护该服务的内部单价')}}catch(e){alert('查询失败: '+e.message)}}
+async function lookupPrice(){const sn=(document.getElementById('ff_service_no')||{}).value||'';const fa=(document.getElementById('ff_from_amiba')||{}).value||'';const ta=(document.getElementById('ff_to_amiba')||{}).value||'';const fid=(meta.amibas.find(a=>a.name===fa)||{}).id||0;const tid=(meta.amibas.find(a=>a.name===ta)||{}).id||0;if(!sn&&!fid&&!tid)return alert('请先填写服务编号或提供方/接收方');try{const j=await getJson(`${API}/price/lookup?service_no=${encodeURIComponent(sn)}&from_amiba_id=${fid}&to_amiba_id=${tid}`);if(j.matched&&j.price){const fill=k=>{const e=document.getElementById('ff_'+k);if(e&&j.price[k]!==undefined)e.value=j.price[k]};fill('unit_price');fill('unit');fill('product_name');const ph=document.getElementById('ff_price_id');if(ph)ph.value=j.price.price_id;recalcTradeTotal();alert(' 已从定价清单带价：'+(j.price.product_name||sn)+' 单价 '+yuan2(j.price.unit_price)+' '+(j.price.unit||''))}else if(j.candidates&&j.candidates.length){const msg=j.candidates.map((p,i)=>(i+1)+'. '+p.product_code+' '+(p.product_name||'')+' ¥'+p.unit_price+' '+(p.from_amiba_name||'')+'→'+(p.to_amiba_name||'')).join('\n');const idx=prompt('定价清单匹配候选（输入序号选择，取消则不带价）：\n'+msg);if(idx){const c=j.candidates[Number(idx)-1];if(c){const e1=document.getElementById('ff_unit_price');if(e1)e1.value=c.unit_price;const e2=document.getElementById('ff_unit');if(e2)e2.value=c.unit||'';const e3=document.getElementById('ff_product_name');if(e3)e3.value=c.product_name||'';const e4=document.getElementById('ff_price_id');if(e4)e4.value=c.price_id;recalcTradeTotal()}}}else{alert('定价清单未匹配，请先在「内部定价」维护该服务的内部单价')}}catch(e){alert('查询失败: '+e.message)}}
 function recalcTradeTotal(){const q=Number(document.getElementById('ff_quantity')?.value)||0;const p=Number(document.getElementById('ff_unit_price')?.value)||0;const t=document.getElementById('ff_total_amount');if(t&&!t.value&&q&&p)t.value=(q*p).toFixed(2)}
 const tradeFields=[['trade_no','交易编号','text'],['trade_date','交易日期','date'],['from_amiba','提供方巴','select',[]],['to_amiba','接收方巴','select',[]],['service_no','服务编号','text'],['product_name','服务名称','text'],['unit','单位','text'],['quantity','数量','number'],['unit_price','单价','number'],['total_amount','总金额(留空自动算)','number'],['settle_status','结算状态','select',[{id:'未结算',name:'未结算'},{id:'已结算',name:'已结算'},{id:'已确认',name:'已确认'},{id:'已撤销',name:'已撤销'}]],['creator_person','经办人(创造人)','text'],['remarks','备注','textarea']];
-async function tradeForm(id){await ensureOrgOpts();let row={trade_date:new Date().toISOString().substring(0,10),settle_status:'未结算',unit:'个'};if(id)row=(caches.trade||[]).find(x=>x.id===id)||row;if(_tradeAmibaFilter)row.from_amiba=_tradeAmibaFilter;const pers=orgOpts.personnel.map(p=>({id:p.name,name:p.name+(p.department_name?'（'+p.department_name+'）':'')}));const ff=tradeFields.map(f=>{if(f[0]==='from_amiba')return ['from_amiba','提供方巴','select',meta.amibas.map(a=>({id:a.name,name:a.name}))];if(f[0]==='to_amiba')return ['to_amiba','接收方巴','select',meta.amibas.map(a=>({id:a.name,name:a.name}))];if(f[0]==='creator_person')return ['creator_person','经办人(创造人)','select',pers];return f});const idxService=ff.findIndex(f=>f[0]==='service_no');const insertLookup=idxService>=0?`<div style="margin:-4px 0 8px"><button type="button" class="btn b5 bs" onclick="lookupPrice()">🔗 查询定价清单带价</button> <span style="font-size:11px;color:#888">填好服务编号/提供方/接收方后点击，自动带出单价/单位/名称</span></div>`:'';document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}交易明细${_tradeAmibaFilter?' · '+esc(_tradeAmibaFilter)+'子表':''}</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div><input type="hidden" id="ff_price_id" value="${row.price_id||0}">${formFields(ff,row)}${insertLookup}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveTrade(${id||0})">保存</button></div>`;['quantity','unit_price'].forEach(k=>{const e=document.getElementById('ff_'+k);if(e)e.addEventListener('input',recalcTradeTotal)});openForm();applyPerms()}
+async function tradeForm(id){await ensureOrgOpts();let row={trade_date:new Date().toISOString().substring(0,10),settle_status:'未结算',unit:'个'};if(id)row=(caches.trade||[]).find(x=>x.id===id)||row;if(_tradeAmibaFilter)row.from_amiba=_tradeAmibaFilter;const pers=orgOpts.personnel.map(p=>({id:p.name,name:p.name+(p.department_name?'（'+p.department_name+'）':'')}));const ff=tradeFields.map(f=>{if(f[0]==='from_amiba')return ['from_amiba','提供方巴','select',meta.amibas.map(a=>({id:a.name,name:a.name}))];if(f[0]==='to_amiba')return ['to_amiba','接收方巴','select',meta.amibas.map(a=>({id:a.name,name:a.name}))];if(f[0]==='creator_person')return ['creator_person','经办人(创造人)','select',pers];return f});const idxService=ff.findIndex(f=>f[0]==='service_no');const insertLookup=idxService>=0?`<div style="margin:-4px 0 8px"><button type="button" class="btn b5 bs" onclick="lookupPrice()"> 查询定价清单带价</button> <span style="font-size:11px;color:#888">填好服务编号/提供方/接收方后点击，自动带出单价/单位/名称</span></div>`:'';document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新增'}交易明细${_tradeAmibaFilter?'  '+esc(_tradeAmibaFilter)+'子表':''}</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div><input type="hidden" id="ff_price_id" value="${row.price_id||0}">${formFields(ff,row)}${insertLookup}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveTrade(${id||0})">保存</button></div>`;['quantity','unit_price'].forEach(k=>{const e=document.getElementById('ff_'+k);if(e)e.addEventListener('input',recalcTradeTotal)});openForm();applyPerms()}
 async function saveTrade(id){const data=readForm(tradeFields);data.price_id=Number(document.getElementById('ff_price_id')?.value)||0;if(id)data.id=id;const j=await postJson(`${API}/trade-detail`,data);if(j.error)return alert(j.error);closeForm();loadTrade()}
 async function settleTrade(id){if(!confirm('确认结算该笔交易？结算后金额将计入经营核算与价值总表。'))return;await postJson(`${API}/trade-detail/batch-settle`,{ids:[id],settle_status:'已结算'});loadTrade()}
 async function delTrade(id){if(!confirm('确定删除该笔交易明细？'))return;await delJson(`${API}/trade-detail/${id}`);loadTrade()}
 async function importTrade(event){const file=event.target.files[0];if(!file)return;const fd=new FormData();fd.append('file',file);try{const r=await fetch(`${API}/trade-detail/import`,{method:'POST',headers:{'x-user-id':localStorage.getItem('currentUserId')||''},body:fd});const j=await r.json();if(!r.ok)throw new Error(j.error||'导入失败');alert(j.message+(j.errors&&j.errors.length?'\n部分错误：'+j.errors.slice(0,5).map(e=>'第'+e.row+'行: '+e.errors.join(';')).join('\n'):''));loadTrade()}catch(e){alert('导入失败: '+e.message)}event.target.value=''}
 // 导入完整核算表工作簿（定价清单 + 各巴交易明细子表，按子表名称自动建巴/带价/汇总）
-async function importWorkbook(event){const file=event.target.files[0];if(!file)return;if(!confirm(`确认导入工作簿「${file.name}」？\n将自动识别：\n· [定价清单]表 → 内部定价主数据\n· [交易明细-XXX巴]各子表 → 交易明细（按子表名识别巴单元，缺失自动补建）\n· 交易明细按服务编号关联定价清单自动带价\n· 重复交易编号将自动跳过`))return;const fd=new FormData();fd.append('file',file);try{const r=await fetch(`${API}/workbook/import`,{method:'POST',headers:{'x-user-id':localStorage.getItem('currentUserId')||''},body:fd});const j=await r.json();if(!r.ok)throw new Error(j.error||'导入失败');const res=j.result||{};const sheetDetail=(res.sheets||[]).filter(s=>s.imported>0).map(s=>`· ${s.name}: ${s.imported}条`).join('\n');alert(`${j.message}\n\n明细：\n${sheetDetail||'(无有效数据)'}${res.amibas_created&&res.amibas_created.length?'\n\n新建巴单元：'+res.amibas_created.join('、'):''}${res.errors&&res.errors.length?'\n\n部分错误：'+res.errors.slice(0,3).map(e=>e.sheet+'第'+e.row+'行: '+e.error).join('\n'):''}`);loadTrade()}catch(e){alert('工作簿导入失败: '+e.message)}event.target.value=''}
+async function importWorkbook(event){const file=event.target.files[0];if(!file)return;if(!confirm(`确认导入工作簿「${file.name}」？\n将自动识别：\n [定价清单]表 → 内部定价主数据\n [交易明细-XXX巴]各子表 → 交易明细（按子表名识别巴单元，缺失自动补建）\n 交易明细按服务编号关联定价清单自动带价\n 重复交易编号将自动跳过`))return;const fd=new FormData();fd.append('file',file);try{const r=await fetch(`${API}/workbook/import`,{method:'POST',headers:{'x-user-id':localStorage.getItem('currentUserId')||''},body:fd});const j=await r.json();if(!r.ok)throw new Error(j.error||'导入失败');const res=j.result||{};const sheetDetail=(res.sheets||[]).filter(s=>s.imported>0).map(s=>` ${s.name}: ${s.imported}条`).join('\n');alert(`${j.message}\n\n明细：\n${sheetDetail||'(无有效数据)'}${res.amibas_created&&res.amibas_created.length?'\n\n新建巴单元：'+res.amibas_created.join('、'):''}${res.errors&&res.errors.length?'\n\n部分错误：'+res.errors.slice(0,3).map(e=>e.sheet+'第'+e.row+'行: '+e.error).join('\n'):''}`);loadTrade()}catch(e){alert('工作簿导入失败: '+e.message)}event.target.value=''}
 async function exportTrade(){const fid=_tradeAmibaFilter?(meta.amibas.find(a=>a.name===_tradeAmibaFilter)||{}).id||0:0;const url=`${API}/trade-detail/export?year=${year()}${month()!==''?'&month='+month():''}${fid?'&amiba_id='+fid:''}`;const r=await fetch(url,{headers:{'x-user-id':localStorage.getItem('currentUserId')||''}});if(!r.ok)return alert('导出失败');const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='阿米巴交易明细_'+(_tradeAmibaFilter?_tradeAmibaFilter+'_子表_':'')+year()+'.xlsx';a.click()}
 
-// ===== 价值总表（各部门/各人创造价值核算 · 管理调整依据）=====
+// ===== 价值总表（各部门/各人创造价值核算  管理调整依据）=====
 async function loadValue(){
   const ms=await getJson(`${API}/trade-detail/master-summary?year=${year()}${month()!==''?'&month='+month():''}${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'&settled=1':''}`);
   const o=ms.overview||{};
@@ -511,19 +512,19 @@ async function loadValue(){
     <div class="cardx"><div class="n">${o.person_count||0}</div><div class="l">参与经办人</div></div>
   </div>
   <div class="dash">
-    <div class="panel"><h3>🏆 创造价值最高部门</h3><div style="text-align:center;padding:14px"><div style="font-size:28px;font-weight:800;color:#27ae60">${esc(o.top_dept||'-')}</div><div style="font-size:13px;color:#888;margin-top:6px">净创造价值 <b style="color:#27ae60">${yuan(o.top_dept_value)}</b></div></div></div>
-    <div class="panel"><h3>👤 创造价值最高个人</h3><div style="text-align:center;padding:14px"><div style="font-size:28px;font-weight:800;color:#667eea">${esc(o.top_person||'-')}</div><div style="font-size:13px;color:#888;margin-top:6px">创造价值 <b style="color:#27ae60">${yuan(o.top_person_value)}</b></div></div></div>
-    <div class="panel"><h3>📊 说明</h3><div style="font-size:12px;color:#666;padding:8px;line-height:1.7">· <b>提供价值</b>：作为提供方巴的交易额（该部门创造）<br>· <b>接收价值</b>：作为接收方巴的交易额（占用成本）<br>· <b>净创造价值</b>=提供-接收，正值=价值净输出<br>· 数据由「交易明细」自动汇总，供管理调整参考</div></div>
+    <div class="panel"><h3> 创造价值最高部门</h3><div style="text-align:center;padding:14px"><div style="font-size:28px;font-weight:800;color:#27ae60">${esc(o.top_dept||'-')}</div><div style="font-size:13px;color:#888;margin-top:6px">净创造价值 <b style="color:#27ae60">${yuan(o.top_dept_value)}</b></div></div></div>
+    <div class="panel"><h3> 创造价值最高个人</h3><div style="text-align:center;padding:14px"><div style="font-size:28px;font-weight:800;color:#667eea">${esc(o.top_person||'-')}</div><div style="font-size:13px;color:#888;margin-top:6px">创造价值 <b style="color:#27ae60">${yuan(o.top_person_value)}</b></div></div></div>
+    <div class="panel"><h3> 说明</h3><div style="font-size:12px;color:#666;padding:8px;line-height:1.7"> <b>提供价值</b>：作为提供方巴的交易额（该部门创造）<br> <b>接收价值</b>：作为接收方巴的交易额（占用成本）<br> <b>净创造价值</b>=提供-接收，正值=价值净输出<br> 数据由「交易明细」自动汇总，供管理调整参考</div></div>
   </div>
-  <div class="sb" style="margin-top:14px"><label style="font-size:13px;color:#555"><input type="checkbox" id="onlySettled" onchange="loadValue()" ${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'checked':''}> 仅统计已结算交易</label><button class="btn b5" onclick="exportExcel('${API}/value/export?year=${year()}${month()!==''?'&month='+month():''}${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'&settled=1':''}')" data-perm="amiba:export">📥 导出价值总表(双Sheet)</button><span style="margin-left:auto;color:#999;font-size:12px">统计期间：${year()}年${month()===''?'全年':month()+'月'} · 共 ${deptRows.length} 部门 / ${personRows.length} 经办人</span></div>
-  <h3 style="margin:10px 0 8px;color:#333">🏢 各部门价值核算总表（按净创造价值排序）</h3>
+  <div class="sb" style="margin-top:14px"><label style="font-size:13px;color:#555"><input type="checkbox" id="onlySettled" onchange="loadValue()" ${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'checked':''}> 仅统计已结算交易</label><button class="btn b5" onclick="exportExcel('${API}/value/export?year=${year()}${month()!==''?'&month='+month():''}${document.getElementById('onlySettled')&&document.getElementById('onlySettled').checked?'&settled=1':''}')" data-perm="amiba:export"> 导出价值总表(双Sheet)</button><span style="margin-left:auto;color:#999;font-size:12px">统计期间：${year()}年${month()===''?'全年':month()+'月'}  共 ${deptRows.length} 部门 / ${personRows.length} 经办人</span></div>
+  <h3 style="margin:10px 0 8px;color:#333"> 各部门价值核算总表（按净创造价值排序）</h3>
   ${renderTable(deptCols,deptRows,deptCols.length)}
-  <h3 style="margin:18px 0 8px;color:#333">👤 个人创造价值排行（按创造价值排序）</h3>
+  <h3 style="margin:18px 0 8px;color:#333"> 个人创造价值排行（按创造价值排序）</h3>
   ${renderTable(personCols,personRows,personCols.length)}`;
   applyPerms();
 }
 
-// ===== 阿米巴核算报表（9区块22行标准格式 · 收入自动归集）=====
+// ===== 阿米巴核算报表（9区块22行标准格式  收入自动归集）=====
 let _stmtAmibaId=0;
 let _stmtView='detail'; // detail=核算表 | yearly=年度总表 | monthly=月度表
 let _stmtTreeExpanded={}; // 一级巴展开/收起状态：id => true/false
@@ -549,17 +550,17 @@ async function loadStatement(){
     <select onchange="_stmtAmibaId=Number(this.value)||0;loadStmtView()"><option value="0">-- 选择巴单元查看核算表 --</option>${amibaOpts}</select>
     <div style="display:flex;gap:3px;border:1px solid #ddd;border-radius:6px;overflow:hidden">
       <button class="btn bs ${_stmtView==='detail'?'b1':''}" style="${_stmtView==='detail'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='detail';loadStmtView()">核算表</button>
-      <button class="btn bs ${_stmtView==='yearly'?'b1':''}" style="${_stmtView==='yearly'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='yearly';loadStmtView()">📅 年度总表</button>
-      <button class="btn bs ${_stmtView==='monthly'?'b1':''}" style="${_stmtView==='monthly'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='monthly';loadStmtView()">📆 月度表</button>
+      <button class="btn bs ${_stmtView==='yearly'?'b1':''}" style="${_stmtView==='yearly'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='yearly';loadStmtView()"> 年度总表</button>
+      <button class="btn bs ${_stmtView==='monthly'?'b1':''}" style="${_stmtView==='monthly'?'':'background:#f5f5f5;color:#666'}" onclick="_stmtView='monthly';loadStmtView()"> 月度表</button>
     </div>
-    <button class="btn b5" onclick="genStatement()" data-perm="amiba:calc">▶ 生成当前巴核算表</button>
-    <button class="btn b1" onclick="genAllStatement()" data-perm="amiba:calc">⚡ 一键生成全部巴</button>
-    <button class="btn b4" onclick="exportExcel('${API}/statement/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export">📥 导出全部巴核算表(多Sheet)</button>
-    <span style="margin-left:auto;color:#667eea;font-size:12px">🌲 按组织架构树形汇总 · 一级巴点击▼展开下级明细</span>
+    <button class="btn b5" onclick="genStatement()" data-perm="amiba:calc"> 生成当前巴核算表</button>
+    <button class="btn b1" onclick="genAllStatement()" data-perm="amiba:calc"> 一键生成全部巴</button>
+    <button class="btn b4" onclick="exportExcel('${API}/statement/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export"> 导出全部巴核算表(多Sheet)</button>
+    <span style="margin-left:auto;color:#667eea;font-size:12px"> 按组织架构树形汇总  一级巴点击展开下级明细</span>
   </div>
-  <h3 style="margin:6px 0 8px;color:#333">🌲 核算汇总（按组织架构树状）· ${year()}年${month()===''?'全年':month()+'月'}</h3>
+  <h3 style="margin:6px 0 8px;color:#333"> 核算汇总（按组织架构树状） ${year()}年${month()===''?'全年':month()+'月'}</h3>
   <div id="statementTree">${renderStatementTree(treeRes.roots||[])}</div>
-  <details style="margin-top:14px"><summary style="cursor:pointer;color:#888;font-size:12px">📋 查看全部巴核算表明细（平铺）</summary>
+  <details style="margin-top:14px"><summary style="cursor:pointer;color:#888;font-size:12px"> 查看全部巴核算表明细（平铺）</summary>
     <div style="margin-top:8px">${renderTable([['巴单元',r=>`<a onclick="_stmtAmibaId=${r.amiba_id};loadStmtView()" style="color:#667eea;cursor:pointer;font-weight:600">${esc(r.amiba_name)}</a>`],['总收入',r=>yuan(r.total_revenue)],['总费用',r=>`<span style="color:#e74c3c">${yuan(r.total_expense)}</span>`],['经营附加值',r=>`<b style="color:${r.value_added>=0?'#27ae60':'#e74c3c'}">${yuan(r.value_added)}</b>`],['总工时',r=>r.total_hours+'h'],['单位时间附加值',r=>`<b>${yuan2(r.value_per_hour)}</b>/h`],['净利润率',r=>`<b style="color:${r.profit_margin>=15?'#27ae60':r.profit_margin>=0?'#f39c12':'#e74c3c'}">${percent(r.profit_margin)}</b>`],['奖励比例',r=>percent(r.bonus_rate)],['团队奖金池',r=>`<b style="color:#e67e22">¥${yuan2(r.bonus_pool)}</b>`],['状态',r=>badge(r.status)],['来源',r=>badge(r.source)]],list.data||[],11)}</div>
   </details>
   <div id="statementDetail"></div>`;
@@ -567,7 +568,7 @@ async function loadStatement(){
   if(_stmtAmibaId)loadStmtView();
 }
 
-// 树状汇总渲染：一级巴为节点行，点击▼展开显示下级明细
+// 树状汇总渲染：一级巴为节点行，点击展开显示下级明细
 function renderStatementTree(roots){
   if(!roots||!roots.length)return '<div style="color:#bbb;font-size:13px;padding:24px;text-align:center">暂无巴单元</div>';
   const levelClass=lv=>lv===1?'stmt-lv1':'stmt-lv2';
@@ -575,18 +576,18 @@ function renderStatementTree(roots){
     const a=node.aggregate||{};
     const hasChild=node.has_children;
     const expanded=_stmtTreeExpanded[node.id];
-    const arrow=hasChild?(expanded?'▼':'▶'):'·';
+    const arrow=hasChild?(expanded?'':''):'';
     const selfMark=node.self?`<span class="badge green" style="margin-left:6px">已核算</span>`:(!hasChild?`<span class="badge gray" style="margin-left:6px">未生成</span>`:'');
     return `<div class="stmt-row ${levelClass(node.amiba_level)}" data-id="${node.id}" data-haschild="${hasChild?'1':'0'}">
       <div class="stmt-head" style="cursor:${hasChild?'pointer':'default'}" onclick="${hasChild?`toggleStmtNode(${node.id})`:''}">
         <span class="stmt-arrow" style="display:inline-block;width:16px;color:#667eea;font-size:11px">${arrow}</span>
-        <span class="stmt-icon">${node.amiba_level===1?'🏢':'🔹'}</span>
+        <span class="stmt-icon">${node.amiba_level===1?'':''}</span>
         <b class="stmt-name">${esc(node.amiba_name)}</b>
         <span class="tag" style="font-size:10px;padding:1px 6px;border-radius:8px;background:#eef1ff;color:#667eea">${esc(node.amiba_type)}</span>
         ${selfMark}
-        ${node.charge_user_name?`<span style="font-size:11px;color:#888">👤 ${esc(node.charge_user_name)}</span>`:''}
-        ${node.department?`<span style="font-size:11px;color:#888">🏢 ${esc(node.department)}</span>`:''}
-        ${hasChild?`<span style="font-size:11px;color:#9b59b6">📊 下级 ${node.child_count} 个巴</span>`:''}
+        ${node.charge_user_name?`<span style="font-size:11px;color:#888"> ${esc(node.charge_user_name)}</span>`:''}
+        ${node.department?`<span style="font-size:11px;color:#888"> ${esc(node.department)}</span>`:''}
+        ${hasChild?`<span style="font-size:11px;color:#9b59b6"> 下级 ${node.child_count} 个巴</span>`:''}
       </div>
       <div class="stmt-metrics">
         <span class="stmt-m"><span class="lbl">收入</span><b style="color:#27ae60">${yuan(a.total_revenue)}</b></span>
@@ -615,7 +616,7 @@ function toggleStmtNode(id){
         next.style.display=_stmtTreeExpanded[id]?'block':'none';
       }
       const arrow=r.querySelector('.stmt-arrow');
-      if(arrow)arrow.textContent=_stmtTreeExpanded[id]?'▼':'▶';
+      if(arrow)arrow.textContent=_stmtTreeExpanded[id]?'':'';
       break;
     }
   }
@@ -657,7 +658,7 @@ async function loadStatementYearly(){
   if(!box)return;
   box.innerHTML=`
   <div class="panel" style="margin-top:18px">
-    <h3>${esc(stmt.amiba_name)}阿米巴年度总表 <span style="font-size:13px;color:#888">· ${stmt.year}年 · 22行×12月</span></h3>
+    <h3>${esc(stmt.amiba_name)}阿米巴年度总表 <span style="font-size:13px;color:#888"> ${stmt.year}年  22行×12月</span></h3>
     <div style="overflow:auto;max-height:70vh">
     <table style="width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap">
       <thead><tr style="background:#f8f9fa;position:sticky;top:0">
@@ -670,7 +671,7 @@ async function loadStatementYearly(){
       <tbody>${rowsHtml}</tbody>
     </table>
     </div>
-    <div style="margin-top:8px;font-size:12px;color:#888">💡 年度总表自动汇总12个月核算数据，收入行从交易明细按月归集，费用行/工时需在各月核算表中录入后保存。当月列高亮显示。</div>
+    <div style="margin-top:8px;font-size:12px;color:#888"> 年度总表自动汇总12个月核算数据，收入行从交易明细按月归集，费用行/工时需在各月核算表中录入后保存。当月列高亮显示。</div>
   </div>`;
   applyPerms();
 }
@@ -705,7 +706,7 @@ async function loadStatementMonthly(){
   if(!box)return;
   box.innerHTML=`
   <div class="panel" style="margin-top:18px">
-    <h3>${esc(stmt.amiba_name)}阿米巴月度表 <span style="font-size:13px;color:#888">· ${stmt.year}年${stmt.month}月 · 22行×31日 · 共${stmt.days_in_month||30}天</span></h3>
+    <h3>${esc(stmt.amiba_name)}阿米巴月度表 <span style="font-size:13px;color:#888"> ${stmt.year}年${stmt.month}月  22行×31日  共${stmt.days_in_month||30}天</span></h3>
     <div style="overflow:auto;max-height:70vh">
     <table style="width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap">
       <thead><tr style="background:#f8f9fa;position:sticky;top:0">
@@ -718,7 +719,7 @@ async function loadStatementMonthly(){
       <tbody>${rowsHtml}</tbody>
     </table>
     </div>
-    <div style="margin-top:8px;font-size:12px;color:#888">💡 月度表按天展示收入明细（从交易明细按日归集），费用行/工时为月度合计。当日列高亮显示。</div>
+    <div style="margin-top:8px;font-size:12px;color:#888"> 月度表按天展示收入明细（从交易明细按日归集），费用行/工时为月度合计。当日列高亮显示。</div>
   </div>`;
   applyPerms();
 }
@@ -739,12 +740,12 @@ function showDrillModal(title,dateDesc,svcNo,r,err){
   const box=document.getElementById('formBox');
   if(!box)return;
   if(r==='加载中...'){
-    box.innerHTML=`<h3 style="margin:0 0 10px">🔍 ${esc(title)}</h3><div style="color:#999;padding:30px;text-align:center">加载中...</div>`;
+    box.innerHTML=`<h3 style="margin:0 0 10px"> ${esc(title)}</h3><div style="color:#999;padding:30px;text-align:center">加载中...</div>`;
     document.getElementById('formModal').classList.add('ac');
     return;
   }
   if(err){
-    box.innerHTML=`<h3 style="margin:0 0 10px">🔍 ${esc(title)}</h3><div style="color:#e74c3c;padding:20px">❌ ${esc(err)}</div>`;
+    box.innerHTML=`<h3 style="margin:0 0 10px"> ${esc(title)}</h3><div style="color:#e74c3c;padding:20px"> ${esc(err)}</div>`;
     document.getElementById('formModal').classList.add('ac');
     return;
   }
@@ -765,13 +766,13 @@ function showDrillModal(title,dateDesc,svcNo,r,err){
     <td style="color:#888;font-size:11px">${esc(d.remarks||'')}</td>
   </tr>`).join(''):`<tr><td colspan="12" class="em">无交易明细数据</td></tr>`;
   box.innerHTML=`
-    <h3 style="margin:0 0 6px">🔍 ${esc(title)}</h3>
+    <h3 style="margin:0 0 6px"> ${esc(title)}</h3>
     <div style="color:#888;font-size:13px;margin-bottom:12px">
-      📅 ${esc(dateDesc)}
-      ${svcNo?' · 🔗 服务编号: <b>'+esc(svcNo)+'</b>':''}
-      · 📊 共 <b style="color:#667eea">${s.count||0}</b> 笔
-      · 💰 金额 <b style="color:#27ae60">${yuan2(s.total_amount||0)}</b>
-      · 📦 数量 <b>${yuan2(s.total_qty||0)}</b>
+       ${esc(dateDesc)}
+      ${svcNo?'   服务编号: <b>'+esc(svcNo)+'</b>':''}
+        共 <b style="color:#667eea">${s.count||0}</b> 笔
+        金额 <b style="color:#27ae60">${yuan2(s.total_amount||0)}</b>
+        数量 <b>${yuan2(s.total_qty||0)}</b>
     </div>
     <div style="overflow:auto;max-height:55vh;border:1px solid #eee;border-radius:6px">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -806,7 +807,7 @@ async function loadStatementDetail(){
   if(!box)return;
   box.innerHTML=`
   <div class="panel" style="margin-top:18px">
-    <h3>${esc(stmt.amiba_name)}阿米巴核算表 <span style="font-size:13px;color:#888">· ${stmt.year}年${stmt.month}月 · ${badge(stmt.status)} ${badge(stmt.source)}</span></h3>
+    <h3>${esc(stmt.amiba_name)}阿米巴核算表 <span style="font-size:13px;color:#888"> ${stmt.year}年${stmt.month}月  ${badge(stmt.status)} ${badge(stmt.source)}</span></h3>
     <div style="overflow:auto;max-height:70vh">
     <table style="width:100%;border-collapse:collapse;font-size:13px">
       <thead><tr style="background:#f8f9fa"><th style="text-align:left;padding:8px">项目</th><th style="width:50px">行次</th><th style="text-align:left;width:40%">计算公式/说明</th><th style="text-align:right;width:140px">金额</th></tr></thead>
@@ -814,11 +815,11 @@ async function loadStatementDetail(){
     </table>
     </div>
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn b5" onclick="genStatement()" data-perm="amiba:calc">▶ 重新生成（自动归集收入）</button>
-      <button class="btn b2" onclick="saveStatement()" data-perm="amiba:edit">💾 保存（含手工调整）</button>
-      <button class="btn b4" onclick="exportExcel('${API}/statement/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export">📥 导出</button>
+      <button class="btn b5" onclick="genStatement()" data-perm="amiba:calc"> 重新生成（自动归集收入）</button>
+      <button class="btn b2" onclick="saveStatement()" data-perm="amiba:edit"> 保存（含手工调整）</button>
+      <button class="btn b4" onclick="exportExcel('${API}/statement/export?year=${year()}${month()!==''?'&month='+month():''}')" data-perm="amiba:export"> 导出</button>
     </div>
-    <div style="margin-top:8px;font-size:12px;color:#888">💡 收入行由「交易明细」按服务编号自动归集（绿色笔数），费用行/总工时可手工录入后保存。修改后点击"保存"。</div>
+    <div style="margin-top:8px;font-size:12px;color:#888"> 收入行由「交易明细」按服务编号自动归集（绿色笔数），费用行/总工时可手工录入后保存。修改后点击"保存"。</div>
   </div>`;
   applyPerms();
 }
@@ -843,7 +844,7 @@ async function loadImprove(){const [imp,pio,map]=await Promise.all([getJson(`${A
   const pioCols=[['巴单元',r=>esc(r.amiba_name)],['状态',r=>badge(r.pioneer_status)],['周期',r=>esc((r.start_time||'').substring(0,10))+' ~ '+esc((r.end_time||'').substring(0,10))],['目标',r=>esc(r.target_desc)],['前成本',r=>yuan2(r.before_cost)],['后成本',r=>yuan2(r.after_cost)],['节约',r=>`<b style="color:#27ae60">${yuan2(r.total_save)}</b>`],['操作',r=>`<button class="btn bs b4" onclick="pioneerForm(${r.amiba_id})" data-perm="amiba:edit">编辑</button> <button class="btn bs b3" onclick="delPioneer(${r.id})" data-perm="amiba:delete">取消</button>`]];
   const mapRows=(map.ranks||[]).map(r=>`<div class="hbar-row"><span>${esc(r.amiba_name)}</span><div class="hbar"><i style="width:${Math.min(100,r.heat)}%;background:linear-gradient(90deg,#f39c12,#e74c3c)"></i></div><b>${r.unit_cost}</b></div>`).join('');
   document.getElementById('improveBox').innerHTML=`
-  <div class="panel"><h3>成本热力测绘（潜力识别 · 单位成本排行）</h3>${mapRows||'<div style="color:#bbb;font-size:12px;text-align:center;padding:20px">请先执行月度核算</div>'}<p style="font-size:12px;color:#888;margin-top:8px">💡 ${esc(map.suggestion||'')}</p></div>
+  <div class="panel"><h3>成本热力测绘（潜力识别  单位成本排行）</h3>${mapRows||'<div style="color:#bbb;font-size:12px;text-align:center;padding:20px">请先执行月度核算</div>'}<p style="font-size:12px;color:#888;margin-top:8px"> ${esc(map.suggestion||'')}</p></div>
   <div class="panel"><h3>先锋试点巴 <button class="btn bs b2" onclick="pioneerForm()" data-perm="amiba:edit" style="float:right">设置试点巴</button></h3>${renderTable(pioCols,pio.data||[],pioCols.length)}</div>
   <h3 style="margin:14px 0 8px">降本改善项目闭环</h3>
   <div class="sb"><button class="btn b2" onclick="improveForm()" data-perm="amiba:create">新增改善项目</button><button class="btn b4" onclick="document.getElementById('impFile').click()" data-perm="amiba:create">导入Excel</button><button class="btn b5" onclick="exportExcel('${API}/improve/export?year=${year()}')" data-perm="amiba:export">导出Excel</button><a class="btn" style="background:#7f8c8d" href="${API}/improve/template" target="_blank">下载模板</a><input type="file" id="impFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel('${API}/improve/import', 'impFile', ()=>loadImprove())"><span style="margin-left:auto">流程：提报 → 精益评审立项 → 过程跟进 → 结项核算 → 案例归档</span></div>
@@ -886,7 +887,7 @@ async function genReport(){const m=month()===''?new Date().getMonth()+1:month();
 async function reportForm(id){let row={year:year(),month:month()===''?new Date().getMonth()+1:month(),publish_status:'草稿'};if(id)row=(caches.report||[]).find(x=>x.id===id)||row;const f=[['year','年度','number'],['month','月份','number'],['publish_status','状态','select',[{id:'草稿',name:'草稿'},{id:'已发布',name:'已发布'},{id:'已归档',name:'已归档'}]],['file_url','附件链接','text'],['report_content','月报内容','textarea']];document.getElementById('formBox').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>${id?'编辑':'新建'}月报</h3><span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span></div>${formFields(f,row)}<div style="text-align:right;margin-top:10px"><button class="btn b2" onclick="saveReport(${id||0})">保存</button></div>`;openForm()}
 async function saveReport(id){const data=readForm([['year',''],['month',''],['publish_status',''],['file_url',''],['report_content','']]);if(id)data.id=id;await postJson(`${API}/report`,data);closeForm();loadReport()}
 
-// ===== 外部API对接（供金蝶/WMS/MES 调用 · X-API-Key 鉴权）=====
+// ===== 外部API对接（供金蝶/WMS/MES 调用  X-API-Key 鉴权）=====
 const EXT_API_KEY = 'HJ-EBMS-KEY-2026-SECRET';
 const EXT_BASE = '/api/external';
 
@@ -916,8 +917,8 @@ async function loadExt() {
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
       <div>
         <div style="font-size:13px;opacity:.9">外部 API 对接服务</div>
-        <div style="font-size:20px;font-weight:700;margin:4px 0">${esc(st.service || 'EBMS External API')} · v${esc(st.version || '1.0')}</div>
-        <div style="font-size:12px;opacity:.9">状态：${st.code === 0 ? '🟢 正常连通' : '🔴 ' + esc(st.message || '')} · 阿米巴模块：${st.amiba_module ? '✅ 已暴露' : '❌'} · 服务器时间：${esc(st.server_time || '')}</div>
+        <div style="font-size:20px;font-weight:700;margin:4px 0">${esc(st.service || 'EBMS External API')}  v${esc(st.version || '1.0')}</div>
+        <div style="font-size:12px;opacity:.9">状态：${st.code === 0 ? ' 正常连通' : ' ' + esc(st.message || '')}  阿米巴模块：${st.amiba_module ? ' 已暴露' : ''}  服务器时间：${esc(st.server_time || '')}</div>
       </div>
       <div style="background:rgba(255,255,255,.15);padding:10px 14px;border-radius:8px;font-size:12px">
         <div>X-API-Key（外部系统调用凭证）</div>
@@ -948,13 +949,13 @@ async function loadExt() {
       ['表', r => `<code style="font-size:12px">${esc(r.source_table)}</code>`],
       ['业务键', r => esc(r.source_key || '')],
       ['状态', r => badge(r.status)],
-      ['锁定', r => r.locked ? '🔒' : ''],
+      ['锁定', r => r.locked ? '' : ''],
       ['摘要', r => esc((r.response_summary || '').substring(0, 60))],
       ['时间', r => esc((r.created_at || '').substring(0, 19))]
     ], reg, 7)}
   </div>
   <div class="panel" style="margin-top:14px">
-    <h3>已锁定记录（外部已回传 · 不再推送覆盖）</h3>
+    <h3>已锁定记录（外部已回传  不再推送覆盖）</h3>
     ${locked.length ? renderTable([
       ['表', r => `<code style="font-size:12px">${esc(r.source_table)}</code>`],
       ['业务键', r => esc(r.source_key || '')],
@@ -1002,6 +1003,7 @@ curl -H "X-API-Key: ${EXT_API_KEY}" "${window.location.origin}${EXT_BASE}/regist
 loadDashboard();
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="feature-gate.js"></script><script>FeatureGate.init();</script>

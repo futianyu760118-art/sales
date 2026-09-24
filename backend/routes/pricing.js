@@ -292,6 +292,11 @@ router.post('/', requirePerm('pricing:create'), (req, res) => {
   const created = table.findById(result.lastID);
   syncToProduct(model, created);
   syncToInquiry(created);
+  // 自动同步：核价库新增成品型号 → 工价库没有的自动建档（已存在跳过，不重复）
+  Promise.resolve()
+    .then(() => require('./product-labor-rate').syncFromPricingLib())
+    .then(r => { if (r && r.added > 0) console.log('[pricing] 核价→工价库自动同步：新增 ' + r.added + ' 个型号'); })
+    .catch(e => console.warn('[pricing] 核价→工价库自动同步失败:', e.message));
   res.json({ message: '核价记录创建成功', data: created });
 });
 

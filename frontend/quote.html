@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 报价库</title>
@@ -15,7 +16,7 @@
     .stat-card.usd { border-left: 4px solid #f39c12; }
     .stat-card.usage { border-left: 4px solid #9b59b6; }
 
-    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .table-container th .sort-icon { display:inline-flex; width:var(--icon-xs); height:var(--icon-xs); color:#bbb; margin-left:2px; }
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
@@ -47,14 +48,14 @@
         <input type="text" id="searchInput" placeholder="搜索型号、产品名称..." onkeyup="searchLibrary()">
         <button class="btn btn-primary" onclick="showAddModal()">新增报价</button>
         <button class="btn btn-info" onclick="showImportModal()">从询价转入</button>
-        <button class="btn btn-warning" onclick="syncFromPricing()" id="syncBtn" style="position:relative;">🔄 同步核价库</button>
+        <button class="btn btn-warning" onclick="syncFromPricing()" id="syncBtn" style="position:relative;"> 同步核价库</button>
         <span id="syncStatus" style="font-size:12px;color:#888;margin-left:4px;"></span>
       </div>
 
       <div id="syncLogPanel" style="display:none;margin-bottom:12px;background:white;border-radius:8px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <h4 style="font-size:13px;color:#333;">📋 同步日志</h4>
-          <button style="background:none;border:none;cursor:pointer;color:#999;font-size:16px;" onclick="document.getElementById('syncLogPanel').style.display='none'">✕</button>
+          <h4 style="font-size:13px;color:#333;"> 同步日志</h4>
+          <button style="background:none;border:none;cursor:pointer;color:#999;font-size:16px;" onclick="document.getElementById('syncLogPanel').style.display='none'"></button>
         </div>
         <div id="syncLogContent" style="max-height:200px;overflow-y:auto;font-size:12px;"></div>
       </div>
@@ -71,17 +72,17 @@
           <thead>
             <tr>
               <th class="seq-col">#</th>
-              <th data-sort="external_model" data-filter="external_model">型号<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="product_name" data-filter="product_name">产品名称<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="power" data-filter="power">功率<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="certificate_level" data-filter="certificate_level">证书等级<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="price_rmb">单价(RMB)<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="price_usd">单价(USD)<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="min_price">最低限价<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="external_model" data-filter="external_model">型号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="product_name" data-filter="product_name">产品名称<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="power" data-filter="power">功率<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="certificate_level" data-filter="certificate_level">证书等级<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="price_rmb">单价(RMB)<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="price_usd">单价(USD)<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="min_price">最低限价<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
               <th>有效期</th>
-              <th data-sort="usage_count">使用次数<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="usage_count">使用次数<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
               <th data-filter="creator">创建人</th>
-              <th data-sort="created_at">创建时间<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="created_at">创建时间<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
               <th>操作</th>
             </tr>
           </thead>
@@ -102,11 +103,11 @@
           <thead>
             <tr>
               <th class="seq-col">#</th>
-              <th data-sort="serial_number">询价单号<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="customer_name">客户<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="external_model">产品型号<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="power">功率<span class="sort-icon">&#8593;&#8595;</span></th>
-              <th data-sort="quantity">数量<span class="sort-icon">&#8593;&#8595;</span></th>
+              <th data-sort="serial_number">询价单号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="customer_name">客户<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="external_model">产品型号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="power">功率<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+              <th data-sort="quantity">数量<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
               <th>证书等级</th>
               <th>当前状态</th>
               <th>操作</th>
@@ -259,23 +260,23 @@ async function syncFromPricing() {
   const btn = document.getElementById('syncBtn');
   const status = document.getElementById('syncStatus');
   btn.disabled = true;
-  btn.textContent = '⏳ 同步中...';
+  btn.textContent = ' 同步中...';
   status.textContent = '';
   try {
     const res = await fetch(`${API}/sync-from-pricing`, { method: 'POST' });
     const data = await res.json();
     if (res.ok) {
-      status.innerHTML = `<span style="color:#27ae60;">✅ ${data.message}</span>`;
+      status.innerHTML = `<span style="color:#27ae60;"> ${data.message}</span>`;
       loadLibrary();
       loadSyncLogs();
     } else {
-      status.innerHTML = `<span style="color:#e74c3c;">❌ ${data.error}</span>`;
+      status.innerHTML = `<span style="color:#e74c3c;"> ${data.error}</span>`;
     }
   } catch(e) {
-    status.innerHTML = `<span style="color:#e74c3c;">❌ 网络错误</span>`;
+    status.innerHTML = `<span style="color:#e74c3c;"> 网络错误</span>`;
   }
   btn.disabled = false;
-  btn.textContent = '🔄 同步核价库';
+  btn.textContent = ' 同步核价库';
 }
 
 async function loadSyncLogs() {
@@ -289,7 +290,7 @@ async function loadSyncLogs() {
     } else {
       content.innerHTML = logs.map(log => {
         const isSuccess = log.status === 'success';
-        const icon = isSuccess ? '✅' : '❌';
+        const icon = isSuccess ? '' : '';
         const color = isSuccess ? '#27ae60' : '#e74c3c';
         return `<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;">
           <div style="display:flex;justify-content:space-between;">
@@ -663,6 +664,7 @@ async function applyQuote() {
 loadLibrary();
   </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="common.js"></script>
 

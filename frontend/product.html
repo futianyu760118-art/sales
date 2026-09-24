@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 产品管理</title>
   <link rel="stylesheet" href="common.css">
   <style>
-    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .table-container th .sort-icon { display:inline-flex; width:var(--icon-xs); height:var(--icon-xs); color:#bbb; margin-left:2px; }
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
     .pricing-link { color: #667eea; cursor: pointer; text-decoration: underline; }
     .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; }
@@ -51,17 +52,17 @@
         <thead>
           <tr>
             <th class="seq-col">#</th>
-            <th data-sort="external_model">外部型号<span class="sort-icon">&#8593;&#8595;</span></th>
-            <th data-sort="internal_model">内部型号<span class="sort-icon">&#8593;&#8595;</span></th>
-            <th data-sort="category">品类<span class="sort-icon">&#8593;&#8595;</span></th>
-            <th data-sort="power">功率<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="external_model">外部型号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+            <th data-sort="internal_model">内部型号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+            <th data-sort="category">品类<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+            <th data-sort="power">功率<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
             <th>配置</th>
-            <th data-sort="cost_price">成本价<span class="sort-icon">&#8593;&#8595;</span></th>
-            <th data-sort="price_rmb">报价(RMB)<span class="sort-icon">&#8593;&#8595;</span></th>
-            <th data-sort="price_usd">报价(USD)<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="cost_price">成本价<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+            <th data-sort="price_rmb">报价(RMB)<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+            <th data-sort="price_usd">报价(USD)<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
             <th>核价状态</th>
-            <th data-sort="inquiry_count">询价数<span class="sort-icon">&#8593;&#8595;</span></th>
-            <th data-sort="created_at">创建时间<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="inquiry_count">询价数<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
+            <th data-sort="created_at">创建时间<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
             <th>操作</th>
           </tr>
         </thead>
@@ -481,7 +482,7 @@
       items.forEach(item => {
         const indent = (item.level || 1) - 1;
         const prefix = '\u00A0\u00A0\u00A0\u00A0'.repeat(indent);
-        const levelIcon = item.level === 1 ? '📦' : item.level === 2 ? '├─' : '│\u00A0├─';
+        const levelIcon = item.level === 1 ? '' : item.level === 2 ? '├─' : '│\u00A0├─';
         html += `<tr style="background:${indent > 0 ? '#f8f9ff' : ''};">
           <td>${levelIcon}</td>
           <td style="font-family:monospace;font-size:11px;">${prefix}${item.code || '-'}</td>
@@ -992,6 +993,7 @@
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="feature-gate.js"></script><script>FeatureGate.init();</script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - BOM对比与问题管理</title>
@@ -96,7 +97,7 @@
     .prevention-card .prev-type { color: #667eea; font-size: 11px; }
 
     .empty-state { text-align: center; padding: 40px; color: #999; }
-    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state .ebms-icon-slot { font-size: 40px; margin-bottom: 10px; }
 
     .btn-sm { padding: 4px 10px; font-size: 12px; }
     .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 12px; }
@@ -155,7 +156,7 @@
       </div>
 
       <div class="empty-state" id="compareEmpty">
-        <div class="icon">🔄</div>
+        <div class="ebms-icon-slot"></div>
         <div>请选择产品并执行BOM对比</div>
       </div>
     </div>
@@ -190,7 +191,7 @@
 
     <div id="tabAnalysis" class="tab-content">
       <div class="stats-grid" id="analysisStatsGrid"></div>
-      <h3 style="font-size:15px;color:#333;margin-bottom:12px;">🔁 重复问题分析</h3>
+      <h3 style="font-size:15px;color:#333;margin-bottom:12px;"> 重复问题分析</h3>
       <div id="similarIssues"></div>
     </div>
   </div>
@@ -408,7 +409,7 @@ async function loadIssues() {
 
   const container = document.getElementById('issueList');
   if (issues.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>暂无问题数据</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="ebms-icon-slot"></div><div>暂无问题数据</div></div>';
     document.getElementById('issuePagination').innerHTML = '';
     return;
   }
@@ -636,7 +637,7 @@ async function loadAnalysis() {
   const data = await res.json();
   const container = document.getElementById('similarIssues');
   if (!data.data || data.data.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">✅</div><div>暂无重复问题</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="ebms-icon-slot"></div><div>暂无重复问题</div></div>';
     return;
   }
   container.innerHTML = data.data.map(g => `
@@ -656,5 +657,6 @@ loadProducts();
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 </body>
 </html>

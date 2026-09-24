@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 物料库</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 物料库</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -32,8 +33,8 @@ tr:hover td{background:#f8f9ff}
 .sortable{cursor:pointer;user-select:none;padding-right:16px !important}
 .sortable:hover{color:#667eea}
 .sortable::after{content:'⇅';position:absolute;right:3px;top:50%;transform:translateY(-50%);font-size:11px;color:#ccc}
-.sortable.sort-asc::after{content:'↑';color:#667eea;font-weight:bold}
-.sortable.sort-desc::after{content:'↓';color:#667eea;font-weight:bold}
+.sortable.sort-asc::after{content:'';color:#667eea;font-weight:bold}
+.sortable.sort-desc::after{content:'';color:#667eea;font-weight:bold}
 td.ed{cursor:text;border:1px dashed transparent}
 td.ed:hover{border-color:#d0d7ff;background:#f8f9ff}
 td.ed.ing{padding:0;background:#fffaf0;border:1px solid #667eea}
@@ -118,25 +119,25 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <button class="btn b4" onclick="syncInventory()" data-feature="sync">同步外部库存</button>
 <button class="btn b1" onclick="syncCostFromBom()" data-feature="sync">从BOM同步成本</button>
 <button class="btn b2" onclick="ImportDropzone.openForSync(function(){loadMaterials(1);loadStats()})" data-feature="sync">导入库存文件</button>
-<button class="btn b2" onclick="syncExternalData('materials')">🔄 对接外部API</button>
+<button class="btn b2" onclick="syncExternalData('materials')"> 对接外部API</button>
 <button class="btn b4" onclick="exportPurchaseReport()" data-feature="export">导出采购报表</button>
-<a class="btn b2" href="procurement.html" style="text-decoration:none">📋 采购管理</a>
-<a class="btn b4" href="material-check.html" style="text-decoration:none">🔍 自检待办 <span id="mIssueBadge" style="display:none;background:#e74c3c;color:#fff;border-radius:9px;padding:1px 6px;font-size:11px;margin-left:4px">0</span></a>
+<a class="btn b2" href="procurement.html" style="text-decoration:none"> 采购管理</a>
+<a class="btn b4" href="material-check.html" style="text-decoration:none"> 自检待办 <span id="mIssueBadge" style="display:none;background:#e74c3c;color:#fff;border-radius:9px;padding:1px 6px;font-size:11px;margin-left:4px">0</span></a>
 </div>
 </div>
 <div class="tv" id="tabNav">
   <button class="ac" onclick="swTab('list',this)">物料列表</button>
   <button onclick="swTab('alert',this)">库存预警</button>
   <button onclick="swTab('policy',this)">最小库存推荐</button>
-  <button onclick="swTab('outbox',this)">📤 待回传 <span id="obBadge" style="display:none;background:#e67e22;color:#fff;border-radius:9px;padding:1px 6px;font-size:11px;margin-left:4px">0</span></button>
+  <button onclick="swTab('outbox',this)"> 待回传 <span id="obBadge" style="display:none;background:#e67e22;color:#fff;border-radius:9px;padding:1px 6px;font-size:11px;margin-left:4px">0</span></button>
 </div>
 
 <div class="tc ac" id="tab-list">
 <div class="dash-panel" data-feature="dashboard">
-<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>📊 物料统计仪表盘</span><span class="dash-arrow">▼</span></div>
+<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span> 物料统计仪表盘</span><span class="dash-arrow"></span></div>
 <div class="dash-body">
   <div class="sb" style="background:#f8f9ff;padding:8px 10px;border-radius:6px;margin-bottom:10px;gap:6px">
-    <span style="font-weight:600;color:#667eea">🔍 仪表盘筛选</span>
+    <span style="font-weight:600;color:#667eea"> 仪表盘筛选</span>
     <select id="dashStatus" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
       <option value="">全部状态</option>
       <option value="active">启用</option>
@@ -160,7 +161,7 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
     <select id="dashWarehouse" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px" title="按仓库筛选（依据外部库存库位）">
       <option value="">全部仓库</option>
     </select>
-    <span style="margin-left:auto;font-size:12px;color:#667eea">📅</span>
+    <span style="margin-left:auto;font-size:12px;color:#667eea"></span>
     <label style="font-size:12px;color:#666">起 <input type="date" id="periodFrom" style="padding:4px;border:1px solid #ddd;border-radius:4px"></label>
     <label style="font-size:12px;color:#666">止 <input type="date" id="periodTo" style="padding:4px;border:1px solid #ddd;border-radius:4px"></label>
     <span id="periodLabel" style="font-size:12px;color:#999;margin-left:6px"></span>
@@ -173,7 +174,7 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 </div>
 
 <div class="dash-panel" data-feature="dashboard">
-<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span>🔍 物料存放分析</span><span class="dash-arrow">▼</span></div>
+<div class="dash-head" onclick="this.parentElement.classList.toggle('collapsed')"><span> 物料存放分析</span><span class="dash-arrow"></span></div>
 <div class="dash-body">
   <div style="font-size:12px;color:#666;margin-bottom:10px">输入物料代码或名称，查看该物料在各仓库的存放数量、库位及是否符合仓库品类标准。</div>
   <div style="position:relative;max-width:520px;margin-bottom:12px">
@@ -194,11 +195,11 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <select id="mLevel"><option value="">全部等级</option><option value="常用物料">常用物料</option><option value="普通物料">普通物料</option><option value="临时物料">临时物料</option></select>
 <select id="mPurpose"><option value="">全部用途</option><option value="产品类">产品类</option><option value="设备工具类">设备工具类</option><option value="后勤用">后勤用</option><option value="未分类">未分类</option></select>
 <button class="btn b1" onclick="loadMaterials(1)">搜索</button>
-<button class="btn b4 bs" onclick="openCatRules()" title="查看等级和用途分类填写标准">📋 分类标准</button>
-<button class="btn b2 bs" onclick="runAutoClassify()" title="按规则自动给所有物料打等级和用途标签">⚙️ 自动分类</button>
-<button class="btn b4 bs" onclick="openClsRules()" title="制定分类(结构/电子/通用/定制等)识别规则并自动归类">📝 分类规则</button>
-<button class="btn b4 bs" onclick="openWhStandards()" title="制定仓库分类标准：各仓库存放品类与物料上限">🏭 仓库标准</button>
-<span class="ed-hint">提示：双击单元格可直接编辑 · 点击表头排序</span>
+<button class="btn b4 bs" onclick="openCatRules()" title="查看等级和用途分类填写标准"> 分类标准</button>
+<button class="btn b2 bs" onclick="runAutoClassify()" title="按规则自动给所有物料打等级和用途标签">️ 自动分类</button>
+<button class="btn b4 bs" onclick="openClsRules()" title="制定分类(结构/电子/通用/定制等)识别规则并自动归类"> 分类规则</button>
+<button class="btn b4 bs" onclick="openWhStandards()" title="制定仓库分类标准：各仓库存放品类与物料上限"> 仓库标准</button>
+<span class="ed-hint">提示：双击单元格可直接编辑  点击表头排序</span>
 <span style="margin-left:auto">共 <b id="mTc">0</b> 条</span>
 </div>
 <div class="sb" id="batchBar" style="display:none;background:#f8f9ff;border:1px solid #d0d7ff;border-radius:6px;padding:8px 12px">
@@ -213,7 +214,7 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 <div class="tbl-wrap">
 <table id="matTable"><thead><tr>
 <th style="width:28px;text-align:center"><input type="checkbox" id="mChkAll" onclick="toggleMatAll(this)" title="全选当页"></th>
-<th class="sortable" data-sort="material_code">物料代码<span class="ex-tag" title="从外部 API 同步">外</span></th><th class="sortable" data-sort="material_name">物料名称<span class="ex-tag" title="从外部 API 同步">外</span></th><th>类别<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="外部API偶尔返回；缺失时不会覆盖手动值（仅外部有值时同步）">外</span></th><th>规格<span class="ex-tag" title="从外部 API 同步">外</span></th><th class="sortable" data-sort="classification">分类1<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="⚠️ 外部API不返回此字段，仅手动维护">仅手动</span></th><th class="sortable" data-sort="classification2">分类2<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="⚠️ 外部API不返回此字段，仅手动维护">仅手动</span></th><th>单位<span class="ex-tag" title="从外部 API 同步">外</span></th><th>类型<span class="ex-tag" title="从外部 API 同步">外</span></th><th style="width:78px">等级</th><th style="width:90px">用途</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>出入库时间<span class="ex-tag" title="外部库存最近更新时间">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价<span class="ex-tag" title="取同步的订货单价 order_unit_price">外</span></th><th class="sortable" data-sort="last_outbound_date">使用时间<span class="ex-tag" title="取同步的最后出货时间 last_outbound_date">外</span></th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="inventory_value">库存总值</th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
+<th class="sortable" data-sort="material_code">物料代码<span class="ex-tag" title="从外部 API 同步">外</span></th><th class="sortable" data-sort="material_name">物料名称<span class="ex-tag" title="从外部 API 同步">外</span></th><th>类别<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="外部API偶尔返回；缺失时不会覆盖手动值（仅外部有值时同步）">外</span></th><th>规格<span class="ex-tag" title="从外部 API 同步">外</span></th><th class="sortable" data-sort="classification">分类1<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="️ 外部API不返回此字段，仅手动维护">仅手动</span></th><th class="sortable" data-sort="classification2">分类2<span class="ex-tag" style="background:#fde2dc;color:#c0392b" title="️ 外部API不返回此字段，仅手动维护">仅手动</span></th><th>单位<span class="ex-tag" title="从外部 API 同步">外</span></th><th>类型<span class="ex-tag" title="从外部 API 同步">外</span></th><th style="width:78px">等级</th><th style="width:90px">用途</th><th>库位<span class="ex-tag" title="外部库存API同步">外</span></th><th>出入库时间<span class="ex-tag" title="外部库存最近更新时间">外</span></th><th>供应商<span class="ex-tag" title="外部API同步">外</span></th><th class="sortable" data-sort="standard_cost">标准成本<span class="ex-tag" title="BOM/外部API同步">外</span></th><th class="sortable" data-sort="processing_cost">加工成本</th><th class="sortable" data-sort="unit_price">单价<span class="ex-tag" title="取同步的订货单价 order_unit_price">外</span></th><th class="sortable" data-sort="last_outbound_date">使用时间<span class="ex-tag" title="取同步的最后出货时间 last_outbound_date">外</span></th><th class="sortable" data-sort="inventory_qty">库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="inventory_value">库存总值</th><th class="sortable" data-sort="min_inventory">最小库存<span class="ex-tag" title="外部库存同步">外</span></th><th class="sortable" data-sort="procurement_cycle">采购周期</th><th class="sortable" data-sort="procurement_qty">采购数量</th><th class="sortable" data-sort="next_purchase_date">下次采购</th><th>认证</th><th>状态</th><th>操作</th>
 </tr></thead><tbody id="mTb"><tr><td colspan="27" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="mPg" style="margin-top:12px;text-align:center"></div>
@@ -229,14 +230,14 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 
 <div class="tc" id="tab-policy">
 <div class="sb">
-<button class="btn b1" onclick="runRecommend(false)">🔍 计算推荐（预览）</button>
+<button class="btn b1" onclick="runRecommend(false)"> 计算推荐（预览）</button>
 <button class="btn b2" onclick="applySelected()">应用勾选</button>
 <button class="btn b4" onclick="applyAllGap()">应用全部有差距</button>
 <label style="font-size:12px;color:#666;display:flex;align-items:center;gap:4px"><input type="checkbox" id="pOnlyGap" checked> 仅显示有差距</label>
 <label style="font-size:12px;color:#666;display:flex;align-items:center;gap:4px"><input type="checkbox" id="pOnlyUsage"> 仅有月用量</label>
 <label style="font-size:12px;color:#666">条数上限<input type="number" id="pLimit" value="500" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:4px"></label>
 <label style="font-size:12px;color:#666;display:flex;align-items:center;gap:4px"><input type="checkbox" id="pAll" onchange="toggleAllPol(this)"> 全选当页</label>
-<span style="margin-left:auto">共 <b id="pTc">0</b> 条 · 已选 <b id="pSel">0</b></span>
+<span style="margin-left:auto">共 <b id="pTc">0</b> 条  已选 <b id="pSel">0</b></span>
 </div>
 <div class="tbl-wrap">
 <table><thead><tr>
@@ -247,7 +248,7 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 
 <div class="tc" id="tab-outbox">
 <div class="sb" style="margin-bottom:10px">
-  <span style="font-weight:600;color:#667eea">📤 待回传外部API的物料变更</span>
+  <span style="font-weight:600;color:#667eea"> 待回传外部API的物料变更</span>
   <select id="obStatus" onchange="loadOutbox()" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
     <option value="">全部状态</option>
     <option value="pending" selected>待回传</option>
@@ -261,7 +262,7 @@ td.ed input{width:100%;padding:6px 8px;border:none;font-size:13px;background:tra
 </div>
 <div style="background:#fff8e7;border:1px solid #f0e0b8;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7a5b00">
   <b>说明：</b>在物料列表中<b>新增/修改/删除</b>后，变更会自动暂存到这里。配置好外部写入接口即可一键回传。当前外部数据供给API为只读，回传需外部系统提供写入接口。
-  <a href="javascript:void(0)" onclick="const e=document.getElementById('obCfg');e.style.display=e.style.display==='none'?'block':'none'" style="color:#667eea;margin-left:8px">⚙ 写入接口配置</a>
+  <a href="javascript:void(0)" onclick="const e=document.getElementById('obCfg');e.style.display=e.style.display==='none'?'block':'none'" style="color:#667eea;margin-left:8px"> 写入接口配置</a>
 </div>
 <div id="obCfg" style="display:none;background:#f8f9ff;border:1px solid #d8e0f8;border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12px">
   <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
@@ -434,12 +435,12 @@ async function loadStats(){
       `<div class="mini-row"><span>${esc(k)}</span><span style="display:flex;align-items:center;gap:6px"><span style="width:40px"><div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(v/maxCat*100)}%"></div></div></span><b>${v}</b></span></div>`).join('')||'<div class="mini-row" style="color:#999">暂无</div>';
 
     document.getElementById('mInsight').innerHTML=`
-      <div class="dash-card"><h4>⚠️ 库存不足 TOP</h4>${lowList}</div>
-      <div class="dash-card"><h4>⏰ 到期采购 TOP</h4>${dueList}</div>
-      <div class="dash-card"><h4>📦 分类构成</h4>${catList}</div>
+      <div class="dash-card"><h4>️ 库存不足 TOP</h4>${lowList}</div>
+      <div class="dash-card"><h4> 到期采购 TOP</h4>${dueList}</div>
+      <div class="dash-card"><h4> 分类构成</h4>${catList}</div>
       <div class="dash-card" style="grid-column:span 3;max-width:none">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-          <h4 style="margin:0">🔧 物料使用情况</h4>
+          <h4 style="margin:0"> 物料使用情况</h4>
           <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#666">
             <span>时间范围</span>
             <select id="usageRange" onchange="loadStats()" style="padding:3px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;cursor:pointer;background:#fff">
@@ -456,8 +457,8 @@ async function loadStats(){
       </div>
       <div class="dash-card" style="grid-column:span 3;max-width:none">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-          <h4 style="margin:0">📋 未交付订单物料需求</h4>
-          <span style="font-size:12px;color:#999">截止 ${(d.order_material_stats&&d.order_material_stats.cutoff_date)||'2026-07-01'} 后未交付订单 · 按 BOM 全产品均摊估算</span>
+          <h4 style="margin:0"> 未交付订单物料需求</h4>
+          <span style="font-size:12px;color:#999">截止 ${(d.order_material_stats&&d.order_material_stats.cutoff_date)||'2026-07-01'} 后未交付订单  按 BOM 全产品均摊估算</span>
         </div>
         ${renderOrderMaterialStats(d.order_material_stats||{})}
       </div>`;
@@ -477,7 +478,7 @@ function renderInvAnalysis(d){
   const box=document.getElementById('mInvAnalysis');if(!box)return;
   const totalQty=Number(d.inventory_total_qty)||0;
   const totalVal=Number(d.inventory_total_value)||0;
-  if(totalQty<=0){box.innerHTML='<div class="dash-card"><h4>📊 库存物料总数量分析</h4><div class="em">暂无库存数量数据</div></div>';return}
+  if(totalQty<=0){box.innerHTML='<div class="dash-card"><h4> 库存物料总数量分析</h4><div class="em">暂无库存数量数据</div></div>';return}
   const invValMap=d.inventory_value_by_classification||{};
   const entries=Object.entries(d.inventory_by_classification||{})
     .map(([k,v])=>[k||'未分类',Number(v)||0,Number(invValMap[k])||0]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
@@ -509,8 +510,8 @@ function renderInvAnalysis(d){
       <span class="val" style="min-width:80px;text-align:right;color:#16a085;font-size:12px" title="库存总值">¥${fmtQty(iv)}</span></div>`;
   }).join('')||'<div class="em">暂无</div>';
   box.innerHTML=`
-    <div class="inv-col-head">📊 库存物料总数量分析</div>
-    <div class="inv-total"><div class="n">${fmtQty(totalQty)}</div><div class="l">库存总数量 · 共 ${d.in_stock||0} 种物料有库存 · 总值 ¥${fmtQty(totalVal)}</div></div>
+    <div class="inv-col-head"> 库存物料总数量分析</div>
+    <div class="inv-total"><div class="n">${fmtQty(totalQty)}</div><div class="l">库存总数量  共 ${d.in_stock||0} 种物料有库存  总值 ¥${fmtQty(totalVal)}</div></div>
     <div class="inv-grid">
       <div class="dash-card">
         <div class="inv-sub-title">按分类分布</div>
@@ -549,7 +550,7 @@ function renderUsageStats(u){
   const topRecent=(u.top_recent||[]);
   const usedHtml=topUsed.length?`
     <div style="margin-top:8px">
-      <div style="font-size:12px;color:#666;margin-bottom:6px">📊 月用量 TOP 10（活跃物料）</div>
+      <div style="font-size:12px;color:#666;margin-bottom:6px"> 月用量 TOP 10（活跃物料）</div>
       <table style="width:100%;font-size:12px;border-collapse:collapse">
         <thead><tr style="background:#f8f9fa">
           <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8;width:36px">#</th>
@@ -571,7 +572,7 @@ function renderUsageStats(u){
     </div>`:'<div class="em">暂无月用量数据</div>';
   const recentHtml=topRecent.length?`
     <details style="margin-top:10px">
-      <summary style="cursor:pointer;font-size:12px;color:#666;padding:4px 0">📅 最近出库 TOP 10（点击展开）</summary>
+      <summary style="cursor:pointer;font-size:12px;color:#666;padding:4px 0"> 最近出库 TOP 10（点击展开）</summary>
       <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px">
         <thead><tr style="background:#f8f9fa">
           <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8;width:36px">#</th>
@@ -609,7 +610,7 @@ function renderOrderMaterialStats(s){
   const top=s.top_shortage||[];
   const tableHtml=top.length?`
     <div style="margin-top:8px">
-      <div style="font-size:12px;color:#666;margin-bottom:6px">⚠️ 缺口金额 TOP 15 物料</div>
+      <div style="font-size:12px;color:#666;margin-bottom:6px">️ 缺口金额 TOP 15 物料</div>
       <table style="width:100%;font-size:12px;border-collapse:collapse">
         <thead><tr style="background:#f8f9fa">
           <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #e8e8e8;width:36px">#</th>
@@ -634,7 +635,7 @@ function renderOrderMaterialStats(s){
       </table>
     </div>`:'<div class="em">暂无缺货物料</div>';
   // 说明
-  const note=s.note?`<div style="margin-top:10px;padding:6px 10px;background:#fffbea;border-left:3px solid #f1c40f;border-radius:3px;font-size:11px;color:#856404">💡 ${esc(s.note)}</div>`:'';
+  const note=s.note?`<div style="margin-top:10px;padding:6px 10px;background:#fffbea;border-left:3px solid #f1c40f;border-radius:3px;font-size:11px;color:#856404"> ${esc(s.note)}</div>`:'';
   return statsHtml+tableHtml+note;
 }
 
@@ -654,7 +655,7 @@ function dashMatSearch(kw){
       if(!dd)return;
       if(!list.length){dd.innerHTML='<div style="padding:10px;color:#999;font-size:12px">无匹配物料</div>';dd.style.display='block';return}
       dd.innerHTML=list.map(m=>`<div class="dash-mat-opt" data-code="${esc(m.material_code)}" onclick="dashMatAnalyze('${esc(m.material_code)}')" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px" onmouseover="this.style.background='#f0f3ff'" onmouseout="this.style.background='#fff'">
-        <b>${esc(m.material_code)}</b> ${esc((m.material_name||'').substring(0,28))}<br><span style="color:#999;font-size:11px">${esc(m.classification||'未分类')} · ${esc(m.classification2||'')}</span></div>`).join('');
+        <b>${esc(m.material_code)}</b> ${esc((m.material_name||'').substring(0,28))}<br><span style="color:#999;font-size:11px">${esc(m.classification||'未分类')}  ${esc(m.classification2||'')}</span></div>`).join('');
       dd.style.display='block';
     }catch(e){if(dd)dd.style.display='none'}
   },250);
@@ -674,10 +675,10 @@ async function dashMatAnalyze(code){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
         <div class="dash-card"><h4>物料信息</h4>
           <div style="font-weight:600;font-size:13px">${esc(m.material_name||'')} <span style="color:#999;font-weight:normal">(${esc(m.material_code)})</span></div>
-          <div style="font-size:12px;color:#666;margin-top:4px">分类1：<b>${esc(clsLabel)}</b> · 分类2：${esc(m.classification2||'-')} · 类型：${esc(m.material_type||'-')}</div></div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分类1：<b>${esc(clsLabel)}</b>  分类2：${esc(m.classification2||'-')}  类型：${esc(m.material_type||'-')}</div></div>
         <div class="dash-card"><h4>存放汇总</h4>
           <div style="font-size:20px;font-weight:700;color:#16a085">${(d.total_qty||0).toLocaleString()} ${esc(m.unit||'')}</div>
-          <div style="font-size:12px;color:#666;margin-top:4px">分布于 <b>${d.warehouse_count}</b> 个仓库 · 符合 ${s.compliant_warehouses||0} / 不符 <b style="color:${s.mismatch_warehouses?'#e74c3c':'#999'}">${s.mismatch_warehouses||0}</b></div></div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分布于 <b>${d.warehouse_count}</b> 个仓库  符合 ${s.compliant_warehouses||0} / 不符 <b style="color:${s.mismatch_warehouses?'#e74c3c':'#999'}">${s.mismatch_warehouses||0}</b></div></div>
       </div>
       ${locs.length?`<div style="max-height:40vh;overflow:auto;border:1px solid #eee;border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa;position:sticky;top:0">
         <th style="padding:6px;text-align:left">仓库</th><th style="padding:6px">负责人</th><th style="padding:6px">库存数量</th><th style="padding:6px;text-align:left">库位</th><th style="padding:6px">标准品类</th><th style="padding:6px">符合</th>
@@ -870,7 +871,7 @@ function renderLocationCells(codes){
     let html=parts.join('<br>');
     if(list.length>2)html+=`<br><span style="color:#999">+${list.length-2} 个库位</span>`;
     // 鼠标悬停显示完整列表
-    const tip=list.map(l=>`${l.wh_name||''}${l.location_name&&l.location_name!=='*'?' / '+l.location_name:''}${l.qty_on_hand?' · '+Number(l.qty_on_hand).toLocaleString():''}${l.updated_at?' · '+l.updated_at.replace('T',' ').substring(0,16):''}`).join('\n');
+    const tip=list.map(l=>`${l.wh_name||''}${l.location_name&&l.location_name!=='*'?' / '+l.location_name:''}${l.qty_on_hand?'  '+Number(l.qty_on_hand).toLocaleString():''}${l.updated_at?'  '+l.updated_at.replace('T',' ').substring(0,16):''}`).join('\n');
     cell.innerHTML=html;
     cell.title=tip;
   });
@@ -908,8 +909,8 @@ function openCatRules(){
     const reqByPur=lp(rules,'required_fields_by_purpose');
     const standards=(rules.filling_standards)||[];
     box.innerHTML=`
-      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>📋 物料等级与用途分类标准</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
-      <div style="font-size:12px;color:#666;margin-bottom:8px">规则版本 v${rules.version||'?'} · 更新于 ${rules.updated_at||'-'}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3> 物料等级与用途分类标准</h3><span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
+      <div style="font-size:12px;color:#666;margin-bottom:8px">规则版本 v${rules.version||'?'}  更新于 ${rules.updated_at||'-'}</div>
       <h4 style="color:#667eea;margin:10px 0 6px">一、物料等级（自动分类）</h4>
       ${Object.entries(lvlRules).map(([k,r])=>`<div style="border-left:3px solid #27ae60;padding:6px 10px;margin-bottom:6px;background:#f9fef9"><b>${esc(k)}</b>：${esc(r.desc||'')}
         <div style="font-size:11px;color:#666;margin-top:4px">判定条件：${(r.conditions||[]).map(c=>`${c.field} ${c.op} ${c.value}`).join(' 且/或 ')||'fallback'}</div></div>`).join('')}
@@ -930,7 +931,7 @@ function openCatRules(){
       <ul style="font-size:12px;line-height:1.8;color:#444">
         ${standards.map(esc).map(s=>`<li>${s}</li>`).join('')}
       </ul>
-      <div style="text-align:right;margin-top:14px"><button class="btn b1" onclick="runAutoClassify()">⚙️ 立即自动分类全部物料</button></div>
+      <div style="text-align:right;margin-top:14px"><button class="btn b1" onclick="runAutoClassify()">️ 立即自动分类全部物料</button></div>
     `;
     document.getElementById('gMo').classList.add('ac');
   })();
@@ -981,16 +982,16 @@ function openClsRules(){
     const box=document.getElementById('gMoBox');
     const enabled=rules.filter(r=>r.enabled!==0).length;
     box.innerHTML=`
-      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>📝 分类识别规则（制定标准）</h3>
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3> 分类识别规则（制定标准）</h3>
         <span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
       <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.7">
         按<b>优先级</b>从上到下匹配，命中即归类为<b>结果分类</b>。<b>分类1</b>(电子/结构/包材/附件)按名称识别，<b>分类2</b>(通用/专用)按自制/外购识别；都不命中用兜底值。<br>
         自动识别后仍可逐条<b>手工改写</b>（双击列表分类列或编辑物料）。
-        <span style="color:#999">· 共 ${rules.length} 条，启用 ${enabled} 条</span>
+        <span style="color:#999"> 共 ${rules.length} 条，启用 ${enabled} 条</span>
       </div>
       <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn b1 bs" onclick="openClsRuleForm()">➕ 新增规则</button>
-        <button class="btn b2 bs" onclick="runClsAutoClassify()">⚙️ 自动识别分类</button>
+        <button class="btn b1 bs" onclick="openClsRuleForm()"> 新增规则</button>
+        <button class="btn b2 bs" onclick="runClsAutoClassify()">️ 自动识别分类</button>
         <button class="btn b4 bs" onclick="openCatRules()">查看等级/用途标准</button>
       </div>
       <div style="max-height:48vh;overflow:auto;border:1px solid #eee;border-radius:6px">
@@ -1131,13 +1132,13 @@ function openWhStandards(){(async()=>{
 function renderWhModal(){
   const box=document.getElementById('gMoBox');
   const tabs=`<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn ${_whView==='analysis'?'b1':'bs'} bs" onclick="_whView='analysis';renderWhModal()">📊 存放分析</button>
-    <button class="btn ${_whView==='edit'?'b1':'bs'} bs" onclick="_whView='edit';renderWhModal()">✏️ 标准设置</button>
-    <button class="btn ${_whView==='material'?'b1':'bs'} bs" onclick="_whView='material';renderWhModal()">🔍 物料查询</button>
-    <button class="btn b4 bs" onclick="openWhStdForm()">➕ 新增仓库标准</button>
+    <button class="btn ${_whView==='analysis'?'b1':'bs'} bs" onclick="_whView='analysis';renderWhModal()"> 存放分析</button>
+    <button class="btn ${_whView==='edit'?'b1':'bs'} bs" onclick="_whView='edit';renderWhModal()">️ 标准设置</button>
+    <button class="btn ${_whView==='material'?'b1':'bs'} bs" onclick="_whView='material';renderWhModal()"> 物料查询</button>
+    <button class="btn b4 bs" onclick="openWhStdForm()"> 新增仓库标准</button>
     <button class="btn bs" style="background:#27ae60;color:#fff" onclick="exportWhStandards()">⬇️ 导出</button>
   </div>`;
-  box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3>🏭 仓库分类标准</h3>
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3> 仓库分类标准</h3>
     <span onclick="document.getElementById('gMo').classList.remove('ac')" style="cursor:pointer;font-size:22px;color:#999">&times;</span></div>
     <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.6">为每个仓库设定<b>存放品类</b>(分类1: 电子/结构/包材/附件)与<b>物料上限</b>。系统据此检测各仓库实际存放是否<b>品类不符</b>或<b>超上限</b>。</div>
     ${tabs}
@@ -1162,13 +1163,13 @@ async function renderWhAnalysis(){
     const f=d.filter||{};
     const rows=d.data||[];
     const filterBar=`<div style="background:#f8f9ff;padding:8px 10px;border-radius:6px;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <span style="font-weight:600;color:#667eea;font-size:12px">🔍 物料筛选</span>
+      <span style="font-weight:600;color:#667eea;font-size:12px"> 物料筛选</span>
       <select id="whFilterCls" onchange="renderWhAnalysis()" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
         <option value="">全部分类1</option>${CLASSIFICATION_OPTIONS.map(c=>`<option value="${esc(c)}" ${c===fCls?'selected':''}>${esc(c)}</option>`).join('')}</select>
       <select id="whFilterCls2" onchange="renderWhAnalysis()" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px">
         <option value="">全部分类2</option>${CLASSIFICATION2_OPTIONS.map(c=>`<option value="${esc(c)}" ${c===fCls2?'selected':''}>${esc(c)}</option>`).join('')}</select>
       <input id="whFilterKw" value="${esc(fKw)}" placeholder="物料编码/名称" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:140px" onkeydown="if(event.key==='Enter')renderWhAnalysis()">
-      ${f.applied?`<span class="badge st-warn">已筛选·匹配 ${f.matched_materials} 种物料</span>`:''}
+      ${f.applied?`<span class="badge st-warn">已筛选匹配 ${f.matched_materials} 种物料</span>`:''}
       </div>`;
     const head=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:12px">
       <span class="badge st-active">仓库 ${s.warehouses||0}</span>
@@ -1208,7 +1209,7 @@ function renderWhMaterial(){
   const body=document.getElementById('whBody');
   body.innerHTML=`
     <div style="background:#f8f9ff;padding:10px;border-radius:8px;margin-bottom:12px">
-      <div style="font-weight:600;color:#667eea;font-size:13px;margin-bottom:6px">🔍 输入物料代码或名称，选择后查看其存放分析</div>
+      <div style="font-weight:600;color:#667eea;font-size:13px;margin-bottom:6px"> 输入物料代码或名称，选择后查看其存放分析</div>
       <div style="position:relative">
         <input id="whMatInput" type="text" placeholder="如：IC-001 / 螺丝 / 电容" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" oninput="whMatSearch(this.value)" onkeydown="if(event.key==='Enter'){const f=document.querySelector('.wh-mat-opt');if(f)whMatPick(f.dataset.code)}">
         <div id="whMatDropdown" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-radius:0 0 6px 6px;max-height:260px;overflow:auto;z-index:20;display:none;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>
@@ -1228,7 +1229,7 @@ function whMatSearch(kw){
       const list=d.data||[];
       if(!list.length){dd.innerHTML='<div style="padding:10px;color:#999;font-size:12px">无匹配物料</div>';dd.style.display='block';return}
       dd.innerHTML=list.map(m=>`<div class="wh-mat-opt" data-code="${esc(m.material_code)}" onclick="whMatPick('${esc(m.material_code)}')" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px" onmouseover="this.style.background='#f0f3ff'" onmouseout="this.style.background='#fff'">
-        <b>${esc(m.material_code)}</b> ${esc((m.material_name||'').substring(0,24))}<br><span style="color:#999;font-size:11px">${esc(m.classification||'未分类')} · ${esc(m.classification2||'')}</span></div>`).join('');
+        <b>${esc(m.material_code)}</b> ${esc((m.material_name||'').substring(0,24))}<br><span style="color:#999;font-size:11px">${esc(m.classification||'未分类')}  ${esc(m.classification2||'')}</span></div>`).join('');
       dd.style.display='block';
     }catch(e){dd.style.display='none'}
   },250);
@@ -1249,12 +1250,12 @@ async function whMatPick(code){
     box.innerHTML=`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
         <div class="dash-card"><div style="font-size:11px;color:#888">物料</div><div style="font-weight:600">${esc(m.material_name||'')} <span style="color:#999">(${esc(m.material_code)})</span></div>
-          <div style="font-size:12px;color:#666;margin-top:4px">分类1：<b>${esc(clsLabel)}</b> · 分类2：${esc(m.classification2)} · 类型：${esc(m.material_type||'-')}</div></div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分类1：<b>${esc(clsLabel)}</b>  分类2：${esc(m.classification2)}  类型：${esc(m.material_type||'-')}</div></div>
         <div class="dash-card"><div style="font-size:11px;color:#888">存放汇总</div>
           <div style="font-size:18px;font-weight:700;color:#16a085">${(d.total_qty||0).toLocaleString()} ${esc(m.unit||'')}</div>
-          <div style="font-size:12px;color:#666;margin-top:4px">分布于 <b>${d.warehouse_count}</b> 个仓库 · 符合 ${s.compliant_warehouses} / 不符 <b style="color:${s.mismatch_warehouses?'#e74c3c':'#999'}">${s.mismatch_warehouses}</b></div></div>
+          <div style="font-size:12px;color:#666;margin-top:4px">分布于 <b>${d.warehouse_count}</b> 个仓库  符合 ${s.compliant_warehouses} / 不符 <b style="color:${s.mismatch_warehouses?'#e74c3c':'#999'}">${s.mismatch_warehouses}</b></div></div>
       </div>
-      <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">📦 各仓库存放详情</div>
+      <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px"> 各仓库存放详情</div>
       ${locs.length?`<div style="max-height:40vh;overflow:auto;border:1px solid #eee;border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f6fa;position:sticky;top:0">
         <th style="padding:6px;text-align:left">仓库</th><th style="padding:6px">负责人</th><th style="padding:6px">库存数量</th><th style="padding:6px;text-align:left">库位</th><th style="padding:6px">标准品类</th><th style="padding:6px">符合</th>
       </tr></thead><tbody>${locs.map(w=>`<tr style="border-top:1px solid #f0f0f0">
@@ -1403,7 +1404,7 @@ async function runSelAnalysis(){
   const box=document.getElementById('selAnalysis');if(!box)return;
   const ids=[...matSel];
   box.style.display='block';
-  box.innerHTML='<div style="background:#f8f9ff;border:1px solid #d0d7ff;border-radius:6px;padding:10px;font-size:12px;color:#888">📊 即时分析中…</div>';
+  box.innerHTML='<div style="background:#f8f9ff;border:1px solid #d0d7ff;border-radius:6px;padding:10px;font-size:12px;color:#888"> 即时分析中…</div>';
   try{
     const r=await fetch(API+'/selection-analysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
     const d=await r.json();
@@ -1413,12 +1414,12 @@ async function runSelAnalysis(){
     const barRow=(items,max)=>items.map((it,i)=>`<div class="hbar"><span class="lb">${esc(it.name)}</span><div class="track"><div class="fill" style="width:${Math.round((it.count/max)*100)}%;background:${COLORS[i%COLORS.length]}"></div></div><span class="val">${it.count}</span></div>`).join('');
     const maxC=Math.max(1,...(d.by_classification||[]).map(x=>x.count));
     const maxT=Math.max(1,...(d.by_material_type||[]).map(x=>x.count));
-    const cls2=(d.by_classification2||[]).map(x=>`${esc(x.name)} ${x.count}`).join(' · ');
+    const cls2=(d.by_classification2||[]).map(x=>`${esc(x.name)} ${x.count}`).join('  ');
     box.innerHTML=`
       <div style="background:#fff;border:1px solid #e8ebf7;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <b style="color:#555;font-size:13px">📊 选中物料即时分析</b>
-          <span style="font-size:11px;color:#999">已选 ${d.count} 项 · 实时</span>
+          <b style="color:#555;font-size:13px"> 选中物料即时分析</b>
+          <span style="font-size:11px;color:#999">已选 ${d.count} 项  实时</span>
         </div>
         <div class="sg" style="margin-bottom:10px">
           <div class="sc"><div class="n">${d.count}</div><div class="l">选中物料</div></div>
@@ -1431,7 +1432,7 @@ async function runSelAnalysis(){
           <div><div class="inv-sub-title">分类1 分布</div><div class="hbar-list">${barRow(d.by_classification||[],maxC)}</div></div>
           <div><div class="inv-sub-title">物料类型 TOP</div><div class="hbar-list">${barRow(d.by_material_type||[],maxT)}</div></div>
         </div>
-        <div style="font-size:12px;color:#666;margin-top:8px">分类2：${cls2||'-'} · 状态：启用 ${d.by_status.active} / 禁用 ${d.by_status.inactive}</div>
+        <div style="font-size:12px;color:#666;margin-top:8px">分类2：${cls2||'-'}  状态：启用 ${d.by_status.active} / 禁用 ${d.by_status.inactive}</div>
       </div>`;
   }catch(e){box.innerHTML='<div class="em">分析失败: '+esc(e.message)+'</div>'}
 }
@@ -1676,7 +1677,7 @@ function openAddMaterial(){
       const v=await r.json();
       const missing=v.missing_required||[];
       if(missing.length){
-        const allow=confirm(`按当前等级[${v.level}]与用途[${v.purpose}]标准，缺失必填字段：\n${missing.map(m=>'  · '+m.label).join('\n')}\n\n点击「确定」仍可保存（不推荐），点击「取消」返回编辑。`);
+        const allow=confirm(`按当前等级[${v.level}]与用途[${v.purpose}]标准，缺失必填字段：\n${missing.map(m=>'   '+m.label).join('\n')}\n\n点击「确定」仍可保存（不推荐），点击「取消」返回编辑。`);
         if(!allow)return;
       }
     }catch(e){}
@@ -1709,7 +1710,7 @@ async function openEditMaterial(id){
         const v=await fetch(API+'/classification/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
         const rj=await v.json();
         if((rj.missing_required||[]).length){
-          const allow=confirm(`按当前等级[${rj.level}]与用途[${rj.purpose}]缺失必填：\n${rj.missing_required.map(m=>'  · '+m.label).join('\n')}\n\n确定仍要保存？取消返回编辑。`);
+          const allow=confirm(`按当前等级[${rj.level}]与用途[${rj.purpose}]缺失必填：\n${rj.missing_required.map(m=>'   '+m.label).join('\n')}\n\n确定仍要保存？取消返回编辑。`);
           if(!allow)return;
         }
       }catch(e){}
@@ -1879,7 +1880,7 @@ function renderPolicyCfg(p){
   document.getElementById('policyCfg').innerHTML=`
    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
      <div><div style="font-weight:600;margin-bottom:6px;color:#555">供应月数矩阵（月用量 × 该值）</div>${matrix}
-       <div style="font-size:11px;color:#999;margin-top:4px">例：通用物料·低货值=1.0 → 按月用量采购</div></div>
+       <div style="font-size:11px;color:#999;margin-top:4px">例：通用物料低货值=1.0 → 按月用量采购</div></div>
      <div>
        <div style="font-weight:600;margin-bottom:6px;color:#555">体积系数（体积越大，备货越少）</div>${vol}
        <div class="gr" style="margin-top:10px">
@@ -2043,7 +2044,7 @@ function renderCompare(d){
     </div>`;
   }).join('');
   panel.className='cmp-panel';
-  panel.innerHTML=`<div style="font-weight:600;color:#555;margin-bottom:8px;font-size:13px">📊 期间对比（${d.period.label}）</div><div class="cmp-grid">${cards}</div>`;
+  panel.innerHTML=`<div style="font-weight:600;color:#555;margin-bottom:8px;font-size:13px"> 期间对比（${d.period.label}）</div><div class="cmp-grid">${cards}</div>`;
 }
 // ===== 物料变更回传 outbox =====
 const OB_OP_LABEL={create:'新增',update:'修改',delete:'删除'};
@@ -2133,5 +2134,6 @@ async function saveObCfg(){
 }
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script><script src="feature-gate.js"></script><script>FeatureGate.init();</script></body></html>

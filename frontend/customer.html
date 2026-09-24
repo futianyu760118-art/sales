@@ -1,6 +1,7 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 客户管理</title>
@@ -93,7 +94,7 @@
     .kpi-card { border-radius:10px; padding:12px 14px; color:#fff; position:relative; overflow:hidden; }
     .kpi-card .kpi-num { font-size:24px; font-weight:700; line-height:1.1; }
     .kpi-card .kpi-lbl { font-size:12px; opacity:.9; margin-top:2px; }
-    .kpi-card .kpi-ico { position:absolute; right:10px; top:8px; font-size:26px; opacity:.3; }
+    .kpi-card .ebms-icon { position:absolute; right:10px; top:8px; width:var(--icon-lg); height:var(--icon-lg); opacity:.42; }
     .kc-blue{background:linear-gradient(135deg,#4facfe,#00c6fb);} .kc-purple{background:linear-gradient(135deg,#667eea,#764ba2);}
     .kc-green{background:linear-gradient(135deg,#43e97b,#38f9d7);color:#0a6b3a;} .kc-orange{background:linear-gradient(135deg,#fa709a,#fee140);}
     .kc-red{background:linear-gradient(135deg,#ff6a00,#ee0979);} .kc-teal{background:linear-gradient(135deg,#2af598,#009efd);}
@@ -153,7 +154,7 @@
     /* 表单内附件行 */
     .fa-row { display:flex; align-items:center; gap:8px; padding:5px 8px; background:#fafbff; border:1px solid #eee; border-radius:6px; margin-bottom:5px; font-size:12px; }
     .fa-row.fa-pending { border-left:3px solid #f39c12; }
-    .fa-row .fa-ico { font-size:15px; }
+    .fa-row .fa-ico { display:inline-flex; width:var(--icon-sm); height:var(--icon-sm); }
     .fa-row .fa-name { flex:1; color:#444; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .fa-row .fa-size { color:#aaa; font-size:11px; }
     .fa-row .fa-del { background:none; border:none; color:#e74c3c; cursor:pointer; font-size:14px; padding:0 4px; }
@@ -216,10 +217,10 @@
     <!-- 客户分析仪表盘 -->
     <div class="cust-dash" id="custDashboard">
       <div class="cust-dash-head">
-        <h3>📊 客户多维度分析</h3>
+        <h3> 客户多维度分析</h3>
         <div class="dh-btns">
-          <button class="dh-btn" onclick="CustDash.toggleSettings()">显示设置 ▾</button>
-          <button class="dh-btn" id="dashCollapseBtn" onclick="CustDash.toggleCollapse()">折叠 ▴</button>
+          <button class="dh-btn" onclick="CustDash.toggleSettings()">显示设置 <span data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></button>
+          <button class="dh-btn" id="dashCollapseBtn" onclick="CustDash.toggleCollapse()">折叠 <span data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></button>
           <div class="dh-settings-panel" id="dashSettingsPanel">
             <div class="sp-title">勾选要显示的内容（自动记忆）</div>
             <div id="dashSettingsList"></div>
@@ -291,19 +292,19 @@
           <tr>
             <th class="chk-col"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
             <th class="seq-col">#</th>
-            <th class="sortable" data-field="customer_code">客户编号 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="name">客户全称 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="customer_level">客户等级 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="sales_mode">销售模式 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="customer_status">客户状态 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="decision_maker">决策人 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="contact_person">对接人 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="phone">联系电话 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="email">邮箱 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="customer_source">客户来源 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="country_region">国家/地区 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="sales_person">所属业务员 <span class="sort-arrow">&#8597;</span></th>
-            <th class="sortable" data-field="last_trade_year">最后交易 <span class="sort-arrow">&#8597;</span></th>
+            <th class="sortable" data-field="customer_code">客户编号 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="name">客户全称 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="customer_level">客户等级 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="sales_mode">销售模式 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="customer_status">客户状态 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="decision_maker">决策人 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="contact_person">对接人 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="phone">联系电话 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="email">邮箱 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="customer_source">客户来源 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="country_region">国家/地区 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="sales_person">所属业务员 <span class="sort-arrow"></span></th>
+            <th class="sortable" data-field="last_trade_year">最后交易 <span class="sort-arrow"></span></th>
             <th>操作</th>
           </tr>
         </thead>
@@ -312,11 +313,11 @@
     </div>
 
     <div class="table-scroll-bar" id="tableScrollBar">
-      <button class="scroll-btn" onclick="scrollTableLeft()" title="向左滚动">&#9664;&#9664;</button>
+      <button class="scroll-btn" onclick="scrollTableLeft()" title="向左滚动"></button>
       <div class="scroll-track" id="scrollTrack">
         <div class="scroll-thumb" id="scrollThumb"></div>
       </div>
-      <button class="scroll-btn" onclick="scrollTableRight()" title="向右滚动">&#9654;&#9654;</button>
+      <button class="scroll-btn" onclick="scrollTableRight()" title="向右滚动"></button>
     </div>
 
     <div class="pagination" id="pagination"></div>
@@ -535,20 +536,20 @@
       <span class="close-btn" onclick="closeModal('ocrModal')">&times;</span>
       <h3>拍照识别导入客户 <span style="font-size:12px;color:#999;font-weight:normal;">支持多张图片批量识别，无限制</span></h3>
       <div id="ocrHttpsTip" style="display:none;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#856404;">
-        ⚠️ 截图/拍照功能需要HTTPS安全连接。请使用 <a href="https://localhost:3001/customer.html" style="color:#0066cc;text-decoration:underline;">https://localhost:3001</a> 访问（首次需点击"高级"→"继续访问"）
+        ️ 截图/拍照功能需要HTTPS安全连接。请使用 <a href="https://localhost:3001/customer.html" style="color:#0066cc;text-decoration:underline;">https://localhost:3001</a> 访问（首次需点击"高级"→"继续访问"）
       </div>
       <div style="text-align:center;margin:15px 0;">
         <div id="ocrPreviewArea" style="display:none;margin-bottom:10px;max-height:180px;overflow-x:auto;white-space:nowrap;"></div>
         <div id="ocrDropZone" style="border:2px dashed #3498db;border-radius:8px;padding:30px;cursor:pointer;transition:all 0.3s;" onclick="document.getElementById('ocrFileInput').click()" onmouseover="this.style.background='#eaf4fc'" onmouseout="this.style.background=''">
-          <div style="font-size:32px;color:#3498db;">&#128247;</div>
+          <div style="font-size:32px;color:#3498db;"></div>
           <div style="color:#666;margin-top:8px;">点击拍照/上传 或 拖拽到此处</div>
           <div style="color:#999;font-size:12px;margin-top:4px;">支持 JPG/PNG/PDF/BMP，可多选，可粘贴截图</div>
           <div style="color:#3498db;font-size:12px;margin-top:4px;">Ctrl+V 粘贴剪贴板图片</div>
         </div>
         <input type="file" id="ocrFileInput" accept="image/*,.pdf" capture="environment" multiple style="display:none;" onchange="handleOcrFiles(this.files)">
         <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
-          <button type="button" class="btn" style="background:#2ecc71;color:#fff;padding:8px 16px;" onclick="startCameraCapture()">&#128247; 拍照</button>
-          <button type="button" class="btn" style="background:#e67e22;color:#fff;padding:8px 16px;" onclick="screenCapture()">&#128240; 截图</button>
+          <button type="button" class="btn" style="background:#2ecc71;color:#fff;padding:8px 16px;" onclick="startCameraCapture()"> 拍照</button>
+          <button type="button" class="btn" style="background:#e67e22;color:#fff;padding:8px 16px;" onclick="screenCapture()"> 截图</button>
         </div>
       </div>
       <!-- 摄像头拍照区域 -->
@@ -558,7 +559,7 @@
           <canvas id="ocrCameraCanvas" style="display:none;"></canvas>
         </div>
         <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
-          <button type="button" class="btn btn-primary" onclick="captureCameraPhoto()">&#128248; 拍摄</button>
+          <button type="button" class="btn btn-primary" onclick="captureCameraPhoto()"> 拍摄</button>
           <button type="button" class="btn" style="background:#eee;" onclick="stopCamera()">取消</button>
         </div>
       </div>
@@ -2180,7 +2181,7 @@
         const res=await fetch('/api/external-api/sync-customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply:false})});
         const d=await res.json();
         if(!res.ok){ body.innerHTML='<span style="color:#e74c3c;">'+(d.error||'预览失败')+'</span>'; return; }
-        let html='<div style="background:#fff8e1;border:1px solid #ffe082;padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:13px;color:#8a6d3b;">⚠ 以下是预览结果（尚未写入），确认后才会真正同步</div>';
+        let html='<div style="background:#fff8e1;border:1px solid #ffe082;padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:13px;color:#8a6d3b;"> 以下是预览结果（尚未写入），确认后才会真正同步</div>';
         html+='<div style="background:#f0f4ff;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;">'+d.message+'</div>';
         html+=syncStatsHtml(d)+syncDetailsHtml(d);
         html+='<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">';
@@ -2197,7 +2198,7 @@
         const res=await fetch('/api/external-api/sync-customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apply:true})});
         const d=await res.json();
         if(!res.ok){ btn.disabled=false; btn.textContent='确认执行同步'; body.insertAdjacentHTML('afterbegin','<div style="color:#e74c3c;margin-bottom:8px;">'+(d.error||'同步失败')+'</div>'); return; }
-        let html='<div style="background:#e8f5e9;border:1px solid #a5d6a7;padding:12px;border-radius:8px;margin-bottom:14px;font-size:14px;font-weight:600;color:#2e7d32;">✓ '+d.message+'</div>';
+        let html='<div style="background:#e8f5e9;border:1px solid #a5d6a7;padding:12px;border-radius:8px;margin-bottom:14px;font-size:14px;font-weight:600;color:#2e7d32;"> '+d.message+'</div>';
         html+=syncStatsHtml(d)+syncDetailsHtml(d);
         html+='<div style="text-align:right;margin-top:14px;"><button class="btn btn-primary" onclick="this.closest(\'div[style*=fixed]\')?.remove();loadCustomers();CustDash.load();">完成</button></div>';
         body.innerHTML=html;
@@ -2333,15 +2334,15 @@
             const isImg = a.is_image;
             let thumb;
             if (isLink && isImg) {
-              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><img src="${this.esc(a.url)}" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;att-file-ico&quot;>🔗</span>'"></div>`;
+              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><img src="${this.esc(a.url)}" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;att-file-ico&quot;></span>'"></div>`;
             } else if (isLink) {
-              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><span class="att-file-ico">🔗</span></div>`;
+              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><span class="att-file-ico"></span></div>`;
             } else if (isImg) {
               thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><img src="${API}/customers/attachments/${a.id}/preview" loading="lazy"></div>`;
             } else {
-              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><span class="att-file-ico">📄</span></div>`;
+              thumb = `<div class="att-thumb" onclick="CustAttach.preview(${a.id})"><span class="att-file-ico"></span></div>`;
             }
-            const meta = isLink ? '链接' : (this.fmtSize(a.size) + ' · ' + (a.uploaded_at || '').substring(0, 10));
+            const meta = isLink ? '链接' : (this.fmtSize(a.size) + '  ' + (a.uploaded_at || '').substring(0, 10));
             return `<div class="att-card">${thumb}
               <div class="att-info"><div class="att-name" title="${this.esc(a.is_link ? a.url : a.file_name)}">${this.esc(a.file_name)}</div><div class="att-meta">${meta}</div></div>
               <div class="att-ops">
@@ -2393,7 +2394,7 @@
           } else {
             const safeIframeUrl = window.safeUrl ? window.safeUrl(a.url) : '';
             if (!safeIframeUrl) {
-              body.innerHTML = '<div style="padding:40px;color:#e74c3c">⚠️ 不允许的链接协议，请通过原始链接打开</div>';
+              body.innerHTML = '<div style="padding:40px;color:#e74c3c">️ 不允许的链接协议，请通过原始链接打开</div>';
             } else {
               body.innerHTML = `<iframe src="${this.esc(safeIframeUrl)}" sandbox="allow-same-origin allow-scripts"></iframe>`;
             }
@@ -2511,10 +2512,10 @@
         if (!box) return;
         let html = '';
         if (this._existing.length) {
-          html += this._existing.map(a => `<div class="fa-row"><span class="fa-ico">${a.is_link ? '🔗' : (a.is_image ? '🖼️' : '📄')}</span><span class="fa-name" title="${this.esc(a.is_link ? a.url : a.file_name)}">${this.esc(a.file_name)}</span><span class="fa-size">${a.is_link ? '链接' : this.fmt(a.size)}</span><button type="button" class="fa-del" onclick="CustFormAtt.removeExisting(${a.id})">✕</button></div>`).join('');
+          html += this._existing.map(a => `<div class="fa-row"><span class="fa-ico">${EBMSIcons.render('file', { size: 'sm', decorative: true })}</span><span class="fa-name" title="${this.esc(a.is_link ? a.url : a.file_name)}">${this.esc(a.file_name)}</span><span class="fa-size">${a.is_link ? '链接' : this.fmt(a.size)}</span><button type="button" class="fa-del" onclick="CustFormAtt.removeExisting(${a.id})"></button></div>`).join('');
         }
         if (this._uploading.length) {
-          html += this._uploading.map(u => `<div class="fa-row fa-pending"><span class="fa-ico">${u.link ? '🔗' : '⏳'}</span><span class="fa-name">${this.esc(u.name)} <span style="color:#f39c12;font-size:10px;">上传中...</span></span><span class="fa-size">${u.size ? this.fmt(u.size) : ''}</span></div>`).join('');
+          html += this._uploading.map(u => `<div class="fa-row fa-pending"><span class="fa-ico">${EBMSIcons.render('upload', { size: 'sm', decorative: true })}</span><span class="fa-name">${this.esc(u.name)} <span style="color:#f39c12;font-size:10px;">上传中...</span></span><span class="fa-size">${u.size ? this.fmt(u.size) : ''}</span></div>`).join('');
         }
         if (!html) html = '<div style="color:#bbb;font-size:12px;">暂无附件，可"添加文件"或"粘贴链接"（即时上传）</div>';
         box.innerHTML = html;
@@ -2545,8 +2546,8 @@
     },
     PANELS: [
       {key:'kpi', label:'关键指标卡片'},
-      {key:'insights', label:'📈 智能文字分析'},
-      {key:'table', label:'📋 多维分析表格'},
+      {key:'insights', label:' 智能文字分析'},
+      {key:'table', label:' 多维分析表格'},
       {key:'level', label:'客户等级分布'},
       {key:'status', label:'客户状态分布'},
       {key:'mode', label:'销售模式分布'},
@@ -2560,15 +2561,15 @@
       {key:'topOrder', label:'订单金额 TOP10 客户'}
     ],
     KPI_SPECS: [
-      {key:'total', label:'客户总数', icon:'👥', cls:'kc-blue'},
-      {key:'inquiryCustomers', label:'询价客户', icon:'📋', cls:'kc-purple'},
-      {key:'orderCustomers', label:'订单客户', icon:'📦', cls:'kc-green'},
-      {key:'sampleCustomers', label:'样品客户', icon:'🧪', cls:'kc-orange'},
-      {key:'activeCustomers', label:'大货合作', icon:'🤝', cls:'kc-red'},
-      {key:'inquiryTotal', label:'询价总数', icon:'📈', cls:'kc-teal'},
-      {key:'orderTotal', label:'订单总数', icon:'🛒', cls:'kc-pink'},
-      {key:'sampleTotal', label:'样品总数', icon:'🧫', cls:'kc-lime'},
-      {key:'orderAmount', label:'订单金额(元)', icon:'💰', cls:'kc-indigo'}
+      {key:'total', label:'客户总数', icon:'user', cls:'kc-blue'},
+      {key:'inquiryCustomers', label:'询价客户', icon:'file', cls:'kc-purple'},
+      {key:'orderCustomers', label:'订单客户', icon:'package', cls:'kc-green'},
+      {key:'sampleCustomers', label:'样品客户', icon:'flask', cls:'kc-orange'},
+      {key:'activeCustomers', label:'大货合作', icon:'business', cls:'kc-red'},
+      {key:'inquiryTotal', label:'询价总数', icon:'analytics', cls:'kc-teal'},
+      {key:'orderTotal', label:'订单总数', icon:'sales', cls:'kc-pink'},
+      {key:'sampleTotal', label:'样品总数', icon:'package', cls:'kc-lime'},
+      {key:'orderAmount', label:'订单金额(元)', icon:'money', cls:'kc-indigo'}
     ],
     CHART_SPECS: {
       level:{t:'客户等级分布',type:'doughnut',dk:'byLevel'},
@@ -2620,8 +2621,8 @@
     _applyCollapsed(c) {
       const body = document.getElementById('dashBody');
       const btn = document.getElementById('dashCollapseBtn');
-      if (c) { body.classList.add('collapsed'); btn.textContent = '展开 ▾'; }
-      else { body.classList.remove('collapsed'); btn.textContent = '折叠 ▴'; }
+      if (c) { body.classList.add('collapsed'); btn.innerHTML = '展开 ' + EBMSIcons.render('chevron', { size: 'xs', decorative: true }); }
+      else { body.classList.remove('collapsed'); btn.innerHTML = '折叠 ' + EBMSIcons.render('chevron', { size: 'xs', decorative: true }); }
     },
     toggleSettings() { document.getElementById('dashSettingsPanel').classList.toggle('show'); },
 
@@ -2735,7 +2736,7 @@
       let html = '<div style="display:flex;gap:20px;flex-wrap:wrap;">';
 
       // 左侧：维度分布表
-      html += '<div style="flex:1;min-width:280px;"><h4 style="margin:0 0 6px;font-size:13px;">📊 维度分布</h4><div style="max-height:360px;overflow-y:auto;border:1px solid #e0e4ec;border-radius:6px;">';
+      html += '<div style="flex:1;min-width:280px;"><h4 style="margin:0 0 6px;font-size:13px;"> 维度分布</h4><div style="max-height:360px;overflow-y:auto;border:1px solid #e0e4ec;border-radius:6px;">';
       html += '<table><thead><tr><th>维度</th><th>分类</th><th>客户数</th></tr></thead><tbody>';
       dims.forEach(dim => {
         const items = d[dim.key] || [];
@@ -2748,7 +2749,7 @@
       html += '</tbody></table></div></div>';
 
       // 右侧：关键指标表
-      html += '<div style="flex:1;min-width:220px;"><h4 style="margin:0 0 6px;font-size:13px;">📈 关键指标速览</h4><div style="border:1px solid #e0e4ec;border-radius:6px;overflow:hidden;">';
+      html += '<div style="flex:1;min-width:220px;"><h4 style="margin:0 0 6px;font-size:13px;"> 关键指标速览</h4><div style="border:1px solid #e0e4ec;border-radius:6px;overflow:hidden;">';
       html += '<table><thead><tr><th>指标</th><th>数值</th></tr></thead><tbody>';
       bizMetrics.forEach(m => {
         html += `<tr><td class="l">${m.label}</td><td>${Number(m.val).toLocaleString()}</td></tr>`;
@@ -2761,7 +2762,7 @@
       html += '</tbody></table></div></div>';
 
       // 右侧扩展: 区域 TOP 与 业务员 TOP
-      html += '<div style="flex:1;min-width:200px;"><h4 style="margin:0 0 6px;font-size:13px;">🌍 地区 TOP6</h4><div style="max-height:360px;overflow-y:auto;border:1px solid #e0e4ec;border-radius:6px;">';
+      html += '<div style="flex:1;min-width:200px;"><h4 style="margin:0 0 6px;font-size:13px;"> 地区 TOP6</h4><div style="max-height:360px;overflow-y:auto;border:1px solid #e0e4ec;border-radius:6px;">';
       html += '<table><thead><tr><th>地区</th><th>客户数</th></tr></thead><tbody>';
       (d.byRegion || []).slice(0, 6).forEach(r => {
         html += `<tr><td class="l">${this._esc(r.label)}</td><td>${r.value}</td></tr>`;
@@ -2785,46 +2786,46 @@
       const cards = [];
 
       // 1. 总体规模与活跃度
-      cards.push(`<div class="ins-card"><div class="ins-title">📊 总体规模与活跃度</div><div class="ins-body">
+      cards.push(`<div class="ins-card"><div class="ins-title"> 总体规模与活跃度</div><div class="ins-body">
         共管理 <span class="ins-hl">${k.total}</span> 家客户，其中有业务往来（询价/订单/样品）的 <span class="ins-hl g">${k.activeBusiness}</span> 家（${pct(k.activeBusiness, k.total)}%），
         <span class="ins-hl o">${k.noBusiness}</span> 家尚无任何业务记录。大货合作客户 <span class="ins-hl">${k.activeCustomers}</span> 家，潜在客户 <span class="ins-hl">${potential}</span> 家。
-        ${k.noBusiness / (k.total||1) > 0.5 ? '<br>⚠ 超半数客户无业务往来，建议梳理客户库、激活或归档休眠客户。' : ''}
+        ${k.noBusiness / (k.total||1) > 0.5 ? '<br> 超半数客户无业务往来，建议梳理客户库、激活或归档休眠客户。' : ''}
       </div></div>`);
 
       // 2. 等级金字塔
       const highEnd = A + B;
-      cards.push(`<div class="ins-card ${D/(k.total||1) > 0.6 ? 'warn' : ''}"><div class="ins-title">🏆 客户等级金字塔</div><div class="ins-body">
+      cards.push(`<div class="ins-card ${D/(k.total||1) > 0.6 ? 'warn' : ''}"><div class="ins-title"> 客户等级金字塔</div><div class="ins-body">
         A级核心 <span class="ins-hl">${A}</span> 家（${pct(A, k.total)}%）、B级 <span class="ins-hl">${B}</span> 家、C级 <span class="ins-hl">${C}</span> 家、D级 <span class="ins-hl">${D}</span> 家（${pct(D, k.total)}%）。
         高价值客户（A+B）合计 <span class="ins-hl g">${highEnd}</span> 家，占比 ${pct(highEnd, k.total)}%。
-        ${D/(k.total||1) > 0.6 ? '<br>⚠ D级（新客/休眠）占比过高，客户金字塔底部庞大，建议加强 A/B 级重点客户维护与新客培育转化。' : '客户分层较为均衡，注意持续提升 A/B 级客户占比。'}
+        ${D/(k.total||1) > 0.6 ? '<br> D级（新客/休眠）占比过高，客户金字塔底部庞大，建议加强 A/B 级重点客户维护与新客培育转化。' : '客户分层较为均衡，注意持续提升 A/B 级客户占比。'}
       </div></div>`);
 
       // 3. 地域集中度
       const regions = d.byRegion || [];
       const top3 = regions.slice(0, 3);
       const top3Sum = top3.reduce((s, r) => s + r.value, 0);
-      cards.push(`<div class="ins-card ${top3Sum/(k.total||1) > 0.5 ? 'warn' : 'good'}"><div class="ins-title">🌍 地域分布集中度</div><div class="ins-body">
+      cards.push(`<div class="ins-card ${top3Sum/(k.total||1) > 0.5 ? 'warn' : 'good'}"><div class="ins-title"> 地域分布集中度</div><div class="ins-body">
         客户覆盖 <span class="ins-hl">${regions.length}</span> 个地区，主要集中在
         ${top3.map((r, i) => `${i?'、':''}<span class="ins-hl">${this._et(r.label)}</span>(${r.value}家)`).join('')}，
         TOP3 合计占比 <span class="ins-hl">${pct(top3Sum, k.total)}%</span>。
-        ${top3Sum/(k.total||1) > 0.5 ? '<br>⚠ 地域集中度偏高，存在区域依赖风险，建议拓展新地区分散风险。' : '地域分布较为分散，区域风险可控。'}
+        ${top3Sum/(k.total||1) > 0.5 ? '<br> 地域集中度偏高，存在区域依赖风险，建议拓展新地区分散风险。' : '地域分布较为分散，区域风险可控。'}
       </div></div>`);
 
       // 4. 业务转化漏斗
-      cards.push(`<div class="ins-card"><div class="ins-title">🔄 业务转化漏斗</div><div class="ins-body">
+      cards.push(`<div class="ins-card"><div class="ins-title"> 业务转化漏斗</div><div class="ins-body">
         发起过询价的客户 <span class="ins-hl">${k.inquiryCustomers}</span> 家（占 ${pct(k.inquiryCustomers, k.total)}%），
         寄送样品的客户 <span class="ins-hl">${k.sampleCustomers}</span> 家，
         产生订单的客户 <span class="ins-hl g">${k.orderCustomers}</span> 家（占 ${pct(k.orderCustomers, k.total)}%）。
         共 <span class="ins-hl">${k.inquiryTotal}</span> 条询价、<span class="ins-hl">${k.sampleTotal}</span> 个样品、<span class="ins-hl">${k.orderTotal}</span> 笔订单，
         累计订单金额 <span class="ins-hl g">¥${Number(k.orderAmount||0).toLocaleString()}</span>。
-        ${k.inquiryCustomers > 0 && k.orderCustomers/k.inquiryCustomers < 0.2 ? '<br>⚠ 询价到订单转化率偏低，建议优化报价跟进与样品转化流程。' : ''}
+        ${k.inquiryCustomers > 0 && k.orderCustomers/k.inquiryCustomers < 0.2 ? '<br> 询价到订单转化率偏低，建议优化报价跟进与样品转化流程。' : ''}
       </div></div>`);
 
       // 5. 客户来源
       const src = (d.bySource || []).slice(0, 3);
-      cards.push(`<div class="ins-card"><div class="ins-title">📢 客户来源渠道</div><div class="ins-body">
+      cards.push(`<div class="ins-card"><div class="ins-title"> 客户来源渠道</div><div class="ins-body">
         客户主要来自 ${src.map((s, i) => `${i?'、':''}<span class="ins-hl">${this._et(s.label)}</span>(${s.value}家)`).join('') || '暂无来源数据'}。
-        ${src[0] && src[0].value/(k.total||1) > 0.5 ? '⚠ 来源高度集中于单一渠道，建议拓展获客渠道。' : '获客渠道较为多元。'}
+        ${src[0] && src[0].value/(k.total||1) > 0.5 ? ' 来源高度集中于单一渠道，建议拓展获客渠道。' : '获客渠道较为多元。'}
       </div></div>`);
 
       // 6. 重点客户
@@ -2842,7 +2843,7 @@
       if (D/(k.total||1) > 0.6) risks.push(`D级休眠客户 ${D} 家占比过高`);
       if (top3Sum/(k.total||1) > 0.5) risks.push(`地域集中度高，TOP3 地区占 ${pct(top3Sum, k.total)}%`);
       if (k.inquiryCustomers > 0 && k.orderCustomers/k.inquiryCustomers < 0.2) risks.push('询价→订单转化率偏低');
-      cards.push(`<div class="ins-card risk"><div class="ins-title">⚠️ 风险提示与建议</div><div class="ins-body">
+      cards.push(`<div class="ins-card risk"><div class="ins-title">️ 风险提示与建议</div><div class="ins-body">
         ${risks.length ? risks.map(r => `• <span class="ins-hl r">${r}</span>`).join('<br>') : '当前各项指标平稳，暂无明显风险。'}<br>
         建议：定期复盘休眠客户、加强高价值客户维护、拓展获客地区与渠道、提升询价到订单的转化跟进。
       </div></div>`);
@@ -2859,7 +2860,7 @@
       wrap.innerHTML = this.KPI_SPECS.map(s => {
         let val = k[s.key] || 0;
         if (s.key === 'orderAmount') val = Number(val).toLocaleString();
-        return `<div class="kpi-card ${s.cls}"><span class="kpi-ico">${s.icon}</span><div class="kpi-num">${val}</div><div class="kpi-lbl">${s.label}</div></div>`;
+        return `<div class="kpi-card ${s.cls}">${EBMSIcons.render(s.icon, { size: 'lg', decorative: true })}<div class="kpi-num">${val}</div><div class="kpi-lbl">${s.label}</div></div>`;
       }).join('');
     },
 
@@ -2898,7 +2899,7 @@
       });
       const grad = 'conic-gradient(' + segs.map(s => `${s.color} ${s.start.toFixed(2)}deg ${s.end.toFixed(2)}deg`).join(',') + ')';
       const legend = segs.map(s =>
-        `<div class="cd-leg-item"><span class="cd-dot" style="background:${s.color}"></span><span class="cd-leg-txt" title="${this._esc(s.label)}">${this._esc(s.label)}</span><span class="cd-leg-val">${s.value} · ${s.pct.toFixed(0)}%</span></div>`
+        `<div class="cd-leg-item"><span class="cd-dot" style="background:${s.color}"></span><span class="cd-leg-txt" title="${this._esc(s.label)}">${this._esc(s.label)}</span><span class="cd-leg-val">${s.value}  ${s.pct.toFixed(0)}%</span></div>`
       ).join('');
       return `<div class="cd-pie-wrap"><div class="cd-pie" style="background:${grad}"><div class="cd-pie-hole">共${total}</div></div><div class="cd-legend">${legend}</div></div>`;
     },
@@ -2924,6 +2925,7 @@
 <script src="permission-check.js"></script><script>PermissionCheck.init();DictLoader.fillAll([{select:'fCustomerSource',group:'customer_source',placeholder:'请选择'},{select:'fCountryRegion',group:'country_region',placeholder:'请选择'}]);</script>
 <script src="data-scope.js"></script><script>(async()=>{await window.DataScope.load();try{window.DataScope.renderBanner('.search-bar');}catch(e){console.warn('scope banner',e);}})();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="feature-gate.js"></script><script>FeatureGate.init();</script>
 </body>
 </html>

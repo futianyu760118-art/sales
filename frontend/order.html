@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 订单管理</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 订单管理</title><link rel="stylesheet" href="common.css">
 <style>
 .sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
@@ -41,7 +42,7 @@ tr:hover td{background:#f8f9ff}
 .profit-pos{color:#27ae60;font-weight:600}
 .profit-neg{color:#e74c3c;font-weight:700}
 .tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
-.expand-icon{cursor:pointer;color:#667eea;font-size:14px;user-select:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;transition:all .2s}
+.expand-icon{cursor:pointer;color:#667eea;user-select:none;display:inline-flex;align-items:center;justify-content:center;width:var(--icon-md);height:var(--icon-md);border-radius:4px;transition:all .2s}
 .expand-icon:hover{background:#e8eaf6}
 .expand-icon.expanded{transform:rotate(90deg)}
 .group-row{background:#f0f4ff!important;font-weight:500}
@@ -80,6 +81,7 @@ tr:hover td{background:#f8f9ff}
 <option value="shipped">已发货</option><option value="completed">已完成</option><option value="closed">已关闭</option><option value="cancelled">已取消</option>
 </select>
 <select id="oRisk"><option value="">全部风险</option><option value="high">高风险</option><option value="medium">中风险</option><option value="low">低风险</option><option value="blue">蓝</option><option value="yellow">黄</option><option value="red">红</option></select>
+<select id="oYear" title="按承诺交期所在年份过滤" onchange="loadOrders(1);loadStats()"></select>
 <button class="btn b1" onclick="loadOrders(1)">搜索</button>
 <button class="btn b2" onclick="exportOrders()">导出数据</button>
 <span style="margin-left:auto;color:#888;font-size:12px">数据源：外部 ERP（orders.list + order_details.list）</span>
@@ -134,6 +136,7 @@ tr:hover td{background:#f8f9ff}
 const API='/api/orders';
 const LIST_API='/api/external-api/orders-with-progress';
 const PROD_API='/api/external-api/orders';   // /:order_no/products
+const LIVE_STATS_API='/api/external-api/orders-stats';  // 顶部统计卡：外部 ERP 实时聚合
 const statusMap={open:'待确认',confirmed:'已确认',procurement_ready:'采购就绪',material_ready:'物料就绪',packaging_done:'包装完成',shipped:'已发货',completed:'已完成',closed:'已关闭',cancelled:'已取消'};
 const statusCls={open:'st-open',confirmed:'st-confirmed',procurement_ready:'st-proc',material_ready:'st-ready',packaging_done:'st-pkg',shipped:'st-shipped',completed:'st-completed',closed:'st-closed',cancelled:'st-cancelled'};
 const statusFlow=['open','confirmed','procurement_ready','material_ready','packaging_done','shipped','completed'];
@@ -162,16 +165,21 @@ function renderDateLate(promised, finished, val, kind){
 
 async function loadStats(){
   try{
-    const r=await fetch(API+'/stats');const d=await r.json();
+    const yr = document.getElementById('oYear') ? document.getElementById('oYear').value : '';
+    const r = await fetch(LIVE_STATS_API + (yr ? ('?year=' + yr) : ''));
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || r.status);
+    const yLbl = yr ? (yr + '年') : '全部';
     document.getElementById('oStats').innerHTML=`
-      <div class="sc"><div class="n">${d.total||0}</div><div class="l">本地订单总数</div></div>
+      <div class="sc"><div class="n">${d.total||0}</div><div class="l">订单总数（${yLbl}·ERP实时）</div></div>
       <div class="sc"><div class="n" style="color:#3498db">${d.by_status?.open||0}</div><div class="l">待确认</div></div>
-      <div class="sc"><div class="n" style="color:#27ae60">${d.by_status?.confirmed||0}</div><div class="l">已确认</div></div>
-      <div class="sc"><div class="n" style="color:#e67e22">${d.by_status?.procurement_ready||0}</div><div class="l">采购就绪</div></div>
+      <div class="sc"><div class="n" style="color:#8e44ad">${d.by_status?.shipped||0}</div><div class="l">发货完成</div></div>
       <div class="sc"><div class="n" style="color:#e74c3c">${d.by_status?.completed||0}</div><div class="l">已完成</div></div>
-      <div class="sc"><div class="n">${fmtMoney(d.total_amount||0)}</div><div class="l">本地订单总额</div></div>
+      <div class="sc"><div class="n">${fmtMoney(d.total_amount||0)}</div><div class="l">订单总额（${yLbl}）</div></div>
     `;
-  }catch(e){console.error(e)}
+  }catch(e){
+    document.getElementById('oStats').innerHTML='<div class="sc" style="grid-column:1/-1"><div class="l" style="color:#e74c3c">统计加载失败（外部 ERP）：'+esc(e.message)+'</div></div>';
+  }
 }
 
 // 手动从外部ERP同步：状态 + 计划交期 + 上线时间（不会自动触发，必须点此按钮）
@@ -243,7 +251,7 @@ async function toggleProductsExpand(orderNo, idx) {
     const sumAmt = rows.reduce((s, r) => s + (Number(r.order_amount) || 0), 0);
     tr.querySelector('.prod-expand-box').innerHTML =
       '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">' +
-        '<b>📦 产品明细</b>' +
+        '<b> 产品明细</b>' +
         '<span class="badge" style="background:#eef;color:#667eea">' + rows.length + ' 个产品</span>' +
         '<span style="font-size:11px;color:#888">合计数量 ' + sumQty + ' / 金额 ' + fmtMoney(sumAmt) + '</span>' +
         '<span style="flex:1"></span>' +
@@ -288,9 +296,11 @@ async function loadOrders(page){
   const p = new URLSearchParams({ page: oPage, page_size: oPageSize });
   const kw = document.getElementById('oKw').value, st = document.getElementById('oStatus').value;
   const risk = document.getElementById('oRisk').value;
+  const yr = document.getElementById('oYear') ? document.getElementById('oYear').value : '';
   if(kw) p.set('keyword', kw);
   if(st) p.set('status', st);
   if(risk) p.set('risk_level', risk);
+  if(yr) p.set('year', yr);
   try{
     const r = await fetch(LIST_API + '?' + p.toString());
     if(!r.ok) {
@@ -343,9 +353,9 @@ async function loadOrders(page){
       const finished = !!ship; // 已发货即视为非逾期
       const single = items.length === 1;
       // 父行 HTML
-      const lockBadge = lockedAny ? '<span class="lock-badge" title="本地已锁定状态，下次外部同步不会覆盖">🔒 已本地修改</span>' : '';
+      const lockBadge = lockedAny ? '<span class="lock-badge" title="本地已锁定状态，下次外部同步不会覆盖"> 已本地修改</span>' : '';
       html += '<tr class="group-row" data-group="' + grpKey + '">' +
-        '<td class="seq-col"><span class="expand-icon" onclick="toggleOrderGroup(\'' + grpKey + '\')">&#9654;</span></td>' +
+        '<td class="seq-col"><span class="expand-icon" data-icon="expand" data-icon-size="xs" aria-hidden="true" onclick="toggleOrderGroup(\'' + grpKey + '\')"></span></td>' +
         '<td></td>' +
         '<td><b>' + esc(first.order_no || '-') + '</b><span class="sub-count">' + items.length + '</span>' + lockBadge + '</td>' +
         '<td>' + esc((first.customer||'').substring(0, 14)) + '</td>' +
@@ -372,7 +382,7 @@ async function loadOrders(page){
         let flowBtns = '';
         flowSts.forEach(ns => { flowBtns += '<button class="btn bs b1" onclick="changeStatusByNo(\'' + esc(o.order_no) + '\',\'' + ns + '\')">' + statusMap[ns] + '</button> '; });
         const isFinished = !!o.ship_date;
-        const rowLockBadge = Number(o.user_status_locked) === 1 ? '<span class="lock-badge" title="本地已锁定状态">🔒</span>' : '';
+        const rowLockBadge = Number(o.user_status_locked) === 1 ? '<span class="lock-badge" title="本地已锁定状态"></span>' : '';
         // 显示状态时若本地与外部不一致且本地已锁：标"本地"+"外部"两组状态
         const localStatus = Number(o.user_status_locked) === 1 && o.local_status && o.local_status !== o.status ? '<span class="lock-badge" title="本地：'+esc(o.local_status)+' / 外部：'+esc(o.status)+'">本地</span>' : '';
         html += '<tr class="sub-row" data-group="' + grpKey + '" data-grp="' + gIdx + '" data-orderno="' + esc(o.order_no) + '">' +
@@ -588,6 +598,8 @@ function exportOrders(){
   const headers=['订单号','行号','客户','客户代码','产品代码','产品名称','数量','完成数','金额','状态','风险','承诺交期','计划上线','入库','发货','交付'];
   const cs = window.csvSafe || (s => /^[=+\-@\t\r]/.test(String(s)) ? "'"+s : s);
   const p=new URLSearchParams({ page: 1, page_size: 500 });
+  const yr = document.getElementById('oYear') ? document.getElementById('oYear').value : '';
+  if(yr) p.set('year', yr);
   fetch(LIST_API + '?' + p.toString()).then(r=>r.json()).then(async d => {
     const list = d.data || [];
     if (list.length === 0) { alert('暂无数据可导出'); return; }
@@ -655,10 +667,20 @@ function renderField([key,label,type],data){
   return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}">`;
 }
 
+// 年份下拉：默认当年（数据最早 2018 年），可切换其他年份或全部
+(function(){
+  const cy = new Date().getFullYear();
+  const sel = document.getElementById('oYear');
+  let h = '<option value="">全部年份</option>';
+  for(let y = cy; y >= 2018; y--) h += '<option value="' + y + '"' + (y === cy ? ' selected' : '') + '>' + y + '年</option>';
+  sel.innerHTML = h;
+})();
+
 loadStats();
 loadOrders(1);
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="common.js"></script>
 

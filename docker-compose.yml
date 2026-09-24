@@ -1,17 +1,26 @@
-version: '3.8'
 services:
   sales-service-system:
-    image: sales-service-system-fixed:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sales-service-system:latest
     container_name: sales-service-system
     ports:
       - "3010:3010"
     volumes:
       - ./database:/app/database
       - ./uploads:/app/uploads
-      - ./backend:/app/backend
-      - ./frontend:/app/frontend
     environment:
       - PORT=3010
       - NODE_ENV=production
       - TZ=Asia/Shanghai
-    restart: unless-stopped
+    # always：无论退出码如何都自动拉起，避免进程消失后页面长期打不开
+    restart: always
+    # 给 Node 收尾/落盘留出时间，避免 SIGKILL 导致 SQLite 处于未 checkpoint 状态
+    stop_grace_period: 30s
+    # 限制日志体积，避免容器日志无限增长占满磁盘
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"

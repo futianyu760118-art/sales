@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 智能助手</title>
@@ -10,7 +11,7 @@
     .tab { flex: 1; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 14px; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s; }
     .tab:hover { background: #f8f9ff; color: #667eea; }
     .tab.active { color: #667eea; border-bottom-color: #667eea; background: #f0f2ff; font-weight: 600; }
-    .tab-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+    .tab .ebms-icon { display:block; margin:0 auto 4px; }
 
     .panel { display: none; }
     .panel.active { display: block; }
@@ -94,7 +95,7 @@
     .insight-icon { font-size: 18px; }
 
     .empty-state { text-align: center; padding: 40px; color: #999; }
-    .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
+    .empty-state .ebms-icon { width:var(--icon-xl); height:var(--icon-xl); margin-bottom:10px; }
 
     .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
     .filter-bar select, .filter-bar input { padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
@@ -104,9 +105,9 @@
   <div class="sidebar" id="sidebar"></div>
   <div class="main-content">
     <div class="page-header">
-      <h2>🤖 智能助手</h2>
+      <h2> 智能助手</h2>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-primary" onclick="runAutoEngine()" id="autoRunBtn" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;padding:8px 20px;">🚀 一键自动运行</button>
+        <button class="btn btn-primary" onclick="runAutoEngine()" id="autoRunBtn" style="background:linear-gradient(135deg,#667eea,#764ba2);font-size:14px;padding:8px 20px;"> 一键自动运行</button>
         <span id="autoRunStatus" style="font-size:12px;color:#999;"></span>
       </div>
     </div>
@@ -114,23 +115,23 @@
     <div class="stat-cards" id="dashboardStats"></div>
 
     <div class="content-box" id="autoResultPanel" style="display:none;border:2px solid #667eea;background:linear-gradient(135deg,#f8f9ff,#f0f2ff);">
-      <h3 style="color:#667eea;">🚀 自动化运行结果 <span id="autoRunTime" style="font-size:12px;color:#999;font-weight:normal;"></span></h3>
+      <h3 style="color:#667eea;"> 自动化运行结果 <span id="autoRunTime" style="font-size:12px;color:#999;font-weight:normal;"></span></h3>
       <div id="autoResultContent"></div>
     </div>
 
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('learn')"><span class="tab-icon">📚</span>自我学习</div>
-      <div class="tab" onclick="switchTab('summary')"><span class="tab-icon">📊</span>总结</div>
-      <div class="tab" onclick="switchTab('plan')"><span class="tab-icon">📋</span>计划</div>
-      <div class="tab" onclick="switchTab('review')"><span class="tab-icon">🔍</span>复盘分析</div>
-      <div class="tab" onclick="switchTab('solution')"><span class="tab-icon">💡</span>方案</div>
-      <div class="tab" onclick="switchTab('action')"><span class="tab-icon">🎯</span>行动</div>
+      <div class="tab active" onclick="switchTab('learn')"><span data-icon="learning" data-icon-size="sm" aria-hidden="true"></span>自我学习</div>
+      <div class="tab" onclick="switchTab('summary')"><span data-icon="report" data-icon-size="sm" aria-hidden="true"></span>总结</div>
+      <div class="tab" onclick="switchTab('plan')"><span data-icon="calendar" data-icon-size="sm" aria-hidden="true"></span>计划</div>
+      <div class="tab" onclick="switchTab('review')"><span data-icon="analytics" data-icon-size="sm" aria-hidden="true"></span>复盘分析</div>
+      <div class="tab" onclick="switchTab('solution')"><span data-icon="ai" data-icon-size="sm" aria-hidden="true"></span>方案</div>
+      <div class="tab" onclick="switchTab('action')"><span data-icon="target" data-icon-size="sm" aria-hidden="true"></span>行动</div>
     </div>
 
     <!-- 自我学习 -->
     <div class="panel active" id="panel-learn">
       <div class="content-box">
-        <h3>📚 学习记录 <button class="btn-sm btn-primary-sm" onclick="showLearnModal()">+ 新增</button></h3>
+        <h3> 学习记录 <button class="btn-sm btn-primary-sm" onclick="showLearnModal()">+ 新增</button></h3>
         <div class="filter-bar">
           <input type="text" id="learnSearch" placeholder="搜索问题..." oninput="loadLearns()">
           <select id="learnCategory" onchange="loadLearns()">
@@ -150,7 +151,7 @@
     <!-- 总结 -->
     <div class="panel" id="panel-summary">
       <div class="content-box">
-        <h3>📊 业务总结 <button class="btn-sm btn-primary-sm" onclick="generateSummary()">⚡ 自动生成</button> <button class="btn-sm btn-success-sm" onclick="showSummaryModal()">+ 手动新增</button></h3>
+        <h3> 业务总结 <button class="btn-sm btn-primary-sm" onclick="generateSummary()"> 自动生成</button> <button class="btn-sm btn-success-sm" onclick="showSummaryModal()">+ 手动新增</button></h3>
         <div class="filter-bar">
           <select id="summaryType" onchange="loadSummaries()">
             <option value="">全部类型</option>
@@ -169,7 +170,7 @@
     <!-- 计划 -->
     <div class="panel" id="panel-plan">
       <div class="content-box">
-        <h3>📋 工作计划 <button class="btn-sm btn-primary-sm" onclick="showPlanModal()">+ 新增计划</button></h3>
+        <h3> 工作计划 <button class="btn-sm btn-primary-sm" onclick="showPlanModal()">+ 新增计划</button></h3>
         <div class="filter-bar">
           <select id="planType" onchange="loadPlans()">
             <option value="">全部类型</option>
@@ -192,7 +193,7 @@
     <!-- 复盘分析 -->
     <div class="panel" id="panel-review">
       <div class="content-box">
-        <h3>🔍 复盘分析 <button class="btn-sm btn-primary-sm" onclick="autoReview()">⚡ 自动复盘</button> <button class="btn-sm btn-success-sm" onclick="showReviewModal()">+ 手动复盘</button></h3>
+        <h3> 复盘分析 <button class="btn-sm btn-primary-sm" onclick="autoReview()"> 自动复盘</button> <button class="btn-sm btn-success-sm" onclick="showReviewModal()">+ 手动复盘</button></h3>
         <div class="filter-bar">
           <select id="reviewType" onchange="loadReviews()">
             <option value="">全部类型</option>
@@ -214,7 +215,7 @@
     <!-- 方案 -->
     <div class="panel" id="panel-solution">
       <div class="content-box">
-        <h3>💡 解决方案 <button class="btn-sm btn-primary-sm" onclick="autoSolution()">⚡ 智能生成</button> <button class="btn-sm btn-success-sm" onclick="showSolutionModal()">+ 手动新增</button></h3>
+        <h3> 解决方案 <button class="btn-sm btn-primary-sm" onclick="autoSolution()"> 智能生成</button> <button class="btn-sm btn-success-sm" onclick="showSolutionModal()">+ 手动新增</button></h3>
         <div class="filter-bar">
           <select id="solutionStatus" onchange="loadSolutions()">
             <option value="">全部状态</option>
@@ -237,7 +238,7 @@
     <!-- 行动 -->
     <div class="panel" id="panel-action">
       <div class="content-box">
-        <h3>🎯 行动清单 <button class="btn-sm btn-primary-sm" onclick="showActionModal()">+ 新增行动</button></h3>
+        <h3> 行动清单 <button class="btn-sm btn-primary-sm" onclick="showActionModal()">+ 新增行动</button></h3>
         <div class="filter-bar">
           <select id="actionStatus" onchange="loadActions()">
             <option value="">全部状态</option>
@@ -398,7 +399,7 @@ async function loadLearns() {
     const data = await res.json();
     const list = document.getElementById('learnList');
     if (data.length === 0) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">📚</div>暂无学习记录</div>';
+      list.innerHTML = '<div class="empty-state"><span data-icon="learning" data-icon-size="xl" aria-hidden="true"></span>暂无学习记录</div>';
       return;
     }
     list.innerHTML = data.map(r => `
@@ -458,7 +459,7 @@ async function loadSummaries() {
     const data = await res.json();
     const list = document.getElementById('summaryList');
     if (data.length === 0) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">📊</div>暂无总结，点击"自动生成"快速创建</div>';
+      list.innerHTML = '<div class="empty-state"><span data-icon="report" data-icon-size="xl" aria-hidden="true"></span>暂无总结，点击"自动生成"快速创建</div>';
       return;
     }
     list.innerHTML = data.map(s => `
@@ -469,7 +470,7 @@ async function loadSummaries() {
         </div>
         <div style="font-size:12px;color:#999;margin:6px 0;">${s.date_range_start || ''} ~ ${s.date_range_end || ''}</div>
         <div style="font-size:13px;color:#555;white-space:pre-wrap;">${s.content}</div>
-        <div style="font-size:11px;color:#999;margin-top:8px;">${s.user} · ${(s.created_at || '').substring(0, 16)}</div>
+        <div style="font-size:11px;color:#999;margin-top:8px;">${s.user}  ${(s.created_at || '').substring(0, 16)}</div>
       </div>
     `).join('');
   } catch(e) { console.error(e); }
@@ -531,7 +532,7 @@ async function loadPlans() {
     const data = await res.json();
     const list = document.getElementById('planList');
     if (data.length === 0) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">📋</div>暂无计划</div>';
+      list.innerHTML = '<div class="empty-state"><span data-icon="calendar" data-icon-size="xl" aria-hidden="true"></span>暂无计划</div>';
       return;
     }
     list.innerHTML = data.map(p => {
@@ -610,7 +611,7 @@ async function loadReviews() {
     const data = await res.json();
     const list = document.getElementById('reviewList');
     if (data.length === 0) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div>暂无复盘，点击"自动复盘"快速分析</div>';
+      list.innerHTML = '<div class="empty-state"><span data-icon="analytics" data-icon-size="xl" aria-hidden="true"></span>暂无复盘，点击"自动复盘"快速分析</div>';
       return;
     }
     list.innerHTML = data.map(r => {
@@ -632,7 +633,7 @@ async function loadReviews() {
           ${rootCauses.length > 0 ? `<div style="margin:8px 0;"><strong style="font-size:13px;">根因:</strong>${rootCauses.map(c => `<div style="font-size:13px;color:#c0392b;padding:4px 8px;">${typeof c === 'string' ? c : c.content}</div>`).join('')}</div>` : ''}
           ${lessons.length > 0 ? `<div style="margin:8px 0;"><strong style="font-size:13px;">经验:</strong>${lessons.map(l => `<div style="font-size:13px;color:#2980b9;padding:4px 8px;">${typeof l === 'string' ? l : l.content}</div>`).join('')}</div>` : ''}
           ${improvements.length > 0 ? `<div style="margin:8px 0;"><strong style="font-size:13px;">改进:</strong>${improvements.map(i => `<div style="font-size:13px;color:#27ae60;padding:4px 8px;">${typeof i === 'string' ? i : i.content}</div>`).join('')}</div>` : ''}
-          <div style="font-size:11px;color:#999;margin-top:8px;">${r.user} · ${(r.created_at || '').substring(0, 16)}</div>
+          <div style="font-size:11px;color:#999;margin-top:8px;">${r.user}  ${(r.created_at || '').substring(0, 16)}</div>
         </div>
       `;
     }).join('');
@@ -691,7 +692,7 @@ async function loadSolutions() {
     const data = await res.json();
     const list = document.getElementById('solutionList');
     if (data.length === 0) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">💡</div>暂无方案，点击"智能生成"快速创建</div>';
+      list.innerHTML = '<div class="empty-state"><span data-icon="ai" data-icon-size="xl" aria-hidden="true"></span>暂无方案，点击"智能生成"快速创建</div>';
       return;
     }
     list.innerHTML = data.map(s => {
@@ -715,7 +716,7 @@ async function loadSolutions() {
             ${s.status === 'draft' ? `<button class="btn-sm btn-primary-sm" onclick="updateSolutionStatus(${s.id}, 'executing')">开始执行</button>` : ''}
             ${s.status === 'executing' ? `<button class="btn-sm btn-success-sm" onclick="updateSolutionStatus(${s.id}, 'completed')">完成</button>` : ''}
           </div>
-          <div style="font-size:11px;color:#999;margin-top:8px;">${s.user} · ${(s.created_at || '').substring(0, 16)}</div>
+          <div style="font-size:11px;color:#999;margin-top:8px;">${s.user}  ${(s.created_at || '').substring(0, 16)}</div>
         </div>
       `;
     }).join('');
@@ -789,7 +790,7 @@ async function loadActions() {
     const data = await res.json();
     const list = document.getElementById('actionList');
     if (data.length === 0) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">🎯</div>暂无行动</div>';
+      list.innerHTML = '<div class="empty-state"><span data-icon="target" data-icon-size="xl" aria-hidden="true"></span>暂无行动</div>';
       return;
     }
     list.innerHTML = data.map(a => {
@@ -797,17 +798,17 @@ async function loadActions() {
       const isOverdue = !isDone && a.deadline && a.deadline < new Date().toISOString().substring(0, 10);
       return `
         <div class="action-item" style="${isOverdue ? 'border-color:#e74c3c;' : ''}">
-          <div class="action-check ${isDone ? 'done' : ''}" onclick="toggleAction(${a.id}, '${a.status}')">${isDone ? '✓' : ''}</div>
+          <div class="action-check ${isDone ? 'done' : ''}" onclick="toggleAction(${a.id}, '${a.status}')">${isDone ? '' : ''}</div>
           <div class="action-content ${isDone ? 'completed' : ''}">
             <div style="font-size:14px;">${a.content}</div>
             <div style="display:flex;gap:8px;margin-top:4px;font-size:12px;color:#999;">
-              ${a.assignee ? `<span>👤 ${a.assignee}</span>` : ''}
-              ${a.deadline ? `<span style="${isOverdue ? 'color:#e74c3c;' : ''}">📅 ${a.deadline}</span>` : ''}
+              ${a.assignee ? `<span> ${a.assignee}</span>` : ''}
+              ${a.deadline ? `<span style="${isOverdue ? 'color:#e74c3c;' : ''}"> ${a.deadline}</span>` : ''}
               <span>${(a.created_at || '').substring(0, 10)}</span>
             </div>
           </div>
           <span class="priority-tag ${a.priority}">${a.priority === 'high' ? '高' : a.priority === 'medium' ? '中' : '低'}</span>
-          ${!isDone ? `<button class="btn-sm btn-danger-sm" onclick="deleteAction(${a.id})" data-perm="ai:delete" style="margin-left:4px;">✕</button>` : ''}
+          ${!isDone ? `<button class="btn-sm btn-danger-sm" onclick="deleteAction(${a.id})" data-perm="ai:delete" style="margin-left:4px;"></button>` : ''}
         </div>
       `;
     }).join('');
@@ -856,7 +857,7 @@ async function runAutoEngine() {
   const btn = document.getElementById('autoRunBtn');
   const statusEl = document.getElementById('autoRunStatus');
   btn.disabled = true;
-  btn.textContent = '⏳ 运行中...';
+  btn.textContent = ' 运行中...';
   statusEl.textContent = '正在扫描问题、自我学习、总结归纳、生成计划、输出行动...';
 
   try {
@@ -867,13 +868,13 @@ async function runAutoEngine() {
     });
     const data = await res.json();
     showAutoResult(data);
-    statusEl.textContent = `✅ 运行完成`;
+    statusEl.textContent = ` 运行完成`;
   } catch(e) {
-    statusEl.textContent = `❌ 运行失败: ${e.message}`;
+    statusEl.textContent = ` 运行失败: ${e.message}`;
   } finally {
     autoRunRunning = false;
     btn.disabled = false;
-    btn.textContent = '🚀 一键自动运行';
+    btn.textContent = ' 一键自动运行';
     loadDashboard();
     loadLearns();
     loadSummaries();
@@ -893,7 +894,7 @@ function showAutoResult(data) {
 
   if (data.scan && data.scan.length > 0) {
     html += `<div style="margin-bottom:16px;">
-      <h4 style="color:#e74c3c;margin-bottom:8px;">🔍 发现 ${data.scan.length} 个问题</h4>
+      <h4 style="color:#e74c3c;margin-bottom:8px;"> 发现 ${data.scan.length} 个问题</h4>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
       ${data.scan.map(p => {
         const severityColor = p.severity === 'high' ? '#e74c3c' : p.severity === 'medium' ? '#f39c12' : '#2980b9';
@@ -907,28 +908,28 @@ function showAutoResult(data) {
       </div>
     </div>`;
   } else {
-    html += `<div style="padding:12px;background:#e8f5e9;border-radius:8px;color:#27ae60;margin-bottom:16px;">✅ 未发现新问题，系统运行良好</div>`;
+    html += `<div style="padding:12px;background:#e8f5e9;border-radius:8px;color:#27ae60;margin-bottom:16px;"> 未发现新问题，系统运行良好</div>`;
   }
 
   if (data.learned && data.learned.length > 0) {
     const created = data.learned.filter(l => l.status === 'created').length;
     const updated = data.learned.filter(l => l.status === 'updated').length;
     html += `<div style="margin-bottom:16px;">
-      <h4 style="color:#667eea;margin-bottom:8px;">📚 自我学习: 新增${created}条, 更新${updated}条</h4>
+      <h4 style="color:#667eea;margin-bottom:8px;"> 自我学习: 新增${created}条, 更新${updated}条</h4>
       <div style="font-size:12px;color:#666;">${data.learned.slice(0, 5).map(l => `<div style="padding:4px 0;">• ${l.question} ${l.status === 'created' ? '(新)' : `(命中${l.hit_count}次)`}</div>`).join('')}</div>
     </div>`;
   }
 
   if (data.summary) {
     html += `<div style="margin-bottom:16px;">
-      <h4 style="color:#27ae60;margin-bottom:8px;">📊 自动总结: ${data.summary.status === 'created' ? '已生成' : '今日已存在'}</h4>
+      <h4 style="color:#27ae60;margin-bottom:8px;"> 自动总结: ${data.summary.status === 'created' ? '已生成' : '今日已存在'}</h4>
       ${data.summary.title ? `<div style="font-size:13px;color:#555;">${data.summary.title}</div>` : ''}
     </div>`;
   }
 
   if (data.plans && data.plans.length > 0) {
     html += `<div style="margin-bottom:16px;">
-      <h4 style="color:#f39c12;margin-bottom:8px;">📋 自动计划: ${data.plans.filter(p => p.status === 'created').length}个新计划</h4>
+      <h4 style="color:#f39c12;margin-bottom:8px;"> 自动计划: ${data.plans.filter(p => p.status === 'created').length}个新计划</h4>
       ${data.plans.map(p => `<div style="font-size:13px;color:#555;">• ${p.title} ${p.status === 'created' ? '(新)' : '(已存在)'}</div>`).join('')}
     </div>`;
   }
@@ -936,13 +937,13 @@ function showAutoResult(data) {
   if (data.actions && data.actions.length > 0) {
     const created = data.actions.filter(a => a.status === 'created').length;
     html += `<div style="margin-bottom:16px;">
-      <h4 style="color:#8e44ad;margin-bottom:8px;">🎯 自动行动: 新增${created}条行动</h4>
+      <h4 style="color:#8e44ad;margin-bottom:8px;"> 自动行动: 新增${created}条行动</h4>
       <div style="font-size:12px;color:#666;">${data.actions.filter(a => a.status === 'created').slice(0, 5).map(a => `<div style="padding:4px 0;">• ${a.content} [${a.priority}]</div>`).join('')}</div>
     </div>`;
   }
 
   if (data.error) {
-    html += `<div style="padding:12px;background:#ffeaea;border-radius:8px;color:#e74c3c;">❌ 错误: ${data.error}</div>`;
+    html += `<div style="padding:12px;background:#ffeaea;border-radius:8px;color:#e74c3c;"> 错误: ${data.error}</div>`;
   }
 
   content.innerHTML = html;
@@ -978,5 +979,6 @@ init();
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 </body>
 </html>

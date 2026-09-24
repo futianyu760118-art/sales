@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 仪表盘</title>
@@ -65,7 +66,7 @@
     .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .action-btn { padding: 15px; background: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.3s; text-align: center; }
     .action-btn:hover { transform: translateY(-3px); }
-    .action-btn .icon { font-size: 22px; margin-bottom: 6px; display: block; }
+    .action-btn > span:first-child { display:block; margin-bottom:6px; }
     .action-btn span { display: block; color: #333; font-weight: 500; font-size: 13px; }
 
     .activity-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
@@ -176,6 +177,23 @@
       <h2>欢迎回来</h2>
     </div>
 
+    <section class="workbench-intro" aria-label="经营工作台摘要">
+      <div class="workbench-summary">
+        <div class="workbench-eyebrow">Management cockpit</div>
+        <h1>我的经营工作台</h1>
+        <p>聚焦本周期目标、异常与待决策事项，让每天的经营动作有方向、有依据。</p>
+        <div class="workbench-period" title="经营周期可由公共周期组件接入 API">经营周期：2026-06-20 至 2026-07-19 <span data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></div>
+      </div>
+      <aside class="workbench-ai" aria-label="AI 经营建议">
+        <h3><span class="ebms-icon-text"><span data-icon="ai" data-icon-size="sm" aria-hidden="true"></span><span>AI 经营提示</span></span></h3>
+        <p>当前最值得关注的是华东区域目标缺口与客户回款逾期。建议先处理高概率机会，再安排回款行动。</p>
+        <div class="workbench-ai-actions">
+          <a href="ai-assistant.html">查看推理</a>
+          <a href="order-analysis.html"><span class="ebms-icon-text"><span>进入分析台</span><span data-icon="arrowRight" data-icon-size="sm" aria-hidden="true"></span></span></a>
+        </div>
+      </aside>
+    </section>
+
     <!-- 仪表盘筛选：日期范围 / 客户 / 产品 / 订单状态 / 风险 / 审核状态 / 超支 -->
     <div class="filter-bar" data-feature="dashboard_filters">
       <div class="filter-row">
@@ -213,7 +231,7 @@
         </select>
         <button class="btn bs" onclick="resetDashFilter()" style="background:#eee;color:#555">重置</button>
         <span style="flex:1"></span>
-        <span class="filter-status" id="dashFilterStatus">实时筛选 · 300ms 防抖</span>
+        <span class="filter-status" id="dashFilterStatus">实时筛选  300ms 防抖</span>
       </div>
     </div>
 
@@ -329,7 +347,7 @@
     <!-- 订单分析：产品/客户维度（来自订单分析库/审核台） -->
     <div class="order-analysis-section" data-feature="order_analysis">
       <div class="oa-header">
-        <h3>订单分析（产品 / 客户维度）<span class="oa-subtitle">数据源：订单分析库 · 审核台</span></h3>
+        <h3>订单分析（产品 / 客户维度）<span class="oa-subtitle">数据源：订单分析库  审核台</span></h3>
         <a href="order-analysis.html" class="rd-more">进入审核台 »</a>
       </div>
       <div class="oa-grid">
@@ -375,7 +393,7 @@
     <div class="rd-delivery" data-feature="rd_delivery">
       <div class="rd-header">
         <h3>研发交付与变更分析</h3>
-        <span class="rd-sub">交付周期 · 变更次数 · 智能诊断</span>
+        <span class="rd-sub">交付周期  变更次数  智能诊断</span>
       </div>
       <div class="rd-cards" id="rdMetrics"></div>
       <div class="rd-insight-grid">
@@ -408,31 +426,31 @@
     <!-- 快捷操作 -->
     <div class="quick-actions" data-feature="quick_actions">
       <button class="action-btn" onclick="window.location.href='inquiry.html'">
-        <span class="icon">+</span>
+        <span data-icon="plus" data-icon-size="lg" aria-hidden="true"></span>
         <span>新建询价</span>
       </button>
       <button class="action-btn" onclick="window.location.href='inquiry.html'">
-        <span class="icon">&#128196;</span>
+        <span data-icon="file" data-icon-size="lg" aria-hidden="true"></span>
         <span>询价台账</span>
       </button>
       <button class="action-btn" onclick="window.location.href='report.html'">
-        <span class="icon">&#128202;</span>
+        <span data-icon="analytics" data-icon-size="lg" aria-hidden="true"></span>
         <span>数据分析</span>
       </button>
       <button class="action-btn" onclick="window.location.href='customer.html'">
-        <span class="icon">&#128100;</span>
+        <span data-icon="user" data-icon-size="lg" aria-hidden="true"></span>
         <span>客户管理</span>
       </button>
       <button class="action-btn" onclick="window.location.href='product.html'">
-        <span class="icon">&#128230;</span>
+        <span data-icon="package" data-icon-size="lg" aria-hidden="true"></span>
         <span>产品管理</span>
       </button>
       <button class="action-btn" onclick="backupData()">
-        <span class="icon">&#128190;</span>
+        <span data-icon="download" data-icon-size="lg" aria-hidden="true"></span>
         <span>数据备份</span>
       </button>
       <button class="action-btn" onclick="document.getElementById('restoreFile').click()">
-        <span class="icon">&#128194;</span>
+        <span data-icon="upload" data-icon-size="lg" aria-hidden="true"></span>
         <span>数据恢复</span>
       </button>
       <input type="file" id="restoreFile" accept=".json" style="display:none;" onchange="restoreData(event)">
@@ -474,7 +492,7 @@
         fetch(`${API}/inquiries?limit=999`),
         fetch(`${API}/reports/operation-logs?limit=10`),
         fetch(`${API}/pricing/stats/summary`),
-        fetch(`${API}/orders/stats`),
+        fetch(`${API}/external-api/orders-stats?year=${new Date().getFullYear()}`),
         fetch(`${API}/samples/stats`),
         fetch(`${API}/projects/stats`),
         fetch(`${API}/suppliers/stats/overview`)
@@ -522,10 +540,11 @@
       }
 
       // 订单/样品/项目/供应商统计
+      let projectStats = null;
       try {
         const orderStats = await orderStatsRes.json();
         document.getElementById('orderTotal').textContent = orderStats.total || 0;
-        document.getElementById('orderSub').textContent = '待处理 ' + ((orderStats.by_status||{}).open||0) + ' | 发货完成 ' + (((orderStats.by_status||{}).shipped||0) + ((orderStats.by_status||{}).completed||0));
+        document.getElementById('orderSub').textContent = '当年 · 待处理 ' + ((orderStats.by_status||{}).open||0) + ' | 发货完成 ' + (((orderStats.by_status||{}).shipped||0) + ((orderStats.by_status||{}).completed||0));
       } catch(e) { document.getElementById('orderTotal').textContent = '-'; document.getElementById('orderSub').textContent = '加载失败'; }
       try {
         const sampleStats = await sampleStatsRes.json();
@@ -533,7 +552,7 @@
         document.getElementById('sampleSub').textContent = '待处理 ' + ((sampleStats.by_status||{}).open||0) + ' | 已完成 ' + ((sampleStats.by_status||{}).completed||0);
       } catch(e) { document.getElementById('sampleTotal').textContent = '-'; document.getElementById('sampleSub').textContent = '加载失败'; }
       try {
-        const projectStats = await projectStatsRes.json();
+        projectStats = await projectStatsRes.json();
         document.getElementById('projectTotal').textContent = projectStats.total || 0;
         document.getElementById('projectSub').textContent = '进行中 ' + ((projectStats.by_status||{}).in_progress||0) + ' | 完成 ' + ((projectStats.by_status||{}).completed||0);
       } catch(e) { document.getElementById('projectTotal').textContent = '-'; document.getElementById('projectSub').textContent = '加载失败'; }
@@ -565,7 +584,8 @@
       renderActivity(logsRes);
 
       // 研发项目合作分析（问题与对策）
-      loadRdAnalysis();
+      // 复用首屏已加载的项目统计，避免研发分析区再次请求同一接口。
+      loadRdAnalysis(projectStats);
 
       // 研发交付与变更分析
       loadRdDelivery();
@@ -674,15 +694,14 @@
     // ===== 研发项目合作分析（问题与对策） =====
     function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function trunc(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n) + '…' : s; }
-    async function loadRdAnalysis() {
+    async function loadRdAnalysis(preloadedStats) {
       try {
-        const [statsRes, issuesRes, reviewsRes, initStatsRes] = await Promise.all([
-          fetch(`${API}/projects/stats`),
+        const [stats, issuesRes, reviewsRes, initStatsRes] = await Promise.all([
+          preloadedStats ? Promise.resolve(preloadedStats) : fetch(`${API}/projects/stats`).then(r => r.json()),
           fetch(`${API}/projects/supply-issues/list?closed=0&limit=6`),
           fetch(`${API}/projects/reviews/list?limit=6`),
           fetch(`${API}/projects/initiation/stats`)
         ]);
-        const stats = await statsRes.json();
         const issuesData = await issuesRes.json();
         const reviewsData = await reviewsRes.json();
         let initStats = { total: 0, draft: 0, submitted: 0, approved: 0, rejected: 0 };
@@ -699,7 +718,7 @@
           <div class="rd-stat"><div class="num">¥${totalAmt}</div><div class="lbl">投入总额</div></div>
           <div class="rd-stat"><div class="num" style="color:#27ae60">¥${orderAmt}</div><div class="lbl">订单总额</div></div>
           <div class="rd-stat"><div class="num" style="color:#e74c3c">${stats.open_issues || 0}</div><div class="lbl">未闭环异常</div></div>
-          <div class="rd-stat" style="cursor:pointer" onclick="location.href='project.html'" title="点击进入项目台"><div class="num" style="color:#2c3e50">${initStats.total || 0}</div><div class="lbl">📝 立项申请书</div></div>
+          <div class="rd-stat" style="cursor:pointer" onclick="location.href='project.html'" title="点击进入项目台"><div class="num" style="color:#2c3e50">${initStats.total || 0}</div><div class="lbl"><span class="ebms-icon-text"><span data-icon="file" data-icon-size="sm" aria-hidden="true"></span><span>立项申请书</span></span></div></div>
           <div class="rd-stat"><div class="num" style="color:#27ae60">${initStats.approved || 0}</div><div class="lbl">已批准</div></div>
           <div class="rd-stat"><div class="num" style="color:#f39c12">${initStats.submitted || 0}</div><div class="lbl">待审批</div></div>
           <div class="rd-stat"><div class="num" style="color:#999">${initStats.draft || 0}</div><div class="lbl">草稿</div></div>
@@ -708,7 +727,7 @@
         const issues = issuesData.data || [];
         document.getElementById('rdIssues').innerHTML = issues.length ? issues.map(i => `
           <div class="rd-item">
-            <div class="it-title">${esc(i.product_name || '未命名')}${i.project_no ? ' · ' + esc(i.project_no) : ''}</div>
+            <div class="it-title">${esc(i.product_name || '未命名')}${i.project_no ? '  ' + esc(i.project_no) : ''}</div>
             <div class="it-problem"><b>问题：</b>${esc(trunc(i.problem_desc, 60) || '-')}</div>
             ${i.long_term_measure ? `<div class="it-measure"><b>对策：</b>${esc(trunc(i.long_term_measure, 60))}</div>` : ''}
           </div>`).join('') : '<div class="rd-empty">暂无未闭环问题</div>';
@@ -779,7 +798,7 @@
       clearTimeout(_dashTimer);
       _dashTimer = setTimeout(() => {
         loadOrderAnalysis();
-        if (st) { st.classList.remove('active'); st.textContent = '已应用筛选'; setTimeout(()=>{ if(st)st.textContent='实时筛选 · 300ms 防抖'; }, 1500); }
+        if (st) { st.classList.remove('active'); st.textContent = '已应用筛选'; setTimeout(()=>{ if(st)st.textContent='实时筛选  300ms 防抖'; }, 1500); }
       }, 300);
     }
     function resetDashFilter() {
@@ -837,8 +856,8 @@
         const pct = Math.max((v / max) * 100, 6);
         const disp = isAmt ? '¥' + Math.round(v).toLocaleString() : (v + ' 单');
         const sub = isAmt
-          ? `<small>${r.order_count||0}单 · 毛利率${(Number(r.gross_rate)||0).toFixed(1)}%</small>`
-          : `<small>¥${Math.round(Number(r.order_amount)||0).toLocaleString()} · 毛利率${(Number(r.gross_rate)||0).toFixed(1)}%</small>`;
+          ? `<small>${r.order_count||0}单  毛利率${(Number(r.gross_rate)||0).toFixed(1)}%</small>`
+          : `<small>¥${Math.round(Number(r.order_amount)||0).toLocaleString()}  毛利率${(Number(r.gross_rate)||0).toFixed(1)}%</small>`;
         return `<div class="oa-row" title="${esc(r.name||'')}">
           <div class="rank">${idx+1}</div>
           <div class="name">${esc(r.name||'未填')}${sub}</div>
@@ -973,8 +992,13 @@
     bindDashFilters();
 
     loadDashboard();
+
+    // 仪表盘自动刷新：每 60s + 切回标签页时（数据源含外部 ERP 实时统计）
+    setInterval(() => { if (!document.hidden) loadDashboard(); }, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) loadDashboard(); });
   </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
   <script src="feature-gate.js"></script>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>订单自检待办</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>订单自检待办</title><link rel="stylesheet" href="common.css">
 <style>
 .wrap{max-width:1400px;margin:0 auto;padding:18px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
@@ -56,11 +57,11 @@ tr.resolved td{opacity:.55}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
 <h2>订单自检待办</h2>
 <div style="display:flex;gap:8px">
-<button class="btn b4" onclick="previewCheck()">👁 试运行（不写库）</button>
-<button class="btn b2" onclick="runCheck()">▶ 运行自检</button>
-<button class="btn" style="background:#2ecc71;color:#fff" onclick="smartFixAll()">🔧 智能修复</button>
+<button class="btn b4" onclick="previewCheck()"> 试运行（不写库）</button>
+<button class="btn b2" onclick="runCheck()"> 运行自检</button>
+<button class="btn" style="background:#2ecc71;color:#fff" onclick="smartFixAll()"> 智能修复</button>
 <button class="btn b1" onclick="loadIssues()">刷新</button>
-<button class="btn" style="background:#8e44ad;color:#fff" onclick="openRuleEditor()">⚙ 标准配置</button>
+<button class="btn" style="background:#8e44ad;color:#fff" onclick="openRuleEditor()"> 标准配置</button>
 <a class="btn bs" href="order-analysis.html" style="background:#e8ebf7;color:#444;text-decoration:none">返回订单分析库</a>
 </div>
 </div>
@@ -69,7 +70,7 @@ tr.resolved td{opacity:.55}
 
 <div class="dash-panel">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-  <div style="font-weight:600;color:#555;font-size:13px">📋 选择本次要执行的检查指令</div>
+  <div style="font-weight:600;color:#555;font-size:13px"> 选择本次要执行的检查指令</div>
   <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
     <button class="btn bs" style="background:#eaf2ff;color:#3b5998" onclick="selectPreset('all')">全选</button>
     <button class="btn bs" style="background:#eaf2ff;color:#3b5998" onclick="selectPreset('enabled')">仅已启用</button>
@@ -249,7 +250,7 @@ async function previewCheck(){
     el.style.display='block';
     el.innerHTML=`
     <div style="background:#f8f9ff;border:1px solid #d0d7ff;border-radius:8px;padding:12px">
-    <div style="font-weight:600;color:#667eea;margin-bottom:8px">👁 试运行结果（未写库）</div>
+    <div style="font-weight:600;color:#667eea;margin-bottom:8px"> 试运行结果（未写库）</div>
     <div style="font-size:12px;color:#666;margin-bottom:8px">扫描 ${d.orders_scanned} 条订单 / ${d.bom_scanned} 行BOM，发现 ${d.total_found} 个问题（仅展示前100条）</div>
     <table style="width:100%;font-size:12px"><thead><tr><th>严重度</th><th>规则</th><th>目标编号</th><th>描述</th></tr></thead>
     <tbody>${(d.issues||[]).map(i=>`<tr><td><span class="sev sev-${i.severity}">${i.severity}</span></td><td>${i.rule_id}</td><td>${i.target_code||'-'}</td><td>${esc(i.description)}</td></tr>`).join('')}</tbody></table>
@@ -389,7 +390,7 @@ async function editIssue(id){
   <div class="fg"><label>截止日期</label><input type="date" id="editDue" value="${(i.due_date||'').substring(0,10)}"></div>
   <div class="fg"><label>备注</label><textarea id="editComment">${esc(i.comment||'')}</textarea></div>
   <div style="display:flex;gap:8px;justify-content:flex-end">
-  ${rule&&rule.auto_fix?`<button class="btn" style="background:#2ecc71;color:#fff" onclick="applyFix(${i.id})">🔧 智能修复</button>`:''}
+  ${rule&&rule.auto_fix?`<button class="btn" style="background:#2ecc71;color:#fff" onclick="applyFix(${i.id})"> 智能修复</button>`:''}
   <button class="btn" style="background:#eee;color:#666" onclick="closeMo()">取消</button>
   <button class="btn b1" onclick="saveIssue(${i.id})">保存</button>
   </div>`;

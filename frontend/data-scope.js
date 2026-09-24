@@ -47,11 +47,11 @@
       const list = document.querySelectorAll(selector);
       if (!list || list.length === 0) return;
       const colorMap = {
-        all:           { bg: '#e8f5e9', fg: '#1b5e20', icon: '✓' },
-        self:          { bg: '#e3f2fd', fg: '#0d47a1', icon: '☻' },
-        dept:          { bg: '#fff3e0', fg: '#e65100', icon: '◴' },
-        dept_and_child:{ bg: '#fff3e0', fg: '#e65100', icon: '◴' },
-        custom:        { bg: '#f3e5f5', fg: '#4a148c', icon: '◆' }
+        all:           { bg: '#e8f5e9', fg: '#1b5e20', icon: '' },
+        self:          { bg: '#e3f2fd', fg: '#0d47a1', icon: '' },
+        dept:          { bg: '#fff3e0', fg: '#e65100', icon: 'business' },
+        dept_and_child:{ bg: '#fff3e0', fg: '#e65100', icon: 'business' },
+        custom:        { bg: '#f3e5f5', fg: '#4a148c', icon: 'user' }
       };
       const c = colorMap[this.mode()] || colorMap.all;
       const html = `<div class="ds-banner" style="
@@ -60,7 +60,7 @@
         padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
         margin-left: 8px;
       ">
-        <span style="font-size: 14px;">${c.icon}</span>
+        <span class="ebms-icon-text">${c.icon ? EBMSIcons.render(c.icon, { size: 'xs', decorative: true }) : ''}</span>
         <span>数据范围：${this.label()}</span>
       </div>`;
       list.forEach(el => {

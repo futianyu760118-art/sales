@@ -1,12 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>企业经营管理平台（EBMS）-HJ - 产品配置表</title>
   <link rel="stylesheet" href="common.css">
   <style>
-    .table-container th .sort-icon { font-size: 10px; color: #bbb; margin-left: 2px; }
+    .table-container th .sort-icon { display:inline-flex; width:var(--icon-xs); height:var(--icon-xs); color:#bbb; margin-left:2px; }
     .seq-col { width: 40px; text-align: center; color: #999; font-size: 12px; }
     .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
     .status-draft { background: #e8f5e9; color: #2e7d32; }
@@ -67,7 +68,7 @@
         <thead>
           <tr>
             <th class="seq-col"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
-            <th data-sort="model">型号<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="model">型号<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
             <th>壳体材质</th>
             <th>防水等级</th>
             <th>光参数</th>
@@ -75,9 +76,9 @@
             <th>标称功率</th>
             <th>芯片方案</th>
             <th>证书</th>
-            <th data-sort="status">状态<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="status">状态<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
             <th>关联询价</th>
-            <th data-sort="created_at">创建时间<span class="sort-icon">&#8593;&#8595;</span></th>
+            <th data-sort="created_at">创建时间<span class="sort-icon" data-icon="chevron" data-icon-size="xs" aria-hidden="true"></span></th>
             <th>操作</th>
           </tr>
         </thead>
@@ -195,7 +196,7 @@
         <button class="close-btn" onclick="closeModal('importModal')">&times;</button>
       </div>
       <div class="import-zone" onclick="document.getElementById('importFile').click()">
-        <div style="font-size:36px;color:#667eea;margin-bottom:10px;">&#128196;</div>
+        <div style="font-size:36px;color:#667eea;margin-bottom:10px;"></div>
         <div style="color:#666;margin-bottom:5px;">点击选择Excel文件</div>
         <div style="color:#999;font-size:12px;">支持 .xlsx/.xls 格式的核价配置表模板</div>
         <input type="file" id="importFile" accept=".xlsx,.xls" onchange="handleImportFile(this)">
@@ -239,7 +240,7 @@
         <button class="close-btn" onclick="closeModal('batchImportModal')">&times;</button>
       </div>
       <div class="import-zone" onclick="document.getElementById('batchImportFile').click()">
-        <div style="font-size:36px;color:#27ae60;margin-bottom:10px;">&#128230;</div>
+        <div style="font-size:36px;color:#27ae60;margin-bottom:10px;"></div>
         <div style="color:#666;margin-bottom:5px;">点击选择产品配置表Excel文件</div>
         <div style="color:#999;font-size:12px;">支持报价配置表横向格式（每行一个产品），自动识别列映射</div>
         <input type="file" id="batchImportFile" accept=".xlsx,.xls" onchange="handleBatchImportFile(this)">
@@ -798,6 +799,7 @@ function toggleCheckAll(el) {
 loadConfigs();
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 </body>

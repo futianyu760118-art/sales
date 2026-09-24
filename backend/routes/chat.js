@@ -127,7 +127,8 @@ router.post('/ai-chat', requirePerm('ai:view'), async (req, res) => {
     { role: 'user', content: message }
   ];
 
-  const settingsTable = getTable('settings');
+  const settingsTable = getTable('system_settings');
+  settingsTable._invalidate();
   const settings = settingsTable.all();
   const aiSetting = settings.find(s => s.key === 'ai_api_config');
   let apiKey = '', apiBase = 'https://api.openai.com/v1', model = 'gpt-4o-mini';
@@ -149,8 +150,7 @@ router.post('/ai-chat', requirePerm('ai:view'), async (req, res) => {
   }
 
   try {
-    const fetch = (await import('node-fetch')).default;
-    const response = await fetch(`${apiBase}/chat/completions`, {
+    const response = await globalThis.fetch(`${apiBase}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ router.post('/ai-chat', requirePerm('ai:view'), async (req, res) => {
     const aiReply = data.choices?.[0]?.message?.content || '抱歉，无法生成回复。';
     const actionItems = extractActionItems(aiReply);
     saveAiMessage(user, message, aiReply, actionItems, context_type, context_id);
-    res.json({ reply: aiReply, action_items, model });
+    res.json({ reply: aiReply, action_items: actionItems, model });
   } catch(err) {
     console.error('AI API fetch error:', err.message);
     const fallback = generateLocalResponse(message, businessContext, user);

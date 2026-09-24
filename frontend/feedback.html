@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 问题反馈</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 用户反馈</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -22,7 +23,7 @@ tr:hover td{background:#f8f9ff}
 .mb2{background:#fff;border-radius:12px;padding:20px;width:520px;max-width:95%;max-height:90vh;overflow:auto}
 .em{text-align:center;color:#999;padding:30px}
 .fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
-.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;box-sizing:border-box}
 .fg textarea{resize:vertical;min-height:50px}
 .gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .gr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -30,11 +31,27 @@ tr:hover td{background:#f8f9ff}
 .st-open{background:#d4edda;color:#155724}.st-proc{background:#cce5ff;color:#004085}.st-resolved{background:#fff3cd;color:#856404}.st-closed{background:#e2e3e5;color:#383d41}
 .p-high{background:#f8d7da;color:#721c24}.p-medium{background:#fff3cd;color:#856404}.p-low{background:#d1ecf1;color:#0c5460}.p-urgent{background:#f5c6cb;color:#721c24;font-weight:700}
 .tbl-wrap{overflow-x:auto;max-height:65vh;overflow-y:auto}
-</style></head><body data-page-title="问题反馈" data-page-perm="feedback:create">
+/* 详情 / 跟进时间线 */
+.dt-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 16px;font-size:12px;color:#555;background:#f8f9ff;border:1px solid #eef1f6;border-radius:8px;padding:10px 12px;margin:10px 0}
+.dt-meta b{color:#333}
+.dt-sec-title{font-size:13px;font-weight:600;color:#444;margin:14px 0 8px;padding-left:8px;border-left:3px solid #667eea}
+.dt-desc{font-size:13px;color:#333;white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #eee;border-radius:8px;padding:10px}
+.tl{position:relative;padding-left:16px;margin-top:6px}
+.tl:before{content:"";position:absolute;left:4px;top:4px;bottom:4px;width:2px;background:#e8eaf6}
+.tl-item{position:relative;margin-bottom:12px}
+.tl-item:before{content:"";position:absolute;left:-16px;top:4px;width:8px;height:8px;border-radius:50%;background:#667eea;box-shadow:0 0 0 2px #fff}
+.tl-head{font-size:11px;color:#999;display:flex;gap:10px;flex-wrap:wrap}
+.tl-head .op{color:#3949ab;font-weight:600}
+.tl-body{font-size:13px;color:#333;margin-top:3px;white-space:pre-wrap;word-break:break-word}
+.tl-flow{display:inline-block;font-size:11px;background:#eef2ff;color:#3949ab;border-radius:4px;padding:1px 6px;margin-top:4px}
+.dt-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.dt-actions textarea{flex:1;min-width:220px;min-height:60px;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;resize:vertical}
+.mine-tip{font-size:12px;color:#999;margin-top:6px}
+</style></head><body data-page-title="用户反馈" data-page-perm="feedback:create">
 <div class="sidebar" id="sidebar"></div>
 <div class="main-content">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-<h2>问题反馈</h2>
+<h2>用户反馈</h2>
 <button class="btn b2" onclick="openAdd()">新增反馈</button>
 </div>
 <div class="tv" id="tabNav">
@@ -45,17 +62,18 @@ tr:hover td{background:#f8f9ff}
 <!-- 反馈列表 -->
 <div class="tc ac" id="tab-list">
 <div class="sb">
-<input type="text" id="fKw" placeholder="搜索标题/提交人" style="width:200px" onkeydown="if(event.key==='Enter')loadList(1)">
+<input type="text" id="fKw" placeholder="搜索标题/提交人/描述" style="width:200px" onkeydown="if(event.key==='Enter')loadList(1)">
 <select id="fStatus"><option value="">全部状态</option><option value="open">待处理</option><option value="processing">处理中</option><option value="resolved">已解决</option><option value="closed">已关闭</option></select>
 <select id="fType"><option value="">全部类型</option><option value="bug">缺陷</option><option value="feature">功能需求</option><option value="improvement">改进建议</option><option value="question">问题咨询</option></select>
 <select id="fPriority"><option value="">全部优先级</option><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="urgent">紧急</option></select>
+<label style="font-size:12px;color:#666;display:flex;align-items:center;gap:4px"><input type="checkbox" id="fMine" onchange="loadList(1)" style="width:auto">只看我的</label>
 <button class="btn b1" onclick="loadList(1)">搜索</button>
 <span style="margin-left:auto">共 <b id="fTc">0</b> 条</span>
 </div>
 <div class="tbl-wrap">
 <table><thead><tr>
-<th>标题</th><th>类型</th><th>优先级</th><th>模块</th><th>提交人</th><th>处理人</th><th>状态</th><th>提交时间</th><th>操作</th>
-</tr></thead><tbody id="fTb"><tr><td colspan="9" class="em">暂无数据</td></tr></tbody></table>
+<th>标题</th><th>类型</th><th>优先级</th><th>模块</th><th>提交人</th><th>处理人</th><th>状态</th><th>跟进情况</th><th>更新时间</th><th>操作</th>
+</tr></thead><tbody id="fTb"><tr><td colspan="10" class="em">暂无数据</td></tr></tbody></table>
 </div>
 <div id="fPg" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -72,6 +90,8 @@ tr:hover td{background:#f8f9ff}
 
 <!-- 新增/编辑弹窗 -->
 <div class="mo" id="gMo"><div class="mb2" id="gMoBox"></div></div>
+<!-- 详情 / 跟进弹窗 -->
+<div class="mo" id="dMo"><div class="mb" id="dMoBox"></div></div>
 
 <script>
 const API='/api/feedback';
@@ -80,6 +100,11 @@ const priorityMap={low:'低',medium:'中',high:'高',urgent:'紧急'};
 const statusMap={open:'待处理',processing:'处理中',resolved:'已解决',closed:'已关闭'};
 const priorityCls={low:'p-low',medium:'p-medium',high:'p-high',urgent:'p-urgent'};
 const statusCls={open:'st-open',processing:'st-proc',resolved:'st-resolved',closed:'st-closed'};
+const actionMap={submit:'提交反馈',comment:'跟进',status:'状态变更',assign:'指派处理人',resolve:'标记解决',close:'关闭'};
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
+function canHandle(){try{return !!(window.PermissionCheck&&PermissionCheck.has&&PermissionCheck.has('feedback:handle'));}catch(e){return false;}}
+function currentUserName(){try{return localStorage.getItem('currentUser')||'';}catch(e){return '';}}
 
 function swTab(name,btn){
   document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('ac'));
@@ -95,23 +120,26 @@ async function loadList(page){
   fPage=page||1;
   const p=new URLSearchParams({page:fPage,limit:(window._pageSize||50)});
   const kw=document.getElementById('fKw').value,st=document.getElementById('fStatus').value,tp=document.getElementById('fType').value,pr=document.getElementById('fPriority').value;
-  if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(tp)p.set('type',tp);if(pr)p.set('priority',pr);
+  const mine=document.getElementById('fMine').checked;
+  if(kw)p.set('keyword',kw);if(st)p.set('status',st);if(tp)p.set('type',tp);if(pr)p.set('priority',pr);if(mine)p.set('mine','1');
   try{
     const r=await fetch(API+'?'+p);const d=await r.json();
     const total=d.total||0;document.getElementById('fTc').textContent=total;
     const recs=d.data||[],tb=document.getElementById('fTb');
-    if(!recs.length){tb.innerHTML='<tr><td colspan="9" class="em">暂无数据</td></tr>';renderPg('fPg',total,fPage,loadList);return}
+    if(!recs.length){tb.innerHTML='<tr><td colspan="10" class="em">暂无数据</td></tr>';renderPg('fPg',total,fPage,loadList);return}
     tb.innerHTML=recs.map(f=>`<tr>
-      <td><b>${(f.title||'').substring(0,24)}</b></td>
+      <td style="max-width:260px"><b>${esc((f.title||'').substring(0,30))}</b>${(f.description||'').trim()?'<div style="color:#999;font-size:11px;margin-top:2px">'+esc((f.description||'').substring(0,40))+'</div>':''}</td>
       <td><span class="badge" style="background:#e8eaf6;color:#3949ab">${typeMap[f.type]||f.type||'-'}</span></td>
       <td><span class="badge ${priorityCls[f.priority]||''}">${priorityMap[f.priority]||f.priority||'-'}</span></td>
-      <td>${f.module||'-'}</td>
-      <td>${f.submitter||'-'}</td>
-      <td>${f.assignee||'-'}</td>
+      <td>${esc(f.module||'-')}</td>
+      <td>${esc(f.submitter||'-')}</td>
+      <td>${esc(f.assignee||'-')}</td>
       <td><span class="badge ${statusCls[f.status]||''}">${statusMap[f.status]||f.status||'-'}</span></td>
-      <td>${(f.created_at||'').substring(0,10)}</td>
+      <td style="font-size:11px;color:#666">${f.followup_count||0} 条${f.last_followup_at?'<div style="color:#999">'+esc((f.last_followup_by||'')+' '+(f.last_followup_at||'').substring(5,16))+'</div>':''}</td>
+      <td>${(f.updated_at||f.created_at||'').substring(0,16)}</td>
       <td style="white-space:nowrap">
-        <button class="btn bs b1" onclick="openEdit(${f.id})">编辑</button>
+        <button class="btn bs b1" onclick="openDetail(${f.id})">详情/跟进</button>
+        <button class="btn bs b4" onclick="openEdit(${f.id})" data-perm="feedback:handle">编辑</button>
         <button class="btn bs b3" onclick="delItem(${f.id})" data-perm="feedback:delete">删除</button>
       </td>
     </tr>`).join('');
@@ -129,6 +157,106 @@ function renderPg(elId,total,page,fn){
   el.innerHTML=h;
 }
 
+// ===== 详情 / 跟进 =====
+async function openDetail(id){
+  const box=document.getElementById('dMoBox');
+  box.innerHTML='<div class="em">加载中…</div>';
+  document.getElementById('dMo').classList.add('ac');
+  try{
+    const r=await fetch(API+'/'+id);const f=await r.json();
+    if(!r.ok)throw new Error(f.error||'加载失败');
+    box.innerHTML=renderDetail(f);
+    bindDetail(f);
+  }catch(e){box.innerHTML='<div class="em">'+esc(e.message||'加载失败')+'</div>'}
+}
+
+function renderDetail(f){
+  const flow=canHandle();
+  const fus=f.followups||[];
+  const timeline=fus.map(x=>{
+    const flowChanged=x.status_from&&x.status_to&&x.status_from!==x.status_to;
+    return `<div class="tl-item">
+      <div class="tl-head"><span class="op">${esc(x.operator||'-')}</span><span>${esc((x.created_at||'').substring(0,16))}</span><span>${actionMap[x.action]||x.action||''}</span>${x.assignee?'<span>处理人：'+esc(x.assignee)+'</span>':''}</div>
+      ${x.content?`<div class="tl-body">${esc(x.content)}</div>`:''}
+      ${flowChanged?`<div class="tl-flow">状态：${statusMap[x.status_from]||x.status_from} → ${statusMap[x.status_to]||x.status_to}</div>`:''}
+    </div>`;
+  }).join('')||'<div class="em">暂无跟进记录</div>';
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+    <div>
+      <h3 style="margin:0 0 6px">${esc(f.title||'')}</h3>
+      <div>
+        <span class="badge" style="background:#e8eaf6;color:#3949ab">${typeMap[f.type]||f.type||'-'}</span>
+        <span class="badge ${priorityCls[f.priority]||''}" style="margin-left:4px">${priorityMap[f.priority]||f.priority||'-'}</span>
+        <span class="badge ${statusCls[f.status]||''}" style="margin-left:4px">${statusMap[f.status]||f.status||'-'}</span>
+      </div>
+    </div>
+    <span onclick="document.getElementById('dMo').classList.remove('ac')" style="cursor:pointer;font-size:24px;color:#999;line-height:1">×</span>
+  </div>
+  <div class="dt-meta">
+    <div>模块：<b>${esc(f.module||'-')}</b></div>
+    <div>提交人：<b>${esc(f.submitter||'-')}</b></div>
+    <div>处理人：<b>${esc(f.assignee||'未指派')}</b></div>
+    <div>来源：<b>${f.source==='widget'?'页面悬浮按钮':'反馈页'}</b></div>
+    <div>提交时间：<b>${esc((f.created_at||'').substring(0,16))}</b></div>
+    <div>更新时间：<b>${esc((f.updated_at||'').substring(0,16))}</b></div>
+    ${f.resolved_at?`<div>解决时间：<b>${esc(String(f.resolved_at).substring(0,16))}</b></div>`:''}
+  </div>
+  <div class="dt-sec-title">问题描述</div>
+  <div class="dt-desc">${esc(f.description||'（无）')}</div>
+  ${f.screenshots?`<div style="margin-top:8px;font-size:12px">截图：<a href="${esc(f.screenshots)}" target="_blank" rel="noopener">${esc(f.screenshots)}</a></div>`:''}
+  ${f.resolution?`<div class="dt-sec-title">解决方案</div><div class="dt-desc">${esc(f.resolution)}</div>`:''}
+  <div class="dt-sec-title">跟进与处理记录（${fus.length}）</div>
+  <div class="tl">${timeline}</div>
+  <div class="dt-sec-title">${flow?'处理 / 跟进':'追加跟进'}</div>
+  ${flow?`<div class="gr3">
+    <div class="fg"><label>处理状态</label><select id="dStatus">
+      <option value="">不改变</option>${Object.keys(statusMap).map(k=>`<option value="${k}" ${f.status===k?'selected':''}>${statusMap[k]}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>处理人</label><input id="dAssignee" value="${esc(f.assignee||'')}" placeholder="输入处理人"></div>
+    <div class="fg"><label>解决方案（选填）</label><input id="dResolution" value="${esc(f.resolution||'')}" placeholder="解决说明"></div>
+  </div>`:''}
+  <div class="dt-actions">
+    <textarea id="dContent" placeholder="填写跟进内容、进展或补充说明…"></textarea>
+    <button class="btn b2" id="dSave">${flow?'提交跟进/处理':'追加跟进'}</button>
+  </div>
+  <div class="mine-tip">提示：状态流转与指派处理人需要「处理反馈」权限；所有提交人都可追加说明。</div>`;
+}
+
+function bindDetail(f){
+  const save=document.getElementById('dSave');
+  if(!save)return;
+  save.onclick=async()=>{
+    const content=(document.getElementById('dContent').value||'').trim();
+    const payload={content};
+    const stEl=document.getElementById('dStatus');
+    if(stEl){const st=stEl.value;if(st&&st!==f.status)payload.status=st;}
+    const asEl=document.getElementById('dAssignee');
+    if(asEl){const as=asEl.value.trim();if(as!==(f.assignee||''))payload.assignee=as;}
+    const rsEl=document.getElementById('dResolution');
+    if(rsEl){const rs=rsEl.value.trim();if(rs&&rs!==(f.resolution||''))payload.resolution=rs;}
+    if(!content&&!payload.status&&payload.assignee===undefined&&!payload.resolution){alert('请填写跟进内容或选择处理动作');return}
+    save.disabled=true;save.textContent='提交中…';
+    try{
+      // 解决方案通过 PUT 更新（需处理权限），其余走跟进接口
+      if(payload.resolution!==undefined){
+        if(!canHandle()){alert('无处理权限，无法填写解决方案');save.disabled=false;save.textContent='提交';return}
+        await fetch(API+'/'+f.id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({resolution:payload.resolution})});
+        delete payload.resolution;
+      }
+      if(content||payload.status||payload.assignee!==undefined){
+        const r=await fetch(API+'/'+f.id+'/followups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const d=await r.json();
+        if(!r.ok)throw new Error(d.error||'提交失败');
+      }
+      await openDetail(f.id);
+      loadList(fPage);
+    }catch(e){alert(e.message||'提交失败')}
+    finally{const b=document.getElementById('dSave');if(b){b.disabled=false;b.textContent='提交'}}
+  };
+}
+
 function openAdd(){
   const fields=[
     ['title','标题*','text'],['type','类型','select:bug,feature,improvement,question'],['priority','优先级','select:low,medium,high,urgent'],
@@ -136,9 +264,11 @@ function openAdd(){
     ['status','状态','select:open,processing,resolved,closed'],['description','描述','textarea'],
     ['screenshots','截图链接','text'],['resolution','解决方案','textarea'],['resolved_at','解决时间','date']
   ];
-  openForm('新增反馈',fields,{status:'open'},async(data)=>{
+  openForm('新增反馈',fields,{status:'open',submitter:currentUserName()},async(data)=>{
     if(!data.title){alert('标题必填');return}
-    await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const d=await r.json();
+    if(!r.ok){alert(d.error||'提交失败');return}
     document.getElementById('gMo').classList.remove('ac');
     loadList(1);
   });
@@ -155,7 +285,9 @@ async function openEdit(id){
     ];
     openForm('编辑反馈',fields,f,async(data)=>{
       if(!data.title){alert('标题必填');return}
-      await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      const r=await fetch(API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      const d=await r.json();
+      if(!r.ok){alert(d.error||'保存失败');return}
       document.getElementById('gMo').classList.remove('ac');
       loadList(fPage);
     });
@@ -164,7 +296,7 @@ async function openEdit(id){
 
 async function delItem(id){
   if(!PermissionCheck.has('feedback:delete')){alert('无删除权限');return;}
-  if(!confirm('确定删除此反馈？'))return;
+  if(!confirm('确定删除此反馈？（其跟进记录也会一并删除）'))return;
   await fetch(API+'/'+id,{method:'DELETE'});
   loadList(fPage);
 }
@@ -174,10 +306,12 @@ async function loadStats(){
     const r=await fetch(API+'/stats/summary');const d=await r.json();
     document.getElementById('stStats').innerHTML=`
       <div class="sc"><div class="n">${d.total||0}</div><div class="l">反馈总数</div></div>
-      <div class="sc"><div class="n" style="color:#3498db">${d.by_status?.open||0}</div><div class="l">待处理</div></div>
-      <div class="sc"><div class="n" style="color:#e67e22">${d.by_status?.processing||0}</div><div class="l">处理中</div></div>
-      <div class="sc"><div class="n" style="color:#27ae60">${d.by_status?.resolved||0}</div><div class="l">已解决</div></div>
-      <div class="sc"><div class="n" style="color:#999">${d.by_status?.closed||0}</div><div class="l">已关闭</div></div>
+      <div class="sc"><div class="n" style="color:#3498db">${(d.by_status&&d.by_status.open)||0}</div><div class="l">待处理</div></div>
+      <div class="sc"><div class="n" style="color:#e67e22">${(d.by_status&&d.by_status.processing)||0}</div><div class="l">处理中</div></div>
+      <div class="sc"><div class="n" style="color:#27ae60">${(d.by_status&&d.by_status.resolved)||0}</div><div class="l">已解决</div></div>
+      <div class="sc"><div class="n" style="color:#999">${(d.by_status&&d.by_status.closed)||0}</div><div class="l">已关闭</div></div>
+      <div class="sc"><div class="n" style="color:#667eea">${d.followup_total||0}</div><div class="l">跟进记录总数</div></div>
+      <div class="sc"><div class="n" style="color:#8e44ad">${d.avg_handle_hours==null?'-':d.avg_handle_hours}</div><div class="l">平均处理时长(小时)</div></div>
     `;
     const bs=d.by_status||{};
     document.getElementById('stByStatus').innerHTML=`<h4 style="margin:0 0 8px;color:#555">按状态分布</h4>${renderDist(bs,statusMap)}`;
@@ -204,7 +338,7 @@ function openForm(title,fields,data,onSave){
   while(i<fields.length){
     const [key,label,type]=fields[i];
     if(type==='textarea'){
-      html+=`<div class="fg"><label>${label}</label><textarea id="ff_${key}">${data[key]||''}</textarea></div>`;
+      html+=`<div class="fg"><label>${label}</label><textarea id="ff_${key}">${esc(data[key]||'')}</textarea></div>`;
       i++;
     }else{
       const next=fields[i+1];
@@ -243,7 +377,7 @@ function renderField([key,label,type],data){
     const opts=type.substring(7).split(',');
     return `<div class="fg"><label>${label}</label><select id="ff_${key}">${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
   }
-  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${val}"></div>`;
+  return `<div class="fg"><label>${label}</label><input type="${type==='number'?'number':type==='date'?'date':'text'}" id="ff_${key}" value="${esc(val)}"></div>`;
 }
 
 loadList(1);
@@ -251,4 +385,5 @@ loadList(1);
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 </body></html>

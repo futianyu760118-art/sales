@@ -13,6 +13,15 @@ const express = require('express');
 const router = express.Router();
 const { getTable, ensureTable, now } = require('../db');
 const { requirePerm } = require('../auth-middleware');
+const { responseCache } = require('../lib/response-cache');
+const {
+  ALLOWED_SORT_FIELDS,
+  isVoidAdjustmentAllowed,
+  buildGrossMarginAnalysis,
+  paginate,
+  syncProductRatesFromLibrary,
+  applyApprovedLaborRates
+} = require('../lib/order-analysis-rules');
 const externalSync = require('./external-sync');
 const fetchExternal = externalSync.fetchExternal;
 const fetchAllPages = externalSync.fetchAllPages;
@@ -22,6 +31,13 @@ const crypto = require('crypto');
 // SPC boms.tree 接口签名（basicdata 风格：timestamp + app_key + ep + qs）
 const _ERP_KEY = 'ak_745e44c96d4f4790';
 const _ERP_SECRET = 'c93b118d21c9403ead9819d3336f7afafcbda6deab9b4738b5c57278396d6336';
+// ERP 外部接口熔断：连续失败后短期内不再发起同步请求。
+// 背景：ERP 主机丢包时每次请求要等满超时，列表接口因此卡 15 秒；熔断后立即失败、改用本地快照兜底。
+let _erpDownUntil = 0;
+const _ERP_BREAKER_MS = 60 * 1000;   // 失败后熔断时长
+const _ERP_TIMEOUT_MS = 8000;        // 单次请求超时（原 15s 过长）
+function _markErpFail() { _erpDownUntil = Date.now() + _ERP_BREAKER_MS; }
+function _markErpOk() { _erpDownUntil = 0; }
 function _callErpExt(ep, qs) {
   return new Promise((resolve) => {
     const ts = String(Math.floor(Date.now() / 1000));
@@ -32,7 +48,7 @@ function _callErpExt(ep, qs) {
       hostname: '192.168.0.127', port: 18084, method: 'GET', rejectUnauthorized: false,
       path: urlPath,
       headers: { 'X-App-Key': _ERP_KEY, 'X-Timestamp': ts, 'X-Signature': sign },
-      timeout: 15000
+      timeout: _ERP_TIMEOUT_MS
     }, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => resolve({ s: res.statusCode, b: d })); });
     req.on('error', () => resolve({ s: 0, b: 'err' }));
     req.on('timeout', () => { req.destroy(); resolve({ s: 0, b: 'timeout' }); });
@@ -40,18 +56,169 @@ function _callErpExt(ep, qs) {
   });
 }
 
+// ===== 计量单位换算（吨/kg/克 → 克），用于物料单价单位与 BOM 用量单位不一致时的价格换算 =====
+const UNIT_GRAMS = { '吨': 1000000, 'kg': 1000, 'KG': 1000, 'Kg': 1000, 'K': 1000, 'k': 1000, '千克': 1000, '公斤': 1000, 'g': 1, 'G': 1, '克': 1, '斤': 500 };
+let _matUnitCache = null, _matUnitTs = 0;
+function buildMaterialUnitMap() {
+  if (_matUnitCache && Date.now() - _matUnitTs < 5 * 60 * 1000) return _matUnitCache;
+  const mat = getTable('materials');
+  mat._invalidate();
+  const map = {};
+  mat.all().forEach(m => {
+    const code = (m.material_code || '').trim();
+    if (code) {
+      if (map[code] === undefined || String(m.updated_at || '') > String(map[code + '__ts'] || '')) {
+        map[code] = UNIT_GRAMS[String(m.unit || '').trim()] || 0; // 0 = 单位不可换算（pcs等）
+        map[code + '__ts'] = m.updated_at || '';
+      }
+    }
+  });
+  Object.keys(map).forEach(k => { if (k.endsWith('__ts')) delete map[k]; });
+  _matUnitCache = map; _matUnitTs = Date.now();
+  return map;
+}
+
+// ===== BOM 用量本地覆盖（ERP BOM 数据纠错：bom_qty_overrides 表，优先级高于 SPC/本地 BOM 原值）=====
+// bom_no 支持通配 '*'（对所有 BOM 生效）；具体 bom_no 优先于通配
+let _qtyOvCache = null, _qtyOvVer = -1;
+function getBomQtyOverrides() {
+  try {
+    const t = getTable('bom_qty_overrides');
+    t._invalidate();
+    const ver = t.version();
+    if (_qtyOvCache && ver === _qtyOvVer) return _qtyOvCache;
+    const map = {}; // "bomNo|materialCode" -> qty
+    t.all().forEach(r => {
+      if (Number(r.disabled) === 1) return;
+      const k = (r.bom_no || '').trim() + '|' + (r.material_code || '').trim();
+      const q = toNum(r.standard_qty);
+      if (k !== '|' && q > 0) map[k] = q;
+    });
+    _qtyOvCache = map; _qtyOvVer = ver;
+  } catch (e) { _qtyOvCache = {}; }
+  return _qtyOvCache;
+}
+function _ovQtyFor(ov, bomNo, mc) {
+  const v = ov[(bomNo || '') + '|' + mc];
+  if (v != null) return v;
+  return ov['*|' + mc] != null ? ov['*|' + mc] : null;
+}
+function _applyQtyOverrides(bomNo, tree) {
+  const ov = getBomQtyOverrides();
+  let has = false;
+  for (const k in ov) {
+    if (k.indexOf('*|') === 0 || k.indexOf((bomNo || '') + '|') === 0) { has = true; break; }
+  }
+  if (!has || !tree) return;
+  (function w(nodes) {
+    nodes.forEach(n => {
+      const q = _ovQtyFor(ov, bomNo, (n.material_code || '').trim());
+      if (q != null) n.standard_qty = q;
+      if (n.children && n.children.length) w(n.children);
+    });
+  })(tree);
+}
+
 // 从 SPC 获取预组装的多级 BOM 树（boms.list → boms.tree）
 // 结果按 bom_no 缓存（结构稳定；单价在转换时实时取物料库，故缓存原始树即可）
 const _spcRawCache = new Map(); // bom_no -> { data, ts }
 const _SPC_TTL = 30 * 60 * 1000; // 30 分钟
+// [PERF] SPC 树持久化缓存（spc_bom_cache 表）：重启后直接命中本地库，
+// 免去每次启动对全部 BOM（1700+ 个）的外部抓取（原启动预热耗时 2 分钟+）
+// 策略 stale-while-revalidate：
+//   - 持久条目在保留期内一律"立即返回"，绝不同步等待外部 ERP（BOM 结构稳定；单价在转换时实时取物料库）；
+//   - 超过 30 分钟（_SPC_TTL）的条目在返回的同时后台静默刷新（限流 4 并发，队列上限 200）。
+// 注意：同步等待外部接口会让列表接口卡满 ERP 超时（实测 15 秒），
+//       因此保留期必须远大于 _SPC_TTL，且外部不可用时用旧快照兜底（见 _fetchSpcRemote 熔断）。
+const _SPC_PERSIST_DAYS = 30;     // 持久缓存保留天数（超过才清理；外部接口长期不可用时靠它兜底）
+const _SPC_PERSIST_TTL = 30 * 24 * 3600 * 1000; // 持久条目最长可直接服务的时长（30 天）
+let _spcDbMap = null; // bom_no -> { id, ts, data }
+function _spcDb() {
+  if (_spcDbMap !== null) return _spcDbMap;
+  _spcDbMap = new Map();
+  try {
+    const t = getTable('spc_bom_cache');
+    const cutoff = Date.now() - _SPC_PERSIST_DAYS * 24 * 3600 * 1000;
+    // 清理过期持久缓存（启动后首次访问时一次性执行）
+    try { t.deleteWhereNoSave(r => !r.ts || r.ts < cutoff); } catch (_) {}
+    for (const r of t.all()) {
+      if (!r.bom_no || !r.ts || r.ts < cutoff) continue;
+      try { _spcDbMap.set(r.bom_no, { id: r.id, ts: r.ts, data: JSON.parse(r.payload) }); } catch (_) {}
+    }
+  } catch (_) {}
+  return _spcDbMap;
+}
+function _spcPersist(bomNo, data, ts) {
+  try {
+    const t = getTable('spc_bom_cache');
+    const cur = _spcDb().get(bomNo);
+    if (cur) {
+      t.update(cur.id, { payload: JSON.stringify(data), ts });
+      cur.ts = ts; cur.data = data;
+    } else {
+      const nid = t.insertNoSave({ bom_no: bomNo, payload: JSON.stringify(data), ts });
+      _spcDb().set(bomNo, { id: nid, ts, data });
+    }
+  } catch (_) {}
+}
+// 后台刷新限流队列（防止全量预热时打爆外部接口）
+const _spcBgSet = new Set(); // 排队中/进行中的 bom_no
+const _spcBgQ = [];
+let _spcBgRunning = 0;
+const _SPC_BG_CONC = 4, _SPC_BG_MAX = 200;
+function _spcBgPump() {
+  while (_spcBgRunning < _SPC_BG_CONC && _spcBgQ.length) {
+    const bn = _spcBgQ.shift();
+    _spcBgRunning++;
+    _fetchSpcRemote(bn).catch(() => null).finally(() => { _spcBgRunning--; _spcBgSet.delete(bn); _spcBgPump(); });
+  }
+}
+function _spcBgRefresh(bomNo) {
+  if (_spcBgSet.has(bomNo)) return;
+  if (_spcBgSet.size >= _SPC_BG_MAX) return; // 过载：放弃本次刷新，下次请求再试
+  _spcBgSet.add(bomNo);
+  _spcBgQ.push(bomNo);
+  _spcBgPump();
+}
 async function fetchSpcBomTree(bomNo) {
   const _c = _spcRawCache.get(bomNo);
   if (_c && Date.now() - _c.ts < _SPC_TTL) return _c.data;
+  // [PERF] 持久缓存命中：立即返回本地数据；仅超过 24h 才同步等待外部抓取
+  const _p = _spcDb().get(bomNo);
+  if (_p && Date.now() - _p.ts < _SPC_PERSIST_TTL) {
+    // [FIX] 内存缓存 ts 记"写入内存时刻"，不能沿用持久条目的数据时刻：
+    // 下游同步消费方（buildBomTreeForProduct）按 _SPC_TTL 校验 _c.ts，
+    // 写入旧 ts 会被判定过期而静默回退本地 BOM → 与 ERP 口径不一致 → 计划成本错误。
+    // 数据真实时戳记在 data_ts；是否后台刷新仍按持久条目 ts 判断。
+    // [FIX] 持久化快照同样过 bom_qty_overrides 纠错补丁（与 _fetchSpcRemote 一致，
+    //       所有消费方共享补丁后的树；否则 ERP 不可达期间覆盖规则不生效）
+    try { _applyQtyOverrides(bomNo, _p.data.tree); } catch (_) {}
+    _spcRawCache.set(bomNo, { data: _p.data, ts: Date.now(), data_ts: _p.ts });
+    if (Date.now() - _p.ts >= _SPC_TTL) _spcBgRefresh(bomNo);
+    return _p.data;
+  }
+  const fresh = await _fetchSpcRemote(bomNo);
+  if (fresh) return fresh;
+  // [SAFE] 外部接口不可用：兜底返回最后一次成功快照（可能较旧），不返回 null。
+  // 返回 null 会让计划成本归零、或静默回退本地 BOM（口径与 ERP 权威 BOM 不一致），
+  // 二者都会造成"成本对不上"；用旧快照同时登记后台重试。
+  if (_p) {
+    try { _applyQtyOverrides(bomNo, _p.data.tree); } catch (_) {}
+    _spcRawCache.set(bomNo, { data: _p.data, ts: Date.now(), data_ts: _p.ts });
+    _spcBgRefresh(bomNo);
+    return _p.data;
+  }
+  return null;
+}
+async function _fetchSpcRemote(bomNo) {
+  // 熔断期内不再尝试外部接口（ERP 不可用时立即失败，交由本地快照兜底）
+  if (Date.now() < _erpDownUntil) return null;
   try {
     // 1. bom_no → bom_id
     const qs1 = 'bom_no=' + encodeURIComponent(bomNo) + '&page=1&page_size=1';
     const r1 = await _callErpExt('boms.list', qs1);
-    if (r1.s !== 200) return null;
+    if (r1.s === 0) { _markErpFail(); return null; }   // 网络错误/超时 → 熔断
+    if (r1.s !== 200) return null;                      // 接口可达但响应异常，不计熔断
     const j1 = JSON.parse(r1.b);
     const items = (j1.data && j1.data.items) || [];
     if (!items.length) return null;
@@ -59,11 +226,18 @@ async function fetchSpcBomTree(bomNo) {
     // 2. boms.tree
     const qs2 = 'bom_id=' + encodeURIComponent(bomId);
     const r2 = await _callErpExt('boms.tree', qs2);
+    if (r2.s === 0) { _markErpFail(); return null; }
     if (r2.s !== 200) return null;
     const j2 = JSON.parse(r2.b);
     const data = j2.data || null;
     if (data) {
-      _spcRawCache.set(bomNo, { data, ts: Date.now() });
+      _markErpOk();
+      // ERP BOM 用量纠错：按 bom_qty_overrides 补丁后再入缓存（所有消费方共享补丁后的树）
+      _applyQtyOverrides(bomNo, data.tree);
+      _spcRawCache.set(bomNo, { data, ts: Date.now(), data_ts: Date.now() });
+      _spcPersist(bomNo, data, Date.now());
+      // [SAFE] 外部取到新树：使用该 BOM 的订单计划成本缓存失效（避免列表长期显示旧树成本）
+      _invalidatePlanCostByBom(bomNo);
       // 防内存无限增长：超过阈值时清理过期项，仍超则整体清空
       if (_spcRawCache.size > 3000) {
         const nowTs = Date.now();
@@ -72,23 +246,38 @@ async function fetchSpcBomTree(bomNo) {
       }
     }
     return data;
-  } catch (e) { return null; }
+  } catch (e) { _markErpFail(); return null; }
 }
 
 // 将 SPC 树转换为本地格式（含成本计算）
-function _convertSpcTree(spcNodes, priceMap, orderQty, depth, laborRateMap) {
+// 外购校正：用本地 bom_items 的 material_attr（getBomAttrMap 内部 5 分钟缓存）覆盖 SPC 的 has_sub_bom 判定
+function _convertSpcTree(spcNodes, priceMap, multiplier, depth, laborRateMap) {
   depth = depth || 1;
+  var attrMap = getBomAttrMap();
+  var unitGramsMap = buildMaterialUnitMap();
   return spcNodes.map(function(n) {
     var mc = (n.material_code || '').trim();
     var curPrice = priceMap[mc];
     var useCurrent = curPrice !== undefined && curPrice !== 0;
     var unitPrice = useCurrent ? curPrice : 0;
-    var lineQty = toNum(n.standard_qty) || 1;
+    // 单位换算：物料单价单位（如 吨）与 BOM 用量单位（如 kg）不一致时，把单价换算到用量单位
+    if (useCurrent) {
+      var matU = unitGramsMap[mc] || 0;
+      var bomU = UNIT_GRAMS[String(n.unit || '').trim()] || 0;
+      if (matU > 0 && bomU > 0 && matU !== bomU) unitPrice = curPrice * (bomU / matU);
+    }
+    // 用量缺省：pcs 类按 1；质量类（吨/kg/g）缺用量按 0 —— 按 1 会得出"1吨塑料/台"的天价
+    var lineQty = toNum(n.standard_qty);
+    if (!lineQty) lineQty = UNIT_GRAMS[String(n.unit || '').trim()] ? 0 : 1;
     var mat = unitPrice * lineQty;
-    var isSelfMade = n.has_sub_bom;
+    // 外购校正：本地 BOM 属性为"外购"的物料，即使 SPC(ERP) 挂了工程子BOM也按外购计
+    // （防止外购件被当自制展开、成本取子件合计导致严重偏低，如 JFWA* 光源按灯珠 0.016 元计价）
+    var localAttr = attrMap ? attrMap[mc] : null;
+    var isPurchased = localAttr === '外购' || localAttr === '外购件';
+    var isSelfMade = n.has_sub_bom && !isPurchased;
     // 工价库补入：只要 material_code 在工价库有 approved 工价就注入（不限于 has_sub_bom）
     var lr = laborRateMap ? (laborRateMap[mc] || 0) : 0;
-    var labTotal = lr * lineQty * orderQty;
+    var labTotal = lr * lineQty * multiplier;
     var node = {
       material_code: mc,
       material_name: n.material_name || '',
@@ -96,29 +285,36 @@ function _convertSpcTree(spcNodes, priceMap, orderQty, depth, laborRateMap) {
       unit: n.unit || '',
       material_attr: isSelfMade ? '自制' : '外购',
       depth: depth,
-      bom_qty: r2(lineQty),
+      bom_qty: Math.round(lineQty * 10000) / 10000, // 保留4位小数：0.003kg 这类小用量 r2 会舍成 0
       unit_price: r2(unitPrice),
       price_source: useCurrent ? '物料库当前价' : (unitPrice ? 'BOM单价' : '无价'),
-      total_qty: r2(lineQty * orderQty),
-      material_amount: r2(mat * orderQty),
+      total_qty: r2(lineQty * multiplier),
+      material_amount: r2(mat * multiplier),
+      labor_unit_price: r2(lr),
       labor_amount: r2(labTotal),
       expense_amount: 0,
-      line_total: r2(mat * orderQty + labTotal),
-      has_children: !!(n.children && n.children.length),
+      line_total: r2(mat * multiplier + labTotal),
+      has_children: false,
       children: []
     };
-    if (n.children && n.children.length) {
-      node.children = _convertSpcTree(n.children, priceMap, orderQty, depth + 1, laborRateMap);
+    // 仅自制件展开子件（外购件整体按自身单价计，工程子BOM不参与成本）
+    if (n.children && n.children.length && !isPurchased) {
+      // 子件用量相对父件：乘父件 total_qty，而非整灯订单量（避免丢失父件单台用量系数，如散热板 2/台）
+      node.children = _convertSpcTree(n.children, priceMap, node.total_qty, depth + 1, laborRateMap);
+      node.has_children = node.children.length > 0;
       // 父件物料成本 = 子件合计
-      var cMat = 0;
-      node.children.forEach(function(c) { cMat += c.material_amount; });
+      var cMat = 0, cLab = 0;
+      node.children.forEach(function(c) { cMat += c.material_amount; cLab += (c.labor_rollup != null ? c.labor_rollup : c.labor_amount); });
       node.material_amount = r2(cMat);
       node.line_total = r2(node.material_amount + node.labor_amount);
     }
+    // rollup = 真滚动合计（自身 + 全部下级），供层级成本展示：父件合计 ≥ 子件合计
+    var chLab = 0;
+    (node.children || []).forEach(function(c) { chLab += (c.labor_rollup != null ? c.labor_rollup : c.labor_amount); });
     node.material_rollup = node.material_amount;
-    node.labor_rollup = node.labor_amount;
+    node.labor_rollup = r2(node.labor_amount + chLab);
     node.expense_rollup = 0;
-    node.total_rollup = r2(node.material_amount + node.labor_amount);
+    node.total_rollup = r2(node.material_amount + node.labor_rollup);
     node.purchase_confirm_cost = node.material_amount;
     node.actual_cost = 0;
     return node;
@@ -192,6 +388,7 @@ ensureTable('order_analysis');
 ensureTable('order_review_logs');
 ensureTable('order_cost_snapshots');
 ensureTable('order_products'); // 订单多产品：order_id -> [product_code, product_name]
+ensureTable('bom_qty_overrides'); // BOM 用量本地覆盖（ERP 数据纠错）
 
 // ===== 工具 =====
 function toNum(v) {
@@ -225,7 +422,7 @@ function buildMaterialPriceMap() {
   _matPriceTs = Date.now();
   return map;
 }
-function clearMatPriceCache() { _matPriceCache = null; _matPriceTs = 0; _bomIndexCache = null; _bomIndexTs = 0; }
+function clearMatPriceCache() { _matPriceCache = null; _matPriceTs = 0; _matUnitCache = null; _matUnitTs = 0; _bomIndexCache = null; _bomIndexTs = 0; }
 
 // ===== 成品工价库索引（bom_no → labor_rate），5 分钟缓存 =====
 // 用于 BOM 子件人工补入：当 BOM 自带 direct_labor=0 时，从工价库查单台工价
@@ -286,6 +483,145 @@ function _invalidateOrderPlanCostCache(orderId) {
   _opIndexCache = null;
 }
 
+// [SAFE] SPC 树刷新后，使用该 BOM 的订单计划成本缓存失效。
+// 否则外部 ERP 恢复、树已更新，列表仍长期显示用旧树算出的成本（该缓存无 TTL）。
+let _bomToOrdersCache = null, _bomToOrdersVer = '';
+function _invalidatePlanCostByBom(bomNo) {
+  try {
+    const key = String(bomNo || '').trim();
+    if (!key) return;
+    const op = getTable('order_products');
+    const orders = getTable('orders');
+    const ver = op.version() + ':' + orders.version();
+    if (!_bomToOrdersCache || _bomToOrdersVer !== ver) {
+      const m = new Map();
+      const push = (bn, oid) => {
+        if (!bn) return;
+        let s = m.get(bn);
+        if (!s) m.set(bn, s = new Set());
+        s.add(Number(oid));
+      };
+      op.all().forEach(p => push(String(p.bom_no || '').trim(), p.order_id));
+      orders.all().forEach(o => push(String(o.bom_no || '').trim(), o.id)); // order_products 缺 bom_no 时兜底
+      _bomToOrdersCache = m; _bomToOrdersVer = ver;
+    }
+    const ids = _bomToOrdersCache.get(key);
+    if (ids) ids.forEach(id => _orderPlanCostCache.delete(id));
+  } catch (_) {}
+}
+
+// ===== 列表/统计聚合索引缓存（按表文件 mtime 版本自动失效）=====
+// order_bom_details 达 24 万行（240MB），order_products/order_analysis 也逐次全表扫描；
+// 文件未变化时（mtime 一致）直接复用上次构建的 Map，写盘后 mtime 变化自动重建。
+let _cardMapCache = null, _cardMapVer = -1;
+function getAnalysisCardMap() {
+  const t = getTable('order_analysis');
+  t._invalidate(); // mtime 感知：文件未变时为廉价空操作
+  const ver = t.version();
+  if (_cardMapCache && ver === _cardMapVer) return _cardMapCache;
+  const map = {};
+  t.all().forEach(a => { map[a.order_id] = a; });
+  _cardMapCache = map; _cardMapVer = ver;
+  return map;
+}
+let _opCountCache = null, _opCountVer = -1;
+function getOrderProductCounts() {
+  const t = getTable('order_products');
+  t._invalidate();
+  const ver = t.version();
+  if (_opCountCache && ver === _opCountVer) return _opCountCache;
+  const map = {};
+  t.all().forEach(r => { map[r.order_id] = (map[r.order_id] || 0) + 1; });
+  _opCountCache = map; _opCountVer = ver;
+  return map;
+}
+// order_bom_details 成本聚合（单次遍历同时构建三份 Map）：
+//   purchaseConfirmCostMap / materialCostMap 供列表接口；statsCostMap（line_total 优先）供统计接口
+let _detMapsCache = null, _detMapsVer = -1;
+function getDetCostMaps() {
+  const t = getTable('order_bom_details');
+  t._invalidate(); // mtime 感知：外部脚本改文件会重载，本进程写入则命中缓存
+  const ver = t.version();
+  if (_detMapsCache && ver === _detMapsVer) return _detMapsCache;
+  const purchaseConfirmCostMap = {}, materialCostMap = {}, statsCostMap = {};
+  t.all().forEach(r => {
+    const purchaseVal = toNum(r.purchase_confirm_cost);
+    if (purchaseVal > 0) purchaseConfirmCostMap[r.order_id] = (purchaseConfirmCostMap[r.order_id] || 0) + purchaseVal;
+    const matVal = toNum(r.material_amount);
+    if (matVal > 0) materialCostMap[r.order_id] = (materialCostMap[r.order_id] || 0) + matVal;
+    const lineTotal = toNum(r.line_total);
+    const val = lineTotal > 0 ? lineTotal : (purchaseVal > 0 ? purchaseVal : matVal);
+    if (val > 0) statsCostMap[r.order_id] = (statsCostMap[r.order_id] || 0) + val;
+  });
+  _detMapsCache = { purchaseConfirmCostMap, materialCostMap, statsCostMap };
+  _detMapsVer = ver;
+  return _detMapsCache;
+}
+
+// ===== 读接口短 TTL 响应缓存（重复打开页面/翻页返回即时命中）=====
+// 列表含 assigned_to_me（依赖 x-user-id），缓存键追加用户标识
+const _listCache = responseCache({ ttlMs: 3000, maxEntries: 32, key: (req) => (req.originalUrl || req.url) + '|u=' + (req.headers['x-user-id'] || '') });
+const _statsCache = responseCache({ ttlMs: 3000, maxEntries: 24 });
+const _filterOptsCache = responseCache({ ttlMs: 3000, maxEntries: 8 });
+// 本模块任一写操作（审核/作废/锁定/归集/同步等）立即清空响应缓存，避免操作后看到旧数据
+router.use((req, res, next) => {
+  if (req.method !== 'GET') { _listCache.clear(); _statsCache.clear(); _filterOptsCache.clear(); }
+  next();
+});
+
+// 启动预热：后台加载大表（order_bom_details 240MB / bom_items 65MB）与价格/工价索引，
+// 把冷读取成本从用户首次打开挪到服务启动阶段；不阻塞 listen
+function warmupCaches() {
+  setImmediate(() => {
+    const t0 = Date.now();
+    try { getDetCostMaps(); } catch (e) {}
+    try { getBomIndex(); } catch (e) {}
+    try { getBomAttrMap(); } catch (e) {}
+    try { buildMaterialPriceMap(); } catch (e) {}
+    try { buildLaborRateMap(); } catch (e) {}
+    try { getAnalysisCardMap(); getOrderProductCounts(); } catch (e) {}
+    console.log('[order-analysis] 启动预热完成（大表/索引已载入内存），耗时 ' + (Date.now() - t0) + 'ms');
+
+    // 第二阶段：预热全部非作废/非样品订单的 SPC BOM 树与逐单计划成本缓存，
+    // 使列表/统计/负毛利筛选都基于真实计划成本，且重启后首次访问即为毫秒级
+    setTimeout(() => {
+      (async () => {
+        try {
+          const t1 = Date.now();
+          const orders = getTable('orders');
+          orders._invalidate();
+          const targets = orders.all().filter(o => !o.is_void);
+          const idx = getOrderProductsIndex();
+          const bomNos = new Set();
+          targets.forEach(o => {
+            const obn = (o.bom_no || '').trim(); // order_products 缺 bom_no 时的兜底
+            (idx[o.id] || []).forEach(p => {
+              const bn = (p.bom_no || '').trim() || obn;
+              if (bn) bomNos.add(bn);
+            });
+          });
+          // SPC 预取：并发上限 12，避免瞬时打满外部接口
+          const CONC = 12;
+          const bomArr = [...bomNos];
+          for (let bi = 0; bi < bomArr.length; bi += CONC) {
+            await Promise.all(bomArr.slice(bi, bi + CONC).map(bn => fetchSpcBomTree(bn).catch(() => null)));
+            await new Promise(res => setImmediate(res));
+          }
+          // 逐单核算并缓存真实计划成本：每单完成后让出事件循环，避免阻塞业务请求/健康检查
+          for (let i = 0; i < targets.length; i++) {
+            try { _computeOrderPlanCost(targets[i].id); } catch (e) {}
+            if ((i % 100) === 99 || i === targets.length - 1) {
+              await new Promise(res => setImmediate(res));
+              console.log('[order-analysis] 计划成本预热 ' + (i + 1) + '/' + targets.length);
+            }
+          }
+          console.log('[order-analysis] 全量订单计划成本预热完成（' + targets.length + ' 单 / ' + bomNos.size + ' 个BOM），耗时 ' + (Date.now() - t1) + 'ms');
+        } catch (e) {}
+      })();
+    }, 200);
+  });
+}
+
 function _computeOrderPlanCost(orderId) {
   const cached = _orderPlanCostCache.get(Number(orderId));
   if (cached) return cached;
@@ -296,13 +632,20 @@ function _computeOrderPlanCost(orderId) {
   const ops = (getOrderProductsIndex()[Number(orderId)] || []);
   if (!ops.length) return null;
 
+  // 与 calcPlanCost 同口径兜底：order_products 行缺 bom_no/quantity 时回退订单表字段
+  // （外部同步早期版本写入的行缺这两个字段，导致实时核算计划成本为 0）
+  const orderQty = toNum(order.quantity) || 1;
+
   // 按 product_code + bom_no 合并 qty（同产品不同 BOM 变体分别核算）
+  // 数量回退仅限单行订单：多行订单中 qty=0 的行（赠品/异常行）若回退成整单数量会产生幻影成本
+  const _qtyFallback = ops.length === 1 ? orderQty : 0;
   const agg = {};
   ops.forEach(p => {
-    const k = (p.product_code || '') + '||' + (p.bom_no || '');
+    const bomNo = (p.bom_no || '').trim() || (order.bom_no || '').trim();
+    const k = (p.product_code || '') + '||' + bomNo;
     if (!p.product_code) return;
-    if (!agg[k]) agg[k] = { product_code: p.product_code, quantity: 0, bom_no: p.bom_no || '' };
-    agg[k].quantity += toNum(p.quantity);
+    if (!agg[k]) agg[k] = { product_code: p.product_code, quantity: 0, bom_no: bomNo };
+    agg[k].quantity += toNum(p.quantity) || _qtyFallback;
   });
   const mergedProducts = Object.values(agg);
 
@@ -376,13 +719,62 @@ function getLaborRateConfig() {
   return { endpoint: epCode, field: configField };
 }
 
+// 外部工价与工价库（在用已审批工价）比对：
+//   一致 → 直接可用（返回 same）
+//   不同/无在用 → 提交工价库【待审批】记录（不动已审批记录，审批通过前继续用在用工价）
+// 返回 { status: same|submitted|updated_pending|dup|invalid, usedRate: 应使用的工价（null=待审批后才有） }
+async function submitExternalLaborRate(bomNo, extRate, info) {
+  try {
+    const r = Math.round(Number(extRate) * 10000) / 10000;
+    const bn = String(bomNo || '').trim();
+    if (!bn || !(r > 0)) return { status: 'invalid' };
+    const lrTable = getTable('product_labor_rate');
+    lrTable._invalidate();
+    const ts = now();
+    const src = (info && info.source) || 'external_order';
+    const recs = lrTable.all().filter(x => (x.bom_no || '').trim() === bn && x.audit_status !== 'disabled');
+    const approved = recs.filter(x => x.audit_status === 'approved')
+      .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')) || (b.id - a.id))[0] || null;
+    if (approved && Math.abs(Number(approved.labor_rate) - r) < 0.0001) {
+      return { status: 'same', usedRate: Number(approved.labor_rate) };
+    }
+    const remarks = (info && info.remarks) || ('外部导入工价 ¥' + r + (approved ? '，与在用 ¥' + approved.labor_rate + ' 不同，待审批' : '，暂无在用工价，待审批'));
+    const pending = recs.find(x => x.audit_status === 'pending');
+    if (pending) {
+      if (Math.abs(Number(pending.labor_rate) - r) < 0.0001 && pending.source === src) {
+        return { status: 'dup', usedRate: approved ? Number(approved.labor_rate) : null };
+      }
+      await lrTable.update(pending.id, {
+        labor_rate: r,
+        product_code: (info && info.productCode) || pending.product_code || bn,
+        product_name: (info && info.productName) || pending.product_name || '',
+        source: src, remarks, updated_at: ts
+      });
+      return { status: 'updated_pending', usedRate: approved ? Number(approved.labor_rate) : null };
+    }
+    await lrTable.insert({
+      bom_no: bn, product_code: (info && info.productCode) || bn, product_name: (info && info.productName) || '',
+      labor_rate: r, labor_rate_type: '标准工价', process_cost: 0,
+      effective_date: ts.substring(0, 10), expire_date: '',
+      source: src, audit_status: 'pending', approved_by: '',
+      remarks, created_at: ts, updated_at: ts
+    });
+    return { status: 'submitted', usedRate: approved ? Number(approved.labor_rate) : null };
+  } catch (e) {
+    return { status: 'error', error: e.message };
+  }
+}
+
 // 从外部 ERP labor_rates.list 自动导入成品工价并持久化到 order_analysis.product_rates
 // 只补缺失 bom_no 的工价（已有值不覆盖），锁定订单跳过；导入后失效 plan 成本缓存
+// 【比对规则】外部工价与工价库在用工价一致 → 写入订单工价；不同/无在用 → 仅提交工价库待审批，审批通过前不使用
 async function autoImportLaborRates(orderId) {
   try {
     const oid = Number(orderId);
     const ops = (getOrderProductsIndex()[oid] || []);
-    const bomNos = [...new Set(ops.map(p => (p.bom_no || '').trim()).filter(Boolean))];
+    // order_products 行缺 bom_no 时回退订单表字段（外部同步早期数据）
+    const obn = ((getTable('orders').findById(oid) || {}).bom_no || '').trim();
+    const bomNos = [...new Set(ops.map(p => (p.bom_no || '').trim()).filter(Boolean).concat(obn ? [obn] : []))];
     if (!bomNos.length) return { called: 0, updated: 0 };
     const analysis = getTable('order_analysis');
     analysis._invalidate();
@@ -408,7 +800,23 @@ async function autoImportLaborRates(orderId) {
       } catch(e) {}
     }));
     if (!Object.keys(fetched).length) return { called: missing.length, updated: 0 };
-    Object.keys(fetched).forEach(bn => { saved[bn] = fetched[bn]; });
+    // 与工价库比对：一致 → 写入订单工价；不同/无在用 → 提交工价库待审批（不写入订单工价，审批通过前继续用在用工价）
+    let sameCnt = 0, submitCnt = 0, updCnt = 0, dupCnt = 0;
+    const order = getTable('orders').findById(oid) || {};
+    const opsByBom = {};
+    ops.forEach(p => { opsByBom[(p.bom_no || '').trim()] = p; });
+    for (const bn of Object.keys(fetched)) {
+      const op = opsByBom[bn] || {};
+      const st = await submitExternalLaborRate(bn, fetched[bn], {
+        productCode: op.product_code || bn, productName: op.product_name || '',
+        remarks: '订单 ' + (order.order_no || oid) + ' 外部导入工价比对'
+      });
+      if (st.status === 'same') { saved[bn] = fetched[bn]; sameCnt++; }
+      else if (st.status === 'submitted') submitCnt++;
+      else if (st.status === 'updated_pending') updCnt++;
+      else if (st.status === 'dup') dupCnt++;
+      else if (st.status === 'error') continue;
+    }
     if (!card) {
       card = { order_id: oid, order_no: (ops[0] && ops[0].order_no) || '', created_at: now(), updated_at: now() };
       const ins = await analysis.insert(card);
@@ -417,10 +825,47 @@ async function autoImportLaborRates(orderId) {
     await analysis.update(card.id, { product_rates: JSON.stringify(saved), updated_at: now() });
     analysis._invalidate();
     _invalidateOrderPlanCostCache(oid);
-    return { called: missing.length, updated: Object.keys(fetched).length };
+    return { called: missing.length, updated: Object.keys(fetched).length, same: sameCnt, submitted: submitCnt, updated_pending: updCnt, dup: dupCnt };
   } catch (e) {
     return { called: 0, updated: 0, error: e.message };
   }
+}
+
+// 订单分析库成品工价同步：成品工价库的已审批、生效记录是唯一来源。
+// 已有订单工价会被覆盖；无匹配记录的产品保留原值，避免因工价库缺行而清空订单数据。
+async function syncOrderProductRatesFromLibrary(orderId) {
+  const oid = Number(orderId);
+  const analysis = getTable('order_analysis');
+  let card = analysis.all().find(a => a.order_id === oid);
+  const products = (getOrderProductsIndex()[oid] || []).map(p => ({
+    bom_no: (p.bom_no || '').trim(), product_code: (p.product_code || '').trim()
+  }));
+  const order = getTable('orders').findById(oid) || {};
+  if (!products.length && order.bom_no) products.push({ bom_no: String(order.bom_no).trim() });
+  let existingRates = {};
+  if (card && card.product_rates) {
+    try { existingRates = JSON.parse(card.product_rates) || {}; } catch(e) {}
+  }
+  const library = getTable('product_labor_rate');
+  library._invalidate();
+  const result = syncProductRatesFromLibrary(products, library.all(), existingRates);
+  if (!card && Object.keys(result.rates).length) {
+    await analysis.insert({
+      order_id: oid,
+      order_no: order.order_no || String(oid),
+      product_rates: JSON.stringify(result.rates),
+      created_at: now(),
+      updated_at: now()
+    });
+    analysis._invalidate();
+    _invalidateOrderPlanCostCache(oid);
+    return result;
+  }
+  if (!card || !result.updated.length) return result;
+  await analysis.update(card.id, { product_rates: JSON.stringify(result.rates), updated_at: now() });
+  analysis._invalidate();
+  _invalidateOrderPlanCostCache(oid);
+  return result;
 }
 
 // 同步版产品 BOM 核算：优先取 SPC 缓存树，未命中回退本地 BOM
@@ -482,7 +927,40 @@ function getBomIndex() {
 function getBomLines(productCode) {
   if (!productCode) return [];
   const idx = getBomIndex();
-  return idx[String(productCode).trim()] || [];
+  const lines = idx[String(productCode).trim()] || [];
+  // 用量覆盖：命中 bom_qty_overrides（含通配 '*'）时返回修正后的副本（不改动共享缓存）
+  const ov = getBomQtyOverrides();
+  const pc = String(productCode).trim();
+  let hasOv = false;
+  for (const k in ov) {
+    if (k.indexOf('*|') === 0 || k.indexOf(pc + '|') === 0) { hasOv = true; break; }
+  }
+  if (!hasOv) return lines;
+  return lines.map(l => {
+    const q = _ovQtyFor(ov, pc, (l.material_code || '').trim());
+    return (q != null) ? Object.assign({}, l, { quantity: q }) : l;
+  });
+}
+
+// 物料属性索引（material_code → material_attr），5 分钟缓存
+// 用于 SPC 树外购校正：本地 BOM 属性为"外购"的物料，即使 ERP 挂了工程子BOM也按外购叶子计价
+let _bomAttrCache = null, _bomAttrTs = 0;
+function getBomAttrMap() {
+  if (_bomAttrCache && Date.now() - _bomAttrTs < 5 * 60 * 1000) return _bomAttrCache;
+  const bom = getTable('bom_items');
+  bom._invalidate();
+  const map = {};
+  bom.all().forEach(b => {
+    const mc = (b.material_code || '').trim();
+    const attr = String(b.material_attr || '').trim();
+    if (!mc || !attr) return;
+    if (String(b.is_disabled || '0') === '1') return;
+    // 首次出现的属性为准；"自制/委外加工"优先于"外购"（保守：宁可展开也不漏算）
+    const prev = map[mc];
+    if (prev === undefined || (prev === '外购' && (attr === '自制' || attr === '委外加工'))) map[mc] = attr;
+  });
+  _bomAttrCache = map; _bomAttrTs = Date.now();
+  return map;
 }
 
 // ===== 单行成本：成本 + BOM工价 + BOM费用 =====
@@ -663,24 +1141,24 @@ function buildBomTree(productCode, orderQty, priceMap, laborRateMap) {
     return out;
   })(root.children);
 
-  // 递归：所有层级统一用 orderQty 作为乘数（BOM中 qty 是整灯用量）
+  // 递归：第一层乘 orderQty，下级子件用量相对父件，乘父件 total_qty（避免丢失父件单台用量系数，如散热板 2/台）
   function rollup(node, multiplier) {
     node.total_qty = r2(node.bom_qty * multiplier);
     var ownMat = r2(node._matPerParent * multiplier);
     var ownLab = r2(node._labPerParent * multiplier);
     var ownExp = r2(node._expPerParent * multiplier);
     // 先递归子件
-    node.children.forEach(ch => { rollup(ch, multiplier); });
+    node.children.forEach(ch => { rollup(ch, node.total_qty); });
     if (node.children.length > 0) {
       // 有子件：物料成本 = 子件合计，但保留自身的人工/费用（自制件的加工费等）
-      let rMat = 0;
-      node.children.forEach(ch => { rMat += ch.material_rollup; });
+      let rMat = 0, rLab = 0, rExp = 0;
+      node.children.forEach(ch => { rMat += ch.material_rollup; rLab += ch.labor_rollup; rExp += ch.expense_rollup; });
       node.material_amount = r2(rMat);
       node.labor_amount = ownLab; // 保留自身人工（加工费等）
       node.expense_amount = ownExp;
       node.material_rollup = r2(rMat);
-      node.labor_rollup = r2(ownLab);
-      node.expense_rollup = r2(ownExp);
+      node.labor_rollup = r2(ownLab + rLab); // 真滚动合计：自身 + 全部下级（父件合计 ≥ 子件合计）
+      node.expense_rollup = r2(ownExp + rExp);
     } else {
       node.material_amount = ownMat;
       node.labor_amount = ownLab;
@@ -743,22 +1221,29 @@ async function syncOrderBomDetails(orderId, opts) {
   const orders = getTable('orders');
   const order = orders.findById(orderId);
   if (!order) return { synced: 0, ok: false, reason: '订单不存在' };
+  const analysis = getTable('order_analysis');
+  analysis._invalidate();
+  const card = analysis.all().find(a => a.order_id === order.id);
+  if (!isVoidAdjustmentAllowed({ isVoid: card && card.is_void, source: opts.source })) {
+    return { synced: 0, ok: false, reason: '作废订单只允许人工调整', code: 'VOID_MANUAL_ONLY', manual_only: true };
+  }
   if (!order.product_code) return { synced: 0, ok: false, reason: '订单未关联产品型号', code: 'NO_PRODUCT' };
   if (!opts.skipCacheClear) clearMatPriceCache();
   const plan = await calcPlanCost(order);
   const det = getTable('order_bom_details');
   // 批量模式下不 invalidate（保留内存中已累计的其他订单明细，由外层统一 saveNow）
   if (!opts.skipSave) det._invalidate();
-  // 删除该订单旧明细（批量：仅改内存不落盘，随末尾 saveNow 一次写入）
-  det.deleteWhereNoSave(x => x.order_id === order.id);
+  // [SAFE] 先完整构建新明细行，确认结果后再覆盖旧明细。
+  // 外部 ERP 不可用或该产品无 BOM 时 calcPlanCost 会产出空树，
+  // 原实现"先删旧明细、再插入 0 行"会在取数失败时把该订单已有明细清空（数据丢失）。
   const ts = now();
-  let count = 0;
+  const newRows = [];
   for (const p of plan.products) {
-    const walk = async (nodes, parentPath, parentCode) => {
+    const walk = (nodes, parentPath, parentCode) => {
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
         const path = parentPath ? (parentPath + '.' + i) : String(i);
-        await det.insertNoSave({
+        newRows.push({
           order_id: order.id, order_no: order.order_no,
           product_code: p.product_code, product_name: p.product_name || '',
           depth: n.depth, path: path, parent_path: parentPath || '', parent_material_code: parentCode || '',
@@ -772,20 +1257,71 @@ async function syncOrderBomDetails(orderId, opts) {
           actual_cost: 0,
           synced_at: ts
         });
-        count++;
-        if (n.children && n.children.length) await walk(n.children, path, n.material_code);
+        if (n.children && n.children.length) walk(n.children, path, n.material_code);
       }
     };
-    await walk(p.tree, '', '');
+    walk(p.tree || [], '', '');
   }
+  if (!newRows.length) {
+    // 空结果时若该订单原本有明细 → 视为取数失败，保留原明细并上报失败
+    const hadRows = det.all().some(r => r.order_id === order.id);
+    if (hadRows) {
+      return { synced: 0, ok: false, code: 'NO_BOM_DATA', reason: '未获取到 BOM 明细（外部接口不可用或该产品无 BOM），已保留原有明细', order_id: order.id, order_no: order.order_no };
+    }
+    // 原本就没有明细：合法空 BOM，继续走后续流程（不删不插）
+  } else {
+    // 删除该订单旧明细并写入新行（批量：随外层统一 saveNow）
+    det.deleteWhereNoSave(x => x.order_id === order.id);
+    for (const row of newRows) await det.insertNoSave(row);
+  }
+  const count = newRows.length;
   // 批量模式下跳过逐单落盘，由外层统一 saveNow（避免每条订单都整表写盘）
   if (!opts.skipSave) {
     await det.saveNow();
     det._invalidate();
   }
+  // 新物料自动进工价库：本次明细中的自制/外加工物料，工价库没有的自动登记（pending 待审核，无价标记待补）
+  let laborRateAdded = 0;
+  try {
+    const rows = det.all().filter(r => r.order_id === order.id);
+    const lrTable = getTable('product_labor_rate');
+    const byCode = {};
+    rows.forEach(r => {
+      const attr = String(r.material_attr || '').trim();
+      const isSM = attr === '自制' || attr === '外加工';
+      const labor = Number(r.labor_amount) || 0;
+      if (!isSM && labor <= 0) return;
+      const mc = String(r.material_code || '').trim();
+      if (!mc) return;
+      const totalQty = Number(r.total_qty) || 0;
+      const rate = totalQty > 0 ? Math.round((labor / totalQty) * 10000) / 10000 : (labor > 0 ? labor : 0);
+      const cur = byCode[mc] || (byCode[mc] = { code: mc, name: r.material_name || '', attr: '', rate: 0 });
+      if (rate > 0 && cur.rate <= 0) cur.rate = rate; // 有价优先
+      if (!cur.name && r.material_name) cur.name = r.material_name;
+      if (isSM && (cur.attr !== '自制' || !cur.attr)) cur.attr = attr; // 自制/外加工标注（自制优先）
+    });
+    for (const m of Object.values(byCode)) {
+      const remarkParts = ['来自订单 ' + (order.order_no || order.id)];
+      if (m.attr) remarkParts.push(m.attr);
+      if (m.rate <= 0) remarkParts.push('无工价，待补录');
+      const st = await upsertLaborRateFromAnalysis(lrTable, {
+        bomNo: m.code, productCode: m.code, productName: m.name, rate: m.rate,
+        rateType: m.attr === '自制' ? '实测工价' : '暂估工价',
+        remarks: remarkParts.join(' / ').substring(0, 200),
+        noSave: true // 本函数内统一 saveNow，避免逐条整表写盘
+      });
+      if (st === 'synced') laborRateAdded++;
+    }
+    if (laborRateAdded) {
+      await lrTable.saveNow();
+      clearLaborRateCache(); // 工价库变化，失效 5 分钟工价索引缓存
+    }
+  } catch (e) {
+    console.warn('[order-analysis] 新物料自动入工价库失败:', e.message);
+  }
   // ok=true 表示同步流程成功（即使该产品在 BOM 表里没有明细行 count=0，也是合法情况）
   return { synced: count, ok: true, products: plan.products.length, order_id: order.id, order_no: order.order_no, synced_at: ts,
-           warnings: plan.warnings || [], empty_bom: count === 0 };
+           warnings: plan.warnings || [], empty_bom: count === 0, labor_rate_added: laborRateAdded };
 }
 
 // ===== 核心算法 1：计划成本核算（BOM × 当前单价，三层 + 多级树） =====
@@ -801,9 +1337,10 @@ async function calcPlanCost(order) {
   // 多产品时每个产品有自己的数量（order_products.quantity）；无数量字段时回退订单总数
   let productSpecs = []; // [{product_code, quantity}]
   if (Array.isArray(order.products) && order.products.length) {
+    const _qf = order.products.length === 1 ? orderQty : 0; // 多行订单 qty=0 不回退整单数量
     productSpecs = order.products.map(p => {
       if (typeof p === 'string') return { product_code: p, quantity: orderQty };
-      return { product_code: p.product_code, bom_no: p.bom_no || '', quantity: toNum(p.quantity) || orderQty };
+      return { product_code: p.product_code, bom_no: p.bom_no || '', quantity: toNum(p.quantity) || _qf };
     }).filter(s => s.product_code);
   } else {
     // 从 order_products 表读取多产品（含每产品数量）
@@ -812,7 +1349,8 @@ async function calcPlanCost(order) {
       op._invalidate();
       const ops = op.all().filter(r => r.order_id === order.id).sort((a,b) => a.id - b.id);
       if (ops.length) {
-        productSpecs = ops.map(r => ({ product_code: r.product_code, bom_no: r.bom_no || '', quantity: toNum(r.quantity) || orderQty, amount: toNum(r.amount) }));
+        const _qf = ops.length === 1 ? orderQty : 0; // 多行订单 qty=0 不回退整单数量
+        productSpecs = ops.map(r => ({ product_code: r.product_code, bom_no: r.bom_no || '', quantity: toNum(r.quantity) || _qf, amount: toNum(r.amount) }));
       }
     } catch (_) {}
   }
@@ -1087,40 +1625,24 @@ router.post('/actual', requirePerm('order-analysis:view'), (req, res) => {
 });
 
 // 分析库列表（聚合订单 + 分析卡状态 + 计划/实际成本）
-router.get('/', requirePerm('order-analysis:view'), async (req, res) => {
+router.get('/', _listCache, requirePerm('order-analysis:view'), async (req, res) => {
   const { page = 1, limit = 20, keyword, status, review_status, customer,
           product, risk_level, has_overrun, profit_min, profit_max,
-          sort_by, sort_order, date_from, date_to, assigned_to_me, exclude_sample } = req.query;
+          sort_by, sort_order, date_from, date_to, assigned_to_me, exclude_sample,
+          void_status = 'active', column_order_no, column_customer, column_product,
+          column_quantity, column_order_amount, column_review_status } = req.query;
   const orders = getTable('orders');
   orders._invalidate();
-  const analysis = getTable('order_analysis');
-  analysis._invalidate();
-  // snapshots 文件达 362MB，不调用 _invalidate() 避免每次列表请求重读大文件
-
-  // 订单 -> 分析卡 映射
-  const cardMap = {};
-  analysis.all().forEach(a => { cardMap[a.order_id] = a; });
+  // 聚合索引走 mtime 版本缓存：文件未变化时不再重扫 24 万行大表
+  const cardMap = getAnalysisCardMap();
 
   // 订单 -> 产品数 映射（order_products 一篮子）
-  const opTable = getTable('order_products');
-  opTable._invalidate();
-  const opCount = {};
-  opTable.all().forEach(r => { opCount[r.order_id] = (opCount[r.order_id] || 0) + 1; });
-  
-  const detTable = getTable('order_bom_details');
-  // 不再每次 _invalidate（236MB 文件重读是性能杀手）；用内存缓存，仅 order_bom_details 写入时手动刷新
-  const purchaseConfirmCostMap = {};
-  const materialCostMap = {};
-  detTable.all().forEach(r => {
-    const purchaseVal = toNum(r.purchase_confirm_cost);
-    if (purchaseVal > 0) {
-      purchaseConfirmCostMap[r.order_id] = (purchaseConfirmCostMap[r.order_id] || 0) + purchaseVal;
-    }
-    const matVal = toNum(r.material_amount);
-    if (matVal > 0) {
-      materialCostMap[r.order_id] = (materialCostMap[r.order_id] || 0) + matVal;
-    }
-  });
+  const opCount = getOrderProductCounts();
+
+  // 订单 -> BOM 明细成本聚合（purchase_confirm_cost / material_amount）
+  const detMaps = getDetCostMaps();
+  const purchaseConfirmCostMap = detMaps.purchaseConfirmCostMap;
+  const materialCostMap = detMaps.materialCostMap;
 
   let rows = orders.all().map(o => {
     const card = cardMap[o.id] || {};
@@ -1163,6 +1685,16 @@ router.get('/', requirePerm('order-analysis:view'), async (req, res) => {
       actual_gross_rate: actualGrossRate,
       gross_profit: grossProfit != null ? r2(grossProfit) : null,
       gross_rate: grossRate,
+      cost_variance: (actual != null && plan != null) ? r2(actual - plan) : null,
+      gross_margin_analysis: buildGrossMarginAnalysis({
+        orderAmount,
+        materialCost: planMat,
+        laborCost: planLab,
+        expenseCost: planExp,
+        planCost: plan,
+        grossProfit,
+        grossRate
+      }),
       has_overrun: overrun,
       analysis_id: card.id || null,
       updated_at: card.updated_at || null,
@@ -1173,9 +1705,27 @@ router.get('/', requirePerm('order-analysis:view'), async (req, res) => {
     };
   });
 
-  // 过滤：默认排除作废订单
+  // 毛利率区间/负毛利筛选必须基于"真实计划成本"（实时 BOM 核算，缓存优先）：
+  // 原先在此阶段用明细行聚合的 fallback 成本做毛利判断，会把成本虚高的订单误判为负毛利。
+  // 这里先补齐全部候选订单的真实计划成本，再进入 filter 按毛利率判断。
+  if ((profit_min !== undefined && profit_min !== '') || (profit_max !== undefined && profit_max !== '')) {
+    for (const r of rows) {
+      let dyn = _orderPlanCostCache.get(Number(r.id));
+      if (!dyn) { try { dyn = _computeOrderPlanCost(r.id); } catch (e) { dyn = null; } }
+      if (dyn) {
+        r.plan_material_cost = dyn.material; r.plan_labor_cost = dyn.labor; r.plan_expense_cost = dyn.expense; r.plan_total_cost = dyn.total;
+        const amt = toNum(r.order_amount);
+        r.gross_profit = r2(amt - dyn.total);
+        r.gross_rate = (dyn.total > 0 && amt > 0) ? r2((amt - dyn.total) / amt * 100) : null;
+        r.cost_variance = r.actual_total_cost != null ? r2(r.actual_total_cost - dyn.total) : null;
+      }
+    }
+  }
+
+  // 过滤：默认排除作废订单；仅 void/all 明确扩大范围
   rows = rows.filter(r => {
-    if (r.is_void) return false;
+    if (void_status === 'void' && !r.is_void) return false;
+    if (void_status !== 'void' && void_status !== 'all' && r.is_void) return false;
     // 排除样品单（HJY 开头）
     if (exclude_sample === '1' && (r.order_no || '').toUpperCase().startsWith('HJY')) return false;
     // 日期过滤按订单业务日期（promised_date 优先，回退到订单号解析年份）
@@ -1196,6 +1746,12 @@ router.get('/', requirePerm('order-analysis:view'), async (req, res) => {
     }
     if (customer && !(r.customer_name || '').includes(customer)) return false;
     if (product && !((r.product_code || '') + (r.product_name || '')).toLowerCase().includes(String(product).toLowerCase())) return false;
+    if (column_order_no && !(r.order_no || '').toLowerCase().includes(String(column_order_no).toLowerCase())) return false;
+    if (column_customer && !(r.customer_name || '').toLowerCase().includes(String(column_customer).toLowerCase())) return false;
+    if (column_product && !((r.product_code || '') + (r.product_name || '')).toLowerCase().includes(String(column_product).toLowerCase())) return false;
+    if (column_quantity && !String(r.quantity == null ? '' : r.quantity).includes(String(column_quantity))) return false;
+    if (column_order_amount && !String(r.order_amount == null ? '' : r.order_amount).includes(String(column_order_amount))) return false;
+    if (column_review_status && (r.review_status || 'none') !== column_review_status) return false;
     if (risk_level && r.risk_level !== risk_level) return false;
     if (has_overrun === '1' && !r.has_overrun) return false;
     if (has_overrun === '0' && r.has_overrun) return false;
@@ -1224,9 +1780,7 @@ router.get('/', requirePerm('order-analysis:view'), async (req, res) => {
   });
 
   // 排序
-  const ALLOWED_SORT = ['id', 'order_no', 'customer_name', 'order_amount', 'status', 'promised_date', 'created_at',
-                        'plan_total_cost', 'purchase_confirm_cost', 'actual_total_cost', 'gross_rate', 'review_status'];
-  const orderBy = ALLOWED_SORT.includes(sort_by) ? sort_by : 'id';
+  const orderBy = ALLOWED_SORT_FIELDS.includes(sort_by) ? sort_by : 'id';
   const dir = (sort_order && String(sort_order).toUpperCase() === 'ASC') ? 1 : -1;
   rows.sort((a, b) => {
     const va = a[orderBy], vb = b[orderBy];
@@ -1236,14 +1790,18 @@ router.get('/', requirePerm('order-analysis:view'), async (req, res) => {
     return cmp * dir;
   });
 
-  const total = rows.length;
-  const start = (parseInt(page) - 1) * parseInt(limit);
-  const records = rows.slice(start, start + parseInt(limit));
+  const pagination = paginate(rows, parseInt(page), parseInt(limit));
+  const total = pagination.total;
+  const records = pagination.items;
   // 预热本页订单的 SPC 树（并行），确保下方逐单核算走 SPC 缓存，口径与明细一致
   {
     const warmBomNos = new Set();
     for (const r of records) {
-      (getOrderProductsIndex()[r.id] || []).forEach(p => { const bn = (p.bom_no || '').trim(); if (bn) warmBomNos.add(bn); });
+      const obn = ((orders.findById(r.id) || {}).bom_no || '').trim(); // order_products 缺 bom_no 时的兜底
+      (getOrderProductsIndex()[r.id] || []).forEach(p => {
+        const bn = (p.bom_no || '').trim() || obn;
+        if (bn) warmBomNos.add(bn);
+      });
     }
     await Promise.all([...warmBomNos].map(bn => fetchSpcBomTree(bn)));
   }
@@ -1261,11 +1819,21 @@ router.get('/', requirePerm('order-analysis:view'), async (req, res) => {
           r.gross_profit = r2(orderAmount - dyn.total);
           r.gross_rate = r2((orderAmount - dyn.total) / orderAmount * 100);
         }
+        r.cost_variance = r.actual_total_cost != null ? r2(r.actual_total_cost - dyn.total) : null;
       }
     }
+    r.gross_margin_analysis = buildGrossMarginAnalysis({
+      orderAmount: r.order_amount,
+      materialCost: r.plan_material_cost,
+      laborCost: r.plan_labor_cost,
+      expenseCost: r.plan_expense_cost,
+      planCost: r.plan_total_cost,
+      grossProfit: r.gross_profit,
+      grossRate: r.gross_rate
+    });
     delete r._need_dyn_plan;
   }
-  res.json({ data: records, total, page: parseInt(page), limit: parseInt(limit) });
+  res.json({ data: records, total, page: pagination.page, limit: pagination.limit, pages: pagination.pages });
 });
 
 // ===== 问题汇总表（多维度分组）— 必须在 /:id 之前注册 =====
@@ -1504,7 +2072,7 @@ router.get('/:id/details', requirePerm('order-analysis:view'), (req, res) => {
 // 手动触发单个订单 BOM 明细同步
 router.post('/:id/sync-details', requirePerm('order-analysis:edit'), async (req, res) => {
   try {
-    const r = await syncOrderBomDetails(Number(req.params.id));
+    const r = await syncOrderBomDetails(Number(req.params.id), { source: 'manual' });
     // 用 ok 字段判断流程是否成功，避免 count=0（产品无BOM明细）被误判为失败
     if (!r.ok) {
       const code = r.code || 'SYNC_FAILED';
@@ -1537,7 +2105,7 @@ router.post('/assign-product', requirePerm('order-analysis:edit'), async (req, r
       if (!order) { failed.push({ id: oid, reason: '订单不存在' }); continue; }
       await orders.update(order.id, { product_code, product_name: productName, updated_at: now() });
       assigned++;
-      try { const r = await syncOrderBomDetails(order.id, { skipCacheClear: true }); synced += (r.synced || 0); } catch (_) {}
+      try { const r = await syncOrderBomDetails(order.id, { skipCacheClear: true, source: 'manual' }); synced += (r.synced || 0); } catch (_) {}
       if (auto_map !== false && order.customer_name) {
         try {
           const map = getTable('order_product_map'); map._invalidate();
@@ -1564,14 +2132,16 @@ router.post('/sync-details-batch', requirePerm('order-analysis:edit'), async (re
   const syncedOrderIds = new Set(det.all().map(r => r.order_id));
   // 批量场景：只清一次价格/BOM 索引缓存，避免每条订单都重建 10万行级 bom_items 索引
   clearMatPriceCache();
-  let synced = 0, skipped = 0, failed = 0; const failedList = [];
+  let synced = 0, skipped = 0, skippedVoid = 0, failed = 0; const failedList = [];
   for (const o of orders.all()) {
     if (!o.product_code) { skipped++; continue; }
+    const card = getAnalysisCardMap()[o.id];
+    if (card && Number(card.is_void) === 1) { skipped++; skippedVoid++; continue; }
     if (onlyUnmapped && syncedOrderIds.has(o.id)) { skipped++; continue; }
     try { const r = await syncOrderBomDetails(o.id, { skipCacheClear: true }); if (r.ok) synced++; else { failed++; failedList.push({ id: o.id, order_no: o.order_no, reason: r.reason }); } }
     catch (e) { failed++; failedList.push({ id: o.id, order_no: o.order_no, reason: e.message }); }
   }
-  res.json({ message: '批量同步完成', synced, skipped, failed, failed_list: failedList.slice(0, 20) });
+  res.json({ message: '批量同步完成（作废订单仅允许人工调整）', synced, skipped, skipped_void: skippedVoid, failed, failed_list: failedList.slice(0, 20) });
 });
 
 // 已同步明细统计
@@ -1810,9 +2380,12 @@ router.get('/:id', requirePerm('order-analysis:view'), async (req, res) => {
   // 预热该订单产品的 SPC 树（并行），确保 plan_cost 与明细(BOM展开)同口径
   {
     const warmBomNos = new Set(orderProducts.map(p => (p.bom_no || '').trim()).filter(Boolean));
+    if ((order.bom_no || '').trim()) warmBomNos.add(order.bom_no.trim()); // order_products 缺 bom_no 时兜底
     await Promise.all([...warmBomNos].map(bn => fetchSpcBomTree(bn)));
   }
 
+  // 先将成品工价库的已审批工价同步到订单分析卡片，再补充外部 ERP 缺失工价。
+  await syncOrderProductRatesFromLibrary(order.id);
   // 自动从外部 ERP 导入成品工价（补缺失 bom_no），使人工费自动进入 plan_cost
   await autoImportLaborRates(order.id);
 
@@ -1836,7 +2409,9 @@ router.get('/:id', requirePerm('order-analysis:view'), async (req, res) => {
 router.get('/:id/labor-rates', requirePerm('order-analysis:view'), async (req, res) => {
   const orderId = Number(req.params.id);
   const ops = getOrderProductsIndex()[orderId] || [];
-  const bomNos = [...new Set(ops.map(p => (p.bom_no || '').trim()).filter(Boolean))];
+  // order_products 行缺 bom_no 时回退订单表字段
+  const obn = ((getTable('orders').findById(orderId) || {}).bom_no || '').trim();
+  const bomNos = [...new Set(ops.map(p => (p.bom_no || '').trim()).filter(Boolean).concat(obn ? [obn] : []))];
   if (!bomNos.length) return res.json({ rates: {}, source: 'no_bom_no' });
 
   const settings = getTable('system_settings');
@@ -1971,7 +2546,48 @@ router.put('/:id/product-rates', requirePerm('order-analysis:edit'), async (req,
   res.json({ message: '工价已保存' + (synced ? `，已同步 ${synced} 条到成品工价库` : ''), rates, synced });
 });
 
-// ===== 将订单分析的工价同步到成品工价库（不检查锁定，只读 product_rates 并 upsert）=====
+// ===== 将订单分析的工价同步到成品工价库（已审核工价锁定，不自动更新；只读 product_rates 并 upsert 未审核记录）=====
+// ===== 公共 upsert：订单分析 → product_labor_rate =====
+// 规则：approved 锁定不动；工价库已有价格不因"无价导入"被清空；未审核按导入值更新；新记录 pending 待审核
+// opts.noSave=true 时走 NoSave 写入（批量场景由调用方统一 saveNow）
+// 返回：'synced' | 'locked' | 'keep_price' | 'skipped'
+async function upsertLaborRateFromAnalysis(lrTable, info) {
+  const rate = Math.round(Number(info.rate || 0) * 10000) / 10000;
+  const ts = now();
+  const existing = lrTable.all().find(r => r.bom_no === info.bomNo && r.audit_status !== 'disabled');
+  if (existing && existing.audit_status === 'approved') return 'locked';
+  // 工价库已有价格，本次导入为 0（无价）→ 保留现价，不用 0 覆盖
+  if (existing && Number(existing.labor_rate) > 0 && rate <= 0) return 'keep_price';
+  if (existing) {
+    if (Number(existing.labor_rate) !== rate || existing.source !== 'order_analysis') {
+      const patch = {
+        labor_rate: rate,
+        product_code: info.productCode || info.bomNo,
+        product_name: info.productName || existing.product_name,
+        source: 'order_analysis',
+        remarks: info.remarks || existing.remarks,
+        updated_at: ts
+      };
+      if (info.rateType && !existing.labor_rate_type) patch.labor_rate_type = info.rateType;
+      if (info.noSave) await lrTable.updateNoSave(existing.id, patch);
+      else await lrTable.update(existing.id, patch);
+      return 'synced';
+    }
+    return 'skipped';
+  }
+  const rec = {
+    bom_no: info.bomNo, product_code: info.productCode || info.bomNo, product_name: info.productName || '',
+    labor_rate: rate, labor_rate_type: info.rateType || '实测工价', process_cost: 0,
+    effective_date: ts.substring(0, 10), expire_date: '',
+    source: 'order_analysis', audit_status: 'pending', approved_by: '',
+    remarks: info.remarks || ('来自订单 ' + (info.orderNo || '')),
+    created_at: ts, updated_at: ts
+  };
+  if (info.noSave) { await lrTable.insertNoSave(rec); }
+  else { await lrTable.insert(rec); }
+  return 'synced';
+}
+
 // 支持单订单 / 全量批量
 router.post('/sync-rates-to-library', requirePerm('order-analysis:edit'), async (req, res) => {
   const analysis = getTable('order_analysis');
@@ -1985,6 +2601,7 @@ router.post('/sync-rates-to-library', requirePerm('order-analysis:edit'), async 
   const details = [];
 
   for (const card of allCards) {
+    if (Number(card.is_void) === 1) { totalSkipped++; continue; }
     if (!card.product_rates) continue;
     let rates;
     try { rates = JSON.parse(card.product_rates); } catch(e) { continue; }
@@ -1999,7 +2616,10 @@ router.post('/sync-rates-to-library', requirePerm('order-analysis:edit'), async 
       const productCode = (op && op.product_code) || bomNo;
       const productName = (op && op.product_name) || '';
       const existing = lrTable.all().find(r => r.bom_no === bomNo && r.audit_status !== 'disabled');
-      if (existing) {
+      if (existing && existing.audit_status === 'approved') {
+        // 已审核工价锁定，禁止自动更新（需手动调整）
+        totalSkipped++;
+      } else if (existing) {
         if (Number(existing.labor_rate) !== rate) {
           await lrTable.update(existing.id, {
             labor_rate: Math.round(rate*100)/100,
@@ -2028,32 +2648,97 @@ router.post('/sync-rates-to-library', requirePerm('order-analysis:edit'), async 
       details.push({ order_id: oid, order_no: card.order_no, synced: orderSynced });
     }
   }
+
+  // ---- Part B: 全量导入 order_bom_details 中的自制/外加工件（含无工价物料，按物料编码去重）----
+  // 同物料多订单时取"有工价优先、其次最新同步"的值；无工价物料以 rate=0 入库（pending，待补价审核）
+  const bomBreakdown = { self_made: 0, outsourced: 0, labor_line: 0, no_price: 0 };
+  let bomSynced = 0, bomLocked = 0, uniqueMaterials = 0;
+  try {
+    const det = getTable('order_bom_details');
+    det._invalidate(); // mtime 感知：文件未变时为廉价空操作
+    const byMat = {};
+    det.all().forEach(r => {
+      const attr = String(r.material_attr || '').trim();
+      const isSM = attr === '自制' || attr === '外加工';
+      const labor = Number(r.labor_amount) || 0;
+      if (!isSM && labor <= 0) return;
+      const mc = String(r.material_code || '').trim();
+      if (!mc) return;
+      const totalQty = Number(r.total_qty) || 0;
+      const rate = totalQty > 0 ? Math.round((labor / totalQty) * 10000) / 10000 : (labor > 0 ? labor : 0);
+      const cur = byMat[mc];
+      if (!cur) {
+        byMat[mc] = { material_code: mc, material_name: r.material_name || '', spec: r.spec || '', attr, rate, synced_at: r.synced_at || '', order_nos: (r.order_no ? [r.order_no] : []) };
+      } else {
+        // 有价优先于无价；同为有价/无价时取最新同步
+        const curHas = cur.rate > 0, newHas = rate > 0;
+        if ((newHas && !curHas) || ((newHas === curHas) && String(r.synced_at || '') > String(cur.synced_at || ''))) {
+          cur.rate = rate; cur.synced_at = r.synced_at || '';
+          if (isSM) cur.attr = attr;
+        }
+        if (!cur.material_name && r.material_name) cur.material_name = r.material_name;
+        if (r.order_no && cur.order_nos.length < 5 && !cur.order_nos.includes(r.order_no)) cur.order_nos.push(r.order_no);
+      }
+    });
+    uniqueMaterials = Object.keys(byMat).length;
+    for (const m of Object.values(byMat)) {
+      const rateType = m.attr === '自制' ? '实测工价' : (m.attr === '外加工' ? '暂估工价' : '实测工价');
+      const remarkParts = ['来自订单 ' + (m.order_nos.length > 1 ? m.order_nos.length + ' 个订单（如 ' + m.order_nos[0] + '）' : (m.order_nos[0] || ''))];
+      if (m.attr) remarkParts.push(m.attr);
+      if (m.rate <= 0) remarkParts.push('无工价，待补录');
+      else if (m.spec) remarkParts.push('规格:' + m.spec);
+      const st = await upsertLaborRateFromAnalysis(lrTable, {
+        bomNo: m.material_code, productCode: m.material_code, productName: m.material_name,
+        rate: m.rate, rateType, remarks: remarkParts.join(' / ').substring(0, 200),
+        noSave: true
+      });
+      if (st === 'synced') {
+        bomSynced++; totalSynced++;
+        if (m.attr === '自制') bomBreakdown.self_made++;
+        else if (m.attr === '外加工') bomBreakdown.outsourced++;
+        else bomBreakdown.labor_line++;
+        if (m.rate <= 0) bomBreakdown.no_price++;
+      } else if (st === 'locked') { bomLocked++; totalSkipped++; }
+      else if (st !== 'skipped') { totalSkipped++; } // keep_price
+    }
+    await lrTable.saveNow();
+    lrTable._invalidate();
+  } catch (e) {
+    console.warn('[order-analysis] BOM 明细批量同步失败:', e.message);
+  }
+  clearLaborRateCache();
   res.json({
-    message: `同步完成：${totalOrders} 个订单，${totalSynced} 条工价入库，${totalSkipped} 条跳过`,
+    message: `同步完成：${totalOrders} 个订单成品工价 ${details.reduce((s, d) => s + d.synced, 0)} 条入库；自制/外加工件按物料去重 ${uniqueMaterials} 种，${bomSynced} 条入库（自制 ${bomBreakdown.self_made}，外加工 ${bomBreakdown.outsourced}，人工行 ${bomBreakdown.labor_line}，无工价待补 ${bomBreakdown.no_price}）${bomLocked ? '，' + bomLocked + ' 条已审核锁定跳过' : ''}；共跳过 ${totalSkipped} 条`,
     total_orders: totalOrders, total_synced: totalSynced, total_skipped: totalSkipped,
+    bom_unique_materials: uniqueMaterials, bom_synced: bomSynced, bom_breakdown: bomBreakdown, bom_locked: bomLocked,
     details: details.slice(0, 50)
   });
 });
 
-// 单订单同步（不检查锁定）
+// 单订单同步（已审核工价锁定跳过，仅 upsert 未审核记录）
+// 数据源：order_bom_details（订单 BOM 明细，实时/权威，未审核订单也有）优先，计划快照回退
+// 自制/外加工件含无工价物料一并导入（rate=0，待审核补价）；其他行仅有工价时导入
 router.post('/:id/sync-rates-to-library', requirePerm('order-analysis:edit'), async (req, res) => {
   const oid = Number(req.params.id);
+  const orders = getTable('orders');
+  const order = orders.findById(oid);
+  if (!order) return res.status(404).json({ error: '订单不存在' });
   const analysis = getTable('order_analysis');
   analysis._invalidate();
-  const card = analysis.all().find(a => a.order_id === oid);
-  if (!card) {
-    return res.json({ message: '该订单无分析数据', synced: 0 });
+  const card = analysis.all().find(a => a.order_id === oid) || null;
+  if (!isVoidAdjustmentAllowed({ isVoid: card && card.is_void, source: req.body && req.body.source })) {
+    return res.status(409).json({ error: '作废订单只允许人工调整', code: 'VOID_MANUAL_ONLY', manual_only: true });
   }
   const ts = now();
-  const yStart = new Date().getFullYear() + '-01-01';
-  const orderNo = card.order_no || String(oid);
+  const orderNo = order.order_no || (card && card.order_no) || String(oid);
   const lrTable = getTable('product_labor_rate');
   lrTable._invalidate();
   let synced = 0;
-  const breakdown = { product_rate: 0, self_made: 0, outsourced: 0, labor_line: 0 };
+  let locked = 0;
+  const breakdown = { product_rate: 0, self_made: 0, outsourced: 0, labor_line: 0, no_price: 0 };
 
-  // ---- Part A: 成品工价（product_rates）----
-  if (card.product_rates) {
+  // ---- Part A: 成品工价（product_rates，需分析卡）----
+  if (card && card.product_rates) {
     try {
       const rates = JSON.parse(card.product_rates);
       const ops = getOrderProductsIndex()[oid] || [];
@@ -2061,94 +2746,85 @@ router.post('/:id/sync-rates-to-library', requirePerm('order-analysis:edit'), as
         const rate = Number(rateVal);
         if (!bomNo || !rate || rate <= 0) continue;
         const op = ops.find(p => (p.bom_no||'').trim() === bomNo || (p.product_code||'').trim() === bomNo);
-        const productCode = (op && op.product_code) || bomNo;
-        const productName = (op && op.product_name) || '';
-        const existing = lrTable.all().find(r => r.bom_no === bomNo && r.audit_status !== 'disabled');
-        if (existing) {
-          if (Number(existing.labor_rate) !== rate) {
-            await lrTable.update(existing.id, { labor_rate: Math.round(rate*100)/100, product_code: productCode, product_name: productName||existing.product_name, source: 'order_analysis', updated_at: ts });
-            synced++; breakdown.product_rate++;
-          }
-        } else {
-          await lrTable.insert({ bom_no: bomNo, product_code: productCode, product_name: productName, labor_rate: Math.round(rate*100)/100, labor_rate_type: '实测工价', process_cost: 0, effective_date: yStart, expire_date: '', source: 'order_analysis', audit_status: 'pending', approved_by: '', remarks: '来自订单 '+orderNo+' 成品工价', created_at: ts, updated_at: ts });
-          synced++; breakdown.product_rate++;
-        }
+        const st = await upsertLaborRateFromAnalysis(lrTable, {
+          bomNo, productCode: (op && op.product_code) || bomNo, productName: (op && op.product_name) || '',
+          rate: Math.round(rate * 100) / 100, rateType: '实测工价',
+          remarks: '来自订单 ' + orderNo + ' 成品工价'
+        });
+        if (st === 'synced') { synced++; breakdown.product_rate++; }
+        else if (st === 'locked') locked++;
       }
     } catch(e) {}
   }
 
-  // ---- Part B: BOM 明细中的自制/外加工物料 + 人工行 ----
+  // ---- Part B: BOM 明细自制/外加工物料 + 人工行（order_bom_details 优先，快照回退）----
+  let lines = null; let lineSource = 'details';
   try {
-    const snapTable = getTable('order_cost_snapshots');
-    snapTable._invalidate();
-    // 取最新的 plan 快照
-    const snapRow = snapTable.all()
-      .filter(s => s.order_analysis_id === card.id && s.snapshot_type === 'plan')
-      .sort((a, b) => b.id - a.id)[0];
-    if (snapRow && snapRow.lines) {
-      // lines 可能是数组、JSON 字符串数组、或含 lines 字段的对象
-      let lines = snapRow.lines;
-      if (typeof lines === 'string') {
-        try { lines = JSON.parse(lines); } catch(e) { lines = null; }
+    const det = getTable('order_bom_details');
+    det._invalidate(); // mtime 感知：文件未变时为廉价空操作
+    const rows = det.all().filter(r => r.order_id === oid);
+    if (rows.length) lines = rows;
+  } catch (_) {}
+  if (!lines && card) {
+    // 无明细行时回退最新 plan 快照
+    try {
+      const snapTable = getTable('order_cost_snapshots');
+      snapTable._invalidate();
+      const snapRow = snapTable.all()
+        .filter(s => s.order_analysis_id === card.id && s.snapshot_type === 'plan')
+        .sort((a, b) => b.id - a.id)[0];
+      if (snapRow && snapRow.lines) {
+        let sl = snapRow.lines;
+        if (typeof sl === 'string') { try { sl = JSON.parse(sl); } catch(e) { sl = null; } }
+        if (sl && !Array.isArray(sl) && Array.isArray(sl.lines)) sl = sl.lines;
+        if (Array.isArray(sl) && sl.length) { lines = sl; lineSource = 'snapshot'; }
       }
-      if (lines && !Array.isArray(lines) && Array.isArray(lines.lines)) {
-        lines = lines.lines;
+    } catch (_) {}
+  }
+  if (Array.isArray(lines)) {
+    for (const line of lines) {
+      const attr = String(line.material_attr || '').trim();
+      const labor = Number(line.labor_amount) || 0;
+      const isSM = attr === '自制' || attr === '外加工';
+      // 自制/外加工件：含无工价物料（rate=0 待补录）；其他行仅有工价时导入
+      if (!isSM && labor <= 0) continue;
+      const bomNo = String(line.material_code || '').trim();
+      if (!bomNo) continue;
+      // 工价库存的是【单台/单件工价】(元/台)，不是 labor_amount 总额。
+      // 单价 = labor_amount / total_qty（避免把总额当单价存入，再被 ×总量 导致成本爆炸）
+      const totalQty = Number(line.total_qty) || 0;
+      const rate = totalQty > 0 ? Math.round((labor / totalQty) * 10000) / 10000 : 0;
+      const productName = String(line.material_name || '').trim();
+      const spec = String(line.spec || '').trim();
+      const unit = String(line.unit || '').trim();
+      const qty = Number(line.total_qty) || 0;
+      const remarkParts = ['来自订单 ' + orderNo];
+      if (attr) remarkParts.push(attr);
+      if (rate <= 0) remarkParts.push('无工价，待补录');
+      else {
+        if (spec) remarkParts.push('规格:' + spec);
+        if (qty) remarkParts.push('用量:' + qty + (unit || ''));
       }
-      if (Array.isArray(lines)) {
-        for (const line of lines) {
-          const attr = String(line.material_attr || '').trim();
-          const labor = Number(line.labor_amount) || 0;
-          if (attr !== '自制' && attr !== '外加工' && labor <= 0) continue;
-          const bomNo = String(line.material_code || '').trim();
-          if (!bomNo) continue;
-          const existing = lrTable.all().find(r => r.bom_no === bomNo && r.audit_status !== 'disabled');
-          const rate = Math.round(labor * 100) / 100;
-          const productName = String(line.material_name || '').trim();
-          const spec = String(line.spec || '').trim();
-          const unit = String(line.unit || '').trim();
-          const qty = Number(line.total_qty) || 0;
-          const remarkParts = ['来自订单 ' + orderNo];
-          if (attr) remarkParts.push(attr);
-          if (spec) remarkParts.push('规格:' + spec);
-          if (qty) remarkParts.push('用量:' + qty + (unit || ''));
-          const remarks = remarkParts.join(' / ').substring(0, 200);
-          const rateType = attr === '自制' ? '实测工价' : (attr === '外加工' ? '暂估工价' : '实测工价');
-          if (existing) {
-            if (Number(existing.labor_rate) !== rate || existing.source !== 'order_analysis') {
-              await lrTable.update(existing.id, {
-                labor_rate: rate, product_code: bomNo,
-                product_name: productName || existing.product_name,
-                labor_rate_type: existing.labor_rate_type || rateType,
-                source: 'order_analysis', remarks, updated_at: ts
-              });
-              synced++;
-              if (attr === '自制') breakdown.self_made++;
-              else if (attr === '外加工') breakdown.outsourced++;
-              else breakdown.labor_line++;
-            }
-          } else {
-            await lrTable.insert({
-              bom_no: bomNo, product_code: bomNo, product_name: productName,
-              labor_rate: rate, labor_rate_type: rateType, process_cost: 0,
-              effective_date: yStart, expire_date: '',
-              source: 'order_analysis', audit_status: 'pending', approved_by: '',
-              remarks, created_at: ts, updated_at: ts
-            });
-            synced++;
-            if (attr === '自制') breakdown.self_made++;
-            else if (attr === '外加工') breakdown.outsourced++;
-            else breakdown.labor_line++;
-          }
-        }
-      }
+      const remarks = remarkParts.join(' / ').substring(0, 200);
+      const rateType = attr === '自制' ? '实测工价' : (attr === '外加工' ? '暂估工价' : '实测工价');
+      const st = await upsertLaborRateFromAnalysis(lrTable, {
+        bomNo, productCode: bomNo, productName, rate, rateType, remarks, orderNo
+      });
+      if (st === 'synced') {
+        synced++;
+        if (attr === '自制') breakdown.self_made++;
+        else if (attr === '外加工') breakdown.outsourced++;
+        else breakdown.labor_line++;
+        if (rate <= 0) breakdown.no_price++;
+      } else if (st === 'locked') locked++;
     }
-  } catch (e) {
-    console.warn('[order-analysis] BOM 明细同步失败:', e.message);
   }
 
+  clearLaborRateCache();
   res.json({
-    message: `订单 ${orderNo} 同步完成，${synced} 条入库（成品工价 ${breakdown.product_rate}，自制 ${breakdown.self_made}，外加工 ${breakdown.outsourced}，人工行 ${breakdown.labor_line}）`,
-    synced, breakdown, order_id: oid
+    message: `订单 ${orderNo} 同步完成（${lineSource === 'details' ? 'BOM明细' : '计划快照'}），${synced} 条入库（成品工价 ${breakdown.product_rate}，自制 ${breakdown.self_made}，外加工 ${breakdown.outsourced}，人工行 ${breakdown.labor_line}，无工价待补 ${breakdown.no_price}）${locked ? '，' + locked + ' 条已审核锁定跳过' : ''}`,
+    synced, breakdown, locked, order_id: oid, source: lineSource,
+    has_lines: Array.isArray(lines) ? lines.length : 0
   });
 });
 
@@ -2167,7 +2843,7 @@ router.put('/:id/assign-personnel', requirePerm('order-analysis:audit'), async (
 });
 
 // 筛选项 / 下拉
-router.get('/meta/filter-options', requirePerm('order-analysis:view'), (req, res) => {
+router.get('/meta/filter-options', _filterOptsCache, requirePerm('order-analysis:view'), (req, res) => {
   const orders = getTable('orders');
   orders._invalidate();
   const uniq = key => [...new Set(orders.all().map(r => r[key]).filter(v => v !== undefined && v !== null && String(v).trim() !== ''))];
@@ -2181,31 +2857,37 @@ router.get('/meta/filter-options', requirePerm('order-analysis:view'), (req, res
 });
 
 // 统计卡片（支持筛选参数过滤）
-router.get('/dashboard/stats', requirePerm('order-analysis:view'), (req, res) => {
-  const { keyword, status, review_status, customer, product, risk_level, has_overrun, profit_min, profit_max, date_from, date_to, exclude_sample } = req.query;
+router.get('/dashboard/stats', _statsCache, requirePerm('order-analysis:view'), async (req, res) => {
+  const { keyword, status, review_status, customer, product, risk_level, has_overrun, profit_min, profit_max, date_from, date_to, exclude_sample,
+          void_status = 'active', column_order_no, column_customer, column_product,
+          column_quantity, column_order_amount, column_review_status } = req.query;
+  const fast = req.query.fast === '1';
   const orders = getTable('orders');
   orders._invalidate();
-  const analysis = getTable('order_analysis');
-  analysis._invalidate();
-  const cardMap = {}; analysis.all().forEach(a => { cardMap[a.order_id] = a; });
+  // 聚合索引走 mtime 版本缓存：文件未变化时不再重扫大表
+  const cardMap = getAnalysisCardMap();
 
-  const detTable = getTable('order_bom_details');
-  // 不 _invalidate：236MB 大表每次重读需数秒；进程内缓存已由本服务 insert/update/delete 同步保持新鲜
-  const materialCostMap = {};
-  detTable.all().forEach(r => {
-    const lineTotal = toNum(r.line_total);
-    const purchaseVal = toNum(r.purchase_confirm_cost);
-    const matVal = toNum(r.material_amount);
-    const val = lineTotal > 0 ? lineTotal : (purchaseVal > 0 ? purchaseVal : matVal);
-    if (val > 0) {
-      materialCostMap[r.order_id] = (materialCostMap[r.order_id] || 0) + val;
+  // 补齐缺失的真实计划成本缓存：分批核算并让出事件循环，避免首次请求长时间阻塞/健康检查超时
+  if (!fast) {
+    const need = [];
+    orders.all().forEach(o => {
+      const cid = Number(o.id);
+      const snap = cardMap[o.id] ? toNum(cardMap[o.id].plan_total_cost) : 0;
+      if (!_orderPlanCostCache.get(cid) && !(snap > 0)) need.push(o);
+    });
+    for (let i = 0; i < need.length; i++) {
+      try { _computeOrderPlanCost(need[i].id); } catch (e) {}
+      if ((i % 20) === 19) await new Promise(r => setImmediate(r));
     }
-  });
+    if (need.length) console.log('[order-analysis] dashboard/stats 补齐计划成本 ' + need.length + ' 单');
+  }
 
   let orderCount = 0, reviewedCount = 0, approvedCount = 0, pendingCount = 0;
   let totalPlan = 0, totalActual = 0, totalOrderAmount = 0, overrunCount = 0;
   orders.all().forEach(o => {
-    if (cardMap[o.id] && cardMap[o.id].is_void) return;
+    const card = cardMap[o.id] || {};
+    if (void_status === 'void' && !card.is_void) return;
+    if (void_status !== 'void' && void_status !== 'all' && card.is_void) return;
     // 排除样品单（HJY 开头）
     if (exclude_sample === '1' && (o.order_no || '').toUpperCase().startsWith('HJY')) return;
 
@@ -2225,6 +2907,12 @@ router.get('/dashboard/stats', requirePerm('order-analysis:view'), (req, res) =>
     if (review_status && (cardMap[o.id] || {}).review_status !== review_status) return;
     if (customer && !(o.customer_name || '').includes(customer)) return;
     if (product && !((o.product_code || '') + (o.product_name || '')).toLowerCase().includes(String(product).toLowerCase())) return;
+    if (column_order_no && !(o.order_no || '').toLowerCase().includes(String(column_order_no).toLowerCase())) return;
+    if (column_customer && !(o.customer_name || '').toLowerCase().includes(String(column_customer).toLowerCase())) return;
+    if (column_product && !((o.product_code || '') + (o.product_name || '')).toLowerCase().includes(String(column_product).toLowerCase())) return;
+    if (column_quantity && !String(o.quantity == null ? '' : o.quantity).includes(String(column_quantity))) return;
+    if (column_order_amount && !String(r2(toNum(o.order_amount))).includes(String(column_order_amount))) return;
+    if (column_review_status && (card.review_status || 'none') !== column_review_status) return;
     if (risk_level && o.risk_level !== risk_level) return;
     if (keyword) {
       const kw = String(keyword).toLowerCase();
@@ -2233,8 +2921,23 @@ router.get('/dashboard/stats', requirePerm('order-analysis:view'), (req, res) =>
 
     orderCount++;
     totalOrderAmount += toNum(o.order_amount);
-    
-    const plan = materialCostMap[o.id] != null ? toNum(materialCostMap[o.id]) : (cardMap[o.id] ? toNum(cardMap[o.id].plan_total_cost) : 0);
+
+    // 计划成本取"真实计划成本"（实时 BOM 核算，缓存优先；核算不可用时退回分析卡快照），
+    // 不再使用明细行 line_total/采购确认的跨层级重复累加，避免合计虚高
+    let plan = 0;
+    if (fast) {
+      // fast 模式同样以实时核算缓存为准（启动预热已覆盖），保证与列表/表格口径一致；
+      // 仅缓存缺失时退回分析卡快照，避免同步重算阻塞
+      const dyn = _orderPlanCostCache.get(Number(o.id));
+      if (dyn && dyn.total > 0) plan = toNum(dyn.total);
+      else plan = cardMap[o.id] ? toNum(cardMap[o.id].plan_total_cost) : 0;
+    } else {
+      let dyn = _orderPlanCostCache.get(Number(o.id));
+      if (!dyn) { try { dyn = _computeOrderPlanCost(o.id); } catch (e) { dyn = null; } }
+      if (dyn && dyn.total > 0) plan = toNum(dyn.total);
+      else if (cardMap[o.id] && toNum(cardMap[o.id].plan_total_cost) > 0) plan = toNum(cardMap[o.id].plan_total_cost);
+    }
+
     const actual = cardMap[o.id] ? toNum(cardMap[o.id].actual_total_cost) : 0;
     const grossRate = plan > 0 ? (toNum(o.order_amount) - plan) / (toNum(o.order_amount) || 1) * 100 : null;
     
@@ -2243,7 +2946,7 @@ router.get('/dashboard/stats', requirePerm('order-analysis:view'), (req, res) =>
     if (profit_min !== undefined && profit_min !== '' && (grossRate === null || grossRate < toNum(profit_min))) return;
     if (profit_max !== undefined && profit_max !== '' && (grossRate === null || grossRate > toNum(profit_max))) return;
 
-    const c = cardMap[o.id];
+    const c = card;
     if (c) {
       if (c.review_status === 'approved') approvedCount++;
       else if (c.review_status === 'pending' || c.review_status === 'reviewing') pendingCount++;
@@ -2284,6 +2987,7 @@ router.post('/', requirePerm('order-analysis:audit'), async (req, res) => {
   }
 
 clearMatPriceCache();
+  await syncOrderProductRatesFromLibrary(order.id);
   // 自动从外部 ERP 导入成品工价，确保提交快照含人工费（与实时 plan_cost 同口径）
   await autoImportLaborRates(order.id);
   const plan = await calcPlanCost(order);
@@ -2456,7 +3160,7 @@ router.post('/:id/collect-actual', requirePerm('order-analysis:edit'), async (re
 });
 
 // ===== 多维分析报表 =====
-router.get('/report/summary', requirePerm('order-analysis:view'), (req, res) => {
+router.get('/report/summary', requirePerm('order-analysis:view'), responseCache({ ttlMs: 3000, maxEntries: 16 }), async (req, res) => {
   const { group_by = 'customer', status, review_status, customer, product, risk_level,
           has_overrun, profit_min, profit_max, date_from, date_to } = req.query;
   const orders = getTable('orders');
@@ -2464,6 +3168,20 @@ router.get('/report/summary', requirePerm('order-analysis:view'), (req, res) => 
   const analysis = getTable('order_analysis');
   analysis._invalidate();
   const cardMap = {}; analysis.all().forEach(a => { cardMap[a.order_id] = a; });
+
+  // 补齐缺失的真实计划成本缓存（分批让出事件循环），保证汇总/毛利率使用真实计划成本而非快照
+  {
+    const need = [];
+    orders.all().forEach(o => {
+      const cid = Number(o.id);
+      const snap = cardMap[o.id] ? toNum(cardMap[o.id].plan_total_cost) : 0;
+      if (!_orderPlanCostCache.get(cid) && !(snap > 0)) need.push(o);
+    });
+    for (let i = 0; i < need.length; i++) {
+      try { _computeOrderPlanCost(need[i].id); } catch (e) {}
+      if ((i % 20) === 19) await new Promise(r => setImmediate(r));
+    }
+  }
 
   const groups = {};
   let totals = { order_count: 0, order_amount: 0, plan_cost: 0, actual_cost: 0, gross_profit: 0, actual_gp: 0 };
@@ -2479,7 +3197,8 @@ router.get('/report/summary', requirePerm('order-analysis:view'), (req, res) => 
     if (risk_level && o.risk_level !== risk_level) return;
     if (date_from && (o.promised_date || '') < date_from) return;
     if (date_to && (o.promised_date || '') > date_to) return;
-    const plan = toNum(card.plan_total_cost);
+    const planDyn = _orderPlanCostCache.get(Number(o.id));
+    const plan = planDyn && planDyn.total > 0 ? toNum(planDyn.total) : toNum(card.plan_total_cost);
     const actual = toNum(card.actual_total_cost);
     if (has_overrun === '1' && !(actual > plan && plan > 0)) return;
     if (has_overrun === '0' && (actual > plan && plan > 0)) return;
@@ -2677,7 +3396,30 @@ router.get('/:id/line-items', requirePerm('order-analysis:view'), async (req, re
         } catch(e) {}
       }));
     }
-    localProds.forEach(p => { const bn = (p.bom_no || '').trim(); if (_rateMap[bn]) p.labor_rate = _rateMap[bn]; });
+    // 外部工价应用规则：与工价库在用工价一致 → 直接用；不同/无在用 → 提交工价库待审批，继续用在用工价（无在用则不使用）
+    const _approvedRateMap = buildLaborRateMap();
+    // 页面展示必须直接使用成品工价库的在用工价，不能依赖外部 ERP 本次是否返回数据。
+    applyApprovedLaborRates(localProds, _approvedRateMap);
+    const _rateSubmissions = [];
+    localProds.forEach(p => {
+      const bn = (p.bom_no || '').trim();
+      const ext = _rateMap[bn];
+      if (!(ext > 0)) return;
+      const appr = _approvedRateMap[bn];
+      if (appr > 0) {
+        if (Math.abs(Number(appr) - Number(ext)) < 0.0001) { p.labor_rate = ext; }
+        else { p.labor_rate = appr; _rateSubmissions.push(p); } // 用在用工价，外部新价提交审批
+      } else {
+        _rateSubmissions.push(p); // 无在用工价：提交审批，暂不使用
+      }
+    });
+    let _submittedCnt = 0;
+    if (_rateSubmissions.length) {
+      await Promise.all(_rateSubmissions.map(p => submitExternalLaborRate((p.bom_no || '').trim(), _rateMap[(p.bom_no || '').trim()], {
+        productCode: p.product_code, productName: p.product_name,
+        remarks: '订单 ' + (order.order_no || '') + ' 外部工价与工价库比对'
+      }).then(st => { if (st.status === 'submitted' || st.status === 'updated_pending') _submittedCnt++; })));
+    }
     await _attachBomTrees(localProds, _pm, buildLaborRateMap());
     _invalidateOrderPlanCostCache(req.params.id);
       // 从 order_analysis 加载已保存的成品工价
@@ -2694,9 +3436,9 @@ router.get('/:id/line-items', requirePerm('order-analysis:view'), async (req, re
       order: _orderSummary(order),
       order_products: localOrderProducts,
       siblings: siblingRows.map(_siblingBrief),
-      products: localProds.filter(p => (p.bom_no || '').trim() && (p.product_code || '').trim()),
+      products: localProds.filter(p => ((p.bom_no || '').trim() || (p.product_code || '').trim()) && (p.product_code || '').trim()),
       source: 'local',
-      _labor: { called: _bomNos.length, fetched: Object.keys(_rateMap).length, ep: _epCode }
+      _labor: { called: _bomNos.length, fetched: Object.keys(_rateMap).length, ep: _epCode, submitted_pending: _submittedCnt }
     });
   }
 
@@ -2912,8 +3654,10 @@ async function _attachBomTrees(products, priceMap, laborRateMap) {
 }
 // 合并本地产品源（订单主表 + order_products + siblings）去重
 // 按 product_code + bom_no 合并数量（主单+样件=总和，与 _computeOrderPlanCost 一致）
+// order_products 行缺 bom_no/数量时回退订单表字段（外部同步早期数据），与 calcPlanCost 同口径
 function _mergeLocalProducts(order, localOrderProducts, siblingRows) {
   const map = {};
+  const orderBomNo = (order.bom_no || '').trim();
   const add = (code, name, qty, amt, source, opId, bomNo, lineNo) => {
     if (!code) return;
     const key = code + '||' + (bomNo || '');
@@ -2922,7 +3666,7 @@ function _mergeLocalProducts(order, localOrderProducts, siblingRows) {
         product_code: code, product_name: name || '',
         bom_no: bomNo || '',
         quantity: 0, amount: 0,
-        line_no: lineNo || '', source: source || 'local', has_bom: _bomHasProduct(code),
+        line_no: lineNo || '', source: source || 'local', has_bom: _bomHasProduct(bomNo || code),
         op_id: opId || null
       };
     }
@@ -2931,10 +3675,18 @@ function _mergeLocalProducts(order, localOrderProducts, siblingRows) {
   };
   localOrderProducts.forEach(p => {
     const src = p.source === 'manual' ? 'local_manual' : (p.source === 'external_order' ? 'local_import' : (p.source || 'local'));
-    add(p.product_code, p.product_name, p.quantity, p.amount, src, p.id, p.bom_no, p.line_no || ('L' + p.id));
+    // 行缺 bom_no / 数量时回退订单主表（仅【单行】订单自身明细行；多行订单 qty=0 的行不回退，避免幻影成本；sibling 行不做回退）
+    const bn = (p.bom_no || '').trim() || orderBomNo;
+    const qty = (Number(p.quantity) || 0) > 0 ? p.quantity : (localOrderProducts.length === 1 ? (toNum(order.quantity) || 0) : 0);
+    add(p.product_code, p.product_name, qty, p.amount, src, p.id, bn, p.line_no || ('L' + p.id));
   });
   siblingRows.forEach(r => add(r.product_code, r.product_name, r.quantity, r.order_amount, 'local_sibling', null, r.bom_no, r.line_no || ('L' + r.id)));
-  return Object.values(map);
+  const list = Object.values(map);
+  // 单一产品且行金额缺失 → 回退订单金额（展示口径）
+  if (list.length === 1 && !(Number(list[0].amount) > 0) && toNum(order.order_amount) > 0) {
+    list[0].amount = toNum(order.order_amount);
+  }
+  return list;
 }
 
 // 重新构建树（读取 order_products 后核算）
@@ -2946,7 +3698,7 @@ router.get('/:id/tree-with-products', requirePerm('order-analysis:view'), async 
   op._invalidate();
   const ops = op.all().filter(r => r.order_id === Number(req.params.id)).sort((a,b) => a.id - b.id);
   const orderForCalc = ops.length
-    ? Object.assign({}, order, { products: ops.map(r => ({ product_code: r.product_code, product_name: r.product_name, bom_no: r.bom_no || '', quantity: toNum(r.quantity) || order.quantity })) })
+    ? Object.assign({}, order, { products: ops.map(r => ({ product_code: r.product_code, product_name: r.product_name, bom_no: (r.bom_no || '').trim() || (order.bom_no || '').trim(), quantity: toNum(r.quantity) || (ops.length === 1 ? order.quantity : 0) })) })
     : order;
   clearMatPriceCache();
   const plan = await calcPlanCost(orderForCalc);
@@ -3321,7 +4073,7 @@ router.delete('/:id', requirePerm('order-analysis:edit'), async (req, res) => {
 });
 
 // 作废/取消作废订单
-router.patch('/:id/void', requirePerm('order-analysis:edit'), (req, res) => {
+router.patch('/:id/void', requirePerm('order-analysis:edit'), async (req, res) => {
   const { is_void } = req.body;
   const orders = getTable('orders');
   const order = orders.findById(req.params.id);
@@ -3331,16 +4083,28 @@ router.patch('/:id/void', requirePerm('order-analysis:edit'), (req, res) => {
   analysis._invalidate();
   const card = analysis.all().find(a => a.order_id === Number(req.params.id));
   if (card) {
-    analysis.update(card.id, { is_void: is_void ? 1 : 0, updated_at: now() });
+    await analysis.update(card.id, { is_void: is_void ? 1 : 0, updated_at: now() });
   } else {
-    analysis.insert({
+    await analysis.insert({
       order_id: order.id, order_no: order.order_no,
       is_void: is_void ? 1 : 0,
       created_at: now(), updated_at: now()
     });
   }
-  
-  res.json({ message: is_void ? '订单已作废，不计入所有统计' : '订单已恢复，计入统计', is_void: is_void ? 1 : 0 });
+  const logs = getTable('order_review_logs');
+  await logs.insert({
+    order_analysis_id: card ? card.id : null,
+    order_id: order.id,
+    order_no: order.order_no,
+    action: is_void ? 'void_manual' : 'restore_manual',
+    operator_id: Number(req.body.user_id || req.headers['x-user-id']) || null,
+    comment: is_void ? '人工标记作废' : '人工恢复订单',
+    from_status: card && card.is_void ? 'void' : 'active',
+    to_status: is_void ? 'void' : 'active',
+    at: now()
+  });
+
+  res.json({ message: is_void ? '订单已作废，仅允许人工调整，不参与自动同步' : '订单已恢复，计入统计', is_void: is_void ? 1 : 0, manual_only: !!is_void });
 });
 
 // 锁定/解锁订单（锁定后不会被自动重算，BOM/物料/同步等都跳过）
@@ -3376,6 +4140,9 @@ router.post('/:id/sync', requirePerm('order-analysis:edit'), async (req, res) =>
     const analysis = getTable('order_analysis');
     analysis._invalidate();
     const card = analysis.all().find(a => a.order_id === order.id);
+    if (card && Number(card.is_void) === 1) {
+      return res.status(409).json({ error: '作废订单只允许人工调整，禁止外部 ERP 同步', code: 'VOID_MANUAL_ONLY', manual_only: true });
+    }
     if (card && card.is_locked) {
       return res.json({ message: '订单已锁定，跳过同步', skipped: true, is_locked: 1, order_no: order.order_no });
     }
@@ -3384,35 +4151,51 @@ router.post('/:id/sync', requirePerm('order-analysis:edit'), async (req, res) =>
     const items = await fetchAllPages('order_details.list', 200, 5, { order_no: order.order_no });
     const op = getTable('order_products');
     op._invalidate();
-    const existing = new Set(
-      op.all().filter(r => r.order_id === order.id)
-        .map(r => (r.line_no || '') + '|' + (r.product_code || ''))
-    );
+    const existingRows = op.all().filter(r => r.order_id === order.id);
 
-    let created = 0, skipped = 0;
+    let created = 0, updated = 0, skipped = 0;
+    const ts2 = now();
     for (const it of items) {
       const code = (it.product_code || '').trim();
       if (!code) continue;
-      const key = (it.line_no || '') + '|' + code;
-      if (existing.has(key)) { skipped++; continue; }
-      op.insertNoSave({
-        order_id: order.id, order_no: order.order_no,
-        product_code: code, product_name: (it.product_name || '').trim(),
-        bom_no: (it.bom_no || '').trim(),
-        quantity: Number(it.order_qty || 0), amount: Number(it.order_amount || 0),
-        line_no: it.line_no || '', source: 'manual_sync',
-        created_at: now(), updated_at: now()
-      });
-      created++;
+      // 匹配规则：同产品唯一行 → 直接更新（ERP 行号可能变化，避免按 line_no 匹配漏判产生重复行）；
+      // 同产品多行（历史多行订单）→ 按 line_no 精确匹配，匹配不到才新建
+      const cand = existingRows.filter(r => (r.product_code || '').trim() === code);
+      let row = null;
+      if (cand.length === 1) row = cand[0];
+      else if (cand.length > 1) row = cand.find(r => String(r.line_no || '') === String(it.line_no || ''));
+      if (row) {
+        await op.updateNoSave(row.id, {
+          product_name: (it.product_name || '').trim() || row.product_name,
+          bom_no: (it.bom_no || '').trim() || row.bom_no,
+          quantity: Number(it.order_qty || 0),
+          amount: Number(it.order_amount || 0),
+          line_no: it.line_no || row.line_no,
+          updated_at: ts2
+        });
+        updated++;
+      } else {
+        const ins = {
+          order_id: order.id, order_no: order.order_no,
+          product_code: code, product_name: (it.product_name || '').trim(),
+          bom_no: (it.bom_no || '').trim(),
+          quantity: Number(it.order_qty || 0), amount: Number(it.order_amount || 0),
+          line_no: it.line_no || '', source: 'manual_sync',
+          created_at: ts2, updated_at: ts2
+        };
+        const insRes = await op.insertNoSave(ins);
+        existingRows.push(Object.assign({ id: insRes && insRes.lastID }, ins));
+        created++;
+      }
     }
-    if (created > 0) await op.saveNow();
+    if (created > 0 || updated > 0) await op.saveNow();
 
     // 重置 plan 成本相关缓存（下次列表 calcPlanCost 会重新读 order_products）
     _invalidateOrderPlanCostCache(order.id);
 
     res.json({
       message: '同步完成', order_no: order.order_no,
-      fetched: items.length, created, skipped,
+      fetched: items.length, created, updated,
       is_locked: 0
     });
   } catch (e) {
@@ -3489,11 +4272,44 @@ router.post('/dedup', requirePerm('order-analysis:edit'), async (req, res) => {
     }
   } catch(_) {}
 
+  // 4) 清理同订单内 external_order + manual_sync 并存的重复产品行
+  //    （/:id/sync 历史缺陷产生：同产品同BOM两行，数量被双计）——保留较新的 manual_sync 行（最新 ERP 数据）
+  let opDupRemoved = 0;
+  try {
+    op._invalidate();
+    const byOrder = {};
+    op.all().forEach(r => { (byOrder[r.order_id] = byOrder[r.order_id] || []).push(r); });
+    const delIds = new Set();
+    Object.values(byOrder).forEach(rows => {
+      const groups = {};
+      rows.forEach(r => {
+        const k = ((r.product_code || '').trim() + '||' + (r.bom_no || '').trim());
+        (groups[k] = groups[k] || []).push(r);
+      });
+      Object.values(groups).forEach(g => {
+        const ext = g.filter(r => r.source === 'external_order');
+        const man = g.filter(r => r.source === 'manual_sync');
+        if (ext.length >= 1 && man.length >= 1) {
+          // 删掉全部 external_order 行，保留 manual_sync（最新同步结果）
+          ext.forEach(r => delIds.add(r.id));
+        }
+      });
+    });
+    if (delIds.size) {
+      op.deleteWhereNoSave(r => delIds.has(r.id));
+      await op.saveNow();
+      opDupRemoved = delIds.size;
+      // 受影响订单的 plan 成本缓存失效，下次计算重读
+      Object.keys(byOrder).forEach(oid => _invalidateOrderPlanCostCache(Number(oid)));
+    }
+  } catch(_) {}
+
   res.json({
     message: '去重完成',
     snapshots_before: snapBefore, snapshots_removed: snapBefore - snapAfter, snapshots_after: snapAfter,
     cards_before: cardBefore, cards_removed: cardRemoved,
-    orphan_products_removed: opRemoved
+    orphan_products_removed: opRemoved,
+    dup_products_removed: opDupRemoved
   });
 });
 
@@ -3503,3 +4319,5 @@ module.exports.clearMatPriceCache = clearMatPriceCache;
 module.exports.clearLaborRateCache = clearLaborRateCache;
 module.exports.getBomIndex = getBomIndex;
 module.exports.syncOrderBomDetails = syncOrderBomDetails;
+module.exports.warmupCaches = warmupCaches;
+module.exports.invalidateOrderPlanCostCache = _invalidateOrderPlanCostCache;

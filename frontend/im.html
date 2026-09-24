@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="icons.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>消息中心 - 企业经营管理平台</title>
@@ -132,17 +133,17 @@
   .im-quick-action { display: flex; flex-direction: column; gap: 8px; }
   .im-quick-btn { display: flex; align-items: center; gap: 10px; padding: 10px; background: #f0f2f5; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; text-align: left; transition: background 0.2s; }
   .im-quick-btn:hover { background: #e0e0e0; }
-  .im-quick-btn-icon { font-size: 18px; }
+  .im-quick-btn-icon { display:inline-flex; width:var(--icon-sm); height:var(--icon-sm); }
   
   .im-file-list { display: flex; flex-direction: column; gap: 8px; }
   .im-file-item { display: flex; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px; cursor: pointer; }
-  .im-file-icon { font-size: 20px; margin-right: 10px; }
+  .im-file-icon { display:inline-flex; width:var(--icon-md); height:var(--icon-md); margin-right: 10px; }
   .im-file-name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .im-file-size { font-size: 12px; color: #7f8c8d; }
   
   /* 空状态 */
   .im-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #95a5a6; }
-  .im-empty-icon { font-size: 64px; margin-bottom: 16px; }
+  .im-empty-icon { display:inline-flex; width:var(--icon-xl); height:var(--icon-xl); margin-bottom: 16px; }
   .im-empty-text { font-size: 16px; }
   
   /* 滚动条 */
@@ -173,7 +174,7 @@
       </div>
     </div>
     <div class="im-search">
-      <input type="text" id="searchInput" placeholder="🔍 搜索会话..." />
+      <input type="text" id="searchInput" placeholder=" 搜索会话..." />
     </div>
     <div class="im-tabs">
       <div class="im-tab active" data-tab="all">全部</div>
@@ -193,23 +194,23 @@
         <div class="im-chat-meta" id="chatMeta"></div>
       </div>
       <div class="im-chat-actions">
-        <button class="im-action-btn" onclick="toggleMute()">🔕<span id="muteText">静音</span></button>
-        <button class="im-action-btn" onclick="clearHistory()">🗑 清空</button>
+        <button class="im-action-btn" onclick="toggleMute()"><span id="muteText">静音</span></button>
+        <button class="im-action-btn" onclick="clearHistory()"> 清空</button>
       </div>
     </div>
     <div class="im-messages-area" id="messagesArea">
       <div class="im-empty">
-        <div class="im-empty-icon">💬</div>
+        <div class="im-empty-icon">${EBMSIcons.render('empty', { size: 'xl', decorative: true })}</div>
         <div class="im-empty-text">选择左侧会话查看消息</div>
       </div>
     </div>
     <div class="im-input-area" id="inputArea" style="display:none;">
       <div class="im-input-tools">
         <button class="im-tool-btn" onclick="insertText('@')" title="@提及">@</button>
-        <button class="im-tool-btn" onclick="insertText('👍')" title="点赞">👍</button>
-        <button class="im-tool-btn" onclick="insertText('🎉')" title="庆祝">🎉</button>
-        <button class="im-tool-btn" onclick="insertText('❓')" title="疑问">❓</button>
-        <button class="im-tool-btn" onclick="showMentionDialog()" title="@成员">👥</button>
+        <button class="im-tool-btn" onclick="insertText('')" title="点赞"></button>
+        <button class="im-tool-btn" onclick="insertText('')" title="庆祝"></button>
+        <button class="im-tool-btn" onclick="insertText('')" title="疑问"></button>
+        <button class="im-tool-btn" onclick="showMentionDialog()" title="@成员"></button>
       </div>
       <div class="im-textarea-wrapper">
         <textarea class="im-textarea" id="messageInput" placeholder="输入消息... (Enter发送，Shift+Enter换行)" onkeydown="handleKeydown(event)" oninput="handleTyping()"></textarea>
@@ -392,8 +393,8 @@ function renderConversationList() {
           <span class="im-conv-time">${formatTime(conv.last_msg_at)}</span>
         </div>
         <div class="im-conv-preview">
-          ${conv.is_pinned ? '<span class="im-pin-icon">📌</span>' : ''}
-          ${conv.is_muted ? '<span class="im-mute-icon">🔕</span>' : ''}
+          ${conv.is_pinned ? EBMSIcons.render('pin', { size: 'xs', decorative: true }) : ''}
+          ${conv.is_muted ? EBMSIcons.render('mute', { size: 'xs', decorative: true }) : ''}
           ${escapeHtml(conv.last_msg_preview || '暂无消息')}
         </div>
         ${conv.unread_count > 0 ? `<span class="im-unread-badge">${conv.unread_count > 99 ? '99+' : conv.unread_count}</span>` : ''}
@@ -416,14 +417,14 @@ function getAvatarColor(type) {
 
 function getConvIcon(conv) {
   const icons = {
-    SINGLE: '👤',
-    GROUP: '👥',
-    SYSTEM: '🔔',
-    MEETING_ROOM: '📅',
-    'MEETING': '📅',
-    'GROUP': '👥'
+    SINGLE: 'chat',
+    GROUP: 'user',
+    SYSTEM: 'system',
+    MEETING_ROOM: 'business',
+    'MEETING': 'business',
+    'GROUP': 'user'
   };
-  return icons[conv.conv_type] || '💬';
+  return EBMSIcons.render(icons[conv.conv_type] || 'chat', { size: 'sm', decorative: true });
 }
 
 async function selectConversation(convId) {
@@ -475,7 +476,7 @@ function renderMessages() {
   const area = document.getElementById('messagesArea');
   
   if (state.messages.length === 0) {
-    area.innerHTML = '<div class="im-empty"><div class="im-empty-icon">💬</div><div class="im-empty-text">暂无消息，开始交流吧</div></div>';
+    area.innerHTML = '<div class="im-empty"><div class="im-empty-icon">' + EBMSIcons.render('empty', { size: 'xl', decorative: true }) + '</div><div class="im-empty-text">暂无消息，开始交流吧</div></div>';
     return;
   }
   
@@ -528,7 +529,7 @@ function renderMessage(msg, idx) {
         ${getSenderAvatar(msg)}
       </div>
       <div class="im-message-content">
-        ${!isSent ? `<div class="im-message-meta">${escapeHtml(getSenderName(msg))} · ${formatTime(msg.created_at)}</div>` : ''}
+        ${!isSent ? `<div class="im-message-meta">${escapeHtml(getSenderName(msg))}  ${formatTime(msg.created_at)}</div>` : ''}
         ${bubble}
         ${readStatus}
       </div>
@@ -538,10 +539,10 @@ function renderMessage(msg, idx) {
 
 function renderTextMessage(msg, isSent) {
   const typeLabels = {
-    'ALERT': '<span class="im-tag alert">⚠️ 预警</span>',
-    'ACTION_REMINDER': '<span class="im-tag action">📌 待办</span>',
-    'MEETING_INVITE': '<span class="im-tag meeting">📅 会议</span>',
-    'SYSTEM': '<span class="im-tag system">🔔 系统</span>'
+    'ALERT': '<span class="im-tag alert">️ 预警</span>',
+    'ACTION_REMINDER': '<span class="im-tag action"> 待办</span>',
+    'MEETING_INVITE': '<span class="im-tag meeting"> 会议</span>',
+    'SYSTEM': '<span class="im-tag system"> 系统</span>'
   };
   
   return `
@@ -555,15 +556,15 @@ function renderTextMessage(msg, isSent) {
 function renderCardMessage(msg, richContent) {
   const cardType = richContent.type || 'action_card';
   const titleMap = {
-    alert_card: '⚠️ 预警详情',
-    action_card: '📌 待办详情',
-    meeting_card: '📅 会议详情',
-    block_card: '⛔ 拦截详情',
-    report_card: '📋 报告详情',
-    kpi_card: '📊 KPI详情'
+    alert_card: '️ 预警详情',
+    action_card: ' 待办详情',
+    meeting_card: ' 会议详情',
+    block_card: ' 拦截详情',
+    report_card: ' 报告详情',
+    kpi_card: ' KPI详情'
   };
   
-  const title = titleMap[cardType] || '📋 详情';
+  const title = titleMap[cardType] || ' 详情';
   const body = msg.content || '';
   const buttons = richContent.buttons || [];
   
@@ -606,7 +607,7 @@ function getSenderColor(senderId) {
 }
 
 function getSenderAvatar(msg) {
-  if (msg.sender_id === 0) return '🔔';
+  if (msg.sender_id === 0) return '';
   // 从成员列表获取
   const conv = state.conversations.find(c => c.id === state.currentConvId);
   if (conv && conv.members) {
@@ -813,7 +814,7 @@ function renderDetail(conv) {
           <div class="im-member ${m.role === 'ADMIN' ? 'admin' : 'member'}">
             <div class="im-member-avatar">${(m.username || '?').charAt(0).toUpperCase()}</div>
             ${escapeHtml(m.username || '用户')}
-            ${m.role === 'ADMIN' ? ' 👑' : ''}
+            ${m.role === 'ADMIN' ? ' ' : ''}
           </div>
         `).join('')}
       </div>
@@ -839,14 +840,14 @@ function renderDetail(conv) {
       <div class="im-detail-section-title">快捷操作</div>
       <div class="im-quick-action">
         <button class="im-quick-btn" onclick="clearHistory()">
-          <span class="im-quick-btn-icon">🗑</span>清空聊天记录
+          <span class="im-quick-btn-icon">${EBMSIcons.render('trash', { size: 'sm', decorative: true })}</span>清空聊天记录
         </button>
         <button class="im-quick-btn" onclick="exportHistory()">
-          <span class="im-quick-btn-icon">📤</span>导出聊天记录
+          <span class="im-quick-btn-icon">${EBMSIcons.render('download', { size: 'sm', decorative: true })}</span>导出聊天记录
         </button>
         ${conv.conv_type === 'GROUP' || conv.conv_type === 'MEETING_ROOM' ? `
           <button class="im-quick-btn" onclick="inviteMember()">
-            <span class="im-quick-btn-icon">➕</span>邀请成员
+            <span class="im-quick-btn-icon">${EBMSIcons.render('user', { size: 'sm', decorative: true })}</span>邀请成员
           </button>
         ` : ''}
       </div>
@@ -855,7 +856,7 @@ function renderDetail(conv) {
       <div class="im-detail-section">
         <div class="im-detail-section-title">聊天文件</div>
         <div class="im-file-list">
-          <div class="im-file-item"><span class="im-file-icon">📄</span><span class="im-file-name">系统消息</span><span class="im-file-size">${state.messages.length}条</span></div>
+          <div class="im-file-item"><span class="im-file-icon">${EBMSIcons.render('file', { size: 'md', decorative: true })}</span><span class="im-file-name">系统消息</span><span class="im-file-size">${state.messages.length}条</span></div>
         </div>
       </div>
     ` : ''}
@@ -1052,7 +1053,7 @@ function showNotification(title, body) {
     new Notification(title, { body });
   } else {
     // 闪烁标签页
-    document.title = `🔔 ${title}`;
+    document.title = ` ${title}`;
     setTimeout(() => {
       if (state.currentConvId) {
         const conv = state.conversations.find(c => c.id === state.currentConvId);

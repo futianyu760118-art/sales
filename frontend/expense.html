@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 费用库</title><link rel="stylesheet" href="common.css">
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>企业经营管理平台（EBMS）-HJ - 费用库</title><link rel="stylesheet" href="common.css">
 <style>
 .tv{display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px;overflow-x:auto}
 .tv button{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
@@ -131,11 +132,11 @@ tr:hover td{background:#f8f9ff}
 <h3>外部 API 对接配置（恒剑OA 数据供给）</h3>
 <p style="font-size:12px;color:#888;margin:0 0 10px;line-height:1.7">
 认证：<b>HMAC-SHA256 签名</b>，待签名串 = <code>timestamp + appkey + endpoint_code + query_string</code>。<br>
-数据源：<b>①科目余额</b>（费用类科目发生额 → 费用）+ <b>②供应商付款</b>（发票明细 → 费用）。同步按费用编码去重更新（OA-SB-* / OA-SP-*）。
+数据源：<b>1. 科目余额</b>（费用类科目发生额 → 费用）+ <b>2. 供应商付款</b>（发票明细 → 费用）。同步按费用编码去重更新（OA-SB-* / OA-SP-*）。
 </p>
 <div class="gr">
 <div class="fg"><label>是否启用</label><select id="ext_enabled"><option value="false">未启用</option><option value="true">启用</option></select></div>
-<div class="fg"><label>接口地址 Base URL <span style="color:#e74c3c">*</span></label><input id="ext_base_url" placeholder="https://192.168.0.127:18084"><div style="font-size:11px;color:#e74c3c;margin-top:2px">⚠ 对方 18084 是 <b>HTTPS</b> 端口，必须以 <b>https://</b> 开头（用 http 会收到 nginx HTML 错误页）</div></div>
+<div class="fg"><label>接口地址 Base URL <span style="color:#e74c3c">*</span></label><input id="ext_base_url" placeholder="https://192.168.0.127:18084"><div style="font-size:11px;color:#e74c3c;margin-top:2px"> 对方 18084 是 <b>HTTPS</b> 端口，必须以 <b>https://</b> 开头（用 http 会收到 nginx HTML 错误页）</div></div>
 <div class="fg"><label>App Key</label><input id="ext_app_key" placeholder="ak_xxxxxxxx"></div>
 <div class="fg"><label>App Secret</label><input id="ext_app_secret" placeholder="HMAC 签名密钥"></div>
 </div>
@@ -144,14 +145,14 @@ tr:hover td{background:#f8f9ff}
 <div class="gr">
 <div class="fg"><label>启用数据源（多选）</label>
 <div style="display:flex;gap:14px;padding-top:6px;font-size:13px">
-<label><input type="checkbox" id="ext_src_sb" checked> ①科目余额</label>
-<label><input type="checkbox" id="ext_src_sp" checked> ②供应商付款</label>
+<label><input type="checkbox" id="ext_src_sb" checked> 1. 科目余额</label>
+<label><input type="checkbox" id="ext_src_sp" checked> 2. 供应商付款</label>
 </div></div>
-<div class="fg"><label>&nbsp;</label><div style="padding-top:6px"><button class="btn b4" onclick="testConn()" data-perm="expense:view">🔌 测试连接</button> <span id="testResult" style="font-size:12px;margin-left:6px"></span></div></div>
+<div class="fg"><label>&nbsp;</label><div style="padding-top:6px"><button class="btn b4" onclick="testConn()" data-perm="expense:view"> 测试连接</button> <span id="testResult" style="font-size:12px;margin-left:6px"></span></div></div>
 </div>
 
 <div style="border-top:1px dashed #eee;margin:10px 0;padding-top:10px">
-<h4 style="margin:0 0 8px;font-size:13px;color:#667eea">① 科目余额 subject-balances</h4>
+<h4 style="margin:0 0 8px;font-size:13px;color:#667eea">1.  科目余额 subject-balances</h4>
 <div class="gr">
 <div class="fg"><label>Endpoint Code（签名用）</label><input id="ext_sb_endpoint" value="int:finance.subject_balances.list"></div>
 <div class="fg"><label>科目类别筛选（如"损益"，留空=全部）</label><input id="ext_sb_category" placeholder="留空拉全部科目"></div>
@@ -164,9 +165,9 @@ tr:hover td{background:#f8f9ff}
 </div>
 
 <div style="border-top:1px dashed #eee;margin:10px 0;padding-top:10px">
-<h4 style="margin:0 0 8px;font-size:13px;color:#667eea">② 供应商付款 supplier-payment <span style="font-weight:normal;color:#999;font-size:11px">（暂不可用）</span></h4>
+<h4 style="margin:0 0 8px;font-size:13px;color:#667eea">2.  供应商付款 supplier-payment <span style="font-weight:normal;color:#999;font-size:11px">（暂不可用）</span></h4>
 <div style="background:#fff3cd;border:1px solid #f0d877;border-radius:6px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:8px">
-⚠ OA 的 supplier-payment 接口走 <b>OAuth2 Password 认证</b>（非 HMAC），当前 HMAC 凭证体系下无法对接。如需启用，需另配 OAuth2 用户名密码。
+ OA 的 supplier-payment 接口走 <b>OAuth2 Password 认证</b>（非 HMAC），当前 HMAC 凭证体系下无法对接。如需启用，需另配 OAuth2 用户名密码。
 </div>
 <div class="gr">
 <div class="fg"><label>Endpoint Code</label><input id="ext_sp_endpoint" value="int:materials.supplier_payment.list" disabled style="background:#f5f6fa;color:#999"></div>
@@ -197,7 +198,7 @@ tr:hover td{background:#f8f9ff}
 </div>
 <form id="expenseForm" onsubmit="saveForm();return false">
 <div class="rules" id="formRules">
-  <div class="rules-h" onclick="togRules()"><span>📋 填写规则（点击展开/收起）</span><span class="rules-arrow">▶</span></div>
+  <div class="rules-h" onclick="togRules()"><span> 填写规则（点击展开/收起）</span><span class="rules-arrow"></span></div>
   <div class="rules-b"><ul>
     <li><b>费用编码</b>：留空将自动生成（格式 <b>FY年月-流水号</b>，如 FY202607-0001）；手动填写时不可重复</li>
     <li><b>费用名称</b> <span class="req">*</span>：必填，简明描述费用事由（如"7月差旅费-客户拜访"）</li>
@@ -384,18 +385,18 @@ async function loadStats(){
       card(yuan(d.unpaid_amount),'未付金额','#e74c3c')+card(yuan(d.paid_amount),'已付金额','#16a085')+
     '</div>'+
     '<div class="grid2">'+
-      '<div class="panel"><h3>📈 月度费用趋势</h3>'+(trend?'<div class="trend">'+trend+'</div>':'<div class="em">无数据</div>')+(d.last_month?'<p style="font-size:12px;color:#888;margin:8px 0 0">'+esc(d.last_month)+' 环比 '+((d.mom_percent>=0?'+':'')+d.mom_percent+'%')+'</p>':'')+'</div>'+
-      '<div class="panel"><h3>🗂 按支付状态分布</h3>'+bars(d.by_payment_status,'#e67e22')||'<div class="em">无数据</div>'+'</div>'+
+      '<div class="panel"><h3> 月度费用趋势</h3>'+(trend?'<div class="trend">'+trend+'</div>':'<div class="em">无数据</div>')+(d.last_month?'<p style="font-size:12px;color:#888;margin:8px 0 0">'+esc(d.last_month)+' 环比 '+((d.mom_percent>=0?'+':'')+d.mom_percent+'%')+'</p>':'')+'</div>'+
+      '<div class="panel"><h3> 按支付状态分布</h3>'+bars(d.by_payment_status,'#e67e22')||'<div class="em">无数据</div>'+'</div>'+
     '</div>'+
     '<div class="grid2">'+
-      '<div class="panel"><h3>🏷 按费用大类</h3>'+bars(d.by_category,'#667eea')+'</div>'+
-      '<div class="panel"><h3>🏢 按部门</h3>'+bars(d.by_department,'#27ae60')+'</div>'+
+      '<div class="panel"><h3> 按费用大类</h3>'+bars(d.by_category,'#667eea')+'</div>'+
+      '<div class="panel"><h3> 按部门</h3>'+bars(d.by_department,'#27ae60')+'</div>'+
     '</div>'+
     '<div class="grid2">'+
-      '<div class="panel"><h3>🔗 按数据来源</h3>'+bars(d.by_source,'#2980b9')+'</div>'+
-      '<div class="panel"><h3>🏆 TOP收款方</h3>'+bars(d.top_suppliers,'#8e44ad')+'</div>'+
+      '<div class="panel"><h3> 按数据来源</h3>'+bars(d.by_source,'#2980b9')+'</div>'+
+      '<div class="panel"><h3> TOP收款方</h3>'+bars(d.top_suppliers,'#8e44ad')+'</div>'+
     '</div>'+
-    '<div class="panel"><h3>💰 费用金额 TOP</h3>'+(topItems?'<table><thead><tr><th>费用名称</th><th>大类</th><th>部门</th><th>发生日期</th><th class="r">金额</th></tr></thead><tbody>'+topItems+'</tbody></table>':'<div class="em">无数据</div>')+'</div>';
+    '<div class="panel"><h3> 费用金额 TOP</h3>'+(topItems?'<table><thead><tr><th>费用名称</th><th>大类</th><th>部门</th><th>发生日期</th><th class="r">金额</th></tr></thead><tbody>'+topItems+'</tbody></table>':'<div class="em">无数据</div>')+'</div>';
   }catch(e){box.innerHTML='<div class="em" style="color:#e74c3c">分析失败: '+esc(e.message)+'</div>'}
 }
 function card(n,l,c){return '<div class="sc"><div class="n" style="color:'+c+'">'+esc(n)+'</div><div class="l">'+l+'</div></div>'}
@@ -474,36 +475,36 @@ async function saveExt(){
 async function testConn(){
   const el=document.getElementById('testResult');
   const verr=validateExtCfg();
-  if(verr){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(verr)+'</span>';return}
+  if(verr){el.innerHTML='<span style="color:#e74c3c"> '+esc(verr)+'</span>';return}
   el.innerHTML='<span style="color:#888">测试中...</span>';
   try{
     const r=await fetch(API+'/external/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(gatherExtCfg())});
     const d=await r.json();
-    if(d.ok){el.innerHTML='<span style="color:#27ae60">✓ 连接成功（科目余额 '+esc(d.subject_balances.extra||'')+'）</span>';return}
-    let h='<span style="color:#e74c3c">✗ 失败</span><div style="font-size:11px;color:#666;margin-top:4px;line-height:1.6">';
-    h+='health.ping：'+(d.ping.ok?'<span style="color:#27ae60">✓</span>':'<span style="color:#e74c3c">✗ '+esc(d.ping.error||'')+'</span>')+'<br>';
-    h+='科目余额：'+(d.subject_balances.ok?'<span style="color:#27ae60">✓</span>':'<span style="color:#e74c3c">✗ '+esc(d.subject_balances.error||'')+'</span>');
+    if(d.ok){el.innerHTML='<span style="color:#27ae60"> 连接成功（科目余额 '+esc(d.subject_balances.extra||'')+'）</span>';return}
+    let h='<span style="color:#e74c3c"> 失败</span><div style="font-size:11px;color:#666;margin-top:4px;line-height:1.6">';
+    h+='health.ping：'+(d.ping.ok?'<span style="color:#27ae60"></span>':'<span style="color:#e74c3c"> '+esc(d.ping.error||'')+'</span>')+'<br>';
+    h+='科目余额：'+(d.subject_balances.ok?'<span style="color:#27ae60"></span>':'<span style="color:#e74c3c"> '+esc(d.subject_balances.error||'')+'</span>');
     if(d.hint)h+='<br><b style="color:#f39c12">排查：'+esc(d.hint)+'</b>';
     h+='</div>';
     el.innerHTML=h;
-  }catch(e){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>'}
+  }catch(e){el.innerHTML='<span style="color:#e74c3c"> '+esc(e.message)+'</span>'}
 }
 async function syncExt(){
   const el=document.getElementById('extResult');el.innerHTML='<span style="color:#888">正在同步（可能需要数十秒，取决于数据量）...</span>';
   try{
     const r=await fetch(API+'/sync-from-external',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
     const d=await r.json();
-    if(!r.ok){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(d.error)+'</span>';return}
+    if(!r.ok){el.innerHTML='<span style="color:#e74c3c"> '+esc(d.error)+'</span>';return}
     const sb=d.subject_balances||{}, sp=d.supplier_payment||{};
     let html='<div style="color:#27ae60;font-weight:600;margin-bottom:6px">'+esc(d.message)+'</div>';
     html+='<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">';
-    if(d.subject_balances)html+='<div style="background:#f0f3ff;padding:8px 12px;border-radius:6px"><b>①科目余额</b><br>拉取 '+sb.total+' 条 · 新增 '+sb.added+' · 更新 '+sb.updated+' · 跳过 '+sb.skipped+'</div>';
-    if(d.supplier_payment)html+='<div style="background:#fff3e0;padding:8px 12px;border-radius:6px"><b>②供应商付款</b><br>供应商 '+sp.total+' · 新增 '+sp.added+' · 更新 '+sp.updated+' · 跳过 '+sp.skipped+'</div>';
+    if(d.subject_balances)html+='<div style="background:#f0f3ff;padding:8px 12px;border-radius:6px"><b>1. 科目余额</b><br>拉取 '+sb.total+' 条  新增 '+sb.added+'  更新 '+sb.updated+'  跳过 '+sb.skipped+'</div>';
+    if(d.supplier_payment)html+='<div style="background:#fff3e0;padding:8px 12px;border-radius:6px"><b>2. 供应商付款</b><br>供应商 '+sp.total+'  新增 '+sp.added+'  更新 '+sp.updated+'  跳过 '+sp.skipped+'</div>';
     html+='</div>';
-    if(d.errors&&d.errors.length)html+='<div style="color:#e74c3c;margin-top:8px;font-size:12px">⚠ '+d.errors.map(esc).join('<br>')+'</div>';
+    if(d.errors&&d.errors.length)html+='<div style="color:#e74c3c;margin-top:8px;font-size:12px"> '+d.errors.map(esc).join('<br>')+'</div>';
     el.innerHTML=html;
     loadList(curPage);loadStatCards();
-  }catch(e){el.innerHTML='<span style="color:#e74c3c">✗ '+esc(e.message)+'</span>'}
+  }catch(e){el.innerHTML='<span style="color:#e74c3c"> '+esc(e.message)+'</span>'}
 }
 
 function applyPerms(){if(window.PermissionCheck)PermissionCheck.applyToPage()}
@@ -516,5 +517,6 @@ loadFilterOpts().then(()=>{loadStatCards();loadList(1)});
 ImportDropzone.init('','expenses',function(){loadList(curPage);loadStatCards()});
 </script>
 <script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
 <script src="brand.js"></script>
 <script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>
