@@ -15,7 +15,7 @@
       ws = new WebSocket(`${proto}//${location.host}/ws`);
       ws.onopen = () => {
         isConnected = true;
-        ws.send(JSON.stringify({ type: 'auth', user: currentUser }));
+        ws.send(JSON.stringify({ type: 'auth', user: currentUser, token: localStorage.getItem('authToken') || '' }));
       };
       ws.onmessage = (e) => {
         try {
