@@ -36,9 +36,10 @@
   };
 })();
 
-// 一级导航：固定 9 个分组
+// 一级导航：固定分组（workbench 为场景化视图工作面，见 PAND-90）
 const TOP_LEVEL_GROUPS = [
   { key: 'home',       label: '首页',         icon: 'home' },
+  { key: 'workbench',  label: '经营视图',     icon: 'report' },
   { key: 'business',   label: '经营中心',     icon: 'business' },
   { key: 'sales',      label: '销售中心',     icon: 'sales' },
   { key: 'rd',         label: '研发中心',     icon: 'rd' },
@@ -114,6 +115,8 @@ const PermissionCheck = {
   userRole: null,
   permissions: null,
   isAdmin: false,
+  // 场景化视图迁移状态（PAND-90）：获取失败时为 null，此时原菜单入口照常渲染
+  navTransition: null,
   _itemsByGroup: null,
   _onChangeCallbacks: [],
   _filterObserver: null,
@@ -127,6 +130,8 @@ const PermissionCheck = {
     this.userId = userId;
     this._loadUserInfo();
     await this.loadPermissions();
+    // 0. 取迁移状态（失败不阻断：原菜单入口按本地清单照常渲染）
+    await this.loadNavTransition();
     // 1. 渲染侧边栏（品牌栏含当前登录账号）
     this.renderSidebar();
     // 1.5 统一顶部工作区工具栏
@@ -170,6 +175,25 @@ const PermissionCheck = {
     }
   },
 
+  /**
+   * 取场景化视图与原菜单入口的并存/过渡状态。
+   * 刻意吞掉所有异常：该接口只用于「标记过渡期、追加新入口」，
+   * 取不到时原菜单入口必须照常可用（判定标准：任一入口不可用时另一入口仍可用）。
+   */
+  async loadNavTransition() {
+    this.navTransition = null;
+    try {
+      const res = await fetch(`${window.location.origin}/api/navigation/menu`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && Array.isArray(data.scenarioViews) && Array.isArray(data.legacyTransitions)) {
+        this.navTransition = data;
+      }
+    } catch (e) {
+      console.warn('加载场景化视图迁移状态失败，原菜单入口照常显示:', e);
+    }
+  },
+
   has(code) {
     if (this.isAdmin) return true;
     if (!this.permissions) return false;
@@ -183,17 +207,90 @@ const PermissionCheck = {
     return false;
   },
 
+  /**
+   * 组装「原菜单入口 + 场景化视图」并存的二级菜单。
+   * - 原菜单入口：默认全部可访问；仅当替代入口可用且过渡期满时才下线；
+   * - 场景化视图：独立追加，页面未落地时为 pending 占位（不阻断原入口）。
+   * 迁移状态取不到（navTransition 为 null）时退化为纯原菜单入口，不影响可用性。
+   */
   _groupItems() {
     if (this._itemsByGroup) return this._itemsByGroup;
     const map = {};
     TOP_LEVEL_GROUPS.forEach(g => { map[g.key] = []; });
+
+    const transitionByHref = {};
+    if (this.navTransition) {
+      for (const t of this.navTransition.legacyTransitions) {
+        if (t && t.href) transitionByHref[String(t.href).toLowerCase()] = t;
+      }
+    }
+
     for (const item of sidebarItems) {
       if (item.perm && !this.has(item.perm)) continue;
+      const transition = transitionByHref[(item.href || '').toLowerCase()];
+      // 替代入口不可用时 state 不会是 retired，故此处不会误下线
+      if (transition && transition.state === 'retired') continue;
       if (!map[item.group]) map[item.group] = [];
-      map[item.group].push(item);
+      map[item.group].push(Object.assign({}, item, {
+        kind: 'legacy',
+        transitionState: transition ? transition.state : 'active',
+        replacedByLabel: transition ? transition.replacedByLabel : null
+      }));
     }
+
+    if (this.navTransition) {
+      for (const view of this.navTransition.scenarioViews) {
+        if (!view || !view.href) continue;
+        if (view.perm && !this.has(view.perm)) continue;
+        const group = map[view.group] ? view.group : 'home';
+        map[group].unshift({
+          href: view.href,
+          label: view.label,
+          group: group,
+          perm: view.perm || null,
+          kind: 'scenario',
+          transitionState: view.state,
+          view: view.view
+        });
+      }
+    }
+
     this._itemsByGroup = map;
     return map;
+  },
+
+  /**
+   * 渲染单个二级菜单项。逐项 try/catch：任一条目异常只丢该条目，
+   * 不影响其余入口（判定标准：任一入口不可用时另一入口仍可用）。
+   */
+  _renderItemHtml(item, currentPage) {
+    try {
+      const isCurrent = (item.href || '').toLowerCase() === currentPage;
+      const isPending = item.transitionState === 'pending';
+      const isLegacy = item.transitionState === 'legacy';
+      let badge = '';
+      let title = '';
+      if (isPending) {
+        badge = ' <span class="lms-item-badge pending">待上线</span>';
+        title = '场景化视图即将上线，当前请使用原菜单入口';
+      } else if (isLegacy) {
+        badge = ' <span class="lms-item-badge legacy">旧版</span>';
+        title = item.replacedByLabel
+          ? ('已被 ' + item.replacedByLabel + ' 替代，过渡期内原入口仍可用')
+          : '过渡期内原入口仍可用';
+      }
+      if (isPending) {
+        return '<li role="none"><span class="lms-secondary-item is-pending" role="menuitem"' +
+               ' aria-disabled="true" title="' + _escHtml(title) + '">' +
+               _escHtml(item.label) + badge + '</span></li>';
+      }
+      return '<li role="none"><a href="' + _escHtml(item.href) + '"' +
+             ' class="lms-secondary-item' + (isCurrent ? ' active' : '') + '"' +
+             ' role="menuitem"' + (title ? ' title="' + _escHtml(title) + '"' : '') + '>' +
+             _escHtml(item.label) + badge + '</a></li>';
+    } catch (e) {
+      return '';
+    }
   },
 
   // === 当前用户能看到的模块与菜单（供其它 JS 查询） ===
@@ -280,10 +377,7 @@ const PermissionCheck = {
       html += '<li class="lms-empty">本模块暂无功能</li>';
     } else {
       list.forEach(item => {
-        const isCurrent = (item.href || '').toLowerCase() === currentPage;
-        html += '<li role="none"><a href="' + _escHtml(item.href) + '"' +
-                ' class="lms-secondary-item' + (isCurrent ? ' active' : '') + '"' +
-                ' role="menuitem">' + _escHtml(item.label) + '</a></li>';
+        html += this._renderItemHtml(item, currentPage);
       });
     }
     html += '</ul>';
@@ -364,6 +458,7 @@ const PermissionCheck = {
     if (!sec) return;
     const itemsByGroup = this._groupItems();
     const list = itemsByGroup[groupKey] || [];
+    const currentPage = (window.location.pathname.split('/').pop() || 'dashboard.html').toLowerCase();
     sec.classList.add('lms-fading');
     setTimeout(() => {
       let html = '<div class="lms-secondary-header">' + _escHtml(obj.label) + '</div>';
@@ -372,8 +467,7 @@ const PermissionCheck = {
         html += '<li class="lms-empty">本模块暂无功能</li>';
       } else {
         list.forEach(item => {
-          html += '<li role="none"><a href="' + _escHtml(item.href) + '"' +
-                  ' class="lms-secondary-item" role="menuitem">' + _escHtml(item.label) + '</a></li>';
+          html += this._renderItemHtml(item, currentPage);
         });
       }
       html += '</ul>';
@@ -514,6 +608,7 @@ const PermissionCheck = {
     this._itemsByGroup = null;
     this._loadUserInfo();
     await this.loadPermissions();
+    await this.loadNavTransition();
     this.renderSidebar();
     this.applyToPage();
     this._onChangeCallbacks.forEach(cb => { try { cb(); } catch (_) {} });

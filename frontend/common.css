@@ -273,6 +273,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial
   border-left-color: #667eea;
   font-weight: 500;
 }
+/* 场景化视图迁移期标记：待上线的新入口 / 过渡期内的原入口（PAND-90） */
+.sidebar .lms-secondary-item.is-pending {
+  cursor: not-allowed;
+  color: rgba(255,255,255,0.38);
+}
+.sidebar .lms-secondary-item.is-pending:hover {
+  background: transparent;
+  color: rgba(255,255,255,0.38);
+}
+.sidebar .lms-item-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 1.5;
+  vertical-align: middle;
+  font-weight: 400;
+}
+.sidebar .lms-item-badge.pending {
+  background: rgba(148,163,184,0.22);
+  color: rgba(226,232,240,0.75);
+}
+.sidebar .lms-item-badge.legacy {
+  background: rgba(245,158,11,0.2);
+  color: #fcd34d;
+}
 .sidebar .lms-empty {
   padding: 28px 20px;
   font-size: 12px;

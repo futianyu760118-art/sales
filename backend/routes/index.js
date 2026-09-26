@@ -54,4 +54,7 @@ router.use('/order-check', require('./order-check'));
 router.use('/sop', require('./sop'));
 router.use('/im', require('./im'));
 
+// 导航迁移状态：场景化视图与原菜单入口的并存/过渡期（PAND-90）
+router.use('/navigation', require('./navigation'));
+
 module.exports = router;
