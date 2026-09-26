@@ -1,0 +1,205 @@
+{
+  "_comment": "Action待办引擎 — 自动生成问题行动对策+同步会议助手系统",
+  "version": "1.0",
+
+  "auto_generation_rules": [
+    {
+      "rule_code": "AUTO-ACT-001",
+      "trigger_event": "KPI红灯",
+      "source_query": "SELECT kpi_id, kpi_code, actual_value FROM kpi_actual WHERE status='R' AND period_month=(SELECT MAX(period_month) FROM kpi_actual)",
+      "action_template": {
+        "priority": "P0",
+        "description_tpl": "【系统自动生成】{kpi_name}红灯告警：实际值{actual_value}%，目标值{target_value}%，偏差{delta}%。需立即分析原因并制定对策。",
+        "owner_role_map": {
+          "KPI-001": "SALES_DIRECTOR",
+          "KPI-002": "PURCHASE_HEAD",
+          "KPI-003": "QUALITY_HEAD",
+          "KPI-004": "QUALITY_HEAD",
+          "KPI-005": "QUALITY_HEAD",
+          "KPI-006": "QUALITY_HEAD",
+          "KPI-007": "QUALITY_HEAD",
+          "KPI-008": "DEPT_HEAD",
+          "KPI-009": "SALES_DIRECTOR",
+          "KPI-010": "COMMITTEE_HEAD",
+          "KPI-011": "PROD_DIRECTOR",
+          "KPI-012": "PROD_DIRECTOR",
+          "KPI-013": "PROD_DIRECTOR",
+          "KPI-021": "PURCHASE_HEAD",
+          "KPI-022": "R&D_HEAD",
+          "KPI-023": "R&D_HEAD",
+          "KPI-024": "R&D_HEAD",
+          "KPI-025": "SALES_DIRECTOR",
+          "KPI-026": "SALES_DIRECTOR",
+          "KPI-027": "PLANNER",
+          "KPI-028": "ENGINEER_HEAD",
+          "KPI-029": "PURCHASE_HEAD"
+        },
+        "due_date_offset_days": 3,
+        "auto_notify": true
+      }
+    },
+    {
+      "rule_code": "AUTO-ACT-002",
+      "trigger_event": "产能超载",
+      "source_query": "SELECT line_code, load_rate FROM supply_capacity WHERE load_rate > 85 AND period_month=(SELECT MAX(period_month) FROM supply_capacity)",
+      "action_template": {
+        "priority": "P1",
+        "description_tpl": "【系统自动生成】产线{line_code}产能超载，当前负荷率{load_rate}%。建议：①调整排产计划 ②增加班次/外包 ③优化瓶颈工序。",
+        "owner_role": "PROD_DIRECTOR",
+        "due_date_offset_days": 5
+      }
+    },
+    {
+      "rule_code": "AUTO-ACT-003",
+      "trigger_event": "物料短缺",
+      "source_query": "SELECT product_code, material_code, shortage_qty, supplier_code FROM supply_mrp WHERE shortage_qty > 0 ORDER BY shortage_qty DESC LIMIT 10",
+      "action_template": {
+        "priority": "P1",
+        "description_tpl": "【系统自动生成】物料短缺告警：产品{product_code}的物料{material_code}短缺{shortage_qty}件，供应商{supplier_code}。需立即跟催。",
+        "owner_role": "PURCHASE_HEAD",
+        "due_date_offset_days": 3,
+        "auto_notify_supplier": true
+      }
+    },
+    {
+      "rule_code": "AUTO-ACT-004",
+      "trigger_event": "硬拦截触发",
+      "source_query": "SELECT block_type, entity_code, block_reason FROM block_log WHERE is_overridden=0 AND blocked_at > DATE_SUB(NOW(), INTERVAL 1 DAY)",
+      "action_template": {
+        "priority": "P0",
+        "description_tpl": "【硬拦截】{block_type}：{entity_code}被拦截。原因：{block_reason}。需工程部处理后方可解除。",
+        "owner_role": "ENGINEER_HEAD",
+        "due_date_offset_days": 1,
+        "escalation_hours": [4, 24, 72]
+      }
+    },
+    {
+      "rule_code": "AUTO-ACT-005",
+      "trigger_event": "异常超时未闭环",
+      "source_query": "SELECT id, description, created_at FROM sop_action WHERE description LIKE '%异常%' AND status='PENDING' AND TIMESTAMPDIFF(DAY, created_at, NOW()) > 7",
+      "action_template": {
+        "priority": "P0",
+        "description_tpl": "【自动升级】异常单#{id}已超时{days}天未闭环。当前描述：{description}。请立即处理并闭环。",
+        "owner_role": "DEPT_HEAD",
+        "due_date_offset_days": 2,
+        "escalation_level_increment": 1
+      }
+    },
+    {
+      "rule_code": "AUTO-ACT-006",
+      "trigger_event": "模具图纸未更新",
+      "source_query": "SELECT product_code FROM md_bom WHERE is_archived=0 AND product_code IN (SELECT DISTINCT product_code FROM psi_line WHERE header_id IN (SELECT id FROM psi_header WHERE status IN ('CONFIRMED','LOCKED')))",
+      "action_template": {
+        "priority": "P0",
+        "description_tpl": "【硬拦截关联】产品{product_code}的模具图纸未更新/未归档，导致排产被锁。请工程部48h内完成。",
+        "owner_role": "ENGINEER_HEAD",
+        "due_date_offset_days": 2,
+        "block_release_on_complete": true
+      }
+    },
+    {
+      "rule_code": "AUTO-ACT-007",
+      "trigger_event": "客诉SLA违约",
+      "source_query": "SELECT id, description, TIMESTAMPDIFF(HOUR, created_at, NOW()) as hours_elapsed FROM sop_action WHERE description LIKE '%客诉%' AND status='PENDING' AND TIMESTAMPDIFF(HOUR, created_at, NOW()) > 24",
+      "action_template": {
+        "priority": "P0",
+        "description_tpl": "【SLA违约】客诉单#{id}已{hours_elapsed}小时未响应（SLA=24h）。需品质部立即处理并建立长效机制。",
+        "owner_role": "QUALITY_HEAD",
+        "due_date_offset_days": 1,
+        "escalation_hours": [1, 4, 24]
+      }
+    }
+  ],
+
+  "meeting_assistant_sync": {
+    "target_system": {
+      "name": "会议助手系统",
+      "api_base_url": "https://meeting-assistant.internal/api/v1",
+      "auth_type": "Bearer_Token",
+      "auth_token_env_var": "MEETING_ASSISTANT_TOKEN"
+    },
+    "sync_strategy": {
+      "trigger": "manual + scheduled",
+      "manual_trigger": "会议决议输出后点'推送会议助手'按钮",
+      "scheduled_trigger": "每周一08:00自动推送上周未关闭Action",
+      "batch_size": 50,
+      "retry": { "max_retries": 3, "backoff_seconds": 30 }
+    },
+    "sync_payload_template": {
+      "meeting_id": "{meeting_code}",
+      "meeting_date": "{meeting_date}",
+      "decisions": "{decision_summary}",
+      "actions": [
+        {
+          "external_id": "{action_code}",
+          "title": "{description}",
+          "assignee": "{owner_name}",
+          "collaborators": "{collaborator_names}",
+          "due_date": "{due_date}",
+          "priority": "{priority}",
+          "status": "{status}",
+          "source_system": "SOP",
+          "category": "产销协调"
+        }
+      ]
+    },
+    "sync_result_handling": {
+      "on_success": "更新sop_action.source_system='MEETING_ASSISTANT' + 记录sync_log",
+      "on_failure": "告警通知SOP_OFFICER + 写入alert_log",
+      "conflict_resolution": "SOP系统为master，会议助手为slave（单向同步）"
+    }
+  },
+
+  "action_lifecycle": {
+    "status_flow": "PENDING → IN_PROGRESS → VERIFYING → CLOSED",
+    "transitions": [
+      {
+        "from": "PENDING",
+        "to": "IN_PROGRESS",
+        "trigger": "责任人点'开始处理' OR 上传附件",
+        "auto_notify": "通知协作者"
+      },
+      {
+        "from": "IN_PROGRESS",
+        "to": "VERIFYING",
+        "trigger": "上传evidence_url",
+        "auto_notify": "通知主管验证"
+      },
+      {
+        "from": "VERIFYING",
+        "to": "CLOSED",
+        "trigger": "主管点'验证通过'",
+        "auto_actions": [
+          "记录closed_at",
+          "计算处理时效",
+          "更新KPI-008(异常闭环率)"
+        ]
+      },
+      {
+        "from": "VERIFYING",
+        "to": "IN_PROGRESS",
+        "trigger": "主管点'验证不通过'+填写原因",
+        "auto_notify": "通知责任人返工"
+      }
+    ],
+    "escalation_rules": [
+      { "overdue_hours": 24, "action": "标红+系统消息责任人", "escalation_level": 1 },
+      { "overdue_hours": 72, "action": "抄送主管+系统消息", "escalation_level": 2 },
+      { "overdue_hours": 168, "action": "抄送副总+计入考核", "escalation_level": 3 }
+    ]
+  },
+
+  "problem_solution_mapping": {
+    "_comment": "问题→对策自动映射库（供AI生成建议用）",
+    "mappings": [
+      { "problem_pattern": "齐套率<70%", "solutions": ["①与Top3供应商召开紧急会议","②启用备选供应商","③调整生产优先级","④安全库存动态上调"] },
+      { "problem_pattern": "产能负荷>85%", "solutions": ["①增加班次(两班→三班)","②外包部分工序","③瓶颈设备提速/新增","④调整产品组合"] },
+      { "problem_pattern": "首件检验率下降", "solutions": ["①复查首件检验SOP","②加强检验员培训","③设备精度校准","④来料质量排查"] },
+      { "problem_pattern": "异常闭环率<80%", "solutions": ["①建立异常升级机制","②每日异常例会","③根因分析(RCA)培训","④责任人KPI挂钩"] },
+      { "problem_pattern": "客诉24h及时率=0%", "solutions": ["①重新设计SLA计时规则","②建立客诉快速响应小组","③系统自动派单+计时","④客诉分级处理机制"] },
+      { "problem_pattern": "预测偏差>20%", "solutions": ["①增加定量模型权重","②加强与客户VMI对接","③缩短预测周期","④项目类手工台账补录"] },
+      { "problem_pattern": "BOM未归档", "solutions": ["①工程部48h内完成归档","②系统硬拦截解除条件明确","③BOM变更流程优化","④归档率纳入工程师KPI"] },
+      { "problem_pattern": "样品合格率<70%", "solutions": ["①研发-品质联合评审","②样品测试标准对齐","③设计DFM可制造性优化","④供应商材料质量提升"] }
+    ]
+  }
+}

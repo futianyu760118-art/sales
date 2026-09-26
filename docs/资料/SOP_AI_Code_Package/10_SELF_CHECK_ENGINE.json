@@ -1,0 +1,195 @@
+{
+  "_comment": "自检待办引擎 — 每周10项检查+自动评分+未通过自动建Action",
+  "version": "1.0",
+
+  "schedule": {
+    "frequency": "WEEKLY",
+    "trigger_day": "MONDAY",
+    "trigger_time": "08:00",
+    "auto_run": true,
+    "manual_trigger_allowed": true
+  },
+
+  "check_items": [
+    {
+      "no": 1,
+      "item": "PSI三月亮数据是否已刷新",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询psi_header WHERE period_month=当月 AND version_no>=1 AND updated_at > 上月15日",
+      "pass_condition": "存在当月PSI且M/M+1/M+2三列均有数据",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P1",
+        "owner_role": "SOP_OFFICER",
+        "description_tpl": "【自检失败】PSI三月亮数据未刷新，请立即更新。",
+        "due_date_offset_days": 1
+      }
+    },
+    {
+      "no": 2,
+      "item": "本月预测偏差>15%的产品是否已标记",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询kpi_actual WHERE kpi_code='KPI-009' AND actual_value>15 AND period_month=当月",
+      "pass_condition": "所有MAPE>15%的产品在demand_forecast中有remark标注",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P1",
+        "owner_role": "MARKET_PLANNER",
+        "description_tpl": "【自检失败】发现{count}个产品预测偏差>15%但未标记，请分析原因并更新预测方法。",
+        "due_date_offset_days": 2
+      }
+    },
+    {
+      "no": 3,
+      "item": "Top3缺料是否已有对策",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询supply_mrp WHERE shortage_qty>0 ORDER BY shortage_qty DESC LIMIT 3",
+      "pass_condition": "每个Top3缺料在sop_action中有关联的P0/P1未关闭Action",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P0",
+        "owner_role": "PURCHASE_HEAD",
+        "description_tpl": "【自检失败】物料{product_code}短缺{shortage_qty}件，尚无对策Action。请立即创建跟进行动。",
+        "due_date_offset_days": 1
+      }
+    },
+    {
+      "no": 4,
+      "item": "本周异常创建到分配是否<4h",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询alert_log WHERE rule_id IN (异常相关) AND TIMESTAMPDIFF(HOUR, triggered_at, acknowledged_at) > 4",
+      "pass_condition": "本周所有异常响应时间<4h",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P1",
+        "owner_role": "QUALITY_HEAD",
+        "description_tpl": "【自检失败】本周有{count}条异常响应超时>4h，请优化异常分配流程。",
+        "due_date_offset_days": 3
+      }
+    },
+    {
+      "no": 5,
+      "item": "BOM归档率是否100%",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询md_bom WHERE product_code IN (SELECT DISTINCT product_code FROM psi_line WHERE header_id IN (SELECT id FROM psi_header WHERE status IN ('CONFIRMED','LOCKED'))) AND is_archived=0",
+      "pass_condition": "结果为空(所有活跃产品BOM均已归档)",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P0",
+        "owner_role": "ENGINEER_HEAD",
+        "description_tpl": "【自检失败】产品{product_code}的BOM/订单标准未归档，已触发硬拦截。请48h内完成。",
+        "due_date_offset_days": 2,
+        "triggers_block": "HB-001"
+      }
+    },
+    {
+      "no": 6,
+      "item": "模具图纸更新是否完成",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询engineering_drawings WHERE product_code IN (活跃PSI产品) AND version != latest_version",
+      "pass_condition": "结果为空",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P0",
+        "owner_role": "ENGINEER_HEAD",
+        "description_tpl": "【自检失败】产品{product_code}模具图纸版本过期，禁止排产。请更新。",
+        "due_date_offset_days": 2,
+        "triggers_block": "HB-002"
+      }
+    },
+    {
+      "no": 7,
+      "item": "供应商交期承诺是否已确认",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询supply_mrp WHERE demand_date BETWEEN TODAY AND TODAY+7 AND supply_commit_date IS NULL",
+      "pass_condition": "未来7天需求物料100%有supply_commit回复",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P1",
+        "owner_role": "PURCHASE_HEAD",
+        "description_tpl": "【自检失败】{count}笔物料需求未来7天内到期但供应商未回复commit日期。请立即跟催。",
+        "due_date_offset_days": 1
+      }
+    },
+    {
+      "no": 8,
+      "item": "客诉SLA计时是否合规",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询sop_action WHERE description LIKE '%客诉%' AND TIMESTAMPDIFF(HOUR, created_at, (SELECT MIN(updated_at) FROM audit_log WHERE table_name='sop_action' AND record_id=sop_action.id)) > 24",
+      "pass_condition": "所有客诉Action首次响应<24h",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P0",
+        "owner_role": "QUALITY_HEAD",
+        "description_tpl": "【自检失败】客诉SLA违规：{count}条客诉首次响应>24h。需重建客诉响应SOP。",
+        "due_date_offset_days": 3,
+        "escalation": "抄送GENERAL_MANAGER"
+      }
+    },
+    {
+      "no": 9,
+      "item": "行动计划逾期数是否=0",
+      "check_type": "SYSTEM_AUTO",
+      "check_method": "查询sop_action WHERE status != 'CLOSED' AND due_date < CURDATE()",
+      "pass_condition": "结果为空",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P1",
+        "owner_role": "各责任人(自动分配)",
+        "description_tpl": "【自检失败】您有{count}条逾期Action未闭环，请立即处理。逾期详情已发送至您的待办。",
+        "due_date_offset_days": 1,
+        "notify_supervisor": true
+      }
+    },
+    {
+      "no": 10,
+      "item": "KPI红黄灯数量趋势",
+      "check_type": "SYSTEM_COMPARE",
+      "check_method": "对比本周vs上周的kpi_actual.status='R'的数量",
+      "pass_condition": "本周红灯数 <= 上周红灯数",
+      "fail_action": {
+        "create_action": true,
+        "priority": "P1",
+        "owner_role": "SOP_OFFICER",
+        "description_tpl": "【自检失败】KPI红灯数从{last_week_red}增加到{this_week_red}，恶化趋势。请召开专题分析会。",
+        "due_date_offset_days": 3,
+        "attach_dashboard": true
+      }
+    }
+  ],
+
+  "scoring_rules": {
+    "total_items": 10,
+    "pass_score": 10,
+    "score_per_item": 10,
+    "pass_threshold_percent": 80,
+    "grade_scale": {
+      "A": ">=90% (9-10项通过)",
+      "B": ">=80% (8项通过)",
+      "C": ">=60% (6-7项通过)",
+      "D": "<60% (0-5项通过)"
+    }
+  },
+
+  "auto_actions_on_fail": {
+    "enabled": true,
+    "batch_create": true,
+    "notify_owner": true,
+    "notify_supervisor_if_grade_D": true,
+    "supersor_escalation_grade_D": "COMMITTEE_HEAD"
+  },
+
+  "report_output": {
+    "weekly_report": {
+      "format": "PDF + HTML",
+      "sections": [
+        "总评分 + 等级",
+        "10项检查结果(通过/失败+原因)",
+        "自动创建的Action清单",
+        "KPI红黄绿灯变化图",
+        "下周重点关注事项"
+      ],
+      "distribute_to": ["COMMITTEE_HEAD", "各部门主管", "GENERAL_MANAGER(若Grade D)"]
+    }
+  }
+}

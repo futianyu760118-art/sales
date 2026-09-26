@@ -1,0 +1,461 @@
+# S&OP系统前端页面/组件布局描述
+# 框架: React 18 + TypeScript + Ant Design 5
+# 路由前缀: /sop
+
+pages:
+  # ========== 首页/驾驶舱 ==========
+  - route: /sop/dashboard
+    name: S&OP领导驾驶舱
+    layout: grid
+    components:
+      - type: SummaryCards
+        position: top
+        props:
+          items:
+            - { label: "红灯KPI数", field: "red_count", color: "red", link: "/sop/kpi?status=R" }
+            - { label: "黄灯KPI数", field: "yellow_count", color: "orange", link: "/sop/kpi?status=Y" }
+            - { label: "绿灯KPI数", field: "green_count", color: "green", link: "/sop/kpi?status=G" }
+            - { label: "待办逾期数", field: "overdue_actions", color: "red", link: "/sop/actions?overdue=true" }
+            - { label: "未闭环预警", field: "unresolved_alerts", color: "orange", link: "/sop/alerts?resolved=false" }
+            - { label: "本月PSI版本", field: "psi_version", color: "blue", link: "/sop/psi" }
+
+      - type: KpiPanel
+        title: 领先指标(MI)
+        props: { category: "MI", show_chart: true, drill_down: true }
+
+      - type: KpiPanel
+        title: 过程指标(PI)
+        props: { category: "PI", show_chart: true, drill_down: true }
+
+      - type: KpiPanel
+        title: 结果指标(KPI)
+        props: { category: "KPI", show_chart: true, drill_down: true }
+
+      - type: ActionKanban
+        title: 待办看板
+        props: { group_by: "status", show_overdue: true, drag_to_change: true }
+
+      - type: AlertList
+        title: 活跃预警
+        props: { only_unresolved: true, show_escalation: true }
+
+  # ========== PSI产销存 ==========
+  - route: /sop/psi
+    name: PSI产销存滚动计划
+    layout: table_with_toolbar
+    components:
+      - type: FilterBar
+        props:
+          fields:
+            - { field: "sales_type", type: "radio", options: ["全部","内销","外销"] }
+            - { field: "period_month", type: "month_picker" }
+            - { field: "status", type: "select", options: ["DRAFT","REVIEW","CONFIRMED","LOCKED"] }
+            - { field: "color_status", type: "select", options: ["R","Y","G"] }
+
+      - type: EditableTable
+        props:
+          db_table: "psi_line"
+          sortable: true
+          multi_sort: true
+          column_filters: true
+          excel_paste: true
+          excel_export: true
+          color_conditioned_columns:
+            - { column: "color_status", rule: "R→red_bg, Y→yellow_bg, G→green_bg" }
+            - { column: "inventory_end", rule: "< safety_stock → red_text" }
+          columns:
+            - { field: "product_code", title: "产品编号", sortable: true, filterable: true, width: 150 }
+            - { field: "inventory_begin", title: "期初库存", sortable: true, width: 100 }
+            - { field: "sales_plan_m0", title: "M销售", editable: true, sortable: true, width: 100 }
+            - { field: "production_plan_m0", title: "M生产", editable: true, sortable: true, width: 100 }
+            - { field: "inventory_end_m0", title: "M期末", readonly: true, sortable: true, width: 100 }
+            - { field: "sales_plan_m1", title: "M+1销售", editable: true, sortable: true, width: 100 }
+            - { field: "production_plan_m1", title: "M+1生产", editable: true, sortable: true, width: 100 }
+            - { field: "inventory_end_m1", title: "M+1期末", readonly: true, sortable: true, width: 100 }
+            - { field: "sales_plan_m2", title: "M+2销售", editable: true, sortable: true, width: 100 }
+            - { field: "production_plan_m2", title: "M+2生产", editable: true, sortable: true, width: 100 }
+            - { field: "inventory_end_m2", title: "M+2期末", readonly: true, sortable: true, width: 100 }
+            - { field: "safety_stock", title: "安全库存", sortable: true, width: 100 }
+            - { field: "color_status", title: "状态", filterable: true, width: 80 }
+
+      - type: Toolbar
+        props:
+          buttons:
+            - { label: "刷新数据", icon: "reload", action: "fetch_data" }
+            - { label: "Excel导入", icon: "upload", action: "import_excel" }
+            - { label: "Excel导出", icon: "download", action: "export_excel" }
+            - { label: "筛选", icon: "filter", action: "toggle_filter_panel" }
+            - { label: "排序", icon: "sort", action: "toggle_sort_menu" }
+            - { label: "滚动刷新", icon: "fast-forward", action: "roll_forward", confirm: "确认将M+2→M+1并新增M+2?" }
+            - { label: "提交审批", icon: "send", action: "submit_review", need_role: "SOP_OFFICER" }
+            - { label: "确认锁定", icon: "lock", action: "confirm_lock", need_role: "COMMITTEE_HEAD" }
+
+  # ========== 需求预测 ==========
+  - route: /sop/forecast
+    name: 需求预测管理
+    layout: form_and_table
+    components:
+      - type: ForecastForm
+        props:
+          fields:
+            - { field: "product_code", type: "select_search", source: "md_product" }
+            - { field: "period_month", type: "month_picker" }
+            - { field: "month_offset", type: "select", options: ["M(锁定)","M+1(弹性)","M+2(参考)"] }
+            - { field: "forecast_qty", type: "number", required: true }
+            - { field: "method", type: "select", options: ["移动平均","指数平滑","回归分析","生命周期","定性"] }
+            - { field: "mape_reference", type: "number", readonly: true, label: "历史MAPE%" }
+            - { field: "promotion_flag", type: "checkbox_group", options: ["大促","新品上市","退市清仓","客户项目"] }
+            - { field: "attachment", type: "file_upload" }
+            - { field: "remark", type: "textarea" }
+
+      - type: DataTable
+        props:
+          sortable: true
+          filterable: true
+          columns:
+            - { field: "product_code", sortable: true, filterable: true }
+            - { field: "period_month", sortable: true }
+            - { field: "forecast_qty", sortable: true }
+            - { field: "method", filterable: true }
+            - { field: "mape_reference", sortable: true }
+            - { field: "currency_amount", sortable: true }
+
+      - type: Toolbar
+        props:
+          buttons:
+            - { label: "自动计算(移动平均)", action: "auto_calc_moving_avg" }
+            - { label: "自动计算(指数平滑)", action: "auto_calc_exp_smooth" }
+            - { label: "历史趋势图", action: "show_trend_chart" }
+            - { label: "批量提交", action: "bulk_submit" }
+
+  # ========== 供应评审 ==========
+  - route: /sop/supply
+    name: 供应能力评审
+    layout: tabs
+    tabs:
+      - label: 产能负荷
+        components:
+          - type: CapacityTable
+            props:
+              fields: [line_code, period_month, available_days, upph_actual, upph_target, load_rate, bottleneck]
+              highlight: "load_rate > 85 → red row"
+              sortable: true
+              filterable: true
+
+      - label: MRP齐套检查
+        components:
+          - type: MrpTable
+            props:
+              fields: [product_code, material_code, demand_date, required_qty, arrived_qty, shortage_qty, is_ontime, supplier_code]
+              highlight: "shortage_qty > 0 → red row"
+              sortable: true
+              filterable: true
+              filter_shortage_only: true
+              toolbar:
+                - { label: "刷新MRP", action: "refresh_mrp" }
+                - { label: "导出短缺Top10", action: "export_top10" }
+                - { label: "发送采购跟催", action: "create_purchase_action" }
+
+      - label: 硬拦截检查
+        components:
+          - type: BlockCheckPanel
+            props:
+              checks:
+                - { name: "订单标准未归档", check_field: "md_bom.is_archived", block_action: "阻止投产" }
+                - { name: "模具图纸未更新", check_field: "engineering_drawings.version", block_action: "阻止排产" }
+              ui: { type: "modal", show_contact: "ENGINEER_HEAD", override_button: false }
+
+  # ========== 会议管理 ==========
+  - route: /sop/meetings
+    name: S&OP会议管理
+    layout: list_and_detail
+    components:
+      - type: MeetingList
+        props:
+          filters: [meeting_type, status, date_range]
+          sortable: true
+          quick_create: true
+
+      - type: MeetingDetail
+        props:
+          tabs:
+            - { label: "基本信息", fields: [meeting_code, type, date, attendees] }
+            - { label: "议程(10项)", template: "auto_load_10_items", data_auto_fetch: true }
+            - { label: "RAPID表决", dynamic_table: true, columns: ["议题","角色","表决","备注"] }
+            - { label: "决议输出", rich_text: true, auto_actions: true, manual_actions: true }
+
+      - type: Toolbar
+        props:
+          buttons:
+            - { label: "自动生成议程", action: "load_agenda_template" }
+            - { label: "自动生成Action", action: "auto_generate_actions" }
+            - { label: "推送会议助手", action: "sync_to_meeting_assistant" }
+            - { label: "生成会议纪要", action: "export_minutes_docx" }
+            - { label: "关闭会议", action: "close_meeting" }
+
+  # ========== 待办管理 ==========
+  - route: /sop/actions
+    name: Action待办清单
+    layout: kanban_and_table_switchable
+    components:
+      - type: ViewToggle
+        props: { views: ["table", "kanban"] }
+
+      - type: ActionTable
+        props:
+          sortable: true
+          multi_sort: true
+          column_filters: true
+          filter_presets:
+            - { label: "我的待办", filter: "owner_id=current_user AND status!=CLOSED" }
+            - { label: "逾期", filter: "due_date<NOW() AND status!=CLOSED" }
+            - { label: "P0紧急", filter: "priority=P0 AND status!=CLOSED" }
+            - { label: "需升级", filter: "escalation_level>0" }
+          columns:
+            - { field: "action_code", sortable: true }
+            - { field: "description", sortable: true, filterable: true }
+            - { field: "owner_id", filterable: true, render: "user_avatar" }
+            - { field: "due_date", sortable: true, highlight_overdue: true }
+            - { field: "priority", filterable: true, color_tag: true }
+            - { field: "status", filterable: true, color_tag: true }
+            - { field: "escalation_level", sortable: true }
+            - { field: "overdue_flag", filterable: true }
+
+      - type: ActionKanban
+        props:
+          columns: ["PENDING", "IN_PROGRESS", "VERIFYING", "CLOSED"]
+          drag_to_change_status: true
+          show_overdue_badge: true
+
+      - type: Toolbar
+        props:
+          buttons:
+            - { label: "新建Action", action: "open_form" }
+            - { label: "批量导入", action: "import_excel" }
+            - { label: "筛选:逾期", action: "filter_overdue" }
+            - { label: "筛选:责任人", action: "filter_owner" }
+            - { label: "排序:截止日期", action: "sort_due_date" }
+            - { label: "推送会议助手", action: "sync_to_meeting_assistant" }
+            - { label: "导出报表", action: "export_excel" }
+
+  # ========== 数据获取配置 ==========
+  - route: /sop/data-fetch
+    name: 数据获取开关配置
+    layout: table_with_toggle
+    components:
+      - type: DataFetchTable
+        props:
+          columns:
+            - { field: "config_name", sortable: true, filterable: true }
+            - { field: "source_system", filterable: true }
+            - { field: "fetch_mode", type: "toggle_switch", options: ["AUTO","MANUAL"], on_change: "toggle_and_audit" }
+            - { field: "is_enabled", type: "toggle_switch" }
+            - { field: "cron_expr", visible_when: "fetch_mode=AUTO" }
+            - { field: "time_window", readonly: true }
+            - { field: "last_run_at", sortable: true }
+            - { field: "last_status", color_tag: true }
+
+      - type: Toolbar
+        props:
+          buttons:
+            - { label: "切换自动/手动", action: "toggle_selected_rows" }
+            - { label: "立即执行", action: "run_now" }
+            - { label: "测试连接", action: "test_connection" }
+            - { label: "查看日志", action: "show_run_history" }
+
+  # ========== 自检 ==========
+  - route: /sop/self-check
+    name: 每周自检
+    layout: checklist
+    components:
+      - type: SelfCheckForm
+        props:
+          auto_check: true
+          items_source: "self_check_template.items_json"
+          columns: ["序号","检查项","检查方法","结果","备注","自动修复Action"]
+          auto_score: true
+          on_fail_create_action: true
+
+      - type: Toolbar
+        props:
+          buttons:
+            - { label: "自动检查全部", action: "auto_check_all" }
+            - { label: "手动逐项", action: "manual_check" }
+            - { label: "未通过→建Action", action: "create_actions_for_failed" }
+
+  # ========== KPI管理 ==========
+  - route: /sop/kpi
+    name: KPI指标管理
+    layout: standard_and_custom
+    components:
+      - type: KpiStandardTable
+        props:
+          columns: [kpi_code, kpi_name, category, target, warning, critical, source]
+          sortable: true
+          filterable: true
+
+      - type: KpiActualTable
+        props:
+          columns: [kpi_code, period_month, actual_value, status]
+          sortable: true
+          filterable: true
+          color_conditioned: "R→red, Y→yellow, G→green"
+
+      - type: KpiDashboard
+        props:
+          summary_cards: true
+          trend_chart: true
+          drill_down: true
+
+  # ========== IM即时通讯 ==========
+  - route: /sop/im
+    name: 即时通讯
+    layout: three_column
+    components:
+      - type: ConvList
+        props:
+          width: "280px"
+          searchable: true
+          tabs: ["全部","未读","@我","系统"]
+          items_source: "im_conversation + unread_count + last_msg_preview"
+          sort_by: "is_pinned DESC, last_msg_at DESC"
+          context_menu: ["置顶","免打扰","标记已读","归档","删除"]
+          show_badge: true
+          show_pinned_on_top: true
+          drag_to_reorder: false
+
+      - type: MessageList
+        props:
+          width: "flex-1"
+          virtual_scroll: true
+          load_more_on_scroll_top: true
+          message_types: ["TEXT","IMAGE","FILE","VOICE","VIDEO","SYSTEM","ALERT","ACTION_CARD","MEETING_CARD","RECALL"]
+          features:
+            - "引用回复(右键/长按)"
+            - "@提及高亮+跳转"
+            - "Emoji反应(堆叠头像)"
+            - "长按菜单(撤回/复制/引用/转发)"
+            - "已读回执图标(单聊✓✓/群聊N/M)"
+            - "自动滚动到底部(新消息)"
+            - "图片点击放大/旋转/翻页"
+            - "文件预览(PDF/Word/Excel)"
+            - "语音播放+波形+转文字"
+          auto_scroll_to_bottom_on_new: true
+          show_typing_indicator: true
+
+      - type: ComposerBar
+        props:
+          width: "100%"
+          features: ["文本输入","表情面板","@提及(搜索用户)","附件上传(分片)","语音录音(60s)","消息模板","快捷命令"]
+          slash_commands:
+            - { cmd: "/help", desc: "显示可用命令" }
+            - { cmd: "/create-action [描述]", desc: "快速创建Action" }
+            - { cmd: "/check-kpi [KPI编码]", desc: "查询KPI状态" }
+            - { cmd: "/psi [产品编码]", desc: "查询PSI数据" }
+            - { cmd: "/alert [规则编码]", desc: "手动触发预警检查" }
+            - { cmd: "/meeting [会议编号]", desc: "跳转会议" }
+          mention_autocomplete: "输入@弹出用户列表(拼音/汉字搜索)"
+          emoji_autocomplete: "输入:弹出Emoji面板"
+          send_on_enter: true
+          ctrl_enter_newline: true
+          max_file_size: "500MB"
+          allowed_file_types: [".jpg",".png",".gif",".pdf",".docx",".xlsx",".pptx",".mp4",".mp3",".zip"]
+
+      - type: ConvHeader
+        props:
+          show_name: true
+          show_members: true
+          show_online_count: true
+          actions: ["搜索消息","置顶","免打扰","更多设置","查看详情面板"]
+
+      - type: DetailPanel
+        props:
+          width: "320px"
+          collapsible: true
+          components:
+            - { type: "MemberList", props: { show_online_status: true, "@_user_jump": true, "add_member_button": true } }
+            - { type: "RelatedBusinessCard", props: {
+                "show_when": "conv.related_type != GENERAL",
+                "types": {
+                  "MEETING": "显示会议摘要+议程+决议+Action",
+                  "ACTION": "显示Action详情+进度+证据+升级路径",
+                  "ALERT": "显示预警详情+处理按钮+升级时间线",
+                  "PSI": "显示PSI数据卡片+趋势",
+                  "KPI": "显示KPI趋势图+改善对策"
+                }
+              }}
+            - { type: "MessageSearch", props: { scope: "当前会话", fulltext_search: true, highlight: true } }
+
+      - type: GlobalIMDrawer
+        props:
+          trigger: "右下角浮动按钮"
+          badge: "总未读数"
+          click_action: "打开抽屉(不离开当前页面)"
+          layout: "mini_conv_list + mini_message_preview"
+
+  - route: /sop/im/search
+    name: 全局消息搜索
+    layout: search_results
+    components:
+      - type: GlobalSearchBar
+        props:
+          engine: "Elasticsearch / MeiliSearch"
+          placeholder: "搜索历史消息..."
+          filters: ["时间范围","发送者","消息类型","所在会话"]
+          highlight: "关键词高亮"
+          history: "保留全部历史(不删除)"
+
+# ========== 全局组件 ==========
+global_components:
+  - type: HeaderBar
+    props:
+      logo: "/logo.png"
+      user_avatar: true
+      notifications: { type: "dropdown", source: "alert_log + sop_action overdue + im_unread" }
+      quick_search: { placeholder: "搜索产品/会议/Action/消息..." }
+      im_badge: { source: "total_unread_count", position: "right_corner" }
+
+  - type: SideMenu
+    props:
+      items:
+        - { icon: "dashboard", label: "驾驶舱", route: "/sop/dashboard" }
+        - { icon: "table", label: "PSI产销存", route: "/sop/psi" }
+        - { icon: "line-chart", label: "需求预测", route: "/sop/forecast" }
+        - { icon: "tool", label: "供应评审", route: "/sop/supply" }
+        - { icon: "calendar", label: "会议管理", route: "/sop/meetings" }
+        - { icon: "check-square", label: "待办Action", route: "/sop/actions" }
+        - { icon: "database", label: "数据获取", route: "/sop/data-fetch" }
+        - { icon: "check-circle", label: "每周自检", route: "/sop/self-check" }
+        - { icon: "flag", label: "KPI管理", route: "/sop/kpi" }
+        - { icon: "message", label: "即时通讯", route: "/sop/im" }
+
+  - type: FloatingIMButton
+    props:
+      position: "bottom-right"
+      badage_source: "total_unread_count"
+      click_action: "open_im_drawer"
+      unread_list:
+        - { type: "alert", label: "预警消息", source: "alert_log" }
+        - { type: "action", label: "待办提醒", source: "sop_action overdue" }
+        - { type: "meeting", label: "会议通知", source: "meeting_invites" }
+        - { type: "chat", label: "聊天消息", source: "im_conversation unread" }
+
+  - type: WebSocketProvider
+    props:
+      endpoints:
+        - { event: "alert:triggered", action: "show_notification + refresh_dashboard + im_push" }
+        - { event: "action:assigned", action: "show_notification + refresh_kanban + im_send" }
+        - { event: "action:overdue", action: "show_notification(持续) + im_escalate" }
+        - { event: "meeting:invite", action: "show_meeting_card + im_send" }
+        - { event: "meeting:decision_made", action: "refresh_action_list + im_broadcast" }
+        - { event: "psi:updated", action: "refresh_psi_table + im_notify_if_mentioned" }
+        - { event: "block:triggered", action: "show_modal + im_urgent_push_all_channels" }
+        - { event: "block:released", action: "close_modal + im_notify" }
+        - { event: "self_check:completed", action: "show_report + im_push_report" }
+        - { event: "kpi:updated", action: "refresh_dashboard + im_notify_if_red" }
+        - { event: "message:new", action: "update_conv_list + toast_if_mentioned + sound_if_active" }
+        - { event: "message:recall", action: "replace_msg_content('已撤回')" }
+        - { event: "rapid:vote_cast", action: "refresh_vote_progress + im_notify" }
+        - { event: "user:online", action: "update_member_online_status" }
+        - { event: "user:offline", action: "update_member_offline_status" }
+        - { event: "typing", action: "show_typing_indicator" }

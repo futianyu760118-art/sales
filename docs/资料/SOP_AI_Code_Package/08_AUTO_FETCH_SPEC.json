@@ -1,0 +1,336 @@
+{
+  "_comment": "数据自动获取开关+映射规则 — 控制每类数据AUTO/MANUAL+对应系统字段映射",
+  "version": "1.0",
+
+  "global_settings": {
+    "default_time_window": "16th-15th",
+    "default_mode": "AUTO",
+    "require_approval_for_mode_change": true,
+    "audit_all_changes": true,
+    "notification_on_failure": {
+      "enabled": true,
+      "notify_users": ["SOP_OFFICER", "IT_ADMIN"],
+      "channel": ["system_message", "email"]
+    }
+  },
+
+  "data_sources": [
+    {
+      "source_system": "K3",
+      "connection_type": "ODBC/REST_API",
+      "description": "ERP系统，主要取数来源",
+      "tables": [
+        { "name": "sales_delivery", "chinese": "销售出库单", "key_field": "delivery_no" },
+        { "name": "task_report", "chinese": "任务汇报单", "key_field": "task_no" },
+        { "name": "purchase_order", "chinese": "采购订单", "key_field": "po_no" },
+        { "name": "safety_stock", "chinese": "安全库存表", "key_field": "product_code" },
+        { "name": "bom_header", "chinese": "BOM表头", "key_field": "product_code+version" },
+        { "name": "production_line", "chinese": "产线报工", "key_field": "line_code+date" },
+        { "name": "sample_test", "chinese": "样品测试记录", "key_field": "sample_no" },
+        { "name": "inventory", "chinese": "库存台账", "key_field": "product_code" }
+      ]
+    },
+    {
+      "source_system": "OA",
+      "connection_type": "REST_API",
+      "description": "办公自动化系统，品质/异常/客诉数据",
+      "tables": [
+        { "name": "inspection_report", "chinese": "来料检验报告", "key_field": "report_no" },
+        { "name": "inspection_exception", "chinese": "验货异常单", "key_field": "exception_no" },
+        { "name": "qa_report", "chinese": "品质检验报告", "key_field": "qa_no" },
+        { "name": "first_piece_inspect", "chinese": "首件检验单", "key_field": "fpi_no" },
+        { "name": "customer_complaint", "chinese": "客诉单", "key_field": "complaint_no" },
+        { "name": "exception_ticket", "chinese": "异常单", "key_field": "ticket_no" }
+      ]
+    },
+    {
+      "source_system": "MES",
+      "connection_type": "REST_API/WebSocket",
+      "description": "制造执行系统，实时产能/负荷",
+      "tables": [
+        { "name": "line_load", "chinese": "产线负荷", "key_field": "line_code+shift" },
+        { "name": "production_realtime", "chinese": "实时生产数据", "key_field": "line_code+timestamp" }
+      ]
+    },
+    {
+      "source_system": "ERP",
+      "connection_type": "REST_API",
+      "description": "销售订单/预测(项目类数据需手动台账)",
+      "tables": [
+        { "name": "sales_order", "chinese": "销售订单", "key_field": "order_no" },
+        { "name": "forecast_entry", "chinese": "预测录入", "key_field": "forecast_no" }
+      ]
+    }
+  ],
+
+  "fetch_configs": [
+    {
+      "config_code": "DF-001",
+      "name": "交付OTD取数",
+      "source_system": "K3",
+      "source_table": "sales_delivery",
+      "source_fields": ["delivery_no", "delivery_date", "required_date", "product_code", "qty"],
+      "target_table": "kpi_actual",
+      "target_kpi_code": "KPI-001",
+      "time_window": "16th-15th",
+      "filter_logic": "delivery_date BETWEEN 上月16日 AND 本月15日",
+      "calc_logic": "准时交付数( delivery_date <= required_date ) / 总交付数 × 100%",
+      "fetch_mode": "AUTO",
+      "cron": "0 30 1 16 *",
+      "manual_trigger_UI": true,
+      "ui_control": {
+        "toggle_id": "toggle-df-001",
+        "switch_label": "自动/手动",
+        "manual_button": "立即获取",
+        "last_run_display": true,
+        "status_display": true,
+        "filter_panel": "可筛选月份/产品/客户"
+      }
+    },
+    {
+      "config_code": "DF-002",
+      "name": "生产实绩取数",
+      "source_system": "K3",
+      "source_table": "task_report",
+      "source_fields": ["task_no", "report_date", "product_code", "qty_good", "qty_total", "man_hours"],
+      "target_table": "kpi_actual + supply_capacity",
+      "target_kpi_codes": ["KPI-004", "KPI-011", "KPI-012"],
+      "calc_logic": {
+        "KPI-004": "qty_good / qty_total × 100%",
+        "UPPH": "qty_good / man_hours"
+      },
+      "fetch_mode": "AUTO",
+      "cron": "0 35 1 16 *"
+    },
+    {
+      "config_code": "DF-003",
+      "name": "来料品质取数",
+      "source_system": "OA",
+      "source_table": "inspection_report",
+      "source_fields": ["report_no", "report_date", "supplier_code", "material_code", "result"],
+      "target_kpi_code": "KPI-003",
+      "calc_logic": "合格批数 / 总检验批数 × 100%",
+      "fetch_mode": "AUTO",
+      "cron": "0 40 1 16 *"
+    },
+    {
+      "config_code": "DF-004",
+      "name": "制程品质取数",
+      "source_system": "K3",
+      "source_table": "task_report",
+      "source_fields": ["report_date", "product_code", "defect_qty", "total_qty"],
+      "target_kpi_code": "KPI-004",
+      "calc_logic": "(total_qty - defect_qty) / total_qty × 100%",
+      "fetch_mode": "AUTO",
+      "cron": "0 45 1 16 *"
+    },
+    {
+      "config_code": "DF-005",
+      "name": "成品检验取数",
+      "source_system": "OA",
+      "source_table": "qa_report",
+      "target_kpi_code": "KPI-005",
+      "calc_logic": "合格数 / 总检验数 × 100%",
+      "fetch_mode": "AUTO",
+      "cron": "0 50 1 16 *"
+    },
+    {
+      "config_code": "DF-006",
+      "name": "验货异常取数",
+      "source_system": "OA",
+      "source_table": "inspection_exception",
+      "target_kpi_code": "KPI-005",
+      "calc_logic": "异常批数统计",
+      "fetch_mode": "AUTO",
+      "cron": "0 55 1 16 *"
+    },
+    {
+      "config_code": "DF-007",
+      "name": "采购齐套取数",
+      "source_system": "K3",
+      "source_table": "purchase_order",
+      "source_fields": ["po_no", "product_code", "material_code", "demand_date", "arrival_date", "qty"],
+      "target_table": "supply_mrp",
+      "calc_logic": "demand_date = 生产计划前3天; is_ontime = arrival_date <= demand_date",
+      "fetch_mode": "AUTO",
+      "cron": "0 0 2 16 *",
+      "ui_display": {
+        "show_shortage_first": true,
+        "highlight_supplier": "Top3最差供应商红标",
+        "auto_create_action": "shortage_qty > 0 → 创建采购跟进Action"
+      }
+    },
+    {
+      "config_code": "DF-008",
+      "name": "销售预测取数",
+      "source_system": "ERP",
+      "source_table": "forecast_entry",
+      "note": "项目类数据ERP无法提取(达成率仅0.6%)，需手动台账补充",
+      "target_table": "demand_forecast",
+      "fetch_mode": "AUTO",
+      "cron": "0 5 2 16 *",
+      "manual_override": {
+        "enabled": true,
+        "reason_required": true,
+        "project_class_manual_entry": true
+      }
+    },
+    {
+      "config_code": "DF-009",
+      "name": "BOM归档状态",
+      "source_system": "K3",
+      "source_table": "bom_header",
+      "target_table": "md_bom",
+      "calc_logic": "is_archived = 1 当 archive_status = '已归档'",
+      "fetch_mode": "AUTO",
+      "cron": "0 10 2 * *",
+      "realtime_check": true,
+      "triggers_block": "HB-001"
+    },
+    {
+      "config_code": "DF-010",
+      "name": "首件检验取数",
+      "source_system": "OA",
+      "source_table": "first_piece_inspect",
+      "target_kpi_code": "KPI-007",
+      "calc_logic": "已检数 / 应检数 × 100% (总批574, 检验率104%→76%下降)",
+      "fetch_mode": "AUTO",
+      "cron": "0 15 2 16 *"
+    },
+    {
+      "config_code": "DF-011",
+      "name": "客诉及时率取数",
+      "source_system": "OA",
+      "source_table": "customer_complaint",
+      "target_kpi_code": "KPI-006",
+      "calc_logic": "24h内响应数 / 总客诉数 × 100% (当前=0%, 制度缺陷)",
+      "fetch_mode": "MANUAL",
+      "reason_for_manual": "需要重新设计SLA计时规则(从客诉创建开始算)",
+      "manual_ui": {
+        "button": "手动录入客诉响应时间",
+        "fields": ["complaint_no", "create_time", "first_response_time", "is_within_24h"]
+      }
+    },
+    {
+      "config_code": "DF-012",
+      "name": "异常闭环取数",
+      "source_system": "OA",
+      "source_table": "exception_ticket",
+      "target_kpi_code": "KPI-008",
+      "calc_logic": "已闭环数(close_date IS NOT NULL) / 总异常数 × 100% (7月=62%, 恶化中)",
+      "fetch_mode": "AUTO",
+      "cron": "0 20 2 16 *",
+      "alert_on_decline": true
+    },
+    {
+      "config_code": "DF-013",
+      "name": "样品合格率取数",
+      "source_system": "K3",
+      "source_table": "sample_test",
+      "target_kpi_codes": ["KPI-022", "KPI-023", "KPI-024"],
+      "calc_logic": {
+        "by_person": "按测试人分组: 吴建英64.29%/邓桃院75%/包跃60%",
+        "total": "汇总65.63%"
+      },
+      "fetch_mode": "MANUAL",
+      "reason_for_manual": "需按人分别统计，系统字段需定制"
+    },
+    {
+      "config_code": "DF-014",
+      "name": "UPPH实绩取数",
+      "source_system": "MES",
+      "source_table": "production_line",
+      "target_table": "supply_capacity",
+      "calc_logic": "UPPH = 产出数 / 人时; 装配线40.5/精益线44.5",
+      "fetch_mode": "AUTO",
+      "cron": "0 25 2 16 *"
+    },
+    {
+      "config_code": "DF-015",
+      "name": "安全库存取数",
+      "source_system": "K3",
+      "source_table": "safety_stock",
+      "target_table": "psi_line",
+      "fetch_mode": "AUTO",
+      "cron": "0 30 2 16 *"
+    },
+    {
+      "config_code": "DF-016",
+      "name": "产能负荷取数(实时)",
+      "source_system": "MES",
+      "source_table": "line_load",
+      "target_table": "supply_capacity",
+      "calc_logic": "load_rate = 实际产出 / 理论产能 × 100%",
+      "fetch_mode": "AUTO",
+      "cron": "0 0 3 * *",
+      "realtime_websocket": true,
+      "alert_when": "load_rate > 85"
+    }
+  ],
+
+  "table_sort_filter_spec": {
+    "_comment": "所有数据表格通用筛选排序规则",
+    "global_features": {
+      "multi_column_sort": true,
+      "column_filter": true,
+      "search_box": true,
+      "pagination": { "default_page_size": 20, "page_size_options": [10, 20, 50, 100] },
+      "excel_export": true,
+      "excel_import": true,
+      "column_visibility_toggle": true
+    },
+    "per_table": {
+      "psi_line": {
+        "default_sort": [{ "field": "product_code", "order": "ASC" }],
+        "filterable_columns": ["product_code", "color_status", "safety_stock"],
+        "special_filters": [
+          { "name": "仅显示红灯", "condition": "color_status = 'R'" },
+          { "name": "仅显示有库存缺口", "condition": "inventory_end < safety_stock" },
+          { "name": "仅显示可编辑", "condition": "is_editable = 1" }
+        ]
+      },
+      "demand_forecast": {
+        "default_sort": [{ "field": "period_month", "order": "DESC" }, { "field": "product_code", "order": "ASC" }],
+        "filterable_columns": ["product_code", "forecast_type", "method", "period_month"],
+        "special_filters": [
+          { "name": "MAPE>15%", "condition": "mape_reference > 15" },
+          { "name": "仅定性预测", "condition": "method = 'QUALITATIVE'" }
+        ]
+      },
+      "supply_mrp": {
+        "default_sort": [{ "field": "shortage_qty", "order": "DESC" }],
+        "filterable_columns": ["product_code", "supplier_code", "is_ontime"],
+        "special_filters": [
+          { "name": "仅短缺", "condition": "shortage_qty > 0" },
+          { "name": "逾期未到", "condition": "is_ontime = 0 AND demand_date < TODAY" }
+        ]
+      },
+      "sop_action": {
+        "default_sort": [{ "field": "due_date", "order": "ASC" }],
+        "filterable_columns": ["owner_id", "status", "priority", "escalation_level"],
+        "special_filters": [
+          { "name": "我的待办", "condition": "owner_id = current_user AND status != 'CLOSED'" },
+          { "name": "逾期", "condition": "due_date < TODAY AND status != 'CLOSED'" },
+          { "name": "P0紧急", "condition": "priority = 'P0'" },
+          { "name": "已升级", "condition": "escalation_level > 0" }
+        ]
+      },
+      "kpi_actual": {
+        "default_sort": [{ "field": "period_month", "order": "DESC" }],
+        "filterable_columns": ["kpi_code", "status"],
+        "special_filters": [
+          { "name": "仅红灯", "condition": "status = 'R'" },
+          { "name": "趋势恶化", "condition": "本月值 < 上月值" }
+        ]
+      },
+      "alert_log": {
+        "default_sort": [{ "field": "triggered_at", "order": "DESC" }],
+        "filterable_columns": ["level", "is_resolved"],
+        "special_filters": [
+          { "name": "未处理", "condition": "is_resolved = 0" },
+          { "name": "硬拦截", "condition": "level = 'BLOCK'" }
+        ]
+      }
+    }
+  }
+}

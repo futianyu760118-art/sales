@@ -1,0 +1,754 @@
+openapi: 3.0.3
+info:
+  title: S&OP产销协调会系统 API
+  version: 1.0.0
+  description: |
+    产销协调会(S&OP)系统 RESTful API
+    核心模块: 数据获取/PSI/预测/供应/会议/Action/预警/KPI/自检
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: 开发环境
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ========== 通用响应 ==========
+    ApiResponse:
+      type: object
+      properties:
+        code: { type: integer, example: 200 }
+        message: { type: string, example: "success" }
+        data: { type: object }
+        timestamp: { type: string, format: date-time }
+
+    # ========== PSI ==========
+    PsiHeader:
+      type: object
+      required: [psi_code, sales_type, period_month]
+      properties:
+        id: { type: integer }
+        psi_code: { type: string, example: "PSI-2026-08-001" }
+        sales_type: { type: string, enum: [内销, 外销] }
+        period_month: { type: string, pattern: '^\d{4}-\d{2}$' }
+        version_no: { type: integer, default: 1 }
+        status: { type: string, enum: [DRAFT, REVIEW, CONFIRMED, LOCKED] }
+        is_rolled: { type: boolean, default: false }
+
+    PsiLine:
+      type: object
+      required: [header_id, product_code, month_offset]
+      properties:
+        id: { type: integer }
+        header_id: { type: integer }
+        product_code: { type: string }
+        month_offset: { type: integer, minimum: 0, maximum: 2, description: "0=当月,1=次月,2=第三月" }
+        inventory_begin: { type: number, default: 0 }
+        sales_plan: { type: number, default: 0 }
+        production_plan: { type: number, default: 0 }
+        inventory_end: { type: number, description: "自动计算:期初+生产-销售" }
+        safety_stock: { type: number, default: 0 }
+        color_status: { type: string, enum: [R, Y, G] }
+
+    # ========== 预测 ==========
+    DemandForecast:
+      type: object
+      required: [product_code, period_month, month_offset]
+      properties:
+        product_code: { type: string }
+        period_month: { type: string }
+        month_offset: { type: integer, description: "0=锁定,1=弹性,2=参考" }
+        forecast_qty: { type: number }
+        forecast_type: { type: string, enum: [LOCKED, FLEXIBLE, REFERENCE] }
+        method: { type: string, enum: [MOVING_AVG, EXP_SMOOTH, REGRESSION, LIFE_CYCLE, QUALITATIVE] }
+        mape_reference: { type: number, description: "历史MAPE%" }
+        currency_amount: { type: number, description: "折算金额(元)" }
+
+    # ========== 数据获取配置 ==========
+    DataFetchConfig:
+      type: object
+      required: [config_code, config_name, source_system, fetch_mode]
+      properties:
+        config_code: { type: string }
+        config_name: { type: string }
+        source_system: { type: string, enum: [K3, OA, QMS, MES, ERP] }
+        source_table: { type: string }
+        target_table: { type: string }
+        fetch_mode: { type: string, enum: [AUTO, MANUAL], description: "AUTO=自动定时获取,MANUAL=手动触发" }
+        is_enabled: { type: boolean, default: true }
+        cron_expr: { type: string, description: "Cron表达式,仅AUTO模式" }
+        time_window: { type: string, default: "16th-15th" }
+        last_run_at: { type: string, format: date-time }
+        last_status: { type: string, enum: [SUCCESS, FAILED, RUNNING] }
+
+    # ========== Action待办 ==========
+    ActionItem:
+      type: object
+      required: [action_code, description, owner_id, due_date]
+      properties:
+        action_code: { type: string }
+        meeting_id: { type: integer }
+        issue_no: { type: string }
+        description: { type: string }
+        owner_id: { type: integer }
+        collaborator_ids: { type: array, items: { type: integer } }
+        due_date: { type: string, format: date }
+        priority: { type: string, enum: [P0, P1, P2] }
+        status: { type: string, enum: [PENDING, IN_PROGRESS, VERIFYING, CLOSED] }
+        escalation_level: { type: integer, minimum: 0, maximum: 3 }
+        evidence_url: { type: string }
+        source_system: { type: string, default: "SOP" }
+
+    # ========== 预警 ==========
+    AlertRule:
+      type: object
+      required: [rule_code, rule_name, trigger_condition, alert_level]
+      properties:
+        rule_code: { type: string }
+        rule_name: { type: string }
+        trigger_condition: { type: string, description: "SQL或表达式" }
+        alert_level: { type: string, enum: [R, Y, BLOCK] }
+        notify_roles: { type: array, items: { type: string } }
+        escalation_path: { type: array, items: { type: string } }
+
+    AlertLog:
+      type: object
+      properties:
+        id: { type: integer }
+        rule_id: { type: integer }
+        triggered_at: { type: string, format: date-time }
+        level: { type: string, enum: [R, Y, BLOCK] }
+        message: { type: string }
+        is_acknowledged: { type: boolean }
+        is_resolved: { type: boolean }
+        escalation_level: { type: integer }
+
+    # ========== KPI ==========
+    KpiStandard:
+      type: object
+      properties:
+        kpi_code: { type: string }
+        kpi_name: { type: string }
+        category: { type: string, enum: [MI, PI, KPI] }
+        target_value: { type: number }
+        warning_threshold: { type: number }
+        critical_threshold: { type: number }
+
+    KpiActual:
+      type: object
+      properties:
+        kpi_code: { type: string }
+        period_month: { type: string }
+        actual_value: { type: number }
+        status: { type: string, enum: [R, Y, G] }
+
+# ============================================================
+# API 端点
+# ============================================================
+paths:
+  # ===== 数据获取开关 =====
+  /data-fetch/configs:
+    get:
+      summary: 获取数据获取配置列表
+      tags: [数据获取]
+      parameters:
+        - { name: source_system, in: query, schema: { type: string } }
+        - { name: fetch_mode, in: query, schema: { type: string, enum: [AUTO, MANUAL] } }
+        - { name: is_enabled, in: query, schema: { type: boolean } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DataFetchConfig' }
+
+    post:
+      summary: 新建数据获取配置
+      tags: [数据获取]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DataFetchConfig' }
+
+  /data-fetch/configs/{config_code}/toggle:
+    put:
+      summary: 切换自动/手动开关
+      tags: [数据获取]
+      parameters:
+        - { name: config_code, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fetch_mode: { type: string, enum: [AUTO, MANUAL] }
+                is_enabled: { type: boolean }
+                reason: { type: string, description: "变更原因(审计)" }
+
+  /data-fetch/configs/{config_code}/run-now:
+    post:
+      summary: 手动立即执行一次数据获取
+      tags: [数据获取]
+      parameters:
+        - { name: config_code, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 执行结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rows_fetched: { type: integer }
+                  status: { type: string }
+                  message: { type: string }
+
+  # ===== PSI =====
+  /psi/headers:
+    get:
+      summary: 获取PSI头表列表(支持筛选排序)
+      tags: [PSI]
+      parameters:
+        - { name: sales_type, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: period_month, in: query, schema: { type: string } }
+        - { name: sort_by, in: query, schema: { type: string, default: "period_month" } }
+        - { name: sort_order, in: query, schema: { type: string, enum: [ASC, DESC], default: "DESC" } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: page_size, in: query, schema: { type: integer, default: 20 } }
+    post:
+      summary: 创建PSI头表
+      tags: [PSI]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PsiHeader' }
+
+  /psi/headers/{header_id}/lines:
+    get:
+      summary: 获取PSI明细行(三月滚动)
+      tags: [PSI]
+      parameters:
+        - { name: header_id, in: path, required: true, schema: { type: integer } }
+        - { name: color_status, in: query, schema: { type: string, enum: [R,Y,G] } }
+        - { name: sort_by, in: query, schema: { type: string, default: "product_code" } }
+    post:
+      summary: 批量新增/更新PSI明细行
+      tags: [PSI]
+      parameters:
+        - { name: header_id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lines: { type: array, items: { $ref: '#/components/schemas/PsiLine' } }
+
+  /psi/headers/{header_id}/roll-forward:
+    post:
+      summary: 执行滚动刷新(将M+2→M+1,新增新M+2)
+      tags: [PSI]
+      parameters:
+        - { name: header_id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: 新PSI header_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_header_id: { type: integer }
+                  rolled_lines_count: { type: integer }
+
+  # ===== 预测 =====
+  /forecast:
+    get:
+      summary: 获取需求预测列表
+      tags: [预测]
+      parameters:
+        - { name: product_code, in: query, schema: { type: string } }
+        - { name: period_month, in: query, schema: { type: string } }
+        - { name: month_offset, in: query, schema: { type: integer } }
+        - { name: forecast_type, in: query, schema: { type: string } }
+    post:
+      summary: 提交/更新预测(支持批量)
+      tags: [预测]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { $ref: '#/components/schemas/DemandForecast' }
+
+  /forecast/auto-calc:
+    post:
+      summary: 系统自动计算推荐预测值
+      tags: [预测]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_code: { type: string }
+                method: { type: string, enum: [MOVING_AVG, EXP_SMOOTH, REGRESSION] }
+                periods: { type: integer, default: 12, description: "历史月数" }
+
+  # ===== 供应评审 =====
+  /supply/capacity:
+    get:
+      summary: 获取产能数据
+      tags: [供应]
+      parameters:
+        - { name: period_month, in: query, schema: { type: string } }
+        - { name: line_code, in: query, schema: { type: string } }
+
+  /supply/mrp-check:
+    get:
+      summary: MRP齐套检查(返回短缺清单)
+      tags: [供应]
+      parameters:
+        - { name: product_code, in: query, schema: { type: string } }
+        - { name: demand_date_from, in: query, schema: { type: string, format: date } }
+        - { name: only_shortage, in: query, schema: { type: boolean }, description: "仅返回短缺项" }
+
+  /supply/block-check:
+    get:
+      summary: 硬拦截检查(模具/图纸/BOM)
+      tags: [供应]
+      parameters:
+        - { name: product_code, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: 拦截结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_blocked: { type: boolean }
+                  block_reasons: { type: array, items: { type: string } }
+
+  # ===== 会议 =====
+  /meetings:
+    get:
+      summary: 获取会议列表
+      tags: [会议]
+      parameters:
+        - { name: meeting_type, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: from_date, in: query, schema: { type: string, format: date } }
+        - { name: to_date, in: query, schema: { type: string, format: date } }
+    post:
+      summary: 创建会议(自动生成议程)
+      tags: [会议]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meeting_type: { type: string, enum: [PRE_SOP, EXECUTIVE, WEEKLY, AD_HOC] }
+                meeting_date: { type: string, format: date-time }
+                psi_header_id: { type: integer }
+
+  /meetings/{meeting_id}/agenda:
+    get:
+      summary: 获取会议议程(10项标准议题+数据)
+      tags: [会议]
+    put:
+      summary: 更新议程(各项RAPID表决)
+      tags: [会议]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  agenda_item_no: { type: integer }
+                  rapid_role: { type: string, enum: [R,A,D,I,P] }
+                  vote: { type: string, enum: [AGREE, VETO, ABSTAIN] }
+                  comment: { type: string }
+
+  /meetings/{meeting_id}/auto-generate-actions:
+    post:
+      summary: 基于会议讨论自动生成Action待办清单
+      tags: [会议]
+      description: |
+        系统根据以下规则自动生成Action:
+        1. 所有红灯指标 → 自动创建P0/P1 Action
+        2. 产能瓶颈 → 创建产能调整Action
+        3. 物料短缺Top10 → 创建采购跟进行动
+        4. 模具/图纸未归档 → 创建工程跟进行动
+        5. 异常超时未闭环 → 升级并创建Action
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  actions_created: { type: integer }
+                  actions: { type: array, items: { $ref: '#/components/schemas/ActionItem' } }
+
+  # ===== Action待办 =====
+  /actions:
+    get:
+      summary: 获取待办清单(支持多维度筛选)
+      tags: [待办]
+      parameters:
+        - { name: owner_id, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: priority, in: query, schema: { type: string } }
+        - { name: escalation_level, in: query, schema: { type: integer } }
+        - { name: overdue_only, in: query, schema: { type: boolean } }
+        - { name: source_system, in: query, schema: { type: string } }
+    post:
+      summary: 手动创建Action
+      tags: [待办]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ActionItem' }
+
+  /actions/{action_id}/status:
+    put:
+      summary: 更新Action状态(含证据上传)
+      tags: [待办]
+      parameters:
+        - { name: action_id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [PENDING, IN_PROGRESS, VERIFYING, CLOSED] }
+                evidence_url: { type: string }
+                remark: { type: string }
+
+  /actions/sync-to-meeting-assistant:
+    post:
+      summary: 将Action清单同步推送到会议助手系统
+      tags: [待办]
+      description: |
+        同步逻辑:
+        1. 筛选所有未关闭Action
+        2. 按责任人分组
+        3. 调用会议助手系统API推送
+        4. 返回同步结果
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target_system_url: { type: string, description: "会议助手系统API地址" }
+                target_system_token: { type: string }
+                filter_status: { type: array, items: { type: string } }
+
+  # ===== 预警 =====
+  /alerts/rules:
+    get:
+      summary: 获取预警规则列表
+      tags: [预警]
+    post:
+      summary: 新建/更新预警规则
+      tags: [预警]
+
+  /alerts/logs:
+    get:
+      summary: 获取预警日志
+      tags: [预警]
+      parameters:
+        - { name: level, in: query, schema: { type: string } }
+        - { name: is_resolved, in: query, schema: { type: boolean } }
+        - { name: from_date, in: query, schema: { type: string, format: date } }
+
+  /alerts/logs/{alert_id}/acknowledge:
+    put:
+      summary: 确认预警(停止升级计时)
+      tags: [预警]
+
+  /alerts/engine/run-all:
+    post:
+      summary: 手动触发全量预警规则扫描
+      tags: [预警]
+
+  # ===== KPI =====
+  /kpi/standards:
+    get:
+      summary: 获取KPI标准定义
+      tags: [KPI]
+      parameters:
+        - { name: category, in: query, schema: { type: string, enum: [MI, PI, KPI] } }
+
+  /kpi/actuals:
+    get:
+      summary: 获取KPI实绩(支持时间段)
+      tags: [KPI]
+      parameters:
+        - { name: period_month_from, in: query, schema: { type: string } }
+        - { name: period_month_to, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+
+  /kpi/dashboard:
+    get:
+      summary: 领导驾驶舱数据(三级指标聚合)
+      tags: [KPI]
+      parameters:
+        - { name: period_month, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: 仪表盘数据
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mi_items: { type: array, description: "领先指标" }
+                  pi_items: { type: array, description: "过程指标" }
+                  kpi_items: { type: array, description: "结果指标" }
+                  summary: { type: object, properties: { red_count: { type: integer }, yellow_count: { type: integer }, green_count: { type: integer } } }
+
+  # ===== 自检 =====
+  /self-check/templates:
+    get:
+      summary: 获取自检模板列表
+      tags: [自检]
+
+  /self-check/records:
+    get:
+      summary: 获取自检记录
+      tags: [自检]
+      parameters:
+        - { name: week_no, in: query, schema: { type: string } }
+        - { name: checked_by, in: query, schema: { type: integer } }
+    post:
+      summary: 提交自检结果
+      tags: [自检]
+
+  /self-check/auto-generate:
+    post:
+      summary: 系统自动生成自检待办(每周一触发)
+      tags: [自检]
+      description: |
+        自动生成逻辑:
+        1. 取当前周次
+        2. 遍历模板items_json
+        3. 对每项检查调用对应系统API验证
+        4. 汇总结果生成self_check_record
+        5. 未通过项自动创建Action
+
+  # ===== 通用 =====
+  /common/audit-logs:
+    get:
+      summary: 审计日志查询
+      tags: [通用]
+      parameters:
+        - { name: table_name, in: query, schema: { type: string } }
+        - { name: record_id, in: query, schema: { type: integer } }
+        - { name: from_date, in: query, schema: { type: string, format: date } }
+
+  # ===== IM即时通讯 =====
+  /im/conversations:
+    get:
+      summary: 获取会话列表(含未读数+置顶+免打扰)
+      tags: [IM]
+      parameters:
+        - { name: tab, in: query, schema: { type: string, enum: ["全部","未读","@我","系统"] } }
+        - { name: keyword, in: query, schema: { type: string } }
+    post:
+      summary: 创建会话(单聊/群聊/系统通知)
+      tags: [IM]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                conv_type: { type: string, enum: [SINGLE, GROUP, SYSTEM, MEETING_ROOM] }
+                conv_name: { type: string }
+                member_ids: { type: array, items: { type: integer } }
+                related_type: { type: string, enum: [MEETING, ACTION, ALERT, PSI, KPI, GENERAL] }
+                related_id: { type: integer }
+
+  /im/conversations/{conv_id}/messages:
+    get:
+      summary: 获取消息历史(分页/游标/支持搜索)
+      tags: [IM]
+      parameters:
+        - { name: conv_id, in: path, required: true, schema: { type: integer } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 30 } }
+        - { name: search, in: query, schema: { type: string } }
+    post:
+      summary: 发送消息(文本/图片/文件/语音/卡片)
+      tags: [IM]
+      parameters:
+        - { name: conv_id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                msg_type: { type: string, enum: [TEXT, IMAGE, FILE, VOICE, VIDEO, SYSTEM, ALERT, ACTION_REMINDER, MEETING_INVITE, RAPID_VOTE, QUOTE_REPLY, EMOJI_REACTION] }
+                content: { type: string }
+                rich_content: { type: object, description: "富文本卡片/按钮" }
+                reply_to_msg_id: { type: integer }
+                mention_user_ids: { type: array, items: { type: integer } }
+
+  /im/messages/{msg_id}/recall:
+    put:
+      summary: 撤回消息(2分钟内/仅发送者)
+      tags: [IM]
+      parameters:
+        - { name: msg_id, in: path, required: true, schema: { type: integer } }
+
+  /im/messages/{msg_id}/read:
+    put:
+      summary: 标记消息已读(更新回执)
+      tags: [IM]
+
+  /im/conversations/{conv_id}/read-all:
+    put:
+      summary: 标记会话全部已读(清零未读数)
+      tags: [IM]
+
+  /im/conversations/{conv_id}/members:
+    get:
+      summary: 获取成员列表(含在线状态)
+      tags: [IM]
+    post:
+      summary: 添加成员到群聊
+      tags: [IM]
+
+  /im/conversations/{conv_id}/members/{user_id}:
+    delete:
+      summary: 移除成员/退出群聊
+      tags: [IM]
+
+  /im/conversations/{conv_id}/mute:
+    put:
+      summary: 设置免打扰(含时段)
+      tags: [IM]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_muted: { type: boolean }
+                quiet_start: { type: string, format: time }
+                quiet_end: { type: string, format: time }
+
+  /im/conversations/{conv_id}/pin:
+    put:
+      summary: 置顶/取消置顶会话
+      tags: [IM]
+
+  /im/search:
+    get:
+      summary: 全局消息搜索(全文索引)
+      tags: [IM]
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+        - { name: scope, in: query, schema: { type: string, enum: ["全部","当前会话","@我"] } }
+        - { name: msg_type, in: query, schema: { type: string } }
+
+  /im/notifications/settings:
+    get:
+      summary: 获取我的通知偏好
+      tags: [IM]
+    put:
+      summary: 更新通知偏好(通道开关/免打扰/优先级)
+      tags: [IM]
+
+  /im/push/external:
+    post:
+      summary: 手动触发外部推送(测试用)
+      tags: [IM]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channel: { type: string, enum: [WECHAT_WORK, DINGTALK, FEISHU, SMS, EMAIL] }
+                target_user_id: { type: integer }
+                content: { type: string }
+
+  /im/push/logs:
+    get:
+      summary: 查询推送日志(成功/失败/重试)
+      tags: [IM]
+      parameters:
+        - { name: channel, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+
+  # ===== WebSocket =====
+  /ws/im/{user_id}:
+    description: |
+      WebSocket连接(IM实时消息)
+      连接URL: ws://host:port/ws/im/{user_id}?token={jwt}
+      认证: JWT → 绑定user_id → 加入user_room
+      心跳: 每30秒ping/pong
+      重连: 指数退避(1s→2s→4s→8s→16s, 最大30s)
+    get:
+      summary: WebSocket - IM实时消息通道
+      tags: [IM, WebSocket]
+      parameters:
+        - { name: user_id, in: path, required: true, schema: { type: integer } }
+        - { name: token, in: query, required: true, schema: { type: string } }
+
+  # ===== WebSocket事件清单 =====
+  # Client → Server:
+  #   {"type":"ping"}                              → 心跳
+  #   {"type":"mark_read","conv_id":123}          → 标记已读
+  #   {"type":"typing","conv_id":123}             → 正在输入
+  #   {"type":"join_conv","conv_id":123}          → 加入会话
+  #   {"type":"leave_conv","conv_id":123}         → 离开会话
+  # Server → Client:
+  #   {"type":"message:new", payload:{...}}        → 新消息
+  #   {"type":"message:recall", payload:{...}}     → 消息撤回
+  #   {"type":"alert:triggered", payload:{...}}    → 预警推送
+  #   {"type":"action:assigned", payload:{...}}    → Action指派
+  #   {"type":"action:overdue", payload:{...}}    → Action逾期
+  #   {"type":"meeting:invite", payload:{...}}    → 会议邀请
+  #   {"type":"meeting:decision_made",...}         → 会议决议
+  #   {"type":"psi:updated", payload:{...}}        → PSI更新
+  #   {"type":"block:triggered", payload:{...}}    → 硬拦截
+  #   {"type":"block:released", payload:{...}}     → 拦截解除
+  #   {"type":"self_check:completed",...}            → 自检完成
+  #   {"type":"kpi:updated", payload:{...}}        → KPI更新
+  #   {"type":"user:online", payload:{...}}        → 用户上线
+  #   {"type":"user:offline", payload:{...}}       → 用户下线
+  #   {"type":"typing", payload:{...}}             → 正在输入提示

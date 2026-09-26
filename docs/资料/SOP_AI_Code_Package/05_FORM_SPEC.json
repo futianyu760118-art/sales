@@ -1,0 +1,286 @@
+{
+  "_comment": "S&OP系统所有操作表单的字段/控件/校验定义 — 前端可直接消费",
+  "version": "1.0",
+
+  "forms": [
+    {
+      "form_code": "FORM-PSI-001",
+      "form_name": "PSI产销存滚动计划表",
+      "description": "核心表单，三月滚动，支持筛选排序、Excel粘贴、版本留痕",
+      "db_table": "psi_header + psi_line",
+      "layout": "table_edit",
+      "fields": [
+        { "field": "psi_code", "label": "PSI编号", "control": "text", "readonly": true, "auto_gen": "PSI-YYYYMM-XXX" },
+        { "field": "sales_type", "label": "销售别", "control": "radio", "options": ["内销", "外销"], "required": true },
+        { "field": "period_month", "label": "基准月份", "control": "month_picker", "required": true },
+        { "field": "version_no", "label": "版本号", "control": "number", "readonly": true, "auto_increment": true },
+        { "field": "status", "label": "状态", "control": "tag", "options": ["DRAFT","REVIEW","CONFIRMED","LOCKED"] },
+        { "field": "product_code", "label": "产品编号", "control": "select_search", "source": "md_product", "required": true, "table_column": true, "sortable": true, "filterable": true },
+        { "field": "inventory_begin", "label": "期初库存", "control": "number", "readonly": true, "auto_from": "上月期末", "table_column": true, "sortable": true },
+        { "field": "sales_plan_m0", "label": "M月销售", "control": "number", "required": true, "table_column": true, "sortable": true, "filterable": true },
+        { "field": "production_plan_m0", "label": "M月生产", "control": "number", "required": true, "table_column": true, "sortable": true },
+        { "field": "inventory_end_m0", "label": "M月期末", "control": "number", "readonly": true, "auto_calc": "inventory_begin + production_plan - sales_plan", "table_column": true, "sortable": true },
+        { "field": "sales_plan_m1", "label": "M+1月销售", "control": "number", "table_column": true, "sortable": true, "filterable": true },
+        { "field": "production_plan_m1", "label": "M+1月生产", "control": "number", "table_column": true, "sortable": true },
+        { "field": "inventory_end_m1", "label": "M+1期末", "control": "number", "readonly": true, "auto_calc": true, "table_column": true },
+        { "field": "sales_plan_m2", "label": "M+2月销售", "control": "number", "table_column": true, "sortable": true },
+        { "field": "production_plan_m2", "label": "M+2月生产", "control": "number", "table_column": true, "sortable": true },
+        { "field": "inventory_end_m2", "label": "M+2期末", "control": "number", "readonly": true, "auto_calc": true, "table_column": true },
+        { "field": "safety_stock", "label": "安全库存", "control": "number", "source": "auto_fetch", "table_column": true, "sortable": true },
+        { "field": "color_status", "label": "状态灯", "control": "color_tag", "readonly": true, "auto_calc": "R/Y/G based on inventory_end vs safety_stock", "table_column": true, "filterable": true }
+      ],
+      "toolbar": [
+        { "button": "刷新数据", "action": "api: GET /data-fetch/configs/K3-INVENTORY/run-now" },
+        { "button": "Excel导入", "action": "upload_excel → validate → preview → bulk_insert" },
+        { "button": "Excel导出", "action": "export_current_view" },
+        { "button": "筛选", "action": "show_filter_panel: product_code/sales_type/color_status/period" },
+        { "button": "排序", "action": "multi_column_sort" },
+        { "button": "滚动刷新", "action": "api: POST /psi/headers/{id}/roll-forward" },
+        { "button": "提交审批", "action": "status: DRAFT→REVIEW" },
+        { "button": "确认锁定", "action": "status: REVIEW→CONFIRMED→LOCKED (需Decide权限)" }
+      ],
+      "permissions": {
+        "view": ["ALL"],
+        "edit": ["SOP_OFFICER", "PROD_PLANNER", "PLANNER"],
+        "lock": ["COMMITTEE_HEAD"],
+        "override": ["GENERAL_MANAGER"]
+      }
+    },
+
+    {
+      "form_code": "FORM-FC-001",
+      "form_name": "需求预测提报单",
+      "description": "无约束预测，支持定量模型自动计算+定性修正",
+      "db_table": "demand_forecast",
+      "layout": "form_table_mixed",
+      "fields": [
+        { "field": "product_code", "label": "产品编码", "control": "select_search", "source": "md_product", "required": true },
+        { "field": "product_family", "label": "产品族", "control": "text", "readonly": true, "auto_from": "md_product" },
+        { "field": "period_month", "label": "预测月份", "control": "month_picker", "required": true },
+        { "field": "month_offset", "label": "月份偏移", "control": "select", "options": [{"value":0,"label":"M(锁定)"},{"value":1,"label":"M+1(弹性)"},{"value":2,"label":"M+2(参考)"}], "required": true },
+        { "field": "forecast_qty", "label": "预测数量", "control": "number", "required": true },
+        { "field": "forecast_type", "label": "类型", "control": "tag", "readonly": true, "auto_from": "month_offset" },
+        { "field": "method", "label": "预测方法", "control": "select", "options": [{"value":"MOVING_AVG","label":"移动平均法"},{"value":"EXP_SMOOTH","label":"指数平滑法"},{"value":"REGRESSION","label":"回归分析"},{"value":"LIFE_CYCLE","label":"生命周期模拟"},{"value":"QUALITATIVE","label":"定性(小组意见)"}], "required": true },
+        { "field": "mape_reference", "label": "历史MAPE%", "control": "number", "readonly": true, "auto_from": "kpi_actual WHERE kpi_code=KPI-009" },
+        { "field": "currency_amount", "label": "金额(元)", "control": "number", "readonly": true, "auto_calc": "forecast_qty × unit_cost" },
+        { "field": "promotion_flag", "label": "促销因子", "control": "checkbox_group", "options": ["大促","新品上市","退市清仓","客户项目"] },
+        { "field": "attachment", "label": "附件", "control": "file_upload", "accept": ".pdf,.xlsx,.docx,.png" },
+        { "field": "remark", "label": "预测依据", "control": "textarea", "max_length": 500 }
+      ],
+      "toolbar": [
+        { "button": "自动计算(移动平均)", "action": "api: POST /forecast/auto-calc with method=MOVING_AVG" },
+        { "button": "自动计算(指数平滑)", "action": "api: POST /forecast/auto-calc with method=EXP_SMOOTH" },
+        { "button": "历史趋势图", "action": "show_chart: 近12月销量+预测" },
+        { "button": "批量提交", "action": "bulk_insert" }
+      ]
+    },
+
+    {
+      "form_code": "FORM-MRP-001",
+      "form_name": "MRP齐套检查表",
+      "description": "物料需求展开+到料匹配+短缺清单",
+      "db_table": "supply_mrp",
+      "layout": "table_view",
+      "fields": [
+        { "field": "product_code", "label": "产品编码", "control": "text", "table_column": true, "sortable": true, "filterable": true },
+        { "field": "material_code", "label": "物料编码", "control": "text", "table_column": true, "sortable": true },
+        { "field": "demand_date", "label": "需求日期", "control": "date", "table_column": true, "sortable": true, "filterable": true, "description": "生产计划前3天" },
+        { "field": "required_qty", "label": "需求数量", "control": "number", "table_column": true, "sortable": true },
+        { "field": "arrived_qty", "label": "已到数量", "control": "number", "table_column": true, "sortable": true, "auto_from": "data_fetch" },
+        { "field": "shortage_qty", "label": "短缺数量", "control": "number", "readonly": true, "auto_calc": "required_qty - arrived_qty", "table_column": true, "sortable": true, "highlight_if": ">0" },
+        { "field": "is_ontime", "label": "按时达成", "control": "switch", "readonly": true, "table_column": true, "filterable": true },
+        { "field": "supplier_code", "label": "供应商", "control": "select_search", "source": "md_supplier", "table_column": true, "filterable": true },
+        { "field": "supply_commit_date", "label": "承诺交期", "control": "date", "source": "采购回复" }
+      ],
+      "toolbar": [
+        { "button": "刷新MRP", "action": "api: GET /supply/mrp-check?only_shortage=true" },
+        { "button": "导出短缺清单Top10", "action": "export_top10_shortage" },
+        { "button": "发送采购跟催", "action": "batch_create_action → 采购主管" }
+      ]
+    },
+
+    {
+      "form_code": "FORM-MTG-001",
+      "form_name": "S&OP会议管理",
+      "description": "会议创建+议程管理+RAPID表决+决议输出",
+      "db_table": "sop_meeting + sop_meeting_attendee",
+      "layout": "tabbed_form",
+      "tabs": [
+        {
+          "tab": "基本信息",
+          "fields": [
+            { "field": "meeting_code", "label": "会议编号", "control": "text", "readonly": true, "auto_gen": "SOP-YYYYMM-XXX" },
+            { "field": "meeting_type", "label": "会议类型", "control": "select", "options": [{"value":"PRE_SOP","label":"预备会(Pre-S&OP)"},{"value":"EXECUTIVE","label":"高层决策会"},{"value":"WEEKLY","label":"每周碰头会"},{"value":"AD_HOC","label":"专题会"}], "required": true },
+            { "field": "meeting_date", "label": "会议时间", "control": "datetime", "required": true },
+            { "field": "psi_header_id", "label": "关联PSI", "control": "select_search", "source": "psi_header" },
+            { "field": "attendees", "label": "出席人员", "control": "multi_select_user", "required": true }
+          ]
+        },
+        {
+          "tab": "议程(10项标准)",
+          "fields": [
+            { "field": "agenda_items", "label": "议题", "control": "dynamic_list", "template": [
+              { "item_no": 1, "item_name": "KPI回顾", "data_source": "kpi_actual API", "responsible": "SOP_OFFICER" },
+              { "item_no": 2, "item_name": "上期Action完成率", "data_source": "sop_action统计", "responsible": "各责任人" },
+              { "item_no": 3, "item_name": "本月最佳估计", "data_source": "PSI当前版本", "responsible": "COMMITTEE_HEAD" },
+              { "item_no": 4, "item_name": "销售分析和需求预测", "data_source": "demand_forecast", "responsible": "MARKET_PLANNER" },
+              { "item_no": 5, "item_name": "制造表现+约束条件", "data_source": "supply_capacity+supply_mrp", "responsible": "PROD_PLANNER" },
+              { "item_no": 6, "item_name": "库存预测(原/在/成品)", "data_source": "PSI期末库存", "responsible": "PLANNER" },
+              { "item_no": 7, "item_name": "直接人工(需招/在岗/缺口)", "data_source": "HR系统", "responsible": "PROD_DIRECTOR" },
+              { "item_no": 8, "item_name": "Top3最差供应商", "data_source": "supply_mrp短缺统计", "responsible": "PURCHASE_HEAD" },
+              { "item_no": 9, "item_name": "新品进度+退市清单", "data_source": "md_bom+样品测试", "responsible": "R&D_HEAD" },
+              { "item_no": 10, "item_name": "制定新一轮Action", "data_source": "系统生成模板", "responsible": "全体" }
+            ]}
+          ]
+        },
+        {
+          "tab": "RAPID表决",
+          "fields": [
+            { "field": "rapid_votes", "label": "表决记录", "control": "dynamic_table", "columns": ["议题","角色(R/A/D/I/P)","表决","备注"] }
+          ]
+        },
+        {
+          "tab": "决议输出",
+          "fields": [
+            { "field": "decision_summary", "label": "决议摘要", "control": "rich_text" },
+            { "field": "auto_actions", "label": "自动生成Action", "control": "dynamic_table", "source": "api: POST /meetings/{id}/auto-generate-actions" },
+            { "field": "manual_actions", "label": "手动补充Action", "control": "dynamic_table_add" }
+          ]
+        }
+      ],
+      "toolbar": [
+        { "button": "自动生成议程", "action": "load_10_items_template + fetch_data" },
+        { "button": "自动生成Action", "action": "api: POST /meetings/{id}/auto-generate-actions" },
+        { "button": "推送至会议助手", "action": "api: POST /actions/sync-to-meeting-assistant" },
+        { "button": "生成会议纪要", "action": "export_docx_with_signatures" },
+        { "button": "关闭会议", "action": "status: DECIDED→CLOSED" }
+      ]
+    },
+
+    {
+      "form_code": "FORM-ACT-001",
+      "form_name": "Action待办清单",
+      "description": "待办管理+升级追踪+会议助手同步",
+      "db_table": "sop_action",
+      "layout": "kanban_table_switchable",
+      "fields": [
+        { "field": "action_code", "label": "Action编号", "control": "text", "readonly": true, "auto_gen": "ACT-YYYYMM-XXX" },
+        { "field": "issue_no", "label": "议题编号", "control": "text", "table_column": true, "filterable": true },
+        { "field": "description", "label": "任务描述", "control": "textarea", "required": true, "table_column": true, "sortable": true },
+        { "field": "owner_id", "label": "责任人", "control": "select_user", "required": true, "table_column": true, "filterable": true },
+        { "field": "collaborator_ids", "label": "协作者", "control": "multi_select_user", "table_column": true },
+        { "field": "due_date", "label": "截止日期", "control": "date", "required": true, "table_column": true, "sortable": true },
+        { "field": "priority", "label": "优先级", "control": "tag_select", "options": [{"value":"P0","label":"P0-立即","color":"red"},{"value":"P1","label":"P1-本周","color":"orange"},{"value":"P2","label":"P2-本月","color":"blue"}], "table_column": true, "filterable": true },
+        { "field": "status", "label": "状态", "control": "tag_select", "options": [{"value":"PENDING","label":"待开始","color":"gray"},{"value":"IN_PROGRESS","label":"进行中","color":"blue"},{"value":"VERIFYING","label":"待验证","color":"yellow"},{"value":"CLOSED","label":"已闭环","color":"green"}], "table_column": true, "filterable": true },
+        { "field": "escalation_level", "label": "升级层级", "control": "number", "readonly": true, "auto_increment": true, "table_column": true },
+        { "field": "evidence_url", "label": "完成证据", "control": "file_upload", "table_column": true },
+        { "field": "source_system", "label": "来源系统", "control": "text", "readonly": true, "default": "SOP", "table_column": true, "filterable": true },
+        { "field": "overdue_flag", "label": "逾期", "control": "auto_flag", "auto_calc": "due_date < NOW() AND status != CLOSED", "table_column": true, "filterable": true }
+      ],
+      "toolbar": [
+        { "button": "新建Action", "action": "open_form" },
+        { "button": "批量导入", "action": "upload_excel" },
+        { "button": "筛选:逾期", "action": "filter: overdue_flag=true" },
+        { "button": "筛选:责任人", "action": "filter: owner_id" },
+        { "button": "筛选:优先级", "action": "filter: priority IN (P0,P1)" },
+        { "button": "排序:截止日期", "action": "sort: due_date ASC" },
+        { "button": "推送会议助手", "action": "api: POST /actions/sync-to-meeting-assistant" },
+        { "button": "导出报表", "action": "export_excel" }
+      ],
+      "kanban_columns": ["PENDING", "IN_PROGRESS", "VERIFYING", "CLOSED"],
+      "auto_rules": [
+        "逾期1天 → 标红+系统消息通知责任人",
+        "逾期3天 → 抄送主管+升级层级+1",
+        "逾期7天 → 抄送副总+计入月度考核",
+        "evidence上传 → 状态自动→VERIFYING",
+        "主管验证通过 → 状态→CLOSED+记录closed_at"
+      ]
+    },
+
+    {
+      "form_code": "FORM-DF-001",
+      "form_name": "数据获取开关配置",
+      "description": "所有数据源的自动/手动开关+映射规则+定时任务",
+      "db_table": "cfg_data_fetch",
+      "layout": "table_form",
+      "fields": [
+        { "field": "config_code", "label": "配置编码", "control": "text", "readonly": true },
+        { "field": "config_name", "label": "配置名称", "control": "text", "required": true },
+        { "field": "source_system", "label": "来源系统", "control": "select", "options": ["K3","OA","QMS","MES","ERP"], "required": true, "table_column": true, "filterable": true },
+        { "field": "source_table", "label": "来源表", "control": "text", "required": true },
+        { "field": "source_field", "label": "来源字段", "control": "text", "required": true },
+        { "field": "target_table", "label": "目标表", "control": "text", "required": true },
+        { "field": "target_field", "label": "目标字段", "control": "text", "required": true },
+        { "field": "fetch_mode", "label": "获取模式", "control": "toggle_switch", "options": [{"value":"AUTO","label":"自动"},{"value":"MANUAL","label":"手动"}], "required": true, "table_column": true },
+        { "field": "is_enabled", "label": "开关", "control": "toggle_switch", "options": [{"value":1,"label":"开"},{"value":0,"label":"关"}], "table_column": true },
+        { "field": "cron_expr", "label": "Cron表达式", "control": "text", "placeholder": "0 30 1 16 * (每月16日01:30)", "visible_when": "fetch_mode=AUTO" },
+        { "field": "time_window", "label": "时间窗口", "control": "text", "default": "16th-15th", "readonly": true },
+        { "field": "filter_sql", "label": "过滤条件", "control": "textarea", "placeholder": "额外SQL WHERE条件" },
+        { "field": "last_run_at", "label": "上次执行", "control": "datetime", "readonly": true, "table_column": true, "sortable": true },
+        { "field": "last_status", "label": "上次状态", "control": "tag", "options": [{"value":"SUCCESS","label":"成功","color":"green"},{"value":"FAILED","label":"失败","color":"red"},{"value":"RUNNING","label":"执行中","color":"blue"}], "table_column": true, "filterable": true }
+      ],
+      "toolbar": [
+        { "button": "切换自动/手动", "action": "toggle fetch_mode + audit_log" },
+        { "button": "立即执行一次", "action": "api: POST /data-fetch/configs/{code}/run-now" },
+        { "button": "测试连接", "action": "test_source_connection" },
+        { "button": "查看执行日志", "action": "show_run_history" }
+      ],
+      "permissions": {
+        "view": ["ALL"],
+        "edit_config": ["SOP_OFFICER", "IT_ADMIN"],
+        "toggle_switch": ["SOP_OFFICER", "COMMITTEE_HEAD"],
+        "change_time_window": ["COMMITTEE_HEAD", "GENERAL_MANAGER"]
+      }
+    },
+
+    {
+      "form_code": "FORM-SC-001",
+      "form_name": "每周自检表",
+      "description": "10项每周自检+自动评分+未通过自动建Action",
+      "db_table": "self_check_record",
+      "layout": "checklist_form",
+      "fields": [
+        { "field": "template_code", "label": "模板", "control": "select", "source": "self_check_template", "readonly": true },
+        { "field": "week_no", "label": "周次", "control": "text", "readonly": true, "auto_gen": "YYYY-WW" },
+        { "field": "check_date", "label": "检查日期", "control": "date", "readonly": true, "auto_gen": "today" },
+        { "field": "items_result", "label": "检查项", "control": "checklist", "items_source": "self_check_template.items_json", "columns": ["序号","检查项","检查方法","结果(通过/不通过)","备注","自动修复Action"] },
+        { "field": "total_score", "label": "总分", "control": "number", "readonly": true, "auto_calc": "通过项数/总项数×100" },
+        { "field": "is_passed", "label": "是否通过", "control": "auto_flag", "auto_calc": "total_score >= 80" }
+      ],
+      "toolbar": [
+        { "button": "自动检查全部项", "action": "api: POST /self-check/auto-generate" },
+        { "button": "手动逐项检查", "action": "show_checklist_form" },
+        { "button": "未通过→建Action", "action": "auto_create_action_for_failed_items" }
+      ],
+      "auto_rules": [
+        "PSI三月亮数据未刷新 → 创建P1 Action给SOP_OFFICER",
+        "预测偏差>15%未标记 → 创建P1 Action给MARKET_PLANNER",
+        "Top3缺料无对策 → 创建P0 Action给PURCHASE_HEAD",
+        "BOM归档率<100% → 创建P1 Action给ENGINEER_HEAD",
+        "异常响应>4h → 创建P1 Action给QUALITY_HEAD",
+        "逾期Action>0 → 创建P2 Action给各责任人+抄送主管"
+      ]
+    },
+
+    {
+      "form_code": "FORM-KPI-001",
+      "form_name": "KPI驾驶舱",
+      "description": "三级指标(MI/PI/KPI)红绿灯展示+钻取+趋势",
+      "db_table": "kpi_actual + kpi_standard",
+      "layout": "dashboard",
+      "widgets": [
+        { "type": "summary_cards", "title": "总览", "show": ["red_count","yellow_count","green_count"] },
+        { "type": "mi_panel", "title": "领先指标(MI)", "items": "kpi_standard WHERE category='MI'" },
+        { "type": "pi_panel", "title": "过程指标(PI)", "items": "kpi_standard WHERE category='PI'" },
+        { "type": "kpi_panel", "title": "结果指标(KPI)", "items": "kpi_standard WHERE category='KPI'" },
+        { "type": "trend_chart", "title": "趋势图", "x_axis": "period_month", "y_axis": "actual_value", "group_by": "kpi_code" },
+        { "type": "drill_down", "title": "钻取", "click_kpi": "show_raw_data + related_actions + related_alerts" }
+      ],
+      "toolbar": [
+        { "button": "刷新数据", "action": "recalc_all_kpi" },
+        { "button": "切换月份", "action": "select_period_month" },
+        { "button": "导出报告", "action": "export_pdf_dashboard" }
+      ]
+    }
+  ]
+}

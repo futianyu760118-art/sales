@@ -1,0 +1,206 @@
+{
+  "_comment": "S&OP系统业务规则引擎配置 — 预警规则+升级路径+硬拦截逻辑",
+  "version": "1.0",
+  "updated_at": "2026-07-30",
+
+  "alert_rules": [
+    {
+      "rule_code": "AR-001",
+      "rule_name": "预测偏差超阈值",
+      "trigger_type": "KPI_VALUE",
+      "kpi_code": "KPI-009",
+      "condition": "actual_value > 15",
+      "alert_level": "Y",
+      "notify_roles": ["SALES_DIRECTOR", "MARKET_PLANNER"],
+      "escalation": {
+        "level_1": { "delay_hours": 0, "action": "系统消息+站内信" },
+        "level_2": { "delay_hours": 24, "action": "短信通知+抄送主管" },
+        "level_3": { "delay_hours": 72, "action": "抄送副总+计入考核" }
+      }
+    },
+    {
+      "rule_code": "AR-002",
+      "rule_name": "齐套率红灯",
+      "trigger_type": "KPI_VALUE",
+      "kpi_code": "KPI-002",
+      "condition": "actual_value < 70",
+      "alert_level": "R",
+      "notify_roles": ["PURCHASE_HEAD", "PROD_DIRECTOR", "COMMITTEE_HEAD"],
+      "escalation": {
+        "level_1": { "delay_hours": 0, "action": "系统消息+短信" },
+        "level_2": { "delay_hours": 24, "action": "抄送副总" }
+      }
+    },
+    {
+      "rule_code": "AR-003",
+      "rule_name": "产能超载",
+      "trigger_type": "TABLE_VALUE",
+      "table": "supply_capacity",
+      "condition": "load_rate > 85",
+      "alert_level": "R",
+      "notify_roles": ["PROD_DIRECTOR"],
+      "escalation": {
+        "level_1": { "delay_hours": 0, "action": "系统消息" },
+        "level_2": { "delay_hours": 24, "action": "抄送副总" }
+      }
+    },
+    {
+      "rule_code": "AR-004",
+      "rule_name": "客诉超时未响应",
+      "trigger_type": "TIME_ELAPSED",
+      "source": "sop_action WHERE description LIKE '%客诉%'",
+      "condition": "TIMESTAMPDIFF(HOUR, created_at, NOW()) > 24 AND status='PENDING'",
+      "alert_level": "R",
+      "notify_roles": ["QUALITY_HEAD", "GENERAL_MANAGER"],
+      "escalation": {
+        "level_1": { "delay_hours": 1, "action": "短信通知" },
+        "level_2": { "delay_hours": 4, "action": "抄送副总" },
+        "level_3": { "delay_hours": 24, "action": "抄送总经理+考核扣分" }
+      }
+    },
+    {
+      "rule_code": "AR-005",
+      "rule_name": "首件检验率下降",
+      "trigger_type": "KPI_TREND",
+      "kpi_code": "KPI-007",
+      "condition": "actual_value < 76 OR (本周值 < 上周值)",
+      "alert_level": "Y",
+      "notify_roles": ["QUALITY_ENGINEER"]
+    },
+    {
+      "rule_code": "AR-006",
+      "rule_name": "异常闭环率恶化",
+      "trigger_type": "KPI_TREND",
+      "kpi_code": "KPI-008",
+      "condition": "actual_value < 80 OR (本月值 < 上月值 AND 上月值 < 上上月值)",
+      "alert_level": "R",
+      "notify_roles": ["DEPT_HEAD"],
+      "escalation": {
+        "level_1": { "delay_hours": 0, "action": "通知创建人+主管" },
+        "level_2": { "delay_hours": 24, "action": "抄送副总" }
+      }
+    },
+    {
+      "rule_code": "AR-007",
+      "rule_name": "模具图纸未归档(硬拦截)",
+      "trigger_type": "HARD_BLOCK",
+      "condition": "md_bom.is_archived = 0 AND product_code IN (SELECT product_code FROM psi_line WHERE header_id IN (SELECT id FROM psi_header WHERE status IN ('CONFIRMED','LOCKED')))",
+      "alert_level": "BLOCK",
+      "block_action": "阻止MPS下发+阻止排产",
+      "notify_roles": ["ENGINEER_HEAD", "PROD_PLANNER"],
+      "can_override": false,
+      "override_requires_role": "GENERAL_MANAGER"
+    },
+    {
+      "rule_code": "AR-008",
+      "rule_name": "安全库存跌破",
+      "trigger_type": "TABLE_VALUE",
+      "table": "psi_line",
+      "condition": "inventory_end < safety_stock",
+      "alert_level": "Y",
+      "notify_roles": ["PLANNER", "SALES_REP"]
+    },
+    {
+      "rule_code": "AR-009",
+      "rule_name": "项目类预测偏差",
+      "trigger_type": "KPI_VALUE",
+      "kpi_code": "KPI-026",
+      "condition": "actual_value < 5",
+      "alert_level": "R",
+      "notify_roles": ["PROJECT_MANAGER", "SALES_VP"]
+    },
+    {
+      "rule_code": "AR-010",
+      "rule_name": "供应商交期违约",
+      "trigger_type": "TABLE_VALUE",
+      "table": "supply_mrp",
+      "condition": "is_ontime = 0 AND demand_date < DATE_SUB(NOW(), INTERVAL 2 DAY)",
+      "alert_level": "Y",
+      "notify_roles": ["PURCHASER", "SQE"]
+    },
+    {
+      "rule_code": "AR-011",
+      "rule_name": "样品合格率不达标",
+      "trigger_type": "KPI_VALUE",
+      "kpi_codes": ["KPI-022", "KPI-023", "KPI-024"],
+      "condition": "actual_value < 70",
+      "alert_level": "Y",
+      "notify_roles": ["R&D_HEAD"]
+    }
+  ],
+
+  "hard_blocks": [
+    {
+      "block_code": "HB-001",
+      "block_name": "订单标准未归档→锁投产",
+      "check_sql": "SELECT product_code FROM md_bom WHERE is_archived=0 AND product_code IN (SELECT DISTINCT product_code FROM psi_line pl JOIN psi_header ph ON pl.header_id=ph.id WHERE ph.status IN ('CONFIRMED','LOCKED'))",
+      "block_message": "该产品BOM/订单标准尚未归档，禁止投产。请联系工程部完成归档。",
+      "block_ui": {
+        "type": "modal",
+        "title": "⛔ 硬拦截: 订单标准未归档",
+        "show_contact": "ENGINEER_HEAD",
+        "show_override_button": false
+      }
+    },
+    {
+      "block_code": "HB-002",
+      "block_name": "模具图纸未更新→锁排产",
+      "check_sql": "SELECT product_code FROM md_bom WHERE is_archived=0 AND version NOT IN (SELECT latest_version FROM engineering_drawings WHERE product_code=md_bom.product_code)",
+      "block_message": "该产品模具图纸版本已过期，禁止排产。请联系工程部更新图纸。",
+      "block_ui": {
+        "type": "modal",
+        "title": "⛔ 硬拦截: 模具图纸未更新",
+        "show_contact": "ENGINEER_HEAD",
+        "show_override_button": false
+      }
+    }
+  ],
+
+  "auto_action_rules": [
+    {
+      "rule_code": "AAR-001",
+      "trigger": "KPI红灯自动建Action",
+      "source": "kpi_actual WHERE status='R'",
+      "action_template": {
+        "priority": "P0",
+        "description": "【自动生成】{kpi_name}红灯({actual_value} vs 目标{target_value})，需立即制定对策",
+        "owner_role": "对应部门主管",
+        "due_date_offset_days": 3
+      }
+    },
+    {
+      "rule_code": "AAR-002",
+      "trigger": "产能瓶颈自动建Action",
+      "source": "supply_capacity WHERE load_rate > 85",
+      "action_template": {
+        "priority": "P1",
+        "description": "【自动生成】{line_code}产能超载({load_rate}%)，需调整排产或增加资源",
+        "owner_role": "PROD_DIRECTOR",
+        "due_date_offset_days": 5
+      }
+    },
+    {
+      "rule_code": "AAR-003",
+      "trigger": "物料短缺Top10自动建Action",
+      "source": "supply_mrp WHERE shortage_qty > 0 ORDER BY shortage_qty DESC LIMIT 10",
+      "action_template": {
+        "priority": "P1",
+        "description": "【自动生成】物料{product_code}短缺{shortage_qty}，需采购跟进",
+        "owner_role": "PURCHASE_HEAD",
+        "due_date_offset_days": 3
+      }
+    },
+    {
+      "rule_code": "AAR-004",
+      "trigger": "异常超时未闭环升级",
+      "source": "sop_action WHERE description LIKE '%异常%' AND status='PENDING' AND TIMESTAMPDIFF(DAY, created_at, NOW()) > 7",
+      "action_template": {
+        "priority": "P0",
+        "description": "【自动升级】异常单超时7天未闭环，升级处理",
+        "owner_role": "DEPT_HEAD",
+        "due_date_offset_days": 2,
+        "escalation_level_increment": 1
+      }
+    }
+  ]
+}

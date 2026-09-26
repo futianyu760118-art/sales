@@ -1,0 +1,728 @@
+{
+  "_comment": "S&OP系统 IM即时通讯模块 — 消息提醒/对话/群聊/预警推送/已读回执",
+  "version": "1.0",
+  "updated_at": "2026-07-30",
+
+  "overview": {
+    "description": "在S&OP系统中内嵌IM模块，实现预警实时推送、Action待办提醒、RAPID表决讨论、会议协同对话、群聊协作等场景",
+    "tech_stack": {
+      "realtime_channel": "WebSocket (Socket.IO / FastAPI WebSocket)",
+      "push_channels": ["WebSocket", "站内信", "企业微信/钉钉Webhook", "短信(SMS)", "邮件(Email)"],
+      "message_store": "MySQL + Redis(缓存最近7天热消息)",
+      "file_transfer": "MinIO / 阿里云OSS(图片/文件/语音)"
+    },
+    "integration_points": [
+      "预警引擎 → IM实时推送",
+      "Action待办 → IM到期提醒+升级通知",
+      "会议管理 → IM会中讨论+RAPID表决",
+      "PSI协同 → IM@提及+评论",
+      "硬拦截 → IM弹窗+责任人通知",
+      "自检引擎 → IM每周报告推送"
+    ]
+  },
+
+  "data_models": {
+    "_comment": "以下为6张IM相关表，完整DDL见01_DATABASE_DDL.sql",
+    "im_conversation": {
+      "_comment": "会话表(单聊/群聊/系统通知/会议聊天室)",
+      "table_name": "im_conversation",
+      "fields": {
+        "id": "BIGINT PRIMARY KEY AUTO_INCREMENT",
+        "conv_type": "ENUM('SINGLE','GROUP','SYSTEM','MEETING_ROOM') NOT NULL DEFAULT 'SINGLE'",
+        "conv_name": "VARCHAR(256) DEFAULT NULL",
+        "owner_id": "BIGINT NOT NULL COMMENT '创建者user_id'",
+        "related_type": "ENUM('MEETING','ACTION','ALERT','PSI','KPI','GENERAL') DEFAULT 'GENERAL'",
+        "related_id": "BIGINT DEFAULT NULL",
+        "is_active": "TINYINT DEFAULT 1",
+        "last_msg_at": "DATETIME DEFAULT NULL",
+        "last_msg_preview": "VARCHAR(512) DEFAULT NULL",
+        "created_at": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+      },
+      "indexes": [
+        "INDEX idx_owner (owner_id)",
+        "INDEX idx_related (related_type, related_id)",
+        "INDEX idx_last_msg (last_msg_at DESC)"
+      ]
+    },
+    "im_conversation_member": {
+      "_comment": "会话成员表",
+      "table_name": "im_conversation_member",
+      "fields": {
+        "id": "BIGINT PRIMARY KEY AUTO_INCREMENT",
+        "conv_id": "BIGINT NOT NULL",
+        "user_id": "BIGINT NOT NULL",
+        "role": "ENUM('OWNER','ADMIN','MEMBER') DEFAULT 'MEMBER'",
+        "is_muted": "TINYINT DEFAULT 0",
+        "is_pinned": "TINYINT DEFAULT 0",
+        "unread_count": "INT DEFAULT 0",
+        "last_read_msg_id": "BIGINT DEFAULT 0",
+        "joined_at": "DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "left_at": "DATETIME DEFAULT NULL"
+      },
+      "indexes": [
+        "UNIQUE KEY uk_conv_user (conv_id, user_id)",
+        "INDEX idx_user (user_id)",
+        "FOREIGN KEY (conv_id) REFERENCES im_conversation(id) ON DELETE CASCADE"
+      ]
+    },
+    "im_message": {
+      "_comment": "消息表(所有消息类型统一存储)",
+      "table_name": "im_message",
+      "fields": {
+        "id": "BIGINT PRIMARY KEY AUTO_INCREMENT",
+        "conv_id": "BIGINT NOT NULL",
+        "sender_id": "BIGINT NOT NULL COMMENT '发送者(0=系统)'",
+        "msg_type": "ENUM('TEXT','IMAGE','FILE','VOICE','VIDEO','SYSTEM','ALERT','ACTION_REMINDER','MEETING_INVITE','RAPID_VOTE','QUOTE_REPLY','EMOJI_REACTION','RECALL') NOT NULL DEFAULT 'TEXT'",
+        "content": "TEXT DEFAULT NULL",
+        "rich_content_json": "JSON DEFAULT NULL",
+        "reply_to_msg_id": "BIGINT DEFAULT NULL",
+        "is_recalled": "TINYINT DEFAULT 0",
+        "recalled_at": "DATETIME DEFAULT NULL",
+        "created_at": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+      },
+      "indexes": [
+        "INDEX idx_conv_time (conv_id, created_at DESC)",
+        "INDEX idx_sender (sender_id)",
+        "FOREIGN KEY (conv_id) REFERENCES im_conversation(id) ON DELETE CASCADE"
+      ]
+    },
+    "im_message_receipt": {
+      "_comment": "消息已读回执",
+      "table_name": "im_message_receipt",
+      "fields": {
+        "id": "BIGINT PRIMARY KEY AUTO_INCREMENT",
+        "msg_id": "BIGINT NOT NULL",
+        "user_id": "BIGINT NOT NULL",
+        "status": "ENUM('SENT','DELIVERED','READ') DEFAULT 'SENT'",
+        "read_at": "DATETIME DEFAULT NULL",
+        "delivered_at": "DATETIME DEFAULT NULL"
+      },
+      "indexes": [
+        "UNIQUE KEY uk_msg_user (msg_id, user_id)",
+        "INDEX idx_user_status (user_id, status)",
+        "FOREIGN KEY (msg_id) REFERENCES im_message(id) ON DELETE CASCADE"
+      ]
+    },
+    "im_notification_rule": {
+      "_comment": "用户级通知偏好设置",
+      "table_name": "im_notification_rule",
+      "fields": {
+        "id": "BIGINT PRIMARY KEY AUTO_INCREMENT",
+        "user_id": "BIGINT NOT NULL UNIQUE",
+        "alert_realtime_push": "TINYINT DEFAULT 1",
+        "action_reminder_push": "TINYINT DEFAULT 1",
+        "meeting_invite_push": "TINYINT DEFAULT 1",
+        "psi_update_push": "TINYINT DEFAULT 0",
+        "kpi_report_push": "TINYINT DEFAULT 1",
+        "self_check_push": "TINYINT DEFAULT 1",
+        "quiet_hours_start": "TIME DEFAULT '22:00'",
+        "quiet_hours_end": "TIME DEFAULT '08:00'",
+        "allow_at_mention_bypass": "TINYINT DEFAULT 1",
+        "channel_priority": "JSON DEFAULT '[\\\"WEBSOCKET\\\",\\\"WECHAT_WORK\\\",\\\"SMS\\\",\\\"EMAIL\\\"]'"
+      }
+    },
+    "im_push_log": {
+      "_comment": "外部推送日志(微信/短信/邮件)",
+      "table_name": "im_push_log",
+      "fields": {
+        "id": "BIGINT PRIMARY KEY AUTO_INCREMENT",
+        "msg_id": "BIGINT DEFAULT NULL",
+        "channel": "ENUM('WEBSOCKET','WECHAT_WORK','DINGTALK','FEISHU','SMS','EMAIL','IN_APP') NOT NULL",
+        "target_user_id": "BIGINT NOT NULL",
+        "target_address": "VARCHAR(256) DEFAULT NULL",
+        "status": "ENUM('PENDING','SENT','DELIVERED','READ','FAILED') DEFAULT 'PENDING'",
+        "response_code": "VARCHAR(32) DEFAULT NULL",
+        "response_msg": "TEXT DEFAULT NULL",
+        "sent_at": "DATETIME DEFAULT CURRENT_TIMESTAMP",
+        "retry_count": "TINYINT DEFAULT 0"
+      },
+      "indexes": [
+        "INDEX idx_msg (msg_id)",
+        "INDEX idx_target_status (target_user_id, status)",
+        "INDEX idx_sent_at (sent_at)"
+      ]
+    }
+  },
+
+  "auto_generated_conversations": {
+    "_comment": "系统自动创建/管理的会话",
+    "rules": [
+      {
+        "trigger": "会议创建时",
+        "action": "自动创建MEETING_ROOM类型会话，添加所有出席人员",
+        "conv_name_tpl": "S&OP会议-{meeting_code}",
+        "auto_invite": "所有meeting_attendee",
+        "welcome_msg": "【系统】会议{meeting_code}已创建，时间：{meeting_date}。请准时参加。"
+      },
+      {
+        "trigger": "Action创建/指派时",
+        "action": "自动在责任人和协作者之间创建SINGLE对话(如不存在)",
+        "welcome_msg_tpl": "【系统】您有一个新的Action待办：{action_code} - {description}，截止日期：{due_date}，优先级：{priority}"
+      },
+      {
+        "trigger": "预警触发时",
+        "action": "系统自动向notify_roles中所有用户发送SYSTEM类型消息",
+        "msg_tpl": "⚠️【{alert_level}】{rule_name}：{message}"
+      },
+      {
+        "trigger": "硬拦截触发时",
+        "action": "创建紧急GROUP(含责任人+工程主管+计委主任)，发送BLOCK类型消息",
+        "msg_tpl": "⛔【硬拦截】{block_type}：{block_reason}。请立即处理。",
+        "auto_escalate": "每4h未解除自动升级"
+      },
+      {
+        "trigger": "每周一08:00自检完成",
+        "action": "向SOP_OFFICER和各部门主管推送自检报告",
+        "msg_tpl": "📋【每周自检报告】本周评分：{total_score}分({grade})，通过{passed}/{total}项。详情请查看系统。"
+      }
+    ]
+  },
+
+  "message_templates": {
+    "_comment": "系统消息模板(支持变量替换+富文本卡片)",
+    "templates": [
+      {
+        "tpl_code": "TPL-ALERT-R",
+        "msg_type": "ALERT",
+        "title": "🔴 红灯预警",
+        "content_tpl": "【{rule_name}】\n等级：🔴 红色告警\n内容：{message}\n触发时间：{triggered_at}\n\n请立即处理，超时将自动升级。",
+        "rich_card": {
+          "type": "alert_card",
+          "buttons": [
+            { "label": "查看详情", "action": "navigate:/sop/alerts/{alert_id}" },
+            { "label": "确认收到", "action": "api:PUT /alerts/logs/{alert_id}/acknowledge" },
+            { "label": "创建Action", "action": "navigate:/sop/actions/new?alert_id={alert_id}" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "SMS"]
+      },
+      {
+        "tpl_code": "TPL-ALERT-Y",
+        "msg_type": "ALERT",
+        "title": "🟡 黄灯预警",
+        "content_tpl": "【{rule_name}】\n等级：🟡 黄色提醒\n内容：{message}\n\n建议关注，必要时采取行动。",
+        "rich_card": {
+          "type": "alert_card",
+          "buttons": [
+            { "label": "查看详情", "action": "navigate:/sop/kpi/{kpi_id}" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK"]
+      },
+      {
+        "tpl_code": "TPL-ACTION-ASSIGN",
+        "msg_type": "ACTION_REMINDER",
+        "title": "📌 新待办指派",
+        "content_tpl": "【{priority}级待办】{description}\n编号：{action_code}\n截止：{due_date}\n责任人：{owner_name}\n来源：{source_system}",
+        "rich_card": {
+          "type": "action_card",
+          "buttons": [
+            { "label": "立即处理", "action": "navigate:/sop/actions/{action_id}" },
+            { "label": "标记进行中", "action": "api:PUT /actions/{action_id}/status with IN_PROGRESS" },
+            { "label": "转派他人", "action": "modal:reassign_action" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "SMS"]
+      },
+      {
+        "tpl_code": "TPL-ACTION-OVERDUE",
+        "msg_type": "ACTION_REMINDER",
+        "title": "🚨 待办逾期",
+        "content_tpl": "【逾期告警】您的待办已逾期{overdue_days}天！\n编号：{action_code}\n描述：{description}\n优先级：{priority}\n升级层级：{escalation_level}",
+        "rich_card": {
+          "type": "action_card",
+          "style": "urgent",
+          "buttons": [
+            { "label": "立即处理(紧急)", "action": "navigate:/sop/actions/{action_id}", "highlight": true },
+            { "label": "申请延期", "action": "modal:request_extension" },
+            { "label": "查看升级路径", "action": "navigate:/sop/actions/{action_id}#escalation" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "SMS", "EMAIL"],
+        "escalation_cascade": "逾期1天→短信, 3天→邮件抄送主管, 7天→微信抄送副总"
+      },
+      {
+        "tpl_code": "TPL-MEETING-INVITE",
+        "msg_type": "MEETING_INVITE",
+        "title": "📅 会议邀请",
+        "content_tpl": "【S&OP会议邀请】\n会议编号：{meeting_code}\n类型：{meeting_type}\n时间：{meeting_date}\n关联PSI：{psi_code}\n\n请准时参加，议程已自动生成。",
+        "rich_card": {
+          "type": "meeting_card",
+          "buttons": [
+            { "label": "确认出席", "action": "api:PUT /meetings/{id}/rsvp with ACCEPT" },
+            { "label": "请假/委派", "action": "modal:delegate_meeting" },
+            { "label": "查看议程", "action": "navigate:/sop/meetings/{id}#agenda" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "EMAIL"]
+      },
+      {
+        "tpl_code": "TPL-MEETING-DECISION",
+        "msg_type": "SYSTEM",
+        "title": "📋 会议决议通知",
+        "content_tpl": "【会议决议】{meeting_code}已关闭\n决议摘要：{decision_summary}\n\n已自动生成{actions_count}条Action待办，请各责任人查收。",
+        "rich_card": {
+          "type": "decision_card",
+          "buttons": [
+            { "label": "查看全部Action", "action": "navigate:/sop/actions?meeting_id={meeting_id}" },
+            { "label": "下载会议纪要", "action": "api:GET /meetings/{id}/export" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "EMAIL"]
+      },
+      {
+        "tpl_code": "TPL-BLOCK-TRIGGER",
+        "msg_type": "ALERT",
+        "title": "⛔ 硬拦截告警",
+        "content_tpl": "【硬拦截触发】\n类型：{block_type}\n对象：{entity_code}\n原因：{block_reason}\n\n⚠️ 该拦截不可绕过，请工程部立即处理。",
+        "rich_card": {
+          "type": "block_card",
+          "style": "critical",
+          "buttons": [
+            { "label": "联系工程部", "action": "navigate:/sop/im?user=ENGINEER_HEAD" },
+            { "label": "查看详情", "action": "navigate:/sop/supply#block-check" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "SMS", "EMAIL"],
+        "notify_roles": ["ENGINEER_HEAD", "COMMITTEE_HEAD"]
+      },
+      {
+        "tpl_code": "TPL-PSI-UPDATE",
+        "msg_type": "SYSTEM",
+        "title": "📊 PSI更新通知",
+        "content_tpl": "【PSI更新】{psi_code} 状态变更为 {status}\n产品：{product_code}\nM月期末：{inv_end_m0}\nM+1期末：{inv_end_m1}\n\n{color_summary}",
+        "rich_card": {
+          "type": "psi_card",
+          "buttons": [
+            { "label": "查看PSI", "action": "navigate:/sop/psi/{header_id}" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET"]
+      },
+      {
+        "tpl_code": "TPL-SELF-CHECK-REPORT",
+        "msg_type": "SYSTEM",
+        "title": "📋 每周自检报告",
+        "content_tpl": "【每周自检】{week_no}\n总评分：{total_score}分 ({grade})\n✅ 通过：{passed}项\n❌ 未通过：{failed}项\n\n未通过项已自动创建Action。",
+        "rich_card": {
+          "type": "report_card",
+          "buttons": [
+            { "label": "查看报告", "action": "navigate:/sop/self-check?week={week_no}" },
+            { "label": "查看Action", "action": "navigate:/sop/actions?source=self_check" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "EMAIL"]
+      },
+      {
+        "tpl_code": "TPL-KPI-REPORT",
+        "msg_type": "SYSTEM",
+        "title": "📈 KPI月报",
+        "content_tpl": "【KPI月报】{period_month}\n🔴 红灯：{red_count}项\n🟡 黄灯：{yellow_count}项\n🟢 绿灯：{green_count}项\n\n{top3_red_kpis}",
+        "rich_card": {
+          "type": "kpi_card",
+          "buttons": [
+            { "label": "查看驾驶舱", "action": "navigate:/sop/dashboard" },
+            { "label": "查看红灯详情", "action": "navigate:/sop/kpi?status=R" }
+          ]
+        },
+        "push_channels": ["WEBSOCKET", "WECHAT_WORK", "EMAIL"]
+      }
+    ]
+  },
+
+  "realtime_events": {
+    "_comment": "WebSocket实时事件清单 — 前端需监听并响应",
+    "events": [
+      {
+        "event": "alert:triggered",
+        "payload": { "alert_id": "int", "level": "R/Y/BLOCK", "rule_name": "string", "message": "string", "link": "string" },
+        "frontend_action": "① 右上角弹出Toast通知(可点击跳转) ② 侧边栏铃铛+1 ③ 如BLOCK级别→弹模态框"
+      },
+      {
+        "event": "action:assigned",
+        "payload": { "action_id": "int", "description": "string", "due_date": "date", "priority": "P0/P1/P2" },
+        "frontend_action": "① 待办看板新增卡片 ② Toast通知 ③ 如P0→弹确认对话框"
+      },
+      {
+        "event": "action:overdue",
+        "payload": { "action_id": "int", "overdue_days": "int", "escalation_level": "int" },
+        "frontend_action": "① 卡片变红色+闪烁 ② 持续Toast(每5min) ③ 发送短信/微信"
+      },
+      {
+        "event": "meeting:invite",
+        "payload": { "meeting_id": "int", "meeting_code": "string", "meeting_date": "datetime", "type": "string" },
+        "frontend_action": "① 弹会议邀请卡片 ② 日历新增提醒 ③ 邮件通知"
+      },
+      {
+        "event": "meeting:decision_made",
+        "payload": { "meeting_id": "int", "decision": "string", "actions_generated": "int" },
+        "frontend_action": "① 刷新Action列表 ② 弹决议摘要 ③ 自动跳转Action页"
+      },
+      {
+        "event": "psi:updated",
+        "payload": { "header_id": "int", "product_code": "string", "color_status": "R/Y/G" },
+        "frontend_action": "① 刷新PSI表格对应行 ② 如变R→Toast提醒"
+      },
+      {
+        "event": "psi:locked",
+        "payload": { "header_id": "int", "locked_by": "string" },
+        "frontend_action": "① PSI表格切换为只读 ② 通知所有编辑者"
+      },
+      {
+        "event": "block:triggered",
+        "payload": { "block_type": "string", "entity_code": "string", "reason": "string" },
+        "frontend_action": "① 全屏模态框(不可关闭) ② 持续蜂鸣提醒 ③ 通知工程部+主管"
+      },
+      {
+        "event": "block:released",
+        "payload": { "block_type": "string", "entity_code": "string", "released_by": "string" },
+        "frontend_action": "① 关闭模态框 ② Toast通知已解除 ③ 刷新供应评审页"
+      },
+      {
+        "event": "self_check:completed",
+        "payload": { "week_no": "string", "score": "number", "grade": "A/B/C/D" },
+        "frontend_action": "① 弹报告摘要 ② 如D级→通知总经理 ③ 跳转自检详情"
+      },
+      {
+        "event": "kpi:updated",
+        "payload": { "kpi_code": "string", "actual_value": "number", "status": "R/Y/G" },
+        "frontend_action": "① 刷新驾驶舱对应卡片 ② 如变R→红色闪烁"
+      },
+      {
+        "event": "message:new",
+        "payload": { "conv_id": "int", "sender_name": "string", "content_preview": "string", "msg_type": "string" },
+        "frontend_action": "① 聊天列表置顶+未读+1 ② Toast(如@我) ③ 播放提示音"
+      },
+      {
+        "event": "message:recall",
+        "payload": { "msg_id": "int", "conv_id": "int" },
+        "frontend_action": "① 消息内容替换为'已撤回' ② 保留占位行"
+      },
+      {
+        "event": "rapid:vote_cast",
+        "payload": { "meeting_id": "int", "agenda_item": "int", "voter": "string", "vote": "AGREE/VETO/ABSTAIN" },
+        "frontend_action": "① 刷新表决进度条 ② 如全员投完→显示结果"
+      }
+    ]
+  },
+
+  "chat_features": {
+    "_comment": "IM对话功能特性",
+    "features": [
+      {
+        "name": "@提及",
+        "description": "在群聊中@某人，被@者收到特殊通知(即使群已免打扰)",
+        "implementation": {
+          "parse": "正则匹配 @用户名 → 替换为user_id",
+          "notify": "被@用户 → WebSocket推送 + 微信/短信(如开启@通知)",
+          "highlight": "消息中@部分高亮显示 + 跳转锚点"
+        }
+      },
+      {
+        "name": "消息撤回",
+        "description": "2分钟内可撤回自己的消息",
+        "implementation": {
+          "time_limit_seconds": 120,
+          "restriction": "仅发送者可撤回;系统消息不可撤回",
+          "ui": "长按消息→撤回;撤回后显示'XXX撤回了一条消息'"
+        }
+      },
+      {
+        "name": "引用回复",
+        "description": "引用某条消息进行回复，形成对话线索",
+        "implementation": {
+          "ui": "右键/长按消息→引用回复;上方显示被引消息摘要",
+          "storage": "reply_to_msg_id字段关联",
+          "render": "缩进显示+连线(类似Slack Thread)"
+        }
+      },
+      {
+        "name": "已读回执",
+        "description": "显示消息已读/未读状态，群聊显示已读人数",
+        "implementation": {
+          "single_chat": "显示'已读'/'未读'/'已送达'",
+          "group_chat": "显示 N/M 已读(点击查看已读列表)",
+          "update_trigger": "用户打开会话→批量更新read_at"
+        }
+      },
+      {
+        "name": "文件/图片传输",
+        "description": "支持图片/文档/视频/语音消息",
+        "implementation": {
+          "upload": "分片上传到MinIO/OSS",
+          "preview": "图片直接预览;文档转PDF预览;视频播放器",
+          "max_size": "单文件500MB;图片自动压缩到2MB以内",
+          "types": [".jpg,.png,.gif,.pdf,.docx,.xlsx,.pptx,.mp4,.mp3,.zip"]
+        }
+      },
+      {
+        "name": "语音消息",
+        "description": "长按录音发送，支持转文字",
+        "implementation": {
+          "record": "前端MediaRecorder API",
+          "format": "WebM → 转MP3(服务端FFmpeg)",
+          "auto_transcribe": "接入ASR服务→文字落rich_content_json",
+          "max_duration": "60秒"
+        }
+      },
+      {
+        "name": "Emoji反应",
+        "description": "对消息快速Emoji反应(无需回复)",
+        "implementation": {
+          "ui": "消息hover→emoji选择器;显示反应者头像堆叠",
+          "shortcuts": ["👍","❤️","😄","👏","🎉","🔥","👀","✅"]
+        }
+      },
+      {
+        "name": "置底输入框+快捷指令",
+        "description": "输入框支持快捷命令和智能提示",
+        "implementation": {
+          "slash_commands": [
+            { "cmd": "/help", "desc": "显示可用命令" },
+            { "cmd": "/create-action [描述]", "desc": "快速创建Action" },
+            { "cmd": "/check-kpi [KPI编码]", "desc": "查询KPI状态" },
+            { "cmd": "/psi [产品编码]", "desc": "查询PSI数据" },
+            { "cmd": "/alert [规则编码]", "desc": "手动触发预警检查" },
+            { "cmd": "/meeting [会议编号]", "desc": "跳转会议" }
+          ],
+          "mention_autocomplete": "输入@ → 弹出用户列表(支持拼音/汉字搜索)",
+          "emoji_autocomplete": "输入: → 弹出Emoji面板"
+        }
+      },
+      {
+        "name": "消息搜索",
+        "description": "全局搜索历史消息(全文索引)",
+        "implementation": {
+          "engine": "Elasticsearch / MeiliSearch",
+          "scope": "可按会话/时间/发送者/消息类型筛选",
+          "highlight": "搜索关键词高亮",
+          "history": "保留全部历史(不删除)"
+        }
+      },
+      {
+        "name": "免打扰/勿扰模式",
+        "description": "用户可设置免打扰时段和例外",
+        "implementation": {
+          "quiet_hours": "每日22:00~08:00默认免打扰",
+          "always_allow": ["BLOCK硬拦截", "@提及", "P0级Action"],
+          "override": "委副书记/总经理可突破免打扰"
+        }
+      }
+    ]
+  },
+
+  "conversation_scenarios": {
+    "_comment": "业务场景与会话的对应关系",
+    "scenarios": [
+      {
+        "scenario": "预警讨论组",
+        "auto_create": "当预警触发时自动建群",
+        "members": "notify_roles + 相关责任人",
+        "lifecycle": "预警解除后保留30天→归档",
+        "features": ["@提及责任人", "快速创建Action", "关联预警详情"]
+      },
+      {
+        "scenario": "会议聊天室",
+        "auto_create": "会议创建时自动建群",
+        "members": "所有出席人员",
+        "lifecycle": "会议关闭后保留90天→归档",
+        "features": ["RAPID表决按钮", "共享议程", "决议实时记录", "会议纪要自动生成"]
+      },
+      {
+        "scenario": "Action协作群",
+        "auto_create": "Action创建时(多人协同时)",
+        "members": "owner + collaborators",
+        "lifecycle": "Action关闭后保留30天→归档",
+        "features": ["进度更新", "证据上传", "@提醒协作者"]
+      },
+      {
+        "scenario": "部门群",
+        "auto_create": "系统初始化时按部门建群",
+        "members": "部门全员",
+        "lifecycle": "永久",
+        "features": ["部门KPI播报", "Action汇总", "@部门主管"]
+      },
+      {
+        "scenario": "1v1私聊",
+        "auto_create": "用户首次发起私聊时",
+        "members": "两人",
+        "lifecycle": "永久",
+        "features": ["已读回执", "文件传输", "语音消息"]
+      }
+    ]
+  },
+
+  "integration_with_external_im": {
+    "_comment": "与企业微信/钉钉/飞书的对接方案",
+    "wechat_work": {
+      "enabled": true,
+      "app_id": "env:WECHAT_WORK_APP_ID",
+      "app_secret": "env:WECHAT_WORK_APP_SECRET",
+      "corp_id": "env:WECHAT_WORK_CORP_ID",
+      "push_methods": [
+        { "type": "应用消息", "api": "POST https://qyapi.weixin.qq.com/cgi-bin/message/send", "usage": "预警/Action/会议邀请推送" },
+        { "type": "群机器人Webhook", "api": "POST {webhook_url}", "usage": "部门群/KPI播报/自检报告" },
+        { "type": "小程序通知", "usage": "移动端快速审批/确认" }
+      ],
+      "user_mapping": "sys_user.user_code ↔ 企业微信userid"
+    },
+    "dingtalk": {
+      "enabled": false,
+      "note": "如客户使用钉钉，配置类似企业微信",
+      "push_methods": [
+        { "type": "工作通知", "api": "DingTalk OpenAPI" },
+        { "type": "群机器人", "api": "Webhook" }
+      ]
+    },
+    "feishu": {
+      "enabled": false,
+      "note": "如客户使用飞书，配置类似",
+      "push_methods": [
+        { "type": "消息卡片", "api": "Feishu OpenAPI" }
+      ]
+    },
+    "sms": {
+      "enabled": true,
+      "provider": "阿里云短信 / 腾讯云短信(二选一)",
+      "usage": "P0 Action逾期 / 硬拦截 / 客诉SLA违约",
+      "template_mapping": {
+        "action_overdue": "SMS_001",
+        "block_triggered": "SMS_002",
+        "meeting_reminder": "SMS_003"
+      }
+    },
+    "email": {
+      "enabled": true,
+      "provider": "SMTP / SendGrid / 阿里云邮件推送",
+      "usage": "会议邀请/纪要/周报/月报",
+      "templates": ["meeting_invite.html", "weekly_report.html", "monthly_kpi.html", "action_overdue.html"]
+    }
+  },
+
+  "frontend_im_layout": {
+    "_comment": "前端IM模块布局描述 — 可直接给React组件用",
+    "layout": "three_column_or_drawer",
+    "columns": [
+      {
+        "name": "会话列表",
+        "width": "280px",
+        "components": [
+          { "type": "SearchBar", "placeholder": "搜索会话/消息..." },
+          { "type": "TabBar", "tabs": ["全部","未读","@我","系统"] },
+          { "type": "ConvList", "props": {
+            "items_source": "im_conversation + unread_count",
+            "sort_by": "last_msg_at DESC",
+            "show_badge": true,
+            "show_pinned_on_top": true,
+            "context_menu": ["置顶","免打扰","标记已读","归档","删除"]
+          }}
+        ]
+      },
+      {
+        "name": "消息区域",
+        "width": "flex-1",
+        "components": [
+          { "type": "ConvHeader", "props": { "show_name": true, "show_members": true, "show_actions": ["搜索","置顶","免打扰","更多"] } },
+          { "type": "MessageList", "props": {
+            "virtual_scroll": true,
+            "load_more_on_scroll_top": true,
+            "message_types": ["TEXT","IMAGE","FILE","VOICE","SYSTEM","ALERT","ACTION_CARD","MEETING_CARD"],
+            "features": ["引用回复","@提及高亮","Emoji反应","长按菜单","已读回执图标"],
+            "auto_scroll_to_bottom_on_new": true
+          }},
+          { "type": "ComposerBar", "props": {
+            "features": ["文本输入","表情面板",":快捷命令","@提及","附件上传","语音录音","消息模板"],
+            "slash_commands": ["/create-action","/check-kpi","/psi","/alert","/meeting","/help"],
+            "send_on_enter": true,
+            "ctrl_enter_newline": true
+          }}
+        ]
+      },
+      {
+        "name": "详情面板(可折叠)",
+        "width": "320px",
+        "components": [
+          { "type": "MemberList", "props": { "show_online_status": true, "@_user_jump": true } },
+          { "type": "RelatedBusinessCard", "props": {
+            "show_when": "conv.related_type != GENERAL",
+            "types": {
+              "MEETING": "显示会议摘要+议程+决议",
+              "ACTION": "显示Action详情+进度+证据",
+              "ALERT": "显示预警详情+升级路径",
+              "PSI": "显示PSI数据卡片",
+              "KPI": "显示KPI趋势图"
+            }
+          }},
+          { "type": "MessageSearch", "props": { "scope": "当前会话", "fulltext_search": true } }
+        ]
+      }
+    ],
+    "global_im_entry": {
+      "type": "FloatingButton + Drawer",
+      "position": "右下角(类似企业微信)",
+      "badge": "总未读数",
+      "click_action": "打开IM抽屉(不离开当前页面)"
+    },
+    "mobile_responsive": {
+      "breakpoint": "768px",
+      "mobile_layout": "单栏切换(会话列表↔消息区域↔详情)"
+    }
+  },
+
+  "backend_implementation_guide": {
+    "_comment": "给AI编程工具的后端实现指引",
+    "websocket_server": {
+      "framework": "Python FastAPI WebSocket / Node.js Socket.IO",
+      "connection_url": "ws://localhost:8000/ws/im/{user_id}?token={jwt}",
+      "auth": "JWT验证 → 绑定user_id → 加入user_room",
+      "heartbeat": "每30秒ping/pong",
+      "reconnect": "指数退避(1s→2s→4s→8s→16s, 最大30s)"
+    },
+    "message_flow": {
+      "step1": "客户端发送消息 → WebSocket → 服务端校验+持久化到im_message",
+      "step2": "服务端生成im_message_receipt记录(SENT状态)",
+      "step3": "服务端通过WebSocket推送给会话所有在线成员",
+      "step4": "离线成员 → 查询im_notification_rule → 按channel_priority推送外部通道",
+      "step5": "接收方客户端收到 → 更新last_read_msg_id → 回执READ",
+      "step6": "服务端更新receipt状态 → 通知发送方'已读'"
+    },
+    "push_dispatch_logic": {
+      "input": "一条待推送消息 + 目标用户ID列表",
+      "step1": "查询每个用户的im_notification_rule",
+      "step2": "检查免打扰时段(quiet_hours)",
+      "step3": "检查消息优先级(ALERT/BLOCK跳过免打扰)",
+      "step4": "按channel_priority顺序尝试推送",
+      "step5": "WebSocket在线 → 直接推送; 不在线 → 微信/短信/邮件",
+      "step6": "写im_push_log记录每次推送结果",
+      "step7": "失败重试(指数退避, 最多3次)"
+    },
+    "api_endpoints": [
+      { "method": "GET", "path": "/im/conversations", "desc": "获取会话列表(含未读数)" },
+      { "method": "POST", "path": "/im/conversations", "desc": "创建会话(单聊/群聊/系统)" },
+      { "method": "GET", "path": "/im/conversations/{conv_id}/messages", "desc": "获取消息历史(分页/游标)" },
+      { "method": "POST", "path": "/im/conversations/{conv_id}/messages", "desc": "发送消息(文本/文件/卡片)" },
+      { "method": "PUT", "path": "/im/messages/{msg_id}/recall", "desc": "撤回消息(2分钟内)" },
+      { "method": "PUT", "path": "/im/messages/{msg_id}/read", "desc": "标记已读" },
+      { "method": "PUT", "path": "/im/conversations/{conv_id}/read-all", "desc": "标记会话全部已读" },
+      { "method": "GET", "path": "/im/conversations/{conv_id}/members", "desc": "获取成员列表+在线状态" },
+      { "method": "POST", "path": "/im/conversations/{conv_id}/members", "desc": "添加成员" },
+      { "method": "DELETE", "path": "/im/conversations/{conv_id}/members/{user_id}", "desc": "移除成员" },
+      { "method": "PUT", "path": "/im/conversations/{conv_id}/mute", "desc": "设置免打扰" },
+      { "method": "PUT", "path": "/im/conversations/{conv_id}/pin", "desc": "置顶/取消置顶" },
+      { "method": "GET", "path": "/im/search", "desc": "全局消息搜索" },
+      { "method": "GET", "path": "/im/notifications/settings", "desc": "获取我的通知偏好" },
+      { "method": "PUT", "path": "/im/notifications/settings", "desc": "更新通知偏好" },
+      { "method": "POST", "path": "/im/push/external", "desc": "手动触发外部推送(测试用)" },
+      { "method": "WS", "path": "/ws/im/{user_id}", "desc": "WebSocket连接(实时消息)" },
+      { "method": "WS-EMIT", "event": "system:broadcast", "desc": "系统管理员向全员广播" }
+    ],
+    "celery_tasks": [
+      { "task": "push_to_external_channel", "desc": "异步推送微信/短信/邮件", "queue": "push" },
+      { "task": "check_action_overdue", "desc": "每5分钟扫描逾期Action并推送升级通知", "queue": "scheduler" },
+      { "task": "check_alert_escalation", "desc": "每小时检查预警升级条件", "queue": "scheduler" },
+      { "task": "cleanup_old_messages", "desc": "每天清理Redis热缓存(保留DB永久)", "queue": "maintenance" },
+      { "task": "weekly_self_check_push", "desc": "每周一08:00推送自检报告", "queue": "scheduler" },
+      { "task": "daily_kpi_report_push", "desc": "每天08:00推送前日KPI摘要", "queue": "scheduler" }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "_comment": "RBAC权限矩阵 — 11角色×10权限项",
+  "roles": [
+    { "code": "GENERAL_MANAGER", "name": "总经理", "level": 99 },
+    { "code": "COMMITTEE_HEAD", "name": "计委主任/副主任", "level": 90 },
+    { "code": "SALES_DIRECTOR", "name": "销售总监", "level": 80 },
+    { "code": "PROD_DIRECTOR", "name": "生产总监", "level": 80 },
+    { "code": "PURCHASE_HEAD", "name": "采购主管", "level": 70 },
+    { "code": "QUALITY_HEAD", "name": "品质主管", "level": 70 },
+    { "code": "ENGINEER_HEAD", "name": "工程主管", "level": 70 },
+    { "code": "R&D_HEAD", "name": "研发主管", "level": 70 },
+    { "code": "SOP_OFFICER", "name": "S&OP专员", "level": 60 },
+    { "code": "PLANNER", "name": "计划员(PMC)", "level": 50 },
+    { "code": "IT_ADMIN", "name": "系统管理员", "level": 85 }
+  ],
+
+  "permissions": [
+    { "code": "P_VIEW_ALL", "name": "查看全部数据" },
+    { "code": "P_EDIT_FORECAST", "name": "编辑需求预测" },
+    { "code": "P_EDIT_PSI", "name": "编辑PSI" },
+    { "code": "P_DECIDE_MEETING", "name": "会议决策(Decide)" },
+    { "code": "P_ASSIGN_ACTION", "name": "指派Action" },
+    { "code": "P_OVERRIDE_BLOCK", "name": "硬拦截豁免" },
+    { "code": "P_CONFIG_DATA_FETCH", "name": "配置数据获取" },
+    { "code": "P_VIEW_AUDIT", "name": "查看审计日志" },
+    { "code": "P_MANAGE_USERS", "name": "管理用户/角色" },
+    { "code": "P_EXPORT_REPORT", "name": "导出报表" }
+  ],
+
+  "matrix": {
+    "GENERAL_MANAGER":  { "P_VIEW_ALL": "✅", "P_EDIT_FORECAST": "✅", "P_EDIT_PSI": "✅", "P_DECIDE_MEETING": "✅", "P_ASSIGN_ACTION": "✅", "P_OVERRIDE_BLOCK": "✅", "P_CONFIG_DATA_FETCH": "✅", "P_VIEW_AUDIT": "✅", "P_MANAGE_USERS": "✅", "P_EXPORT_REPORT": "✅" },
+    "COMMITTEE_HEAD":   { "P_VIEW_ALL": "✅", "P_EDIT_FORECAST": "❌", "P_EDIT_PSI": "✅(审批)", "P_DECIDE_MEETING": "✅", "P_ASSIGN_ACTION": "✅", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "✅(时间窗口需GM)", "P_VIEW_AUDIT": "✅", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅" },
+    "SALES_DIRECTOR":   { "P_VIEW_ALL": "本部门", "P_EDIT_FORECAST": "✅(Recommend)", "P_EDIT_PSI": "❌", "P_DECIDE_MEETING": "❌(Agree)", "P_ASSIGN_ACTION": "本部门", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "❌", "P_VIEW_AUDIT": "❌", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅(本部门)" },
+    "PROD_DIRECTOR":    { "P_VIEW_ALL": "本部门", "P_EDIT_FORECAST": "❌", "P_EDIT_PSI": "✅(建议)", "P_DECIDE_MEETING": "❌(Agree)", "P_ASSIGN_ACTION": "本部门", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "❌", "P_VIEW_AUDIT": "❌", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅(本部门)" },
+    "PURCHASE_HEAD":    { "P_VIEW_ALL": "本部门", "P_EDIT_FORECAST": "❌", "P_EDIT_PSI": "❌", "P_DECIDE_MEETING": "❌(Agree)", "P_ASSIGN_ACTION": "本部门", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "❌", "P_VIEW_AUDIT": "❌", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅(本部门)" },
+    "QUALITY_HEAD":     { "P_VIEW_ALL": "本部门", "P_EDIT_FORECAST": "❌", "P_EDIT_PSI": "❌", "P_DECIDE_MEETING": "❌(Agree)", "P_ASSIGN_ACTION": "本部门", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "❌", "P_VIEW_AUDIT": "❌", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅(本部门)" },
+    "ENGINEER_HEAD":    { "P_VIEW_ALL": "BOM/模具", "P_EDIT_FORECAST": "❌", "P_EDIT_PSI": "❌", "P_DECIDE_MEETING": "❌(Agree,可被否决)", "P_ASSIGN_ACTION": "本部门", "P_OVERRIDE_BLOCK": "❌(可被否决)", "P_CONFIG_DATA_FETCH": "❌", "P_VIEW_AUDIT": "❌", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅(本部门)" },
+    "R&D_HEAD":         { "P_VIEW_ALL": "样品/项目", "P_EDIT_FORECAST": "Input", "P_EDIT_PSI": "❌", "P_DECIDE_MEETING": "❌(Agree)", "P_ASSIGN_ACTION": "本部门", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "❌", "P_VIEW_AUDIT": "❌", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅(本部门)" },
+    "SOP_OFFICER":      { "P_VIEW_ALL": "✅全量", "P_EDIT_FORECAST": "汇总", "P_EDIT_PSI": "✅(编制)", "P_DECIDE_MEETING": "❌(组织)", "P_ASSIGN_ACTION": "✅(跟踪)", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "✅", "P_VIEW_AUDIT": "✅", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "✅" },
+    "PLANNER":          { "P_VIEW_ALL": "计划数据", "P_EDIT_FORECAST": "协助", "P_EDIT_PSI": "✅(编辑)", "P_DECIDE_MEETING": "❌(Input)", "P_ASSIGN_ACTION": "接收", "P_OVERRIDE_BLOCK": "❌", "P_CONFIG_DATA_FETCH": "❌", "P_VIEW_AUDIT": "❌", "P_MANAGE_USERS": "❌", "P_EXPORT_REPORT": "❌" },
+    "IT_ADMIN":         { "P_VIEW_ALL": "✅全量", "P_EDIT_FORECAST": "❌", "P_EDIT_PSI": "❌", "P_DECIDE_MEETING": "❌", "P_ASSIGN_ACTION": "❌", "P_OVERRIDE_BLOCK": "✅(超管)", "P_CONFIG_DATA_FETCH": "✅", "P_VIEW_AUDIT": "✅", "P_MANAGE_USERS": "✅", "P_EXPORT_REPORT": "✅" }
+  },
+
+  "actual_users": [
+    { "user_code": "U001", "name": "沈旭日", "role": "COMMITTEE_HEAD" },
+    { "user_code": "U002", "name": "虞周峰", "role": "SALES_DIRECTOR" },
+    { "user_code": "U003", "name": "廖新平", "role": "PROD_DIRECTOR" },
+    { "user_code": "U004", "name": "沈建凯", "role": "PURCHASE_HEAD" },
+    { "user_code": "U005", "name": "李玉英", "role": "QUALITY_HEAD" },
+    { "user_code": "U006", "name": "戎双娇", "role": "SOP_OFFICER" }
+  ]
+}
