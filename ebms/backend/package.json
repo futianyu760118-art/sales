@@ -1,0 +1,18 @@
+{
+  "name": "ebms-backend-pand84",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "EBMS M03 经营管理系统后端：反向链路查询（Result ← Exception ← Evidence ← source_system）",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node --experimental-sqlite src/server.js",
+    "test": "node --experimental-sqlite --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
