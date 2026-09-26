@@ -19,11 +19,11 @@
 - [x] Current → Target Mapping
 - [x] Data Ownership 初版
 - [x] Contract 目录与示例
-- [ ] 指定 Accountable Owner
-- [ ] 当前路由逐项打 Target Module 标签
-- [ ] 跨域直读清单
-- [ ] 重复事实源清单
-- [ ] frontend/frontend 重复目录确认与处理
+- [x] 指定 Accountable Owner（`docs/AEOS_V7.2_ACCOUNTABLE_OWNERS_V1.md`；具名人选待业务签批）
+- [x] 当前路由逐项打 Target Module 标签（`backend/routes/index.js`）
+- [x] 跨域直读清单（`docs/CROSS_DOMAIN_READS.md`）
+- [x] 重复事实源清单（`docs/LEGACY_REGISTRY.md` §2）
+- [x] frontend/frontend 重复目录确认与处理（唯一事实源 = 根目录 `frontend/`，重复目录已删除）
 
 ## P1 完成标准
 - [ ] Result Contract 可被 dashboard 消费
