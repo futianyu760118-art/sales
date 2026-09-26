@@ -1294,3 +1294,18 @@ if (wfTable.all().length === 0) {
   featureRules.forEach(r => wfTable.insert(r));
   logger.info('流程规则初始化完成（共' + featureRules.length + '条）');
 }
+
+// ===== M01 AEOS Kernel：M03 视图层权限码 / 决策者角色 / 角色数据范围（幂等）=====
+// Kernel 是角色 / 权限 / 数据范围的唯一 Owner；此处只做 Kernel 自有目录的补齐，不涉及 M03 配置。
+try {
+  const kernel = require('./lib/m01-kernel');
+  const h = kernel.health();
+  if (h.available) {
+    kernel.ensureSeed();
+    logger.info('M01 Kernel 角色 / 权限 / 数据范围初始化完成（' + h.version + '）');
+  } else {
+    logger.warn('M01 Kernel 不可用，已跳过初始化且不做本地兜底：' + (h.reason || '未知原因'));
+  }
+} catch (e) {
+  logger.warn('M01 Kernel 初始化失败: ' + e.message);
+}

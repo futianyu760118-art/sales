@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><script src="fetch-auth.js"></script><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - 经营视图</title><link rel="stylesheet" href="common.css">
+<style>
+.m03-head{background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:14px}
+.m03-head h2{font-size:19px;margin-bottom:8px}
+.m03-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.m03-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+.b-concept{background:#e8eafc;color:#3b4bc7}
+.b-scope-all{background:#e8f5e9;color:#1b5e20}
+.b-scope-domain{background:#fff3e0;color:#e65100}
+.b-kernel{background:#eef2f7;color:#4a5568}
+.m03-tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid #eee;overflow-x:auto}
+.m03-tabs button{border:none;background:none;padding:10px 14px;white-space:nowrap;cursor:pointer;color:#666;font-size:14px}
+.m03-tabs button.ac{color:#667eea;border-bottom:2px solid #667eea;font-weight:700}
+.m03-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:14px}
+.m03-card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.m03-card .t{font-size:14px;font-weight:700;color:#333;margin-bottom:4px}
+.m03-card .d{font-size:12px;color:#888;line-height:1.7}
+.m03-card.locked{opacity:.55;background:#fafafa}
+.m03-panel{background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:14px}
+.m03-panel h3{font-size:15px;margin-bottom:10px;color:#333}
+.m03-note{font-size:12px;color:#8a6d3b;background:#fcf8e3;border-left:3px solid #f0ad4e;padding:8px 10px;border-radius:4px;line-height:1.7}
+.m03-empty{text-align:center;color:#999;padding:26px;font-size:13px;line-height:1.8}
+table.m03-tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.m03-tbl th{background:#f7f8fb;color:#555;padding:9px;text-align:left;white-space:nowrap}
+table.m03-tbl td{padding:8px 9px;border-top:1px solid #eee;vertical-align:top}
+.tag{display:inline-block;padding:1px 7px;border-radius:9px;font-size:11px}
+.ok{background:#d4edda;color:#155724}.no{background:#f1f3f5;color:#868e96}
+.m03-links{display:flex;gap:8px;flex-wrap:wrap}
+.m03-link{display:inline-block;padding:7px 14px;border-radius:6px;background:#667eea;color:#fff;text-decoration:none;font-size:13px}
+.m03-link.alt{background:#3498db}.m03-link.ghost{background:#eef2f7;color:#4a5568}
+</style></head><body data-page-title="经营视图">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="m03">
+  <div class="m03-head">
+    <h2 id="viewTitle">经营视图</h2>
+    <div class="m03-badges" id="viewBadges"></div>
+  </div>
+  <div class="m03-tabs" id="viewTabs"></div>
+  <div id="viewBody"><div class="m03-empty">正在向 M01 Kernel 校验身份与数据范围…</div></div>
+</div>
+
+<script src="common.js"></script>
+<script src="m03-entry.js"></script>
+<script src="permission-check.js"></script>
+<script>
+const VIEW_LABEL = { report: 'REPORT 视图', todo: 'TODO 视图', decision: 'Decision 视图', evidence: 'Evidence 视图' };
+const VIEW_ORDER = ['report', 'todo', 'decision', 'evidence'];
+// 四视图关联入口（PAND-89：视图内互跳；Result→Exception→Evidence→source_system 契约链）
+const VIEW_LINKS = {
+  report:   [['todo', '关联 TODO（Action）'], ['decision', '关联 Decision'], ['evidence', '关联 Evidence']],
+  todo:     [['report', '关联 REPORT（Result）'], ['decision', '关联 Decision'], ['evidence', '关联 Evidence']],
+  decision: [['report', '关联 REPORT（Result）'], ['todo', '关联 TODO（Action）'], ['evidence', '关联 Evidence']],
+  evidence: [['report', '关联 REPORT（Result）'], ['todo', '关联 TODO（Action）'], ['decision', '关联 Decision']]
+};
+
+let ENTRY = null;
+let currentView = 'report';
+
+function qs(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+function badge(cls, text) {
+  return '<span class="m03-badge ' + cls + '">' + esc(text) + '</span>';
+}
+
+function renderHead() {
+  const concepts = (ENTRY.view_layer.concepts || []).map(c => badge('b-concept', '经营角色：' + c.label)).join('');
+  const scope = ENTRY.data_scope || {};
+  const scopeCls = scope.scope_type === 'all' ? 'b-scope-all' : 'b-scope-domain';
+  const scopeText = '可见范围：' + (scope.scope_label || '无') +
+    (scope.scope_type === 'all' ? '' : (scope.resource_ids && scope.resource_ids.length ? '（责任域 ' + scope.resource_ids.length + ' 个）' : ''));
+  document.getElementById('viewTitle').textContent = VIEW_LABEL[currentView] || '经营视图';
+  document.getElementById('viewBadges').innerHTML =
+    concepts +
+    badge(scopeCls, scopeText) +
+    badge('b-kernel', '角色 / 权限 / 数据范围来源：M01 Kernel') +
+    badge('b-kernel', 'Kernel 版本 ' + (ENTRY.kernel && ENTRY.kernel.version || '-'));
+}
+
+function renderTabs() {
+  document.getElementById('viewTabs').innerHTML = VIEW_ORDER.map(v =>
+    '<button class="' + (v === currentView ? 'ac' : '') + '" onclick="switchView(\'' + v + '\')">' + VIEW_LABEL[v] + '</button>'
+  ).join('');
+}
+
+function linksHtml() {
+  return '<div class="m03-links">' + (VIEW_LINKS[currentView] || []).map(l =>
+    '<a class="m03-link alt" href="m03-view.html?view=' + l[0] + '">' + esc(l[1]) + '</a>'
+  ).join('') + '</div>';
+}
+
+function metricsPanel() {
+  const m = ENTRY.metrics || { metrics: [], visible_count: 0, total: 0 };
+  const rows = (m.metrics || []).map(x =>
+    '<tr>' +
+      '<td>' + esc(x.name) + '</td>' +
+      '<td>' + esc(x.owner_module) + '</td>' +
+      '<td>' + esc(x.scope_kind === 'enterprise' ? '企业级口径' : '责任域（' + (x.domain || '-') + '）') + '</td>' +
+      '<td><span class="tag ' + (x.visible ? 'ok' : 'no') + '">' + (x.visible ? '可见' : '不可见') + '</span></td>' +
+      '<td style="color:#999">数值：' + esc(x.value_source) + '（EBMS 不计算）</td>' +
+      '<td style="color:#999">目标值：' + esc(x.target_source) + '</td>' +
+    '</tr>').join('');
+  return '<div class="m03-panel"><h3>可见指标范围（' + (m.visible_count || 0) + ' / ' + (m.total || 0) + '）</h3>' +
+    '<table class="m03-tbl"><thead><tr><th>指标</th><th>专业 Owner</th><th>口径维度</th><th>可见性</th><th>实际值来源</th><th>目标值来源</th></tr></thead><tbody>' +
+    (rows || '<tr><td colspan="6" class="m03-empty">无指标</td></tr>') + '</tbody></table></div>';
+}
+
+function reportBody() {
+  return '<div class="m03-panel"><h3>本期经营结论</h3><div class="m03-empty">' +
+      '结论与偏差由 M03 归因（PAND-80/83）消费专业 Owner 模块的 Result 生成；<br>' +
+      '本页仅确立「默认落地 REPORT 视图 + 可见指标范围」口径（PAND-93）。</div></div>' +
+    metricsPanel() +
+    '<div class="m03-panel"><h3>关联入口</h3>' + linksHtml() + '</div>' +
+    '<div class="m03-note">可见指标范围完全取自 M01 Kernel 的 data-scope：在 Kernel 侧变更某角色的 data-scope 后，本页无需任何本地配置改动即同步生效。</div>';
+}
+
+function todoBody() {
+  const scope = ENTRY.data_scope || {};
+  return '<div class="m03-panel"><h3>待处理事项（责任域相关）</h3><div class="m03-empty">' +
+      'TODO 事项按 Action 契约（status / assignee_id / due_at）聚合与流转，由 PAND-86 落地；<br>' +
+      '本页确立「管理责任人默认落地 TODO 视图，范围限于其责任域」口径（PAND-93）。<br>' +
+      '当前生效范围：' + esc(scope.scope_label || '无') +
+      (scope.resource_ids && scope.resource_ids.length ? '（责任域资源 ' + scope.resource_ids.join(', ') + '）' : '') +
+    '</div></div>' +
+    metricsPanel() +
+    '<div class="m03-panel"><h3>关联入口</h3>' + linksHtml() + '</div>';
+}
+
+function otherViewBody(name) {
+  return '<div class="m03-panel"><h3>' + VIEW_LABEL[name] + '</h3><div class="m03-empty">' +
+      '本视图承接 AEOS 契约（Decision / Evidence），由后续功能点 PAND-87 / PAND-88 落地。' +
+    '</div></div><div class="m03-panel"><h3>关联入口</h3>' + linksHtml() + '</div>';
+}
+
+function renderBody() {
+  const el = document.getElementById('viewBody');
+  if (currentView === 'report') return void (el.innerHTML = reportBody());
+  if (currentView === 'todo') return void (el.innerHTML = todoBody());
+  el.innerHTML = otherViewBody(currentView);
+}
+
+function switchView(v) {
+  currentView = v;
+  history.replaceState(null, '', 'm03-view.html?view=' + v);
+  renderHead(); renderTabs(); renderBody();
+}
+
+(async function boot() {
+  const entry = await M03Entry.ensureEntry();   // 未授权 / Kernel 不可用 → 提示并阻止主体功能加载
+  if (!entry) return;
+  ENTRY = entry;
+  currentView = qs('view') || (entry.view_layer.landing && entry.view_layer.landing.view) || 'report';
+  if (VIEW_ORDER.indexOf(currentView) < 0) currentView = 'report';
+  renderHead(); renderTabs(); renderBody();
+  PermissionCheck.init();                        // 仅在入口校验通过后才加载主体功能
+})();
+</script>
+<script src="brand.js"></script>
+<script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
+</body></html>

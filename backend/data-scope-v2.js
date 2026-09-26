@@ -14,14 +14,23 @@ const TABLE_FIELDS = {
 // 返回标准化 scope 对象，永不返回 null
 function resolveDataScopeV2(req, opts) {
   const legacy = dataScope.resolveDataScope(req, opts);
-  if (legacy && Array.isArray(legacy.ids) && legacy.ids.length) {
-    return { enabled: true, mode: 'custom', ids: legacy.ids.slice() };
+  if (legacy && legacy.degraded) {
+    // M01 Kernel 不可用：不回落本地配置，按最小可见处理
+    return { enabled: true, mode: 'none', ids: [], degraded: true, source: 'M01_KERNEL' };
   }
-  return { enabled: false, mode: 'none', ids: [] };
+  if (legacy && legacy.deny_all) {
+    // 无可见范围 / 责任域口径但无部门级资源：最小可见，不 fail-open
+    return { enabled: true, mode: 'none', ids: [], deny_all: true, source: 'M01_KERNEL' };
+  }
+  if (legacy && Array.isArray(legacy.ids) && legacy.ids.length) {
+    return { enabled: true, mode: 'custom', ids: legacy.ids.slice(), source: 'M01_KERNEL' };
+  }
+  return { enabled: false, mode: 'none', ids: [], source: 'M01_KERNEL' };
 }
 
 // buildScopeFilter(scope, table) -> (record) => boolean
 function buildScopeFilter(scope, table) {
+  if (scope && (scope.degraded || scope.deny_all)) return () => false;
   if (!scope || !scope.enabled || !Array.isArray(scope.ids) || !scope.ids.length) {
     return () => true;
   }

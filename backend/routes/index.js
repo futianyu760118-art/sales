@@ -54,4 +54,9 @@ router.use('/order-check', require('./order-check'));
 router.use('/sop', require('./sop'));
 router.use('/im', require('./im'));
 
+// M01 AEOS Kernel 契约：身份 / 组织 / 角色 / 权限 / 数据范围的唯一入口
+router.use('/kernel', require('./kernel'));
+// M03 EBMS 主体功能入口：默认落地视图与可见指标范围
+router.use('/m03', require('./m03'));
+
 module.exports = router;

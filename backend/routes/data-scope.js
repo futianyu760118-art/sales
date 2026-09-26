@@ -1,9 +1,11 @@
-// 数据权限路由（最小可用实现）
+// 数据权限路由
 // 提供 /my-scope、/employees、/customer/transfer 三个接口，避免前端 404。
+// 数据范围来源：M01 Kernel 的 data-scope（本模块不再本地推导）。
 const express = require('express');
 const router = express.Router();
 const { getTable } = require('../db');
-const { getUserPermissions } = require('../auth-middleware');
+const { extractUserId } = require('../auth-middleware');
+const kernelClient = require('../lib/kernel-client');
 
 // 安全取表
 function safeAll(name) {
@@ -12,18 +14,41 @@ function safeAll(name) {
 
 // 当前用户的数据范围：仅用于头部横幅展示，真实安全由后端业务路由保证
 router.get('/my-scope', (req, res) => {
-  const userId = Number(req.query.user_id || req.headers['x-user-id']);
-  if (!userId) return res.json({ mode: 'all', label: '全部数据' });
+  const userId = extractUserId(req)
+    || Number(req.query.user_id || req.headers['x-user-id'])
+    || null;
+  if (!userId) return res.json({ mode: 'all', label: '全部数据', source: 'M01_KERNEL' });
+
+  let scope;
   try {
-    const { isAdmin } = getUserPermissions(userId);
-    if (isAdmin) return res.json({ mode: 'all', label: '全部数据' });
-  } catch (_) { /* ignore */ }
-  const orgs = safeAll('amiba_org').filter(o => o.status !== '停用');
-  const mine = orgs.filter(o =>
-    Number(o.charge_user_id) === userId || Number(o.charge_personnel_id) === userId
-  );
-  if (!mine.length) return res.json({ mode: 'all', label: '全部数据' });
-  return res.json({ mode: 'custom', label: `我的责任单元（${mine.length}）` });
+    scope = kernelClient.resolveDataScope(userId);
+  } catch (e) {
+    // M01 Kernel 不可用：明确提示，不回落本地角色 / 数据范围配置
+    return res.status(503).json({
+      mode: 'none',
+      label: 'M01 Kernel 不可用，数据范围不可用',
+      source: 'M01_KERNEL',
+      code: 'M01_KERNEL_UNAVAILABLE',
+      error: 'M01 Kernel 不可用，已拒绝按本地配置回退数据范围'
+    });
+  }
+
+  if (scope.scope_type === 'all') {
+    return res.json({ mode: 'all', label: scope.scope_label || '全企业口径', source: 'M01_KERNEL', scope_type: 'all' });
+  }
+  const domains = (scope.domain_keys || []).filter(k => k !== '*');
+  if (scope.scope_type === 'none' || (!scope.resource_ids.length && !domains.length)) {
+    return res.json({ mode: 'none', label: '无可见范围', source: 'M01_KERNEL', scope_type: scope.scope_type });
+  }
+  return res.json({
+    mode: 'custom',
+    label: `${scope.scope_label || '责任域口径'}${domains.length ? '（' + domains.join('/') + '）' : ''}`,
+    ids: scope.resource_ids,
+    unit_ids: scope.unit_ids || [],
+    domain_keys: scope.domain_keys,
+    source: 'M01_KERNEL',
+    scope_type: scope.scope_type
+  });
 });
 
 // 可转移目标员工列表（排除自己与停用账号）

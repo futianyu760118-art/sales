@@ -132,7 +132,17 @@
           localStorage.setItem('currentUserId', data.user.id);
           localStorage.setItem('currentUser', data.user.username);
           localStorage.setItem('authToken', data.token);
-          window.location.href = 'dashboard.html';
+          // 默认落地视图由 M03 入口按 M01 Kernel 的角色 / 权限 / data-scope 解析
+          var entryRes = await fetch(window.location.origin + '/api/m03/landing', {
+            headers: { 'Authorization': 'Bearer ' + data.token }
+          });
+          var entry = await entryRes.json().catch(function () { return {}; });
+          if (entryRes.ok && entry.landing && entry.landing.url) {
+            window.location.href = entry.landing.url;
+            return;
+          }
+          // 未被授权 / M01 Kernel 不可用：明确提示，不加载 EBMS 主体功能
+          throw new Error(entry.error || '无法进入 EBMS 主体功能，请联系管理员');
         } catch (err) {
           error.textContent = err && err.message ? err.message : '网络异常，请稍后重试';
           submit.disabled = false;
