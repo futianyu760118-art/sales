@@ -49,6 +49,15 @@ export function createJudgmentsRouter({ judgmentService, auth }) {
     }
   });
 
+  // PAND-92 判定标准：引用来源标注核验（每条引用均有非空的来源标注）
+  router.get('/judgments/:id/source-labels', auth, async (req, res, next) => {
+    try {
+      res.json(await judgmentService.checkSourceLabels(req.params.id));
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.get('/judgments/list', auth, async (req, res, next) => {
     try {
       const { period_type: periodType, period_value: periodValue } = req.query;

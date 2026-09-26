@@ -687,3 +687,67 @@ body {
   color: var(--muted);
   background: #fbfcfd;
 }
+
+/* PAND-92：引用位置的来源标注（来源中心名称 + 结论时间 / 版本；不可用时显示「来源不可用」） */
+.source-label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0;
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.source-label__text {
+  color: var(--text);
+}
+
+.source-label--unavailable {
+  border: 1px dashed var(--negative);
+  background: var(--warn-bg);
+}
+
+.source-label--unavailable .source-label__text {
+  color: var(--negative);
+  font-weight: 600;
+}
+
+.source-label__reason {
+  color: var(--muted);
+}
+
+.source-labels__counts {
+  margin: 4px 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.source-labels__verdict {
+  margin: 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--positive);
+}
+
+.source-labels__verdict.is-fail {
+  color: var(--negative);
+}
+
+.source-labels__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source-labels__list li {
+  display: flex;
+}

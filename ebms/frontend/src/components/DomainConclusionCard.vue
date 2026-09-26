@@ -1,10 +1,13 @@
 <script setup>
 // 场景 1 + 场景 2：单个专业中心结论卡片。
 // 展示值全部取自中心上报结论快照（payload 原样），EBMS 不重算、不反推。
+// PAND-92：卡片即该域的引用位置，卡头标注来源中心与结论时间 / 版本；来源不可用时显示「来源不可用」。
 import MissingDomainNotice from './MissingDomainNotice.vue';
+import SourceLabelBadge from './SourceLabelBadge.vue';
 
 defineProps({
   domain: { type: Object, required: true },
+  sourceLabel: { type: Object, default: null },
 });
 
 function fmt(value, suffix = '') {
@@ -18,6 +21,8 @@ function fmt(value, suffix = '') {
       <h3 class="domain-card__title">{{ domain.center_label }}</h3>
       <span v-if="!domain.missing" class="domain-card__count">{{ domain.metrics_ok_count }} 项指标</span>
     </header>
+
+    <SourceLabelBadge v-if="sourceLabel" :source-label="sourceLabel" />
 
     <MissingDomainNotice
       v-if="domain.missing"

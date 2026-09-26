@@ -6,6 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 const apiMock = vi.hoisted(() => ({
   getJudgment: vi.fn(),
   getJudgmentReferences: vi.fn(),
+  getJudgmentSourceLabels: vi.fn(),
   getConsistency: vi.fn(),
   getJudgmentPeriods: vi.fn(),
   ingestConclusions: vi.fn(),
@@ -71,6 +72,93 @@ const SALES_METRIC_REPORTED = metric('revenue', '营业收入', {
   unit: '万元',
 });
 
+// PAND-92 桩：与后端 buildSourceLabel / buildSourceCitations 的读模型同构。
+const CENTER_LABELS = {
+  sales: '销售中心',
+  production: '生产/交付中心',
+  finance: '财务中心',
+  supply_chain: '供应链中心',
+};
+const SOURCE_UNAVAILABLE_LABEL = '来源不可用';
+const UNAVAILABLE_REASON_LABELS = {
+  source_missing: '来源中心结论不可用',
+  no_time_or_version: '结论快照缺少结论时间与版本',
+};
+
+function sourceLabel(center, { version = null, asOf = null, missing = false, reason = 'source_missing' } = {}) {
+  const centerLabel = CENTER_LABELS[center];
+  if (missing) {
+    return {
+      center,
+      center_label: centerLabel,
+      conclusion_time: null,
+      conclusion_time_text: null,
+      conclusion_version: null,
+      available: false,
+      label: SOURCE_UNAVAILABLE_LABEL,
+      unavailable_reason: reason,
+      unavailable_reason_label: UNAVAILABLE_REASON_LABELS[reason],
+    };
+  }
+  const timeText = String(asOf ?? '').slice(0, 10);
+  const parts = [centerLabel];
+  if (timeText) parts.push(timeText);
+  if (version) parts.push(`版本 ${version}`);
+  return {
+    center,
+    center_label: centerLabel,
+    conclusion_time: asOf,
+    conclusion_time_text: timeText,
+    conclusion_version: version,
+    available: true,
+    label: parts.join(' · '),
+    unavailable_reason: null,
+    unavailable_reason_label: null,
+  };
+}
+
+function citation(center, opts = {}) {
+  return {
+    center,
+    center_label: CENTER_LABELS[center],
+    conclusion_id: opts.missing ? null : (opts.conclusion_id ?? `dc-${center}-202608`),
+    missing: opts.missing ?? false,
+    source_label: sourceLabel(center, opts),
+  };
+}
+
+// 与后端 verifySourceLabels 同构的核验报告。
+function sourceLabelReport(judgmentId, citations) {
+  const unlabeled = citations.filter((c) => !String(c.source_label?.label ?? '').trim());
+  const available = citations.filter((c) => c.source_label?.available !== false);
+  const unavailable = citations.length - available.length;
+  const incomplete = available.filter(
+    (c) => !c.source_label.center_label || (!c.source_label.conclusion_time && !c.source_label.conclusion_version),
+  );
+  const passed = unlabeled.length === 0 && incomplete.length === 0;
+  return {
+    judgment_id: judgmentId,
+    source_unavailable_label: SOURCE_UNAVAILABLE_LABEL,
+    total: citations.length,
+    labeled_count: citations.length - unlabeled.length,
+    unlabeled_count: unlabeled.length,
+    unlabeled,
+    available_count: available.length,
+    unavailable_count: unavailable,
+    incomplete_available_labels: incomplete,
+    incomplete_available_count: incomplete.length,
+    all_labeled: unlabeled.length === 0,
+    all_available_labels_complete: incomplete.length === 0,
+    passed,
+    verdict: passed
+      ? `共 ${citations.length} 条引用位置，来源标注齐全：可用来源 ${available.length} 条（均含来源中心名称 + 结论时间/版本），来源不可用 ${unavailable} 条（标注「来源不可用」）。`
+      : `共 ${citations.length} 条引用位置，其中来源标注缺失 ${unlabeled.length} 条、可用来源标注不完整 ${incomplete.length} 条，判定不通过。`,
+    citations,
+  };
+}
+
+const CENTERS = ['sales', 'production', 'finance', 'supply_chain'];
+
 const FULL = {
   judgment_id: 'jd-202608',
   period: PERIOD,
@@ -116,20 +204,26 @@ const FULL = {
       reported_values: [],
     },
   ],
-  references: ['sales', 'production', 'finance', 'supply_chain'].map((center, index) => ({
+  references: CENTERS.map((center, index) => ({
     conclusion_id: `dc-${center}-202608`,
     center,
-    center_label: ['销售中心', '生产/交付中心', '财务中心', '供应链中心'][index],
+    center_label: CENTER_LABELS[center],
     version: `v2026-08.${index + 1}`,
     as_of: '2026-09-05T00:00:00+08:00',
     data_cutoff: '2026-09-05T00:00:00+08:00',
     source_mode: 'api',
     missing: false,
+    source_label: sourceLabel(center, { version: `v2026-08.${index + 1}`, asOf: '2026-09-05T00:00:00+08:00' }),
     metrics_cited: [],
     reasons_cited: [],
     reasons_cited_count: 0,
   })),
   reference_count: 4,
+  // PAND-92：四域逐位给出来源标注（引用位置清单，含来源不可用的位置）
+  source_citations: CENTERS.map((center, index) =>
+    citation(center, { version: `v2026-08.${index + 1}`, asOf: '2026-09-05T00:00:00+08:00' }),
+  ),
+  unavailable_source_count: 0,
   can_judge: true,
   min_present_domains: 2,
   generated_at: '2026-09-09T00:00:00Z',
@@ -205,8 +299,11 @@ function mountView(overrides = {}) {
   const judgment = overrides.judgment ?? FULL;
   const references = overrides.references ?? REFERENCES;
   const consistency = overrides.consistency ?? CONSISTENCY;
+  const sourceLabels =
+    overrides.sourceLabels ?? sourceLabelReport(judgment.judgment_id, judgment.source_citations ?? []);
   apiMock.getJudgment.mockResolvedValue(judgment);
   apiMock.getJudgmentReferences.mockResolvedValue(references);
+  apiMock.getJudgmentSourceLabels.mockResolvedValue(sourceLabels);
   apiMock.getConsistency.mockResolvedValue(consistency);
   apiMock.getJudgmentPeriods.mockResolvedValue({
     count: 2,
@@ -291,9 +388,8 @@ describe('场景 2：EBMS 不重算中心内部指标，展示值与专业中心
   });
 });
 
-describe('边界：某专业中心数据缺失时标注「该域数据缺失」，其余域仍可判断', () => {
-  const missingJudgment = {
-    ...FULL,
+const missingJudgment = {
+  ...FULL,
     judgment_id: 'jd-202609',
     level: 'critical',
     conclusion: '本期（2026-09）跨域经营判断为「严重」：参与判断 3 个域。数据缺失：供应链中心（该域数据缺失：拉取超时）。缺失域不参与本次判断，其余域判断正常输出。',
@@ -310,14 +406,21 @@ describe('边界：某专业中心数据缺失时标注「该域数据缺失」�
       { center: 'supply_chain', center_label: '供应链中心', label: '该域数据缺失', reason: 'timeout', reason_label: '拉取超时' },
     ],
     reference_count: 3,
-    references: FULL.references.slice(0, 3),
-  };
+  references: FULL.references.slice(0, 3),
+  // PAND-92 边界：供应链域来源不可用 → 该引用位置标注「来源不可用」
+  source_citations: [...FULL.source_citations.slice(0, 3), citation('supply_chain', { missing: true })],
+  unavailable_source_count: 1,
+};
 
+// PAND-92：来源不可用位置的核验报告（不可用位置标注齐全，判定仍通过）
+const missingSourceLabels = sourceLabelReport('jd-202609', missingJudgment.source_citations);
+
+describe('边界：某专业中心数据缺失时标注「该域数据缺失」，其余域仍可判断', () => {
   it('缺失域卡片标注「该域数据缺失」，其余域仍输出完整结论', async () => {
     const wrapper = mountView({ judgment: missingJudgment });
     await flushPromises();
 
-    const missingCard = wrapper.find('[data-center="supply_chain"]');
+    const missingCard = wrapper.find('[data-testid="domain-card"][data-center="supply_chain"]');
     expect(missingCard.find('[data-testid="domain-missing-label"]').text()).toBe('该域数据缺失');
     expect(missingCard.find('[data-testid="domain-missing-notice"]').text()).toContain('拉取超时');
     // 缺失域不渲染指标表
@@ -327,6 +430,140 @@ describe('边界：某专业中心数据缺失时标注「该域数据缺失」�
     expect(wrapper.findAll('[data-testid="metric-row"]').length).toBeGreaterThan(0);
     expect(wrapper.find('[data-testid="judgment-level"]').text()).toBe('严重');
     expect(wrapper.find('[data-testid="missing-summary-item"]').text()).toContain('其余域判断正常输出');
+  });
+
+  // PAND-92 边界：来源不可用时，引用位置显示「来源不可用」
+  it('来源不可用的引用位置显示「来源不可用」，不使用 — / 空白占位', async () => {
+    const wrapper = mountView({ judgment: missingJudgment, sourceLabels: missingSourceLabels });
+    await flushPromises();
+
+    const badge = wrapper.find('[data-testid="source-label"][data-center="supply_chain"]');
+    expect(badge.exists()).toBe(true);
+    expect(badge.attributes('data-available')).toBe('false');
+    expect(badge.find('[data-testid="source-label-text"]').text()).toBe('来源不可用');
+    expect(badge.find('[data-testid="source-label-text"]').text()).not.toBe('—');
+    expect(badge.find('[data-testid="source-label-reason"]').text()).toContain('来源中心结论不可用');
+
+    // 其余三域来源标注正常且非空
+    for (const center of ['sales', 'production', 'finance']) {
+      const available = wrapper.find(`[data-testid="source-label"][data-center="${center}"]`);
+      expect(available.attributes('data-available')).toBe('true');
+      expect(available.find('[data-testid="source-label-text"]').text()).not.toBe('');
+      expect(available.find('[data-testid="source-label-text"]').text()).not.toBe('来源不可用');
+    }
+  });
+});
+
+describe('PAND-92 场景 1：引用专业中心结论处标注来源中心与结论时间 / 版本', () => {
+  it('引用明细每条带非空来源标注（来源中心名称 + 结论时间 / 版本）', async () => {
+    const wrapper = mountView();
+    await flushPromises();
+
+    const rows = wrapper.findAll('[data-testid="reference-row"]');
+    expect(rows.length).toBe(4);
+    for (const row of rows) {
+      const badge = row.find('[data-testid="source-label"]');
+      expect(badge.exists()).toBe(true);
+      expect(badge.attributes('data-available')).toBe('true');
+      const text = badge.find('[data-testid="source-label-text"]').text();
+      expect(text).not.toBe('');
+      // 标注须含来源中心名称（取自已确认四域）
+      expect(text).toContain(row.find('td').text());
+    }
+    // 结论时间与版本均取自中心结论快照
+    expect(rows[0].find('[data-testid="source-label-text"]').text()).toBe('销售中心 · 2026-09-05 · 版本 v2026-08.1');
+    // 既有列（结论版本 / 结论时间）保留，未被来源标注替代
+    expect(rows[0].text()).toContain('v2026-08.1');
+    expect(rows[0].text()).toContain('2026-09-05');
+  });
+
+  it('各专业中心结论卡片标注来源中心与结论时间 / 版本', async () => {
+    const wrapper = mountView();
+    await flushPromises();
+
+    const cards = wrapper.findAll('[data-testid="domain-card"]');
+    expect(cards.map((c) => c.attributes('data-center'))).toEqual(CENTERS);
+    for (const card of cards) {
+      const badge = card.find('[data-testid="source-label"]');
+      expect(badge.exists()).toBe(true);
+      expect(badge.attributes('data-available')).toBe('true');
+      expect(badge.find('[data-testid="source-label-text"]').text()).toContain(
+        card.find('.domain-card__title').text(),
+      );
+      expect(badge.find('[data-testid="source-label-text"]').text()).toMatch(/2026-09-05/);
+    }
+  });
+});
+
+describe('PAND-92 判定标准：每条引用均有非空的来源标注（来源中心名称 + 结论时间 / 版本）', () => {
+  it('核验面板逐条列出来源标注并给出通过判定', async () => {
+    const wrapper = mountView();
+    await flushPromises();
+
+    const panel = wrapper.find('[data-testid="source-label-panel"]');
+    expect(panel.exists()).toBe(true);
+    expect(panel.find('[data-testid="source-label-counts"]').text()).toContain('非空标注 4 条');
+    expect(panel.find('[data-testid="source-label-counts"]').text()).toContain('缺失 0 条');
+    expect(panel.find('[data-testid="source-label-verdict"]').text()).toBe('判定通过');
+    expect(panel.find('[data-testid="source-label-verdict-text"]').text()).toContain('来源标注齐全');
+
+    const items = panel.findAll('[data-testid="source-label-item"]');
+    expect(items.length).toBe(4);
+    for (const item of items) {
+      expect(item.find('[data-testid="source-label-text"]').text()).not.toBe('');
+    }
+    // 无来源不可用位置时不出现回落说明
+    expect(panel.find('[data-testid="source-label-unavailable-note"]').exists()).toBe(false);
+  });
+
+  it('存在空来源标注时判定不通过，不静默通过', async () => {
+    const citations = [
+      ...FULL.source_citations.slice(0, 3),
+      {
+        center: 'supply_chain',
+        center_label: '供应链中心',
+        conclusion_id: null,
+        missing: false,
+        source_label: {
+          available: false,
+          label: '   ',
+          center_label: '供应链中心',
+          conclusion_time: null,
+          conclusion_version: null,
+        },
+      },
+    ];
+    const wrapper = mountView({ sourceLabels: sourceLabelReport('jd-202608', citations) });
+    await flushPromises();
+
+    const panel = wrapper.find('[data-testid="source-label-panel"]');
+    expect(panel.find('[data-testid="source-label-counts"]').text()).toContain('缺失 1 条');
+    expect(panel.find('[data-testid="source-label-verdict"]').text()).toBe('判定不通过');
+    expect(panel.find('[data-testid="source-label-verdict"]').classes()).toContain('is-fail');
+    expect(panel.find('[data-testid="source-label-verdict-text"]').text()).toContain('判定不通过');
+  });
+
+  it('来源不可用位置标注齐全时判定仍通过，并提示不回落到专业原始表查询', async () => {
+    const wrapper = mountView({ judgment: missingJudgment, sourceLabels: missingSourceLabels });
+    await flushPromises();
+
+    const panel = wrapper.find('[data-testid="source-label-panel"]');
+    expect(panel.find('[data-testid="source-label-counts"]').text()).toContain('来源不可用 1 条');
+    expect(panel.find('[data-testid="source-label-verdict"]').text()).toBe('判定通过');
+    expect(panel.find('[data-testid="source-label-unavailable-note"]').text()).toContain('不回落到专业原始表查询');
+  });
+
+  it('核验接口失败时展示错误提示，不影响跨域判断结论的展示', async () => {
+    apiMock.getJudgment.mockResolvedValue(FULL);
+    apiMock.getJudgmentReferences.mockResolvedValue(REFERENCES);
+    apiMock.getConsistency.mockResolvedValue(CONSISTENCY);
+    apiMock.getJudgmentPeriods.mockResolvedValue({ count: 0, periods: [] });
+    apiMock.getJudgmentSourceLabels.mockRejectedValue(new Error('跨域判断 jd-202608 不存在'));
+    const wrapper = mount(JudgmentView, { props: { periodType: 'month', periodValue: '2026-08' } });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="source-label-error"]').text()).toContain('来源标注核验加载失败');
+    expect(wrapper.find('[data-testid="judgment-conclusion"]').exists()).toBe(true);
   });
 });
 

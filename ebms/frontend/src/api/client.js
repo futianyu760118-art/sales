@@ -62,6 +62,10 @@ export const api = {
   getJudgmentReferences(judgmentId) {
     return request(`/judgments/${encodeURIComponent(judgmentId)}/references`);
   },
+  /** PAND-92 判定标准：引用来源标注核验（每条引用均有非空的来源标注） */
+  getJudgmentSourceLabels(judgmentId) {
+    return request(`/judgments/${encodeURIComponent(judgmentId)}/source-labels`);
+  },
   /** F13 判定标准：抽样不少于 10 条比对，一致率 100% */
   getConsistency({ periodType, periodValue, sampleSize } = {}) {
     const params = new URLSearchParams(periodQuery({ periodType, periodValue }));

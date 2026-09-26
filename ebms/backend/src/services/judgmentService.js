@@ -1,13 +1,17 @@
 // 应用层：跨域经营判断用例。接口契约见架构方案 3.2.2
 //   GET /api/v1/judgments?period_type=&period_value=          → F13 跨域判断 (PAND-91)
 //   GET /api/v1/judgments/{id}/references                     → 引用明细（可追溯）
+//   GET /api/v1/judgments/{id}/source-labels                  → 引用来源标注核验 (PAND-92)
 //   GET /api/v1/judgments/consistency?period_type=&period_value= → 抽样比对（判定标准）
 import { randomUUID } from 'node:crypto';
 import {
   MIN_CONSISTENCY_SAMPLES,
   RULE_VERSION,
+  SOURCE_UNAVAILABLE_LABEL,
+  buildSourceCitations,
   evaluateJudgment,
   sampleConsistency,
+  verifySourceLabels,
 } from '../domain/judgment.js';
 import { HttpError } from '../domain/httpError.js';
 import { assertPeriod } from './ingestService.js';
@@ -136,6 +140,40 @@ export function createJudgmentService({
           all_resolved: unresolved.length === 0,
           note: '每条引用均带 center / version / as_of / 数据截止时间，可按 conclusion_id 回查结论快照。',
         },
+      };
+    },
+
+    /**
+     * PAND-92 判定标准落地：跨域判断中每个引用专业中心结论的位置逐条核验来源标注。
+     * 判定入口 = 「每条引用均有非空的来源标注（来源中心名称 + 结论时间/版本）」，
+     * 来源不可用的引用位置须标注「来源不可用」，不得留空或用占位符搪塞。
+     */
+    async checkSourceLabels(judgmentId) {
+      const row = await judgmentRepository.findById(judgmentId);
+      if (!row) {
+        throw new HttpError(404, 'JUDGMENT_NOT_FOUND', `跨域判断 ${judgmentId} 不存在`);
+      }
+      const detail = row.detail ?? {};
+      // 旧判断（PAND-92 落地前物化）detail 中无 source_citations，按同一口径从域视图重建，
+      // 避免历史判断在核验入口表现为「无来源标注」。
+      const citations =
+        Array.isArray(detail.source_citations) && detail.source_citations.length > 0
+          ? detail.source_citations
+          : buildSourceCitations(detail.domains ?? []);
+      const report = verifySourceLabels(citations);
+
+      return {
+        judgment_id: row.id,
+        period: { type: row.period_type, value: row.period_value },
+        level: row.level,
+        rule_version: row.rule_version,
+        reference_count: (detail.references ?? []).length,
+        source_unavailable_label: SOURCE_UNAVAILABLE_LABEL,
+        citations,
+        ...report,
+        verdict: report.passed
+          ? `共 ${report.total} 条引用位置，来源标注齐全：可用来源 ${report.available_count} 条（均含来源中心名称 + 结论时间/版本），来源不可用 ${report.unavailable_count} 条（标注「来源不可用」）。`
+          : `共 ${report.total} 条引用位置，其中来源标注缺失 ${report.unlabeled_count} 条、可用来源标注不完整 ${report.incomplete_available_count} 条，判定不通过。`,
       };
     },
 

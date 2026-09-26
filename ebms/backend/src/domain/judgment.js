@@ -24,6 +24,24 @@ export const CENTER_LABEL = Object.freeze(
 /** 边界：某专业中心数据缺失时，跨域判断标注「该域数据缺失」 */
 export const DOMAIN_MISSING_LABEL = '该域数据缺失';
 
+/** 边界（PAND-92）：来源不可用时，引用位置显示「来源不可用」 */
+export const SOURCE_UNAVAILABLE_LABEL = '来源不可用';
+
+/**
+ * 来源不可用的原因枚举（PAND-92）：
+ *   source_missing      —— 来源中心结论不可用（无快照 / 中心未返回 / 不可达 / 超时 / 无数据）
+ *   no_time_or_version  —— 结论快照存在，但既无结论时间也无版本，来源标注无从构成
+ */
+export const SOURCE_UNAVAILABLE_REASON = Object.freeze({
+  SOURCE_MISSING: 'source_missing',
+  NO_TIME_OR_VERSION: 'no_time_or_version',
+});
+
+export const SOURCE_UNAVAILABLE_REASON_LABEL = Object.freeze({
+  source_missing: '来源中心结论不可用',
+  no_time_or_version: '结论快照缺少结论时间与版本',
+});
+
 /** 判定标准：抽样不少于 10 条比对 */
 export const MIN_CONSISTENCY_SAMPLES = 10;
 
@@ -267,6 +285,8 @@ export function evaluateJudgment({ conclusions = [], period, minPresentDomains =
 
   // 引用 = 有结论可引用的域；缺失域无结论可引用，归入 missing_domains 单独标注
   const refs = buildReferences(presentDomains);
+  // 引用位置清单（PAND-92）：四域逐位给出来源标注，来源不可用的位置标注「来源不可用」
+  const sourceCitations = buildSourceCitations(domains);
 
   const parts = [];
   if (insufficient) {
@@ -335,8 +355,128 @@ export function evaluateJudgment({ conclusions = [], period, minPresentDomains =
     coupled_metrics: coupledMetrics,
     references: refs,
     reference_count: refs.length,
+    // PAND-92：每个引用位置的来源标注（来源中心名称 + 结论时间/版本；不可用则为「来源不可用」）
+    source_citations: sourceCitations,
+    unavailable_source_count: sourceCitations.filter((c) => c.source_label.available === false).length,
     can_judge: !insufficient,
     min_present_domains: minPresentDomains,
+  };
+}
+
+/** 结论时间展示：取到日粒度（YYYY-MM-DD）；原值另存 conclusion_time 供追溯，不做任何推算。 */
+function fmtConclusionTime(value) {
+  const m = String(value ?? '').match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
+/**
+ * 单条引用位置的来源标注（PAND-92 场景 1 + 边界）。
+ *
+ * 判定标准「每条引用均有非空的来源标注（来源中心名称 + 结论时间/版本）」在此结构性成立：
+ *   - 来源可用   → label = 中心名称 + 结论时间/版本，二者至少其一；
+ *   - 来源不可用 → label = 「来源不可用」，绝不返回空串或占位符；
+ * 因此不存在「引用存在但来源标注为空」的第三种状态。
+ * 全部取值来自中心结论快照字段（center_label / as_of / version），EBMS 不推算、不补齐。
+ */
+export function buildSourceLabel(view) {
+  const centerLabel = view?.center_label ?? null;
+  const conclusionTime = view?.as_of ?? view?.data_cutoff ?? null;
+  const version = view?.version ?? null;
+  const timeText = fmtConclusionTime(conclusionTime);
+
+  const base = {
+    center: view?.center ?? null,
+    center_label: centerLabel,
+    conclusion_time: conclusionTime,
+    conclusion_time_text: timeText,
+    conclusion_version: version,
+  };
+  const unavailable = (reason) => ({
+    ...base,
+    available: false,
+    label: SOURCE_UNAVAILABLE_LABEL,
+    unavailable_reason: reason,
+    unavailable_reason_label: SOURCE_UNAVAILABLE_REASON_LABEL[reason],
+  });
+
+  // 缺失域：该域结论不可用，引用位置按边界显示「来源不可用」
+  if (view?.missing) return unavailable(SOURCE_UNAVAILABLE_REASON.SOURCE_MISSING);
+  // 快照缺少中心名称或「结论时间 / 版本」二者皆无 → 来源标注无从构成，同样按「来源不可用」处理
+  if (!centerLabel) return unavailable(SOURCE_UNAVAILABLE_REASON.SOURCE_MISSING);
+  if (!timeText && !version) return unavailable(SOURCE_UNAVAILABLE_REASON.NO_TIME_OR_VERSION);
+
+  const parts = [centerLabel];
+  if (timeText) parts.push(timeText);
+  if (version) parts.push(`版本 ${version}`);
+  return {
+    ...base,
+    available: true,
+    label: parts.join(' · '),
+    unavailable_reason: null,
+    unavailable_reason_label: null,
+  };
+}
+
+/**
+ * 引用位置清单（PAND-92）：跨域判断中每一个「引用专业中心结论」的位置，含来源可用的引用
+ * 与来源不可用的引用位置（后者按边界标注「来源不可用」）。顺序固定为四域声明顺序。
+ */
+export function buildSourceCitations(domainViews = []) {
+  return domainViews.map((view) => ({
+    center: view.center,
+    center_label: view.center_label,
+    conclusion_id: view.conclusion_id ?? null,
+    missing: view.missing === true,
+    source_label: buildSourceLabel(view),
+  }));
+}
+
+/**
+ * 判定标准（PAND-92）：逐条核对「每条引用均有非空的来源标注」。
+ *   unlabeled_count              —— 来源标注为空的引用条数（须为 0）
+ *   incomplete_available_count   —— 可用来源中未同时含中心名称与结论时间/版本的条数（须为 0）
+ */
+export function verifySourceLabels(citations = []) {
+  const unlabeled = [];
+  const incomplete = [];
+  let availableCount = 0;
+  let unavailableCount = 0;
+
+  for (const citation of citations) {
+    const source = citation?.source_label ?? null;
+    const label = typeof source?.label === 'string' ? source.label.trim() : '';
+    const where = {
+      center: citation?.center ?? null,
+      center_label: citation?.center_label ?? null,
+      conclusion_id: citation?.conclusion_id ?? null,
+    };
+    if (!label) {
+      unlabeled.push({ ...where, reason: 'empty_label' });
+      continue;
+    }
+    if (source.available === false) {
+      unavailableCount += 1;
+      continue;
+    }
+    availableCount += 1;
+    if (!source.center_label || (!source.conclusion_time && !source.conclusion_version)) {
+      incomplete.push({ ...where, label });
+    }
+  }
+
+  const total = citations.length;
+  return {
+    total,
+    labeled_count: total - unlabeled.length,
+    unlabeled_count: unlabeled.length,
+    unlabeled,
+    available_count: availableCount,
+    unavailable_count: unavailableCount,
+    incomplete_available_labels: incomplete,
+    incomplete_available_count: incomplete.length,
+    all_labeled: unlabeled.length === 0,
+    all_available_labels_complete: incomplete.length === 0,
+    passed: unlabeled.length === 0 && incomplete.length === 0,
   };
 }
 
@@ -351,6 +491,8 @@ export function buildReferences(domainViews) {
     data_cutoff: view.data_cutoff,
     source_mode: view.source_mode,
     missing: view.missing,
+    // 场景 1 + 判定标准（PAND-92）：引用处标注来源中心与结论时间/版本
+    source_label: buildSourceLabel(view),
     metrics_cited: view.metrics
       .filter((m) => m.data_status === 'ok')
       .map((m) => ({
