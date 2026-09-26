@@ -1,0 +1,17 @@
+{
+  "name": "ebms-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EBMS 经营管理系统后端（跨域结论汇聚 + 追溯），模块化单体：router → service → repository",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "migrate": "node src/db/migrate.js",
+    "seed": "node src/db/seed.js",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}
