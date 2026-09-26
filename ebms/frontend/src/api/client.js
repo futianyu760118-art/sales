@@ -52,4 +52,10 @@ export const api = {
     request(`/reasons/${reasonId}/evidences`, { method: 'POST', body: { evidenceId }, auth: true }),
   unlinkEvidence: (reasonId, evidenceId) =>
     request(`/reasons/${reasonId}/evidences/${evidenceId}`, { method: 'DELETE', auth: true }),
+
+  // F11（PAND-89）四视图对象交叉跳转
+  viewObjectTypes: () => request('/view-object-types'),
+  viewObjects: (type) => request(`/objects/${type}`),
+  viewObject: (type, id) => request(`/objects/${type}/${id}`),
+  viewNavigation: (type, id) => request(`/objects/${type}/${id}/links`),
 };

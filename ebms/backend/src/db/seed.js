@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../config/env');
 const { pool } = require('./pool');
+const { canonicalPair } = require('../domain/links/link-repository');
 
 // 自检夹具：固定 UUID，便于测试逐条断言。
 const IDS = {
@@ -24,7 +25,34 @@ const IDS = {
     manualNote: 'bbbbbbbb-0004-4000-8000-000000000004',
     warehouse: 'bbbbbbbb-0005-4000-8000-000000000005',
   },
+  // F11（PAND-89）四视图对象锚点：含「有关联」与「无关联」两组，
+  // 前者覆盖全部 6 组类型对（→ 12 个有向组合），后者用于「入口置灰」的边界判定。
+  reports: {
+    linked: 'cccccccc-0001-4000-8000-000000000001', // 关联 TODO/Decision/Evidence
+    orphan: 'cccccccc-0002-4000-8000-000000000002', // 无关联（边界）
+  },
+  todos: {
+    linked: 'dddddddd-0001-4000-8000-000000000001', // 关联 Report/Decision/Evidence
+    orphan: 'dddddddd-0002-4000-8000-000000000002', // 无关联（边界）
+    partial: 'dddddddd-0003-4000-8000-000000000003', // 仅关联 Evidence（逐入口置灰）
+  },
+  decisions: {
+    linked: 'eeeeeeee-0001-4000-8000-000000000001', // 关联 Report/TODO/Evidence
+    orphan: 'eeeeeeee-0002-4000-8000-000000000002', // 无关联（边界）
+  },
 };
+
+// F11 关联夹具：每行 = 一条关联（双向可达）。前 6 行覆盖全部 6 组类型对。
+const VIEW_LINK_FIXTURES = [
+  { from: ['report', 'linked'], to: ['todo', 'linked'], relationType: 'related' },
+  { from: ['report', 'linked'], to: ['decision', 'linked'], relationType: 'derived_from' },
+  { from: ['report', 'linked'], to: ['evidence', 'contract'], relationType: 'related' },
+  { from: ['todo', 'linked'], to: ['decision', 'linked'], relationType: 'executes' },
+  { from: ['todo', 'linked'], to: ['evidence', 'document'], relationType: 'evidences' },
+  { from: ['decision', 'linked'], to: ['evidence', 'systemRecord'], relationType: 'evidences' },
+  // 逐入口置灰用：仅一条关联，故其余两个入口应为「无关联」
+  { from: ['todo', 'partial'], to: ['evidence', 'manualNote'], relationType: 'related' },
+];
 
 const CONTRACT_FILE = '采购框架合同_SC-2026-014.pdf';
 const SEED_ACTOR_NAME = '李责任（管理责任人）';
@@ -61,7 +89,9 @@ async function seed() {
     await client.query('BEGIN');
 
     // 幂等：本脚本是开发/自检夹具，先清空 EBMS 自有数据再灌入。
-    await client.query('TRUNCATE reason_evidences, audit_log, evidences, result_reasons, result_metrics CASCADE');
+    await client.query(
+      'TRUNCATE reason_evidences, object_links, audit_log, evidences, result_reasons, result_metrics, reports, todos, decisions CASCADE'
+    );
 
     await client.query(
       `INSERT INTO ebms_users (id, username, display_name, role) VALUES
@@ -169,11 +199,59 @@ async function seed() {
       );
     }
 
+    // ---------------------------------------------------------------- F11 四视图对象（PAND-89）
+    await client.query(
+      `INSERT INTO reports (id, code, title, conclusion, period_type, period_value, domain, owner, created_by) VALUES
+         ($1, 'RPT-2026-09-01', '9月经营月报：订单交付偏差', '订单交付达成 87%，低于目标 13 个百分点，主因产能不足。', 'month', '2026-09', '销售', '经营管理部', $3),
+         ($2, 'RPT-2026-09-02', '9月经营月报：渠道库存',     '渠道库存周转放缓，暂未形成偏差结论。',                 'month', '2026-09', '销售', '经营管理部', $3)`,
+      [IDS.reports.linked, IDS.reports.orphan, IDS.users.owner]
+    );
+
+    await client.query(
+      `INSERT INTO todos (id, code, title, source, status, owner, due_at, created_by) VALUES
+         ($1, 'TODO-2026-0901', '2号线排产调整以补产能缺口', 'rule',   'in_progress', '生产中心 / 赵计划', '2026-09-30T00:00:00+08:00', $4),
+         ($2, 'TODO-2026-0902', '华东渠道库存清理',           'manual', 'pending',     '销售中心 / 孙渠道', '2026-10-15T00:00:00+08:00', $4),
+         ($3, 'TODO-2026-0903', '补充技改停产影响说明材料',   'manual', 'pending',     '生产中心 / 钱厂长', NULL, $4)`,
+      [IDS.todos.linked, IDS.todos.orphan, IDS.todos.partial, IDS.users.owner]
+    );
+
+    await client.query(
+      `INSERT INTO decisions (id, code, title, background, conclusion, status, decider, decided_at, created_by) VALUES
+         ($1, 'DEC-2026-0901', '是否追加2号线夜班产能', '交付偏差 13pp，产能缺口为主要归因。', '同意 10 月起追加夜班，先试运行一个月。', 'decided', '张决策', '2026-09-22T00:00:00+08:00', $3),
+         ($2, 'DEC-2026-0902', '是否调整华东渠道政策',   '渠道库存周转放缓，尚未形成结论。',     NULL,                                    'pending', NULL,     NULL,                          $3)`,
+      [IDS.decisions.linked, IDS.decisions.orphan, IDS.users.owner]
+    );
+
+    for (const fixture of VIEW_LINK_FIXTURES) {
+      const [fromType, fromKey] = fixture.from;
+      const [toType, toKey] = fixture.to;
+      const fromId = IDS[`${fromType}s`][fromKey];
+      const toId = IDS[`${toType}s`][toKey];
+      const { pairA, pairB } = canonicalPair(fromType, fromId, toType, toId);
+      const inserted = await client.query(
+        `INSERT INTO object_links (from_type, from_id, to_type, to_id, pair_a, pair_b, relation_type, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+        [fromType, fromId, toType, toId, pairA, pairB, fixture.relationType, IDS.users.owner]
+      );
+      await client.query(
+        `INSERT INTO audit_log (actor, actor_name, action, entity_type, entity_id, reason_id, after)
+         VALUES ($1, $2, 'view_link.create', 'object_link', $3, NULL, $4::jsonb)`,
+        [
+          IDS.users.owner,
+          SEED_ACTOR_NAME,
+          String(inserted.rows[0].id),
+          JSON.stringify({ fromType, fromId, toType, toId, relationType: fixture.relationType }),
+        ]
+      );
+    }
+
     await client.query('COMMIT');
     console.log('[seed] done');
     console.log('[seed]   reason 已有证据 :', IDS.reasons.capacity, '(4 条)');
     console.log('[seed]   reason 无证据   :', IDS.reasons.channel, '(0 条 → 无证据支撑)');
     console.log('[seed]   reason 已有证据 :', IDS.reasons.material, '(2 条)');
+    console.log('[seed]   四视图关联     :', VIEW_LINK_FIXTURES.length, '条（覆盖 6 组类型对）');
+    console.log('[seed]   无关联对象     : report/todo/decision 各 1 + 证据 1（入口置灰边界）');
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -191,4 +269,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { seed, IDS, CONTRACT_FILE };
+module.exports = { seed, IDS, CONTRACT_FILE, VIEW_LINK_FIXTURES };

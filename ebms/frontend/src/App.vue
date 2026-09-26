@@ -2,10 +2,14 @@
 import { onMounted, ref } from 'vue';
 import { api, getToken, setToken } from './api/client';
 import ReasonEvidenceView from './views/ReasonEvidenceView.vue';
+import ViewExplorer from './views/ViewExplorer.vue';
 
 const authed = ref(Boolean(getToken()));
 const booting = ref(false);
 const error = ref('');
+
+// F3 原因项证据（PAND-81） / F11 四视图交叉跳转（PAND-89）
+const activeModule = ref('reason');
 
 const username = ref('owner');
 const currentUser = ref(null);
@@ -73,6 +77,24 @@ const selectedReason = () => reasons.value.find((r) => r.id === selectedReasonId
         <span class="brand-sub">经营管理系统 · 原因项证据（F3）</span>
       </div>
       <div v-if="authed" class="app-user">
+        <nav class="module-tabs">
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            :class="{ active: activeModule === 'reason' }"
+            @click="activeModule = 'reason'"
+          >
+            原因项证据（F3）
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            :class="{ active: activeModule === 'views' }"
+            @click="activeModule = 'views'"
+          >
+            四视图导航（F11）
+          </button>
+        </nav>
         <span class="muted">{{ currentUser?.displayName || '已登录' }}</span>
         <button class="btn btn-ghost btn-sm" type="button" @click="logout">退出</button>
       </div>
@@ -90,6 +112,10 @@ const selectedReason = () => reasons.value.find((r) => r.id === selectedReasonId
         <button class="btn btn-primary" type="submit">登录</button>
         <p class="muted hint">开发环境账号：<code>decider</code>（决策者）、<code>owner</code>（管理责任人）</p>
       </form>
+    </main>
+
+    <main v-else-if="activeModule === 'views'" class="layout">
+      <ViewExplorer />
     </main>
 
     <main v-else class="layout">

@@ -2,6 +2,7 @@
 
 const express = require('express');
 const evidenceRoutes = require('./http/routes/evidence-routes');
+const objectRoutes = require('./http/routes/object-routes');
 const authRoutes = require('./http/routes/auth-routes');
 const { errorHandler, notFoundHandler } = require('./http/middleware/error-handler');
 
@@ -26,6 +27,7 @@ function createApp() {
   app.get('/api/v1/health', (_req, res) => res.json({ ok: true, data: { status: 'up' } }));
   app.use('/api/v1', authRoutes);
   app.use('/api/v1', evidenceRoutes);
+  app.use('/api/v1', objectRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

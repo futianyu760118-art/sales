@@ -3,17 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "EBMS 前端（Vue 3 + Vite）：F3 原因项证据视图",
+  "description": "EBMS 前端（Vue 3 + Vite）：F3 原因项证据视图、F11 四视图交叉跳转",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --port 4173"
+    "preview": "vite preview --port 4173",
+    "test": "node --test \"test/*.test.js\""
   },
   "dependencies": {
     "vue": "^3.4.38"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.2",
+    "@vue/server-renderer": "^3.4.38",
     "vite": "^5.4.2"
   }
 }

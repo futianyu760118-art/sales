@@ -8,14 +8,26 @@ EBMS 是**跨域结论汇聚 + 经营判断 + 追溯**层，面向决策者与�
 
 ## 当前实现范围
 
-本次交付 **F3 证据关联（PAND-81）** 的完整切片，并包含其运行所需的**最小数据底座**（工程骨架、鉴权/RBAC 中的操作人识别、Result/Reason 锚点、通用留痕）。
+本次交付 **F3 证据关联（PAND-81）** 与 **F11 四视图交叉跳转（PAND-89）** 两个完整切片，并包含其运行所需的**最小数据底座**（工程骨架、鉴权/RBAC 中的操作人识别、Result/Reason 锚点、通用留痕）。
 
 | 功能 | 状态 |
 |---|---|
 | F3 原因项挂载并查看支撑证据（PAND-81） | ✅ 已实现 |
+| F11 REPORT/TODO/Decision/Evidence 四视图互相跳转（PAND-89） | ✅ 已实现 |
 | F1 结果指标集（PAND-79） | 锚点表 `result_metrics` 已建，接口未实现 |
 | F2 归因穿透（PAND-80） | 锚点表 `result_reasons` + 只读清单已建，归因算法未实现 |
-| F4 来源标注（PAND-82）、F5 四层下钻（PAND-83）、F10 Evidence 检索（PAND-88）等 | 未实现（后续 issue） |
+| F7 REPORT 视图（PAND-85）、F8 TODO 视图（PAND-86）、F9 Decision 视图（PAND-87）、F10 Evidence 检索（PAND-88）、F4 来源标注（PAND-82）、F5 四层下钻（PAND-83）等 | 未实现（后续 issue） |
+
+### F11 四视图交叉跳转（PAND-89）说明
+
+四视图口径：**REPORT = Result**、**TODO = Action**、**Decision**、**Evidence**。
+
+- **关联模型**：`object_links` 一行 = 一条关联，**天然双向可达**。因此 Report↔TODO 一条记录即同时满足 `report→todo` 与 `todo→report`，6 组类型对即可覆盖 AC 要求的全部 12 个有向组合。
+- **幂等**：写入时把两端规范化为 `pair_a`/`pair_b`（`"<type>:<id>"` 字典序），配合 `UNIQUE (pair_a, pair_b)`，同一对对象无论从哪端、方向如何建立都只留一行。
+- **置灰边界**：无关联时入口**置灰**且提示「**无关联**」；判定按**入口**（目标类型）粒度，因此部分关联的对象只置灰没有关联的那几个入口。
+- **视图对象锚点**：本切片只建「能被链接、能被解析出落点」的对象身份（`reports`/`todos`/`decisions`，`evidences` 见 001）。各视图的**完整业务字段由归属 issue 以 `ALTER TABLE` 追加**（PAND-85/86/87/88），本切片不臆造其业务列。
+- **跳转落点**：前端 hash 路由 `#/report/<id>`、`#/todo/<id>`、`#/decision/<id>`、`#/evidence/<id>`，可直接作为直达链接，支持浏览器前进/后退。
+- **不涵盖**：关联的新增/解除目前只有后端接口与留痕，前端未提供编辑入口（导航为本 issue 的 AC 范围）。
 
 ## 目录结构
 
@@ -29,23 +41,31 @@ ebms/
       db/
         pool.js                   连接池 + withTransaction（写数据与留痕同事务）
         migrate.js                迁移执行器
-        seed.js                   自检/联调夹具（含 1 个「无证据支撑」原因项）
-        migrations/001_init.sql   数据模型
+        seed.js                   自检/联调夹具（含「无证据支撑」原因项、四视图关联/无关联对象）
+        migrations/001_init.sql   数据模型（证据 / 原因项 / 留痕）
+        migrations/002_view_links.sql  四视图对象锚点 + object_links（F11）
       domain/
         evidence/                 证据域：类型枚举 / 仓储 / 服务（校验+用例）
+        views/                    四视图对象注册表（唯一类型口径）+ 对象仓储（F11）
+        links/                    交叉跳转关联：规范化配对 / 仓储 / 导航服务（F11）
         reason/                   原因项锚点（只读）
         audit/                    通用留痕仓储
       http/
-        routes/                   证据路由、开发登录路由
+        routes/                   证据路由、四视图对象路由、开发登录路由
         middleware/               操作人识别、错误处理
       lib/token.js                HMAC-SHA256 签名 token
     test/evidence-ac.test.js      AC 逐条自动化验证（node:test）
+    test/view-links-ac.test.js    F11 AC 逐条验证（可达性 / 落点 / 置灰 / 幂等 / 留痕）
   frontend/
     src/
-      App.vue                     登录 + 原因项导航
+      App.vue                     登录 + 模块切换（原因项证据 / 四视图导航）
       views/ReasonEvidenceView.vue 证据列表 / 无证据支撑提示 / 留痕
-      components/                 详情面板、新增弹层、关联弹层
+      views/ViewExplorer.vue      F11 四视图外壳：类型切换、对象清单、hash 路由
+      views/ViewObjectDetail.vue  F11 对象落地页 + 交叉跳转入口
+      components/                 详情面板、新增弹层、关联弹层、四视图导航栏
+      view-nav.js                 F11 导航纯逻辑（置灰判定 / 落点地址 / hash 解析）
       api/client.js               API 客户端
+    test/                         F11 前端单测（导航模型 + SSR 渲染断言）
 ```
 
 ## 数据模型（本切片）
@@ -57,6 +77,18 @@ ebms/
 - `audit_log` —— 通用留痕：`actor`（id）+ `actor_name`（可读名）+ `action` + `entity` + `at`。
 - `result_metrics` / `result_reasons` —— Evidence 的挂载锚点（F1/F2 的完整字段由各自 issue 交付）。
 - `ebms_users` —— 本切片最小操作人身份。
+
+**F11 四视图（PAND-89，迁移 002）**
+
+- `view_object_type` —— 枚举 `report | todo | decision | evidence`，交叉跳转的类型唯一取值来源。
+- `reports` / `todos` / `decisions` —— 视图对象**锚点表**（含 `code` 唯一与最小展示字段）。
+  约定与 `result_metrics`/`result_reasons` 一致：**各视图的完整业务字段由归属 issue 以 `ALTER TABLE` 追加**（PAND-85/86/87），本切片只保证「可被链接、可被解析出落点」。
+- `object_links` —— 四视图对象之间的关联：`from_type/from_id`、`to_type/to_id`、`relation_type`
+  （`related | derived_from | evidences | executes`）、`created_by`。
+  约束：`pair_a`/`pair_b`（规范化的 `"<type>:<id>"` 字典序两端）+ `UNIQUE (pair_a, pair_b)` 保证
+  **同一对对象只留一行**（关联幂等 + 双向可达）；`CHECK (pair_a <= pair_b)` 杜绝正反两行；
+  `CHECK (NOT (from_type = to_type AND from_id = to_id))` 禁止自关联。
+- `audit_log.action` 扩展 `view_link.create` / `view_link.delete`。
 
 **证据类型枚举**（业务方 2026-09-23 确认口径，唯一取值来源）：
 
@@ -80,6 +112,12 @@ ebms/
 | GET | `/evidences/{id}/attachments/{index}` | 附件预览（`?download=1` 为下载） |
 | POST | `/evidences` | **新增**证据（带 `reasonId` 时同时关联） |
 | GET | `/evidences?unlinkedToReason=&q=` | 关联候选清单（完整检索由 F10/PAND-88 交付） |
+| GET | `/view-object-types` | **F11** 四视图类型枚举（REPORT/TODO/Decision/Evidence） |
+| GET | `/objects/{type}` | **F11** 某视图的对象清单（导航用，`?limit=`） |
+| GET | `/objects/{type}/{id}` | **F11** 对象落地页数据（跳转落点） |
+| GET | `/objects/{type}/{id}/links` | **F11 交叉跳转入口**：不带 `target_type` 返回三类入口（含 `disabled` / `hint`「无关联」）；带 `target_type` 返回该类型的关联对象平铺清单 |
+| POST | `/objects/{type}/{id}/links` | **F11** 建立关联（幂等；重复建立返回 200 且 `created=false`） |
+| DELETE | `/objects/{type}/{id}/links/{targetType}/{targetId}` | **F11** 解除关联（与建立方向无关） |
 | POST | `/auth/dev-login` | 开发环境签发操作人 token |
 
 写操作均需 `Authorization: Bearer <token>`，并写入留痕（操作人 + 时间）。
@@ -114,9 +152,12 @@ npm run dev                # http://127.0.0.1:5199（/api 已代理到后端）
 ## 自检
 
 ```bash
-cd ebms/backend && npm test        # 17 项：AC 场景/边界/判定标准逐条断言
+cd ebms/backend && npm test        # 29 项：F3 + F11 的 AC 场景/边界/判定标准逐条断言
+cd ebms/frontend && npm test       # 11 项：F11 导航模型 + SSR 渲染断言（置灰/「无关联」文案）
 cd ebms/frontend && npm run build  # 前端构建
 ```
+
+F11 夹具覆盖：6 组类型对（→ 12 个有向组合）各 1 条关联；`report`/`todo`/`decision`/`evidence` 各 1 个**无关联**对象（入口置灰边界）；1 个**部分关联** TODO（逐入口置灰）。
 
 浏览器端 AC 走查（真实浏览器 23 项检查）见 PAND-81 评论中的验证结果。
 
