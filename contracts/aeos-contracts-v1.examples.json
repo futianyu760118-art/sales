@@ -1,0 +1,65 @@
+{
+  "result": {
+    "contract_version": "AEOS.Result.V1",
+    "result_id": "RES-EXAMPLE",
+    "source_system": "M09",
+    "object_type": "BusinessMetric",
+    "object_id": "gross_margin",
+    "period": {
+      "start": "YYYY-MM-DD",
+      "end": "YYYY-MM-DD"
+    },
+    "metric": {
+      "code": "gross_margin",
+      "value": 0,
+      "unit": "percent",
+      "calculation_version": "M09-GM-V1"
+    },
+    "status": "VERIFIED",
+    "evidence_ids": [
+      "EVD-EXAMPLE"
+    ],
+    "trace_id": "TRACE-EXAMPLE",
+    "occurred_at": "YYYY-MM-DDTHH:mm:ss+08:00"
+  },
+  "exception": {
+    "contract_version": "AEOS.Exception.V1",
+    "exception_id": "EXC-EXAMPLE",
+    "source_system": "M06",
+    "object_type": "DeliveryOrder",
+    "object_id": "ORDER-EXAMPLE",
+    "severity": "high",
+    "reason_code": "DELIVERY_RISK",
+    "status": "OPEN",
+    "evidence_ids": [],
+    "trace_id": "TRACE-EXAMPLE",
+    "occurred_at": "YYYY-MM-DDTHH:mm:ss+08:00"
+  },
+  "decision": {
+    "contract_version": "AEOS.Decision.V1",
+    "decision_id": "DEC-EXAMPLE",
+    "source_system": "M03",
+    "object_type": "ManagementDecision",
+    "object_id": "DEC-EXAMPLE",
+    "decision": "example",
+    "owner_id": "USER-EXAMPLE",
+    "status": "APPROVED",
+    "evidence_ids": [],
+    "trace_id": "TRACE-EXAMPLE",
+    "occurred_at": "YYYY-MM-DDTHH:mm:ss+08:00"
+  },
+  "action": {
+    "contract_version": "AEOS.Action.V1",
+    "action_id": "ACT-EXAMPLE",
+    "source_system": "M03",
+    "object_type": "ManagementAction",
+    "object_id": "ACT-EXAMPLE",
+    "decision_id": "DEC-EXAMPLE",
+    "assignee_id": "USER-EXAMPLE",
+    "due_at": "YYYY-MM-DDTHH:mm:ss+08:00",
+    "status": "TODO",
+    "evidence_ids": [],
+    "trace_id": "TRACE-EXAMPLE",
+    "occurred_at": "YYYY-MM-DDTHH:mm:ss+08:00"
+  }
+}
