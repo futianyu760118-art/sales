@@ -59,6 +59,7 @@ const sidebarItems = [
   { href: 'order-analysis.html', label: '订单分析库',   group: 'business', perm: 'order-analysis:view' },
   { href: 'material-issue.html', label: '领料单',       group: 'business', perm: 'material-issue:view' },
   { href: 'sop.html', label: '产销协调会', group: 'business', perm: 'prod-coord:view' },
+  { href: 'evidence.html',       label: 'Evidence 视图', group: 'business', perm: 'evidence:view' },
   { href: 'ai-assistant.html',   label: 'AI 经营助手',  group: 'business', perm: 'ai:view' },
   { href: 'customer.html',       label: '客户管理',     group: 'sales', perm: 'customer:view' },
   { href: 'inquiry.html',        label: '询价管理',     group: 'sales', perm: 'inquiry:view' },

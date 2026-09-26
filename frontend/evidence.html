@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <script src="icons.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>EBMS企业经营管理系统 - Evidence 视图</title><link rel="stylesheet" href="common.css">
+<style>
+.sb{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sb input,.sb select{padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:14px}
+.panel h3{margin:0 0 10px;font-size:14px;color:#444}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+th{background:#f5f6fa;padding:9px 8px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #eee;white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:7px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:hover td{background:#f8f9ff}
+.tbl-wrap{overflow-x:auto;max-height:64vh;overflow-y:auto}
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.b1{background:#667eea;color:#fff}.b2{background:#27ae60;color:#fff}.b3{background:#e74c3c;color:#fff}.b4{background:#f39c12;color:#fff}
+.bs{padding:3px 8px;font-size:11px}
+.pg{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:13px;color:#666;flex-wrap:wrap;gap:8px}
+.em{text-align:center;color:#999;padding:30px}
+.empty-box{text-align:center;color:#888;padding:34px 16px}
+.empty-box .t{font-size:15px;font-weight:600;color:#666;margin-bottom:6px}
+.empty-box .s{font-size:12px;color:#999;line-height:1.9}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(0,0,0,.06);color:#555}
+.t-doc{background:#e8f0fe;color:#1a56b8}.t-contract{background:#e6f7ed;color:#1c7c46}
+.t-sys{background:#f1e9fd;color:#6b3fa0}.t-manual{background:#fff3e0;color:#a9631a}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);text-align:center}
+.sc .n{font-size:22px;font-weight:700;color:#667eea}.sc .l{font-size:11px;color:#999;margin-top:2px}
+.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:20px}.mo.ac{display:flex}
+.mb{background:#fff;border-radius:12px;padding:20px;width:720px;max-width:95%;max-height:90vh;overflow:auto}
+.fg{margin-bottom:8px}.fg label{display:block;font-size:12px;color:#666;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+.fg textarea{resize:vertical;min-height:46px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dl{font-size:13px;line-height:2}.dl b{display:inline-block;min-width:92px;color:#666;font-weight:500}
+.src-missing{color:#e74c3c;font-size:11px}
+.chip{display:inline-block;padding:1px 7px;border-radius:9px;background:#f0f3ff;color:#4356b8;font-size:11px;margin:0 3px 3px 0}
+</style></head><body data-page-title="Evidence 视图" data-page-perm="evidence:view">
+<div class="sidebar" id="sidebar"></div>
+<div class="main-content" data-module="evidence">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2>Evidence 视图</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn b1" onclick="openAdd()" data-perm="evidence:create">登记证据</button>
+</div>
+</div>
+
+<div class="sg" id="statCards"></div>
+
+<div class="panel">
+<h3>检索条件</h3>
+<div class="sb">
+<label style="font-size:12px;color:#666">形成时间</label>
+<input type="date" id="f_date_from" title="形成时间起">
+<input type="date" id="f_date_to" title="形成时间止">
+<label style="font-size:12px;color:#666">证据类型</label>
+<select id="f_type"><option value="">全部类型</option></select>
+<label style="font-size:12px;color:#666">责任人</label>
+<select id="f_owner"><option value="">全部责任人</option></select>
+<label style="font-size:12px;color:#666">来源系统</label>
+<select id="f_source"><option value="">全部来源系统</option></select>
+</div>
+<div class="sb">
+<label style="font-size:12px;color:#666">来源数据时间</label>
+<input type="date" id="f_data_from" title="来源数据时间起">
+<input type="date" id="f_data_to" title="来源数据时间止">
+<label style="font-size:12px;color:#666">来源单据号</label>
+<input type="text" id="f_kw" placeholder="标题/内容/编码/单据号/提供方" style="width:230px">
+<button class="btn b1" onclick="loadList(1)">查询</button>
+<button class="btn bs" style="background:#eee;color:#555" onclick="resetFilter()">重置</button>
+</div>
+</div>
+
+<div class="tbl-wrap">
+<table id="tbl">
+<thead><tr>
+<th>证据编码</th><th>标题</th><th>证据类型</th><th>形成时间</th><th>责任人</th>
+<th>来源系统</th><th>来源单据</th><th>提供方</th><th>关联结果/原因</th><th>操作</th>
+</tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div class="pg" id="pg"></div>
+</div><!-- /main-content -->
+
+<!-- ===== 登记/编辑弹窗 ===== -->
+<div class="mo" id="formModal">
+<div class="mb">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 id="formTitle" style="margin:0">登记证据</h3>
+<span onclick="closeForm()" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
+</div>
+<form id="evidenceForm" onsubmit="saveForm();return false">
+<input type="hidden" id="f_id">
+<div class="gr">
+<div class="fg"><label>证据编码</label><input id="f_code" placeholder="留空自动生成（EVD年月-流水号）"></div>
+<div class="fg"><label>证据类型 <span style="color:#e74c3c">*</span></label><select id="f_evidence_type" required></select></div>
+</div>
+<div class="fg"><label>标题 <span style="color:#e74c3c">*</span></label><input id="f_title" required></div>
+<div class="gr">
+<div class="fg"><label>形成时间 <span style="color:#e74c3c">*</span></label><input type="date" id="f_occurred_at" required></div>
+<div class="fg"><label>责任人</label><input id="f_owner_name" list="ownerList" placeholder="证据提供/责任人"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>来源系统</label><input id="f_source_system" list="sourceList" placeholder="如 销售系统 / 财务系统 / 手工录入"></div>
+<div class="fg"><label>来源单据编号</label><input id="f_object_id" placeholder="来源单据号 / 对象 ID"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>来源数据时间</label><input type="date" id="f_source_data_time"></div>
+<div class="fg"><label>提供方</label><input id="f_provider" placeholder="提供方（外部数据须标注）"></div>
+</div>
+<div class="gr">
+<div class="fg"><label>关联结果（逗号分隔）</label><input id="f_result_codes" placeholder="如 gross_margin, order_delivery"></div>
+<div class="fg"><label>关联原因（逗号分隔）</label><input id="f_reason_codes" placeholder="如 MATERIAL_COST, LABOR_COST"></div>
+</div>
+<div class="fg"><label>内容说明</label><textarea id="f_content"></textarea></div>
+<div style="text-align:right;margin-top:10px">
+<button type="button" class="btn bs" style="background:#eee;color:#555" onclick="closeForm()">取消</button>
+<button type="submit" class="btn b2">保存</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- ===== 详情弹窗 ===== -->
+<div class="mo" id="detailModal">
+<div class="mb">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 style="margin:0">证据详情</h3>
+<span onclick="document.getElementById('detailModal').classList.remove('ac')" style="cursor:pointer;font-size:24px;color:#999">&times;</span>
+</div>
+<div id="detailBox" class="dl"></div>
+</div>
+</div>
+
+<datalist id="ownerList"></datalist>
+<datalist id="sourceList"></datalist>
+
+<script src="common.js"></script>
+<script src="fetch-auth.js"></script>
+<script>
+const API='/api/evidences';
+const DEFAULT_PAGE_SIZE=20;
+let curPage=1, total=0, LIMIT=DEFAULT_PAGE_SIZE, meta={}, editing=null;
+
+// 单页条数可配置：默认 20 条，选择结果本地记住
+try{const saved=parseInt(localStorage.getItem('evidence_page_size'),10);if([10,20,50,100,200].indexOf(saved)>=0)LIMIT=saved}catch(e){}
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(m){let d=document.createElement('div');d.textContent=m;d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:6px;z-index:9999;font-size:13px';document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+
+// 检索条件 → 查询串（空值不下发，保证「各维度单独及组合均生效」可判定）
+function qs(){
+  const p=new URLSearchParams();
+  const map={f_date_from:'date_from',f_date_to:'date_to',f_type:'evidence_type',f_owner:'owner',
+             f_source:'source_system',f_data_from:'data_time_from',f_data_to:'data_time_to',f_kw:'keyword'};
+  Object.keys(map).forEach(id=>{const v=document.getElementById(id).value;if(v)p.set(map[id],v)});
+  return p;
+}
+
+// ===== 筛选项 =====
+async function loadFilterOpts(){
+  try{
+    const r=await fetch(API+'/meta/filter-options');
+    if(r.status===403){document.getElementById('tb').innerHTML='<tr><td colspan="10" class="em">无权限查看证据</td></tr>';return}
+    meta=await r.json();
+    fillSel('f_type',meta.evidence_types||[]);
+    fillSel('f_owner',(meta.owners||[]).map(o=>o.name));
+    fillSel('f_source',meta.source_systems||[]);
+    fillSel('f_evidence_type',meta.evidence_types||[]);
+    document.getElementById('ownerList').innerHTML=(meta.owners||[]).map(o=>'<option value="'+esc(o.name)+'">').join('');
+    document.getElementById('sourceList').innerHTML=(meta.source_systems||[]).map(s=>'<option value="'+esc(s)+'">').join('');
+  }catch(e){console.error(e)}
+}
+function fillSel(id,arr){const sel=document.getElementById(id);if(!sel)return;const cur=sel.value;const first=sel.options[0]?sel.options[0].outerHTML:'';sel.innerHTML=first+(arr||[]).map(v=>'<option>'+esc(v)+'</option>').join('');sel.value=cur}
+
+// ===== 统计（与列表同一检索口径）=====
+async function loadStats(){
+  try{
+    const r=await fetch(API+'/stats?'+qs().toString());const d=await r.json();
+    const t=d.by_type||{};
+    const cards=[
+      {n:d.total,l:'匹配证据数',c:'#667eea'},
+      {n:t['单据']||0,l:'单据',c:'#1a56b8'},
+      {n:t['合同']||0,l:'合同',c:'#1c7c46'},
+      {n:t['系统记录']||0,l:'系统记录',c:'#6b3fa0'},
+      {n:t['人工说明']||0,l:'人工说明',c:'#a9631a'},
+      {n:d.missing_source_count+(d.missing_source_count?' ('+d.missing_source_rate+'%)':''),l:'来源缺失',c:'#e74c3c'}
+    ];
+    document.getElementById('statCards').innerHTML=cards.map(c=>'<div class="sc"><div class="n" style="color:'+c.c+'">'+esc(c.n)+'</div><div class="l">'+c.l+'</div></div>').join('');
+  }catch(e){}
+}
+
+// ===== 列表 =====
+async function loadList(p){
+  if(p)curPage=p;
+  const tb=document.getElementById('tb');
+  try{
+    const r=await fetch(API+'?'+qs().toString()+'&page='+curPage+'&limit='+LIMIT);
+    if(r.status===403){tb.innerHTML='<tr><td colspan="10" class="em">无权限查看证据</td></tr>';renderPg();return}
+    const d=await r.json();total=d.total;
+    if(!d.data||!d.data.length){
+      // 边界：无结果时显示空态，检索条件保留在筛选区（不重置）
+      tb.innerHTML='<tr><td colspan="10"><div class="empty-box">'+
+        '<div class="t">没有匹配的证据</div>'+
+        '<div class="s">当前检索条件未命中任何证据，条件已保留在筛选区。<br>可放宽「时间范围 / 证据类型 / 责任人 / 来源系统」后重新查询。</div>'+
+        '</div></td></tr>';
+    }else{
+      tb.innerHTML=d.data.map(rowHtml).join('');
+    }
+    renderPg();
+    if(window.PermissionCheck)PermissionCheck.applyToPage();
+  }catch(e){tb.innerHTML='<tr><td colspan="10" class="em">加载失败: '+esc(e.message)+'</td></tr>';renderPg()}
+}
+function typeCls(t){return {'单据':'t-doc','合同':'t-contract','系统记录':'t-sys','人工说明':'t-manual'}[t]||''}
+function links(r){
+  const rs=(r.result_codes||[]).map(c=>'<span class="chip">结果 '+esc(c)+'</span>').join('');
+  const cs=(r.reason_codes||[]).map(c=>'<span class="chip">原因 '+esc(c)+'</span>').join('');
+  return (rs+cs)||'<span style="color:#bbb">未关联</span>';
+}
+function rowHtml(r){
+  const src=r.source_system?esc(r.source_system):'<span class="src-missing">来源缺失</span>';
+  return '<tr>'+
+    '<td>'+esc(r.evidence_code)+'</td>'+
+    '<td>'+esc(r.title)+'</td>'+
+    '<td><span class="badge '+typeCls(r.evidence_type)+'">'+esc(r.evidence_type)+'</span></td>'+
+    '<td>'+esc(r.occurred_at)+'</td>'+
+    '<td>'+esc(r.owner_name||'-')+'</td>'+
+    '<td>'+src+'</td>'+
+    '<td>'+esc(r.object_id||'-')+'</td>'+
+    '<td>'+esc(r.provider||'-')+'</td>'+
+    '<td>'+links(r)+'</td>'+
+    '<td><button class="btn bs b1" onclick="openDetail('+r.id+')">查看</button> '+
+    '<button class="btn bs b4" onclick="openEdit('+r.id+')" data-perm="evidence:edit">编辑</button> '+
+    '<button class="btn bs b3" onclick="del('+r.id+')" data-perm="evidence:delete">删</button></td>'+
+    '</tr>';
+}
+function renderPg(){
+  const pages=Math.max(1,Math.ceil(total/LIMIT));
+  const opts=(meta.page_size_options||[10,20,50,100,200]).map(n=>'<option value="'+n+'"'+(n===LIMIT?' selected':'')+'>'+n+' 条/页</option>').join('');
+  document.getElementById('pg').innerHTML=
+    '<span>共 '+total+' 条，第 '+curPage+'/'+pages+' 页</span>'+
+    '<div style="display:flex;gap:6px;align-items:center">'+
+    (curPage>1?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage-1)+')">上一页</button>':'')+
+    (curPage<pages?'<button class="btn bs" style="background:#eee" onclick="loadList('+(curPage+1)+')">下一页</button>':'')+
+    '<select id="pageSizeSel" title="每页显示条数" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">'+opts+'</select>'+
+    '</div>';
+  const sel=document.getElementById('pageSizeSel');
+  if(sel)sel.addEventListener('change',function(){
+    LIMIT=parseInt(this.value,10);
+    try{localStorage.setItem('evidence_page_size',String(LIMIT))}catch(e){}
+    loadList(1);loadStats();
+  });
+}
+function resetFilter(){['f_date_from','f_date_to','f_type','f_owner','f_source','f_data_from','f_data_to','f_kw'].forEach(id=>document.getElementById(id).value='');loadList(1);loadStats()}
+
+// ===== 详情 =====
+async function openDetail(id){
+  try{
+    const r=await fetch(API+'/'+id);const d=await r.json();
+    if(!r.ok){toast(d.error||'加载失败');return}
+    const row=(k,v)=>'<div><b>'+k+'</b>'+esc(v||'-')+'</div>';
+    document.getElementById('detailBox').innerHTML=
+      row('证据编码',d.evidence_code)+row('标题',d.title)+
+      '<div><b>证据类型</b><span class="badge '+typeCls(d.evidence_type)+'">'+esc(d.evidence_type)+'</span></div>'+
+      row('形成时间',d.occurred_at)+row('责任人',d.owner_name)+
+      row('来源系统',d.source_system||'来源缺失')+row('来源单据',d.object_id)+
+      row('来源数据时间',d.source_data_time)+row('提供方',d.provider)+
+      '<div><b>关联结果/原因</b>'+links(d)+'</div>'+
+      row('内容说明',d.content)+row('状态',d.status)+row('契约版本',d.contract_version)+row('登记时间',d.created_at);
+    document.getElementById('detailModal').classList.add('ac');
+  }catch(e){toast('加载失败: '+e.message)}
+}
+
+// ===== 登记/编辑 =====
+function openAdd(){
+  editing=null;
+  document.getElementById('evidenceForm').reset();
+  document.getElementById('f_id').value='';
+  document.getElementById('formTitle').textContent='登记证据';
+  document.getElementById('f_occurred_at').value=new Date().toISOString().substring(0,10);
+  if(meta.evidence_types&&meta.evidence_types.length)document.getElementById('f_evidence_type').value=meta.evidence_types[0];
+  document.getElementById('formModal').classList.add('ac');
+}
+async function openEdit(id){
+  try{
+    const r=await fetch(API+'/'+id);const d=await r.json();
+    if(!r.ok){toast(d.error||'加载失败');return}
+    editing=d;
+    document.getElementById('f_id').value=d.id;
+    document.getElementById('f_code').value=d.evidence_code||'';
+    document.getElementById('f_evidence_type').value=d.evidence_type||'';
+    document.getElementById('f_title').value=d.title||'';
+    document.getElementById('f_occurred_at').value=d.occurred_at||'';
+    document.getElementById('f_owner_name').value=d.owner_name||'';
+    document.getElementById('f_source_system').value=d.source_system||'';
+    document.getElementById('f_object_id').value=d.object_id||'';
+    document.getElementById('f_source_data_time').value=d.source_data_time||'';
+    document.getElementById('f_provider').value=d.provider||'';
+    document.getElementById('f_result_codes').value=(d.result_codes||[]).join(',');
+    document.getElementById('f_reason_codes').value=(d.reason_codes||[]).join(',');
+    document.getElementById('f_content').value=d.content||'';
+    document.getElementById('formTitle').textContent='编辑证据';
+    document.getElementById('formModal').classList.add('ac');
+  }catch(e){toast('加载失败: '+e.message)}
+}
+function closeForm(){document.getElementById('formModal').classList.remove('ac')}
+async function saveForm(){
+  const id=document.getElementById('f_id').value;
+  const body={
+    evidence_code:document.getElementById('f_code').value,
+    evidence_type:document.getElementById('f_evidence_type').value,
+    title:document.getElementById('f_title').value,
+    occurred_at:document.getElementById('f_occurred_at').value,
+    owner_name:document.getElementById('f_owner_name').value,
+    source_system:document.getElementById('f_source_system').value,
+    object_id:document.getElementById('f_object_id').value,
+    source_data_time:document.getElementById('f_source_data_time').value,
+    provider:document.getElementById('f_provider').value,
+    result_codes:document.getElementById('f_result_codes').value,
+    reason_codes:document.getElementById('f_reason_codes').value,
+    content:document.getElementById('f_content').value
+  };
+  try{
+    const r=await fetch(id?API+'/'+id:API,{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'保存失败');return}
+    toast(id?'已更新':'已登记');closeForm();loadFilterOpts();loadList(curPage);loadStats();
+  }catch(e){toast('保存失败: '+e.message)}
+}
+async function del(id){
+  if(!confirm('确认删除该证据？'))return;
+  try{
+    const r=await fetch(API+'/'+id,{method:'DELETE'});const d=await r.json();
+    if(!r.ok){toast(d.error||'删除失败');return}
+    toast('已删除');loadFilterOpts();loadList(curPage);loadStats();
+  }catch(e){toast(e.message)}
+}
+
+loadFilterOpts().then(()=>{loadStats();loadList(1)});
+</script>
+<script src="chat-widget.js"></script>
+<script src="feedback-widget.js"></script>
+<script src="brand.js"></script>
+<script src="permission-check.js"></script><script>PermissionCheck.init();</script></body></html>

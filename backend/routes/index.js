@@ -54,4 +54,7 @@ router.use('/order-check', require('./order-check'));
 router.use('/sop', require('./sop'));
 router.use('/im', require('./im'));
 
+// [Target Module: M03 EBMS] Evidence 视图——按证据维度独立检索与浏览（PAND-88 / F10）
+router.use('/evidences', require('./evidence'));
+
 module.exports = router;

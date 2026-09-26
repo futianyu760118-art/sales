@@ -534,7 +534,12 @@ const permissions = [
     { name: '删除阿米巴', code: 'amiba:delete', module: '阿米巴经营', description: '删除阿米巴记录', created_at: now() },
     { name: '审批阿米巴', code: 'amiba:audit', module: '阿米巴经营', description: '内部定价审批、争议仲裁', created_at: now() },
     { name: '核算阿米巴', code: 'amiba:calc', module: '阿米巴经营', description: '月度核算、目标拆解、结项核算', created_at: now() },
-    { name: '导出阿米巴', code: 'amiba:export', module: '阿米巴经营', description: '导出阿米巴经营数据', created_at: now() }
+    { name: '导出阿米巴', code: 'amiba:export', module: '阿米巴经营', description: '导出阿米巴经营数据', created_at: now() },
+    // Evidence 视图（M03 管理者工作面：证据按维度独立检索与浏览）
+    { name: '查看证据', code: 'evidence:view', module: 'Evidence视图', description: '按证据维度独立检索与浏览证据', created_at: now() },
+    { name: '登记证据', code: 'evidence:create', module: 'Evidence视图', description: '登记证据', created_at: now() },
+    { name: '编辑证据', code: 'evidence:edit', module: 'Evidence视图', description: '修改证据', created_at: now() },
+    { name: '删除证据', code: 'evidence:delete', module: 'Evidence视图', description: '删除证据', created_at: now() }
   ];
   // 增量补充缺失的权限（保留已存在的权限和已分配的角色权限）
   let permsAdded = 0;
@@ -582,11 +587,16 @@ const permissions = [
         _grant(role.id, 'labor:view');
         _grant(role.id, 'labor-rate:view');
       }
+      // Evidence 视图属 M03 管理者工作面：经营中心可见角色与物料库可见角色均可查看
+      if (rolePermCodes.has('annual-plan:view') || rolePermCodes.has('material:view')) {
+        _grant(role.id, 'evidence:view');
+      }
       // 财务/成本相关角色补全权（与 finance 一致）
       if (isFinance) {
         ['expense:create', 'expense:edit', 'expense:delete',
          'labor:create', 'labor:edit', 'labor:delete',
-         'labor-rate:create', 'labor-rate:edit', 'labor-rate:delete'].forEach(c => _grant(role.id, c));
+         'labor-rate:create', 'labor-rate:edit', 'labor-rate:delete',
+         'evidence:create', 'evidence:edit', 'evidence:delete'].forEach(c => _grant(role.id, c));
       }
       // 工程师：成品工价库 查看+创建+编辑
       if (isEngineer) {
@@ -665,7 +675,9 @@ if (rpTable.all().length === 0) {
     // 数据清洗：只读
     'data-clean:view',
     // 图纸：只读
-    'drawing:preview'
+    'drawing:preview',
+    // Evidence 视图：只读
+    'evidence:view'
   ]);
 
   // ===== 销售业务员（业务执行岗，无可核价/审核/基础数据修改） =====
@@ -827,7 +839,9 @@ if (rpTable.all().length === 0) {
     // 订单分析库（经营中心）：财务全权审核+核算
     'order-analysis:view','order-analysis:audit','order-analysis:edit',
     // 领料单（实际物料成本数据源）：财务完全管理
-    'material-issue:view','material-issue:create','material-issue:edit','material-issue:delete'
+    'material-issue:view','material-issue:create','material-issue:edit','material-issue:delete',
+    // Evidence 视图（M03 管理者工作面）：财务完全管理
+    'evidence:view','evidence:create','evidence:edit','evidence:delete'
   ]);
 
   // ===== 只读用户（稽核/审计，全模块只读+报表导出，无可操作） =====
@@ -849,7 +863,9 @@ if (rpTable.all().length === 0) {
     // 成品工价库：只读
     'labor-rate:view',
     // 订单分析库/领料单：只读
-    'order-analysis:view','material-issue:view'
+    'order-analysis:view','material-issue:view',
+    // Evidence 视图：只读
+    'evidence:view'
   ]);
 
   // ===== 项目经理（项目全流程管理） =====
@@ -868,7 +884,9 @@ if (rpTable.all().length === 0) {
     'system:permission',
     'feedback:create','feedback:handle','feedback:delete',
     'compliance:view','compliance:run','test:view','rules:view',
-    'data-clean:view','drawing:preview'
+    'data-clean:view','drawing:preview',
+    // Evidence 视图：只读
+    'evidence:view'
   ]);
 
   // ===== 研发经理（研发全权管理） =====
@@ -893,7 +911,9 @@ if (rpTable.all().length === 0) {
     'rules:view','rules:manage','rules:delete',
     'feedback:create',
     'data-clean:view','data-clean:execute','data-clean:delete',
-    'drawing:preview','drawing:approve','drawing:upload','drawing:delete'
+    'drawing:preview','drawing:approve','drawing:upload','drawing:delete',
+    // Evidence 视图：只读
+    'evidence:view'
   ]);
 
   logger.info('角色权限关联初始化完成');
