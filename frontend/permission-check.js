@@ -129,9 +129,9 @@ const PermissionCheck = {
     }
     this.userId = userId;
     this._loadUserInfo();
-    await this.loadPermissions();
-    // 0. 取迁移状态（失败不阻断：原菜单入口按本地清单照常渲染）
-    await this.loadNavTransition();
+    // 权限与迁移状态互不依赖，并行取，避免给每个页面的侧边栏渲染多加一次串行往返。
+    // 迁移状态取不到不影响渲染（失败时原菜单入口按本地清单照常显示）。
+    await Promise.all([this.loadPermissions(), this.loadNavTransition()]);
     // 1. 渲染侧边栏（品牌栏含当前登录账号）
     this.renderSidebar();
     // 1.5 统一顶部工作区工具栏
@@ -607,8 +607,7 @@ const PermissionCheck = {
   async refresh() {
     this._itemsByGroup = null;
     this._loadUserInfo();
-    await this.loadPermissions();
-    await this.loadNavTransition();
+    await Promise.all([this.loadPermissions(), this.loadNavTransition()]);
     this.renderSidebar();
     this.applyToPage();
     this._onChangeCallbacks.forEach(cb => { try { cb(); } catch (_) {} });
